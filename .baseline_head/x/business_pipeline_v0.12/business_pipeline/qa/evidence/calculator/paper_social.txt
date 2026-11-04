@@ -1,0 +1,39 @@
+Computation: social engagement
+Result
+The posts reached 95,000 people and recorded 5,700 engagements, an engagement rate of 6.00% at a frequency of 1.5789. Cost per thousand impressions is 166.67 and follower growth is 5.00%. Cost per engagement is 4.39. Reach, impressions and engagements are the counts the platform reported or you declared; the method does not reconcile them. Every platform defines an engagement differently; a rate is only comparable with the same definition and the same period. No bot filtering, view-through, sentiment or audience-quality correction is applied.
+Inputs and results
+What you declared
+Impressions: 150000
+Reach: 95000
+Engagements: 5700
+Followers start: 18000.0000
+Followers gained: 900.0000
+Spend: 25000.00
+Posts: 15
+What was computed
+Impressions: 150000
+Reach: 95000
+Engagements: 5700
+Spend: 25000.00
+Engagement rate: 0.0600
+Frequency: 1.5789
+Cpm: 166.67
+Cost per engagement: 4.39
+Follower growth: 0.0500
+Posts: 15
+Engagement per post: 380.00
+Honesty: what was not done
+this method: Reach, impressions and engagements are the counts the platform reported or you declared; the method does not reconcile them. Every platform defines an engagement differently; a rate is only comparable with the same definition and the same period. No bot filtering, view-through, sentiment or audience-quality correction is applied.
+Assumptions made
+The counts cover one account, one period and one platform definition.
+Reach is a subset of impressions.
+Limitations
+Declared-count arithmetic; no platform read, bot filter or sentiment.
+Engagement definitions differ between platforms and change over time.
+No sales attribution or incrementality.
+How the figures were checked
+Second implementation agrees.
+Engagement rate is engagements over reach.
+Frequency is impressions over reach.
+Cpm is spend per thousand impressions.
+Follower growth is gained over starting followers.

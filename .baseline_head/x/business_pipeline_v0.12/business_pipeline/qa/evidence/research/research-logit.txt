@@ -1,0 +1,45 @@
+Computation: logistic regression
+Result
+The logistic model over 40 observations converged in 6 iterations with a McFadden pseudo R-squared of 0.1528. Coefficients are log-odds and odds ratios are reported per predictor; a coefficient is not an effect size and no causal claim is made. The outcome must be coded 0/1; the model estimates log-odds, so a coefficient is not a probability or an effect size. No regularisation is applied; complete separation or a collinear design blocks with an error instead of reporting an unstable fit. Standard errors are the usual large-sample Wald ones; small samples and rare outcomes make them optimistic, and no goodness-of-fit test is run. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Y: 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0
+Predictors: Size: -1.72, -0.26, -0.74, -0.01, 0.2, -0.72, -0.74, -0.28, -0.8, 1.32, 0.48, 1.3, -1.0, -0.02, 0.62, 0.8, 3.11, -0.84, -0.01, 0.17, -0.15, 0.42, -0.17, -0.96, 0.79, -0.95, -1.79, -0.16, 0.26, 0.47, 2.23, 0.64, 0.92, 0.22, 0.89, -0.08, 2.05, 1.76, 0.01, 0.15; Group: 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1
+What was computed
+Log likelihood: -22.8067
+Ll null: -26.9205
+Mcfadden r2: 0.1528
+N: 40
+N excluded: 0
+Iterations: 6
+Coef intercept: 0.0059
+Se intercept: 0.4457
+P intercept: 0.9895
+Odds ratio intercept: 1.0059
+Coef size: 0.9529
+Se size: 0.4571
+P size: 0.0371
+Odds ratio size: 2.5933
+Coef group: 0.8585
+Se group: 0.7524
+P group: 0.2539
+Odds ratio group: 2.3596
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+The outcome is binary 0/1 and observations are independent.
+The log-odds are linear in the predictors.
+No perfect separation or collinearity (refused rather than ignored).
+Limitations
+Numeric predictors only; no categorical, interaction or spline terms.
+Wald inference only; no likelihood-ratio tests or calibration statistics.
+No regularisation, so separation blocks rather than biases.
+How the figures were checked
+Second implementation agrees.
+Coefficients maximise the log likelihood.
+Odds ratio is exp of the coefficient.
+P values are probabilities.
+Fitted probabilities are valid.

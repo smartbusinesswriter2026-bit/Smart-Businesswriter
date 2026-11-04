@@ -1,0 +1,223 @@
+{
+ "base": "http://127.0.0.1:8002",
+ "page": {
+  "status": 200,
+  "bytes": 854022,
+  "markers": {
+   "People & organisation": false,
+   "Strategy and design": false,
+   "Resourcing": false,
+   "Development": false,
+   "Reward": false,
+   "Engagement and culture": false,
+   "Analytics": false
+  },
+  "tile_note_rendered": true,
+  "glossary_guard": true
+ },
+ "shelf": {
+  "status": 200,
+  "tools": [
+   "alpha",
+   "weighted",
+   "descriptive",
+   "chi_square",
+   "power",
+   "pearson",
+   "ols",
+   "trainingroi",
+   "labourtightness",
+   "programmecost"
+  ],
+  "worksheets": [
+   "PPL-03",
+   "PPL-02",
+   "PPL-01",
+   "PPL-05",
+   "PPL-04",
+   "PM-10",
+   "CHG-01",
+   "CHG-11",
+   "CHG-12",
+   "CHG-02",
+   "CHG-03",
+   "CHG-04",
+   "CHG-05",
+   "CHG-06",
+   "CHG-07",
+   "CHG-08",
+   "CHG-09",
+   "CHG-10",
+   "CHG-13"
+  ],
+  "tiles": [
+   {
+    "key": "strategy_design",
+    "label": "Strategy and design",
+    "worksheets": 9,
+    "tools": 0,
+    "records": 0,
+    "note": null
+   },
+   {
+    "key": "resourcing",
+    "label": "Resourcing",
+    "worksheets": 3,
+    "tools": 0,
+    "records": 0,
+    "note": null
+   },
+   {
+    "key": "development",
+    "label": "Development",
+    "worksheets": 5,
+    "tools": 0,
+    "records": 0,
+    "note": null
+   },
+   {
+    "key": "reward",
+    "label": "Reward",
+    "worksheets": 0,
+    "tools": 0,
+    "records": 0,
+    "note": "The catalogue holds no reward or job-evaluation framework, so this tile is empty by design and not by omission. It stays empty until the catalogue gains one."
+   },
+   {
+    "key": "engagement_culture",
+    "label": "Engagement and culture",
+    "worksheets": 2,
+    "tools": 0,
+    "records": 0,
+    "note": null
+   },
+   {
+    "key": "analytics",
+    "label": "Analytics",
+    "worksheets": 0,
+    "tools": 10,
+    "records": 0,
+    "note": null
+   }
+  ],
+  "records": [],
+  "theories": [],
+  "glossary_terms": 0
+ },
+ "tools": {
+  "alpha": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "Across 4 items and 8 complete responses the reliability is 0.8874. It measures internal consistency of these items, not validity or a single factor. Cronbach's ",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 7036
+  },
+  "weighted": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "The weighted mean is 3.00 with a weighted standard deviation of 1.41, over 4 observations with a total weight of 6.0000. The effective sample size is 3.0000, so",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 8448
+  },
+  "descriptive": {
+   "status": "delivered",
+   "checks": 6,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "The dataset contains 6 valid observations, with 1 excluded as missing. The mean is 78.83 and the median is 79.00. Values range from 68.00 to 90.00. The sample s",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 6924
+  },
+  "chi_square": {
+   "status": "delivered",
+   "checks": 6,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "The table has 300 observations across 9 cells. The chi-square test of independence gives chi-squared = 56.000 with 4 degree(s) of freedom and a p-value below th",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 8652
+  },
+  "power": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "At the stated effect the design has power 0.4757 against a declared alpha of 0.0500 (target power 0.8000). The smallest effect that reaches that target power is",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 8351
+  },
+  "pearson": {
+   "status": "delivered",
+   "checks": 6,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "The sample contains 8 complete pairs, with 0 excluded as missing. The Pearson correlation is 0.943, a large positive association in this sample. The confidence ",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 9313
+  },
+  "ols": {
+   "status": "delivered",
+   "checks": 7,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "The model uses 10 complete observations, with 0 excluded as missing, and 2 predictor variable(s). It accounts for 0.933 of the variation in the outcome in this ",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 14151
+  },
+  "trainingroi": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "A net gain of PHP 125,000.00 on an investment of PHP 500,000.00 gives a return on investment of 25.00%. Compounded over 3.00 years, the annualised return is 7.7",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 6382
+  },
+  "labourtightness": {
+   "status": "delivered",
+   "checks": 6,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "The real wage is PHP 95.24 and the wage share of productivity is 0.7937. The labour market is tight at 0.2000 vacancies for each unemployed person: 10 vacancies",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 7864
+  },
+  "programmecost": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "report_text": "Compared with the first-listed option, the analysis reports 2 options with an incremental cost per unit of effect for each non-comparator. The ratios are in the",
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 6668
+  }
+ },
+ "screenshots": [
+  {
+   "name": "01-shelf-1280.png",
+   "saved": true
+  },
+  {
+   "name": "02-shelf-390.png",
+   "saved": true
+  },
+  {
+   "name": "03-calculator-1280.png",
+   "saved": true
+  }
+ ]
+}

@@ -1,0 +1,80 @@
+test_the_calculator_covers_every_frozen_method_or_says_why_not (tests.test_product_subjects.CalculatorGuardTest.test_the_calculator_covers_every_frozen_method_or_says_why_not) ... ok
+test_the_calculator_has_eight_business_function_groups (tests.test_product_subjects.CalculatorGuardTest.test_the_calculator_has_eight_business_function_groups) ... ok
+test_the_calculator_union_is_exactly_the_subject_compute_tools (tests.test_product_subjects.CalculatorGuardTest.test_the_calculator_union_is_exactly_the_subject_compute_tools) ... ok
+test_a_read_only_framework_does_not_say_not_implemented (tests.test_product_subjects.CatalogueHonestyTest.test_a_read_only_framework_does_not_say_not_implemented) ... ok
+test_a_worksheet_is_not_repeated_as_a_catalogue_row (tests.test_product_subjects.CatalogueHonestyTest.test_a_worksheet_is_not_repeated_as_a_catalogue_row) ... ok
+test_an_unbuilt_quantitative_method_is_not_called_a_missing_worksheet (tests.test_product_subjects.CatalogueHonestyTest.test_an_unbuilt_quantitative_method_is_not_called_a_missing_worksheet) ... ok
+test_economics_declares_the_impact_evaluation_records (tests.test_product_subjects.CatalogueHonestyTest.test_economics_declares_the_impact_evaluation_records) ... ok
+test_every_record_row_carries_the_text_the_page_shows (tests.test_product_subjects.CatalogueHonestyTest.test_every_record_row_carries_the_text_the_page_shows) ... ok
+test_every_subject_carries_a_student_guide (tests.test_product_subjects.CatalogueHonestyTest.test_every_subject_carries_a_student_guide) ... ok
+test_project_management_owns_the_pm_records_and_the_appraisal_tools (tests.test_product_subjects.CatalogueHonestyTest.test_project_management_owns_the_pm_records_and_the_appraisal_tools) ... ok
+test_registry_form_and_status_are_derived_consistently (tests.test_product_subjects.CatalogueHonestyTest.test_registry_form_and_status_are_derived_consistently) ... ok
+test_theories_are_reading_lenses_not_a_build_backlog (tests.test_product_subjects.CatalogueHonestyTest.test_theories_are_reading_lenses_not_a_build_backlog) ... ok
+test_a_case_about_people_and_change_suggests_a_change_worksheet_or_none_but_never_invents_one (tests.test_product_subjects.FrameworkMatchTest.test_a_case_about_people_and_change_suggests_a_change_worksheet_or_none_but_never_invents_one) ... ok
+test_a_competitive_case_suggests_swot_or_five_forces (tests.test_product_subjects.FrameworkMatchTest.test_a_competitive_case_suggests_swot_or_five_forces) ... ok
+test_the_matcher_route_is_post_only_and_needs_text (tests.test_product_subjects.FrameworkMatchTest.test_the_matcher_route_is_post_only_and_needs_text) ... ok
+test_the_matcher_says_so_when_nothing_fits (tests.test_product_subjects.FrameworkMatchTest.test_the_matcher_says_so_when_nothing_fits) ... ok
+test_a_reload_cannot_land_on_a_dead_session_page (tests.test_product_subjects.ServedUiContractTest.test_a_reload_cannot_land_on_a_dead_session_page) ... ok
+test_a_subject_page_has_tools_or_an_honest_catalogue (tests.test_product_subjects.ServedUiContractTest.test_a_subject_page_has_tools_or_an_honest_catalogue) ... ok
+test_a_worksheet_still_renders_without_a_session (tests.test_product_subjects.ServedUiContractTest.test_a_worksheet_still_renders_without_a_session) ... ok
+test_an_unknown_subject_is_a_clear_refusal (tests.test_product_subjects.ServedUiContractTest.test_an_unknown_subject_is_a_clear_refusal) ... ok
+test_every_calculator_run_is_recorded_as_a_case (tests.test_product_subjects.ServedUiContractTest.test_every_calculator_run_is_recorded_as_a_case) ... ok
+test_every_catalogue_id_exists_and_no_template_is_invented (tests.test_product_subjects.ServedUiContractTest.test_every_catalogue_id_exists_and_no_template_is_invented) ... FAIL
+test_every_launch_id_exists_in_the_frozen_contract (tests.test_product_subjects.ServedUiContractTest.test_every_launch_id_exists_in_the_frozen_contract) ... ok
+test_every_preset_launches_the_method_it_claims (tests.test_product_subjects.ServedUiContractTest.test_every_preset_launches_the_method_it_claims) ... ok
+test_every_subject_page_offers_the_shared_source_finder (tests.test_product_subjects.ServedUiContractTest.test_every_subject_page_offers_the_shared_source_finder) ... ok
+test_every_worksheet_template_exists_and_matches_the_registry (tests.test_product_subjects.ServedUiContractTest.test_every_worksheet_template_exists_and_matches_the_registry) ... ok
+test_frameworks_come_before_computation_and_too_many_get_a_picker (tests.test_product_subjects.ServedUiContractTest.test_frameworks_come_before_computation_and_too_many_get_a_picker)
+The page puts no-computation worksheets first, then computed tools, and ... FAIL
+test_no_catalogue_row_claims_a_worksheet_the_engine_does_not_have (tests.test_product_subjects.ServedUiContractTest.test_no_catalogue_row_claims_a_worksheet_the_engine_does_not_have) ... ok
+test_no_reviewer_surface_remains_in_the_served_page (tests.test_product_subjects.ServedUiContractTest.test_no_reviewer_surface_remains_in_the_served_page) ... ok
+test_opening_a_tool_does_not_bounce_back_to_the_page_it_came_from (tests.test_product_subjects.ServedUiContractTest.test_opening_a_tool_does_not_bounce_back_to_the_page_it_came_from)
+A computation tile must open the tool, not loop the student to the top. ... ok
+test_the_business_calculator_shell_has_a_display_and_a_keypad (tests.test_product_subjects.ServedUiContractTest.test_the_business_calculator_shell_has_a_display_and_a_keypad)
+P1 of docs/proposals/BUSINESS_CALCULATOR_DESIGN.md: the calculator shell. ... ok
+test_the_business_case_tile_has_a_template_editor_and_the_calculator_delegates_to_it (tests.test_product_subjects.ServedUiContractTest.test_the_business_case_tile_has_a_template_editor_and_the_calculator_delegates_to_it)
+`case_decision` is a template, not a frozen method, so the generic ... ok
+test_the_calculator_can_be_asked_in_words_only_through_the_router (tests.test_product_subjects.ServedUiContractTest.test_the_calculator_can_be_asked_in_words_only_through_the_router)
+P3: the chat posts the sentence to the product layer and renders its answer. ... ok
+test_the_calculator_never_computes_in_the_browser (tests.test_product_subjects.ServedUiContractTest.test_the_calculator_never_computes_in_the_browser) ... ok
+test_the_figures_panel_describes_the_method_actually_on_screen (tests.test_product_subjects.ServedUiContractTest.test_the_figures_panel_describes_the_method_actually_on_screen)
+Only management accounts have an engagement. ... ok
+test_the_home_chat_uses_an_up_arrow_and_enter (tests.test_product_subjects.ServedUiContractTest.test_the_home_chat_uses_an_up_arrow_and_enter) ... ok
+test_the_keypad_is_off_for_list_and_worksheet_tools (tests.test_product_subjects.ServedUiContractTest.test_the_keypad_is_off_for_list_and_worksheet_tools) ... ok
+test_the_rail_carries_the_portfolio_lab_above_the_calculator (tests.test_product_subjects.ServedUiContractTest.test_the_rail_carries_the_portfolio_lab_above_the_calculator)
+The Portfolio Lab is the fourteenth rail item and sits above the Calculator. ... ok
+test_the_rail_launcher_is_named_the_business_calculator (tests.test_product_subjects.ServedUiContractTest.test_the_rail_launcher_is_named_the_business_calculator)
+The owner renamed the feature: the served page must say it everywhere. ... ok
+test_the_removed_panels_have_not_come_back (tests.test_product_subjects.ServedUiContractTest.test_the_removed_panels_have_not_come_back) ... ok
+test_the_schema_form_uses_choices_and_comma_lists_where_the_method_declares_them (tests.test_product_subjects.ServedUiContractTest.test_the_schema_form_uses_choices_and_comma_lists_where_the_method_declares_them) ... ok
+test_the_served_page_carries_every_subject_and_the_rail_toggle (tests.test_product_subjects.ServedUiContractTest.test_the_served_page_carries_every_subject_and_the_rail_toggle) ... ok
+test_worksheet_drafts_and_the_worksheet_export_are_present (tests.test_product_subjects.ServedUiContractTest.test_worksheet_drafts_and_the_worksheet_export_are_present) ... ok
+test_worksheets_never_show_raw_json_to_the_user (tests.test_product_subjects.ServedUiContractTest.test_worksheets_never_show_raw_json_to_the_user)
+A student fills a guided form; the page never exposes the input object. ... ok
+test_entrepreneurship_offers_venture_tools_and_canvas_records (tests.test_product_subjects.SubjectCatalogueTest.test_entrepreneurship_offers_venture_tools_and_canvas_records) ... ok
+test_every_economics_tool_carries_student_notes_and_a_level (tests.test_product_subjects.SubjectCatalogueTest.test_every_economics_tool_carries_student_notes_and_a_level) ... ok
+test_the_five_new_micro_tools_have_diagrams (tests.test_product_subjects.SubjectCatalogueTest.test_the_five_new_micro_tools_have_diagrams) ... ok
+test_the_gallery_declares_eleven_subjects_and_a_cross_cutting_shelf (tests.test_product_subjects.SubjectCatalogueTest.test_the_gallery_declares_eleven_subjects_and_a_cross_cutting_shelf) ... ok
+test_the_rail_lists_every_subject_in_order_with_a_distinct_icon (tests.test_product_subjects.SubjectCatalogueTest.test_the_rail_lists_every_subject_in_order_with_a_distinct_icon) ... ok
+test_a_stored_case_is_filtered_by_the_methods_of_a_subject (tests.test_product_subjects.SubjectRouteTest.test_a_stored_case_is_filtered_by_the_methods_of_a_subject) ... ok
+test_gallery_and_detail_are_served_without_computing_anything (tests.test_product_subjects.SubjectRouteTest.test_gallery_and_detail_are_served_without_computing_anything) ... ok
+test_the_calculator_route_is_get_only (tests.test_product_subjects.SubjectRouteTest.test_the_calculator_route_is_get_only) ... ok
+
+======================================================================
+FAIL: test_every_catalogue_id_exists_and_no_template_is_invented (tests.test_product_subjects.ServedUiContractTest.test_every_catalogue_id_exists_and_no_template_is_invented)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_subjects.py", line 584, in test_every_catalogue_id_exists_and_no_template_is_invented
+    self.assertEqual(row["name"], record["name"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Stakeholder Analysis / Power–Interest Matrix' != 'Stakeholder Analysis / Powerâ€“Interest Matrix'
+- Stakeholder Analysis / Power–Interest Matrix
+?                             ^
++ Stakeholder Analysis / Powerâ€“Interest Matrix
+?                             ^^^
+
+
+======================================================================
+FAIL: test_frameworks_come_before_computation_and_too_many_get_a_picker (tests.test_product_subjects.ServedUiContractTest.test_frameworks_come_before_computation_and_too_many_get_a_picker)
+The page puts no-computation worksheets first, then computed tools, and
+----------------------------------------------------------------------

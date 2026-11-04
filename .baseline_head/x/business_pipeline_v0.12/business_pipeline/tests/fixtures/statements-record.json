@@ -1,0 +1,1969 @@
+{
+ "format": "bp-statements/1",
+ "solved": true,
+ "refusal": null,
+ "instruction": "The owner started the business and the transactions for the year ended 31 December 2026 are listed below.",
+ "instruction_hash": "sha256:250b02d679457e37",
+ "problem_type": "transactions",
+ "why": "Prepared from a journal the model extracted; every figure was posted by the deterministic ledger and checked against the three articulation identities.",
+ "reading": {
+  "problem_type": "transactions",
+  "why": "Prepared from a journal the model extracted; every figure was posted by the deterministic ledger and checked against the three articulation identities.",
+  "currency": "USD",
+  "framework": "US_GAAP",
+  "derivations": [],
+  "assumptions": [
+   "depreciation.method",
+   "rounding"
+  ],
+  "missing": [
+   "adjusting entries derived: dep, ins, cogs, tax"
+  ],
+  "diagnosis": null
+ },
+ "reading_source": "plan",
+ "same_model_disclosure": false,
+ "rejected": [],
+ "spec": {},
+ "requested": [
+  "IS",
+  "RE",
+  "BS",
+  "CF"
+ ],
+ "computed": [
+  "IS",
+  "RE",
+  "BS",
+  "CF"
+ ],
+ "hidden": [],
+ "warnings": [],
+ "core": {
+  "scalars": {
+   "net_income": "52575.00",
+   "total_assets": "178100.00",
+   "total_liabilities": "75525.00",
+   "total_equity": "102575.00",
+   "retained_earnings_closing": "52575.00",
+   "cash_net": "104600",
+   "checks_passed": "9",
+   "checks_total": "11",
+   "checks_na": "2",
+   "n_entries": "19",
+   "n_flags": "0",
+   "articulation": "[('assets_equal_liabilities_plus_equity', True, 'assets 178100.00, liabilities + equity 178100.00'), ('cash_flow_equals_balance_sheet_cash', True, 'statement 104600, closing cash 104600 less opening 0 = 104600'), ('receipts_minus_payments_equals_ending_cash', True, 'receipts 275000 less payments 170400 plus opening 0 = 104600, closing cash 104600')]",
+   "assumptions": "{'stated': ['depreciation.convention', 'inventory_system', 'tax_rate'], 'assumed': [{'assumption': 'depreciation.method', 'value': 'straight_line', 'reason': 'only straight-line is implemented; a reducing-balance policy must be declared'}, {'assumption': 'rounding', 'value': 'half_up', 'reason': 'the text did not declare a rounding rule'}]}",
+   "pretax_income": "70100.00",
+   "skipped_adjustments": "[]",
+   "spec": "{'period': {'start': '2026-01-01', 'end': '2026-12-31'}, 'currency': 'USD', 'framework': 'US_GAAP', 'places': 2, 'chart': [{'code': '1000', 'name': 'Cash', 'type': 'asset', 'line': 'Cash', 'section': 'current', 'role': 'cash', 'activity': '', 'contra': False}, {'code': '1100', 'name': 'Trade receivables', 'type': 'asset', 'line': 'Trade receivables', 'section': 'current', 'role': '', 'activity': '', 'contra': False}, {'code': '1200', 'name': 'Inventory', 'type': 'asset', 'line': 'Inventory', 'section': 'current', 'role': '', 'activity': '', 'contra': False}, {'code': '1300', 'name': 'Prepaid insurance', 'type': 'asset', 'line': 'Prepayments', 'section': 'current', 'role': '', 'activity': '', 'contra': False}, {'code': '1500', 'name': 'Equipment', 'type': 'asset', 'line': 'Property, plant and equipment', 'section': 'non_current', 'role': '', 'activity': '', 'contra': False}, {'code': '1510', 'name': 'Accumulated depreciation', 'type': 'asset', 'line': 'Property, plant and equipment', 'section': 'non_current', 'role': '', 'activity': '', 'contra': True}, {'code': '2000', 'name': 'Trade payables', 'type': 'liability', 'line': 'Trade payables', 'section': 'current', 'role': '', 'activity': '', 'contra': False}, {'code': '2100', 'name': 'Loan', 'type': 'liability', 'line': 'Borrowings', 'section': 'non_current', 'role': '', 'activity': '', 'contra': False}, {'code': '2200', 'name': 'Tax payable', 'type': 'liability', 'line': 'Accruals', 'section': 'current', 'role': '', 'activity': '', 'contra': False}, {'code': '2300', 'name': 'Accrued salaries', 'type': 'liability', 'line': 'Accruals', 'section': 'current', 'role': '', 'activity': '', 'contra': False}, {'code': '3000', 'name': 'Share capital', 'type': 'equity', 'line': 'Capital', 'section': '', 'role': 'capital', 'activity': '', 'contra': False}, {'code': '3100', 'name': 'Retained earnings', 'type': 'equity', 'line': 'Retained earnings', 'section': '', 'role': 'retained_earnings', 'activity': '', 'contra': False}, {'code': '4000', 'name': 'Sales', 'type': 'income', 'line': 'Revenue', 'section': '', 'role': '', 'activity': '', 'contra': False}, {'code': '5000', 'name': 'Cost of sales', 'type': 'expense', 'line': 'Cost of sales', 'section': '', 'role': '', 'activity': '', 'contra': False}, {'code': '6100', 'name': 'Salaries', 'type': 'expense', 'line': 'Operating expenses', 'section': '', 'role': '', 'activity': '', 'contra': False}, {'code': '6200', 'name': 'Rent', 'type': 'expense', 'line': 'Operating expenses', 'section': '', 'role': '', 'activity': '', 'contra': False}, {'code': '6300', 'name': 'Insurance', 'type': 'expense', 'line': 'Operating expenses', 'section': '', 'role': '', 'activity': '', 'contra': False}, {'code': '6400', 'name': 'Depreciation', 'type': 'expense', 'line': 'Operating expenses', 'section': '', 'role': '', 'activity': '', 'contra': False}, {'code': '7000', 'name': 'Interest', 'type': 'expense', 'line': 'Finance costs', 'section': '', 'role': '', 'activity': '', 'contra': False}, {'code': '8000', 'name': 'Income tax', 'type': 'expense', 'line': 'Tax', 'section': '', 'role': '', 'activity': '', 'contra': False}], 'prior_closing': {}, 'opening': [], 'entries': [{'date': '2026-01-01', 'description': 'Shares issued', 'lines': [{'account': '1000', 'debit': '50000'}, {'account': '3000', 'credit': '50000'}]}, {'date': '2026-01-02', 'description': 'Bank loan', 'lines': [{'account': '1000', 'debit': '40000'}, {'account': '2100', 'credit': '40000'}]}, {'date': '2026-01-03', 'description': 'Equipment', 'lines': [{'account': '1500', 'debit': '60000'}, {'account': '1000', 'credit': '60000'}]}, {'date': '2026-01-04', 'description': 'Inventory on credit', 'lines': [{'account': '1200', 'debit': '70000'}, {'account': '2000', 'credit': '70000'}]}, {'date': '2026-01-10', 'description': 'Insurance', 'lines': [{'account': '1300', 'debit': '6000'}, {'account': '1000', 'credit': '6000'}]}, {'date': '2026-12-31', 'description': 'Cash sales', 'lines': [{'account': '1000', 'debit': '120000'}, {'account': '4000', 'credit': '120000'}]}, {'date': '2026-12-31', 'description': 'Credit sales', 'lines': [{'account': '1100', 'debit': '80000'}, {'account': '4000', 'credit': '80000'}]}, {'date': '2026-12-31', 'description': 'Collections', 'lines': [{'account': '1000', 'debit': '65000'}, {'account': '1100', 'credit': '65000'}]}, {'date': '2026-12-31', 'description': 'Payables paid', 'lines': [{'account': '2000', 'debit': '55000'}, {'account': '1000', 'credit': '55000'}]}, {'date': '2026-12-31', 'description': 'Salaries', 'lines': [{'account': '6100', 'debit': '35000'}, {'account': '1000', 'credit': '35000'}]}, {'date': '2026-12-31', 'description': 'Rent', 'lines': [{'account': '6200', 'debit': '12000'}, {'account': '1000', 'credit': '12000'}]}, {'date': '2026-12-31', 'description': 'Interest', 'lines': [{'account': '7000', 'debit': '2400'}, {'account': '1000', 'credit': '2400'}]}, {'date': '2026-12-31', 'description': 'Accrued salaries', 'lines': [{'account': '6100', 'debit': '3000'}, {'account': '2300', 'credit': '3000'}]}, {'date': '2026-12-31', 'description': 'dep', 'lines': [{'account': '6400', 'debit': '12000.00'}, {'account': '1510', 'credit': '12000.00'}]}, {'date': '2026-12-31', 'description': 'ins', 'lines': [{'account': '6300', 'debit': '5500.00'}, {'account': '1300', 'credit': '5500.00'}]}, {'date': '2026-12-31', 'description': 'cogs', 'lines': [{'account': '5000', 'debit': '60000.00'}, {'account': '1200', 'credit': '60000.00'}]}, {'date': '2026-12-31', 'description': 'tax', 'lines': [{'account': '8000', 'debit': '17525.00'}, {'account': '2200', 'credit': '17525.00'}]}], 'schedules': []}"
+  },
+  "appendix": {
+   "framework": "US_GAAP",
+   "statements": {
+    "income": {},
+    "expenses": {},
+    "net_income": "0",
+    "assets": {
+     "Cash": "104600",
+     "Trade receivables": "15000",
+     "Inventory": "10000.00",
+     "Prepayments": "500.00",
+     "Property, plant and equipment": "48000.00"
+    },
+    "liabilities": {
+     "Trade payables": "15000",
+     "Borrowings": "40000",
+     "Accruals": "20525.00"
+    },
+    "equity": {
+     "Capital": "50000",
+     "Retained earnings": "52575.00"
+    },
+    "oci": {},
+    "total_oci": "0",
+    "profit_for_period": "0",
+    "total_comprehensive_income": "0",
+    "total_assets": "178100.00",
+    "total_liabilities": "75525.00",
+    "total_equity": "102575.00",
+    "equity_with_current_earnings": "102575.00"
+   },
+   "trial_balance": {
+    "rows": [
+     [
+      "1000",
+      "Cash",
+      "104600",
+      "0"
+     ],
+     [
+      "1100",
+      "Trade receivables",
+      "15000",
+      "0"
+     ],
+     [
+      "1200",
+      "Inventory",
+      "10000.00",
+      "0"
+     ],
+     [
+      "1300",
+      "Prepaid insurance",
+      "500.00",
+      "0"
+     ],
+     [
+      "1500",
+      "Equipment",
+      "60000",
+      "0"
+     ],
+     [
+      "1510",
+      "Accumulated depreciation",
+      "0",
+      "12000.00"
+     ],
+     [
+      "2000",
+      "Trade payables",
+      "0",
+      "15000"
+     ],
+     [
+      "2100",
+      "Loan",
+      "0",
+      "40000"
+     ],
+     [
+      "2200",
+      "Tax payable",
+      "0",
+      "17525.00"
+     ],
+     [
+      "2300",
+      "Accrued salaries",
+      "0",
+      "3000"
+     ],
+     [
+      "3000",
+      "Share capital",
+      "0",
+      "50000"
+     ],
+     [
+      "3100",
+      "Retained earnings",
+      "0",
+      "52575.00"
+     ]
+    ],
+    "total_debits": "190100.00",
+    "total_credits": "190100.00"
+   },
+   "cash_flow": {
+    "operating": "74600",
+    "investing": "-60000",
+    "financing": "90000",
+    "net_direct": "104600",
+    "net_indirect": "104600.00",
+    "detail": [
+     {
+      "date": "2026-01-01",
+      "description": "Shares issued",
+      "activity": "financing",
+      "amount": "50000"
+     },
+     {
+      "date": "2026-01-02",
+      "description": "Bank loan",
+      "activity": "financing",
+      "amount": "40000"
+     },
+     {
+      "date": "2026-01-03",
+      "description": "Equipment",
+      "activity": "investing",
+      "amount": "-60000"
+     },
+     {
+      "date": "2026-01-10",
+      "description": "Insurance",
+      "activity": "operating",
+      "amount": "-6000"
+     },
+     {
+      "date": "2026-12-31",
+      "description": "Cash sales",
+      "activity": "operating",
+      "amount": "120000"
+     },
+     {
+      "date": "2026-12-31",
+      "description": "Collections",
+      "activity": "operating",
+      "amount": "65000"
+     },
+     {
+      "date": "2026-12-31",
+      "description": "Payables paid",
+      "activity": "operating",
+      "amount": "-55000"
+     },
+     {
+      "date": "2026-12-31",
+      "description": "Salaries",
+      "activity": "operating",
+      "amount": "-35000"
+     },
+     {
+      "date": "2026-12-31",
+      "description": "Rent",
+      "activity": "operating",
+      "amount": "-12000"
+     },
+     {
+      "date": "2026-12-31",
+      "description": "Interest",
+      "activity": "operating",
+      "amount": "-2400"
+     }
+    ],
+    "opening_cash": "0",
+    "closing_cash": "104600",
+    "checks": [
+     [
+      "cash_flow_agrees_across_routes",
+      true,
+      "direct 104600, indirect 104600.00"
+     ]
+    ],
+    "flags": []
+   },
+   "checks": [
+    [
+     "trial_balance_debits_equal_credits",
+     true,
+     "190100.00 vs 190100.00"
+    ],
+    [
+     "assets_equal_liabilities_plus_equity",
+     true,
+     "178100.00 vs 178100.00"
+    ],
+    [
+     "net_income_agrees_across_routes",
+     true,
+     "statements 0, journal 0.00; no opening balances, so the second route is unavailable"
+    ],
+    [
+     "opening_balances_equal_prior_closing",
+     true,
+     "all agree"
+    ],
+    [
+     "statement_lines_foot_to_totals",
+     true,
+     "ok"
+    ],
+    [
+     "journal_hash_chain_intact",
+     true,
+     "ok"
+    ],
+    [
+     "cash_flow_agrees_across_routes",
+     true,
+     "direct 104600, indirect 104600.00"
+    ],
+    [
+     "retained_earnings_rollforward",
+     true,
+     "closing 52575.00, expected 52575.00"
+    ],
+    [
+     "income_expense_and_dividends_zero_after_closing",
+     true,
+     "all closed"
+    ],
+    [
+     "statement_internally_consistent",
+     true,
+     "no reconciliation was supplied"
+    ],
+    [
+     "opening_balances_agree",
+     true,
+     "no reconciliation was supplied"
+    ]
+   ],
+   "flags": [],
+   "closing_balances": {
+    "1000": "104600",
+    "1100": "15000",
+    "1200": "10000.00",
+    "1300": "500.00",
+    "1500": "60000",
+    "1510": "12000.00",
+    "2000": "15000",
+    "2100": "40000",
+    "2200": "17525.00",
+    "2300": "3000",
+    "3000": "50000",
+    "3100": "52575.00",
+    "4000": "0",
+    "5000": "0.00",
+    "6100": "0",
+    "6200": "0",
+    "6300": "0.00",
+    "6400": "0.00",
+    "7000": "0",
+    "8000": "0.00"
+   },
+   "export": "; ledger 2026-01-01 to 2026-12-31 USD\n2026-01-01 Shares issued\n  1000       Dr 50000\n  3000       Cr 50000\n2026-01-02 Bank loan\n  1000       Dr 40000\n  2100       Cr 40000\n2026-01-03 Equipment\n  1500       Dr 60000\n  1000       Cr 60000\n2026-01-04 Inventory on credit\n  1200       Dr 70000\n  2000       Cr 70000\n2026-01-10 Insurance\n  1300       Dr 6000\n  1000       Cr 6000\n2026-12-31 Cash sales\n  1000       Dr 120000\n  4000       Cr 120000\n2026-12-31 Credit sales\n  1100       Dr 80000\n  4000       Cr 80000\n2026-12-31 Collections\n  1000       Dr 65000\n  1100       Cr 65000\n2026-12-31 Payables paid\n  2000       Dr 55000\n  1000       Cr 55000\n2026-12-31 Salaries\n  6100       Dr 35000\n  1000       Cr 35000\n2026-12-31 Rent\n  6200       Dr 12000\n  1000       Cr 12000\n2026-12-31 Interest\n  7000       Dr 2400\n  1000       Cr 2400\n2026-12-31 Accrued salaries\n  6100       Dr 3000\n  2300       Cr 3000\n2026-12-31 dep\n  6400       Dr 12000.00\n  1510       Cr 12000.00\n2026-12-31 ins\n  6300       Dr 5500.00\n  1300       Cr 5500.00\n2026-12-31 cogs\n  5000       Dr 60000.00\n  1200       Cr 60000.00\n2026-12-31 tax\n  8000       Dr 17525.00\n  2200       Cr 17525.00\n2026-12-31 closing: income to retained earnings\n  4000       Dr 200000\n  3100       Cr 200000\n2026-12-31 closing: expenses to retained earnings\n  3100       Dr 147425.00\n  5000       Cr 60000.00\n  6100       Cr 38000\n  6200       Cr 12000\n  6300       Cr 5500.00\n  6400       Cr 12000.00\n  7000       Cr 2400\n  8000       Cr 17525.00",
+   "opening_lines_next": [
+    {
+     "account": "1000",
+     "debit": "104600"
+    },
+    {
+     "account": "1100",
+     "debit": "15000"
+    },
+    {
+     "account": "1200",
+     "debit": "10000.00"
+    },
+    {
+     "account": "1300",
+     "debit": "500.00"
+    },
+    {
+     "account": "1500",
+     "debit": "60000"
+    },
+    {
+     "account": "1510",
+     "credit": "12000.00"
+    },
+    {
+     "account": "2000",
+     "credit": "15000"
+    },
+    {
+     "account": "2100",
+     "credit": "40000"
+    },
+    {
+     "account": "2200",
+     "credit": "17525.00"
+    },
+    {
+     "account": "2300",
+     "credit": "3000"
+    },
+    {
+     "account": "3000",
+     "credit": "50000"
+    },
+    {
+     "account": "3100",
+     "credit": "52575.00"
+    }
+   ],
+   "engagement": {
+    "period": {
+     "start": "2026-01-01",
+     "end": "2026-12-31"
+    },
+    "currency": "USD",
+    "places": 2
+   },
+   "income_groups": {
+    "income": {
+     "Revenue": "200000"
+    },
+    "expenses": {
+     "Cost of sales": "60000.00",
+     "Operating expenses": "67500.00",
+     "Finance costs": "2400",
+     "Tax": "17525.00"
+    },
+    "total_revenue": "200000",
+    "total_expenses": "147425.00",
+    "oci": {},
+    "total_oci": "0",
+    "total_comprehensive_income": "52575.00"
+   },
+   "balance_sheet_groups": {
+    "groups": {
+     "current_assets": {
+      "Cash": "104600",
+      "Trade receivables": "15000",
+      "Inventory": "10000.00",
+      "Prepayments": "500.00"
+     },
+     "non_current_assets": {
+      "Property, plant and equipment": "48000.00"
+     },
+     "unclassified_assets": {},
+     "current_liabilities": {
+      "Trade payables": "15000",
+      "Accruals": "20525.00"
+     },
+     "non_current_liabilities": {
+      "Borrowings": "40000"
+     },
+     "unclassified_liabilities": {},
+     "equity": {
+      "Capital": "50000",
+      "Retained earnings": "52575.00"
+     }
+    },
+    "totals": {
+     "current_assets": "130100.00",
+     "non_current_assets": "48000.00",
+     "unclassified_assets": "0",
+     "current_liabilities": "35525.00",
+     "non_current_liabilities": "40000",
+     "unclassified_liabilities": "0",
+     "equity": "102575.00"
+    },
+    "classified": true
+   },
+   "ratio_figures": {
+    "cash": "104600",
+    "total_assets": "178100.00",
+    "total_liabilities": "75525.00",
+    "equity": "102575.00",
+    "net_income": "52575.00",
+    "current_assets": "130100.00",
+    "current_liabilities": "35525.00",
+    "revenue": "200000",
+    "inventory": "10000.00",
+    "receivables": "15000",
+    "payables": "15000",
+    "cost_of_sales": "60000.00"
+   },
+   "ratio_gaps": [
+    {
+     "ratio": "market_to_book",
+     "group": "market",
+     "needs": [
+      "share_price",
+      "shares_outstanding"
+     ],
+     "why": "a market value needs a share price and the number of shares; neither is part of a trial balance"
+    },
+    {
+     "ratio": "price_earnings",
+     "group": "market",
+     "needs": [
+      "share_price",
+      "shares_outstanding"
+     ],
+     "why": "a price-earnings ratio needs a share price"
+    },
+    {
+     "ratio": "earnings_per_share",
+     "group": "market",
+     "needs": [
+      "shares_outstanding"
+     ],
+     "why": "a per-share figure needs the number of shares"
+    },
+    {
+     "ratio": "dividend_payout",
+     "group": "market",
+     "needs": [
+      "dividends_declared",
+      "shares_outstanding"
+     ],
+     "why": "a payout ratio needs the dividends declared and the number of shares"
+    },
+    {
+     "ratio": "dividend_yield",
+     "group": "market",
+     "needs": [
+      "dividends_declared",
+      "share_price"
+     ],
+     "why": "a yield needs the dividends and a share price"
+    },
+    {
+     "ratio": "operating_cash_flow_ratio",
+     "group": "cash flow",
+     "needs": [
+      "operating_cash_flow",
+      "current_liabilities"
+     ],
+     "why": "the registry holds no cash-flow ratios; the cash flow statement is recorded but not wired into it"
+    },
+    {
+     "ratio": "free_cash_flow",
+     "group": "cash flow",
+     "needs": [
+      "operating_cash_flow",
+      "capital_expenditure"
+     ],
+     "why": "free cash flow needs operating cash flow and capital expenditure, which the registry does not define"
+    },
+    {
+     "ratio": "accruals_ratio",
+     "group": "quality",
+     "needs": [
+      "net_income",
+      "operating_cash_flow",
+      "total_assets"
+     ],
+     "why": "an accruals ratio compares accounting profit with cash flow; it is not in the registry"
+    },
+    {
+     "ratio": "altman_z_score",
+     "group": "quality",
+     "needs": [
+      "working_capital",
+      "retained_earnings",
+      "ebit",
+      "market_value_of_equity",
+      "sales",
+      "total_assets"
+     ],
+     "why": "a distress score needs five declared inputs, one of them a market value"
+    },
+    {
+     "ratio": "beneish_m_score",
+     "group": "quality",
+     "needs": [
+      "two consecutive periods for eight indices"
+     ],
+     "why": "a manipulation score needs two consecutive periods; one period is not enough"
+    }
+   ],
+   "ledgers": [
+    {
+     "code": "1000",
+     "name": "Cash",
+     "type": "asset",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-01-01",
+       "entry": "Shares issued",
+       "closing": false,
+       "debit": "50000",
+       "credit": "0",
+       "balance": "50000"
+      },
+      {
+       "date": "2026-01-02",
+       "entry": "Bank loan",
+       "closing": false,
+       "debit": "40000",
+       "credit": "0",
+       "balance": "90000"
+      },
+      {
+       "date": "2026-01-03",
+       "entry": "Equipment",
+       "closing": false,
+       "debit": "0",
+       "credit": "60000",
+       "balance": "30000"
+      },
+      {
+       "date": "2026-01-10",
+       "entry": "Insurance",
+       "closing": false,
+       "debit": "0",
+       "credit": "6000",
+       "balance": "24000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Cash sales",
+       "closing": false,
+       "debit": "120000",
+       "credit": "0",
+       "balance": "144000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Collections",
+       "closing": false,
+       "debit": "65000",
+       "credit": "0",
+       "balance": "209000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Payables paid",
+       "closing": false,
+       "debit": "0",
+       "credit": "55000",
+       "balance": "154000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Salaries",
+       "closing": false,
+       "debit": "0",
+       "credit": "35000",
+       "balance": "119000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Rent",
+       "closing": false,
+       "debit": "0",
+       "credit": "12000",
+       "balance": "107000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Interest",
+       "closing": false,
+       "debit": "0",
+       "credit": "2400",
+       "balance": "104600"
+      }
+     ],
+     "movement_debits": "275000",
+     "movement_credits": "170400",
+     "closing_balance": "104600",
+     "closing_debits": "275000",
+     "closing_credits": "170400"
+    },
+    {
+     "code": "1100",
+     "name": "Trade receivables",
+     "type": "asset",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "Credit sales",
+       "closing": false,
+       "debit": "80000",
+       "credit": "0",
+       "balance": "80000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Collections",
+       "closing": false,
+       "debit": "0",
+       "credit": "65000",
+       "balance": "15000"
+      }
+     ],
+     "movement_debits": "80000",
+     "movement_credits": "65000",
+     "closing_balance": "15000",
+     "closing_debits": "80000",
+     "closing_credits": "65000"
+    },
+    {
+     "code": "1200",
+     "name": "Inventory",
+     "type": "asset",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-01-04",
+       "entry": "Inventory on credit",
+       "closing": false,
+       "debit": "70000",
+       "credit": "0",
+       "balance": "70000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "cogs",
+       "closing": false,
+       "debit": "0",
+       "credit": "60000.00",
+       "balance": "10000.00"
+      }
+     ],
+     "movement_debits": "70000",
+     "movement_credits": "60000.00",
+     "closing_balance": "10000.00",
+     "closing_debits": "70000",
+     "closing_credits": "60000.00"
+    },
+    {
+     "code": "1300",
+     "name": "Prepaid insurance",
+     "type": "asset",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-01-10",
+       "entry": "Insurance",
+       "closing": false,
+       "debit": "6000",
+       "credit": "0",
+       "balance": "6000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "ins",
+       "closing": false,
+       "debit": "0",
+       "credit": "5500.00",
+       "balance": "500.00"
+      }
+     ],
+     "movement_debits": "6000",
+     "movement_credits": "5500.00",
+     "closing_balance": "500.00",
+     "closing_debits": "6000",
+     "closing_credits": "5500.00"
+    },
+    {
+     "code": "1500",
+     "name": "Equipment",
+     "type": "asset",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-01-03",
+       "entry": "Equipment",
+       "closing": false,
+       "debit": "60000",
+       "credit": "0",
+       "balance": "60000"
+      }
+     ],
+     "movement_debits": "60000",
+     "movement_credits": "0",
+     "closing_balance": "60000",
+     "closing_debits": "60000",
+     "closing_credits": "0"
+    },
+    {
+     "code": "1510",
+     "name": "Accumulated depreciation",
+     "type": "asset",
+     "normal": "C",
+     "contra": true,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "dep",
+       "closing": false,
+       "debit": "0",
+       "credit": "12000.00",
+       "balance": "12000.00"
+      }
+     ],
+     "movement_debits": "0",
+     "movement_credits": "12000.00",
+     "closing_balance": "12000.00",
+     "closing_debits": "0",
+     "closing_credits": "12000.00"
+    },
+    {
+     "code": "2000",
+     "name": "Trade payables",
+     "type": "liability",
+     "normal": "C",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-01-04",
+       "entry": "Inventory on credit",
+       "closing": false,
+       "debit": "0",
+       "credit": "70000",
+       "balance": "70000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Payables paid",
+       "closing": false,
+       "debit": "55000",
+       "credit": "0",
+       "balance": "15000"
+      }
+     ],
+     "movement_debits": "55000",
+     "movement_credits": "70000",
+     "closing_balance": "15000",
+     "closing_debits": "55000",
+     "closing_credits": "70000"
+    },
+    {
+     "code": "2100",
+     "name": "Loan",
+     "type": "liability",
+     "normal": "C",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-01-02",
+       "entry": "Bank loan",
+       "closing": false,
+       "debit": "0",
+       "credit": "40000",
+       "balance": "40000"
+      }
+     ],
+     "movement_debits": "0",
+     "movement_credits": "40000",
+     "closing_balance": "40000",
+     "closing_debits": "0",
+     "closing_credits": "40000"
+    },
+    {
+     "code": "2200",
+     "name": "Tax payable",
+     "type": "liability",
+     "normal": "C",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "tax",
+       "closing": false,
+       "debit": "0",
+       "credit": "17525.00",
+       "balance": "17525.00"
+      }
+     ],
+     "movement_debits": "0",
+     "movement_credits": "17525.00",
+     "closing_balance": "17525.00",
+     "closing_debits": "0",
+     "closing_credits": "17525.00"
+    },
+    {
+     "code": "2300",
+     "name": "Accrued salaries",
+     "type": "liability",
+     "normal": "C",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "Accrued salaries",
+       "closing": false,
+       "debit": "0",
+       "credit": "3000",
+       "balance": "3000"
+      }
+     ],
+     "movement_debits": "0",
+     "movement_credits": "3000",
+     "closing_balance": "3000",
+     "closing_debits": "0",
+     "closing_credits": "3000"
+    },
+    {
+     "code": "3000",
+     "name": "Share capital",
+     "type": "equity",
+     "normal": "C",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-01-01",
+       "entry": "Shares issued",
+       "closing": false,
+       "debit": "0",
+       "credit": "50000",
+       "balance": "50000"
+      }
+     ],
+     "movement_debits": "0",
+     "movement_credits": "50000",
+     "closing_balance": "50000",
+     "closing_debits": "0",
+     "closing_credits": "50000"
+    },
+    {
+     "code": "3100",
+     "name": "Retained earnings",
+     "type": "equity",
+     "normal": "C",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "closing: income to retained earnings",
+       "closing": true,
+       "debit": "0",
+       "credit": "200000",
+       "balance": "200000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: expenses to retained earnings",
+       "closing": true,
+       "debit": "147425.00",
+       "credit": "0",
+       "balance": "52575.00"
+      }
+     ],
+     "movement_debits": "147425.00",
+     "movement_credits": "200000",
+     "closing_balance": "52575.00",
+     "closing_debits": "147425.00",
+     "closing_credits": "200000"
+    },
+    {
+     "code": "4000",
+     "name": "Sales",
+     "type": "income",
+     "normal": "C",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "Cash sales",
+       "closing": false,
+       "debit": "0",
+       "credit": "120000",
+       "balance": "120000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Credit sales",
+       "closing": false,
+       "debit": "0",
+       "credit": "80000",
+       "balance": "200000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: income to retained earnings",
+       "closing": true,
+       "debit": "200000",
+       "credit": "0",
+       "balance": "0"
+      }
+     ],
+     "movement_debits": "200000",
+     "movement_credits": "200000",
+     "closing_balance": "0",
+     "closing_debits": "200000",
+     "closing_credits": "200000"
+    },
+    {
+     "code": "5000",
+     "name": "Cost of sales",
+     "type": "expense",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "cogs",
+       "closing": false,
+       "debit": "60000.00",
+       "credit": "0",
+       "balance": "60000.00"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: expenses to retained earnings",
+       "closing": true,
+       "debit": "0",
+       "credit": "60000.00",
+       "balance": "0.00"
+      }
+     ],
+     "movement_debits": "60000.00",
+     "movement_credits": "60000.00",
+     "closing_balance": "0.00",
+     "closing_debits": "60000.00",
+     "closing_credits": "60000.00"
+    },
+    {
+     "code": "6100",
+     "name": "Salaries",
+     "type": "expense",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "Salaries",
+       "closing": false,
+       "debit": "35000",
+       "credit": "0",
+       "balance": "35000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "Accrued salaries",
+       "closing": false,
+       "debit": "3000",
+       "credit": "0",
+       "balance": "38000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: expenses to retained earnings",
+       "closing": true,
+       "debit": "0",
+       "credit": "38000",
+       "balance": "0"
+      }
+     ],
+     "movement_debits": "38000",
+     "movement_credits": "38000",
+     "closing_balance": "0",
+     "closing_debits": "38000",
+     "closing_credits": "38000"
+    },
+    {
+     "code": "6200",
+     "name": "Rent",
+     "type": "expense",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "Rent",
+       "closing": false,
+       "debit": "12000",
+       "credit": "0",
+       "balance": "12000"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: expenses to retained earnings",
+       "closing": true,
+       "debit": "0",
+       "credit": "12000",
+       "balance": "0"
+      }
+     ],
+     "movement_debits": "12000",
+     "movement_credits": "12000",
+     "closing_balance": "0",
+     "closing_debits": "12000",
+     "closing_credits": "12000"
+    },
+    {
+     "code": "6300",
+     "name": "Insurance",
+     "type": "expense",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "ins",
+       "closing": false,
+       "debit": "5500.00",
+       "credit": "0",
+       "balance": "5500.00"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: expenses to retained earnings",
+       "closing": true,
+       "debit": "0",
+       "credit": "5500.00",
+       "balance": "0.00"
+      }
+     ],
+     "movement_debits": "5500.00",
+     "movement_credits": "5500.00",
+     "closing_balance": "0.00",
+     "closing_debits": "5500.00",
+     "closing_credits": "5500.00"
+    },
+    {
+     "code": "6400",
+     "name": "Depreciation",
+     "type": "expense",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "dep",
+       "closing": false,
+       "debit": "12000.00",
+       "credit": "0",
+       "balance": "12000.00"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: expenses to retained earnings",
+       "closing": true,
+       "debit": "0",
+       "credit": "12000.00",
+       "balance": "0.00"
+      }
+     ],
+     "movement_debits": "12000.00",
+     "movement_credits": "12000.00",
+     "closing_balance": "0.00",
+     "closing_debits": "12000.00",
+     "closing_credits": "12000.00"
+    },
+    {
+     "code": "7000",
+     "name": "Interest",
+     "type": "expense",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "Interest",
+       "closing": false,
+       "debit": "2400",
+       "credit": "0",
+       "balance": "2400"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: expenses to retained earnings",
+       "closing": true,
+       "debit": "0",
+       "credit": "2400",
+       "balance": "0"
+      }
+     ],
+     "movement_debits": "2400",
+     "movement_credits": "2400",
+     "closing_balance": "0",
+     "closing_debits": "2400",
+     "closing_credits": "2400"
+    },
+    {
+     "code": "8000",
+     "name": "Income tax",
+     "type": "expense",
+     "normal": "D",
+     "contra": false,
+     "opening_debit": "0",
+     "opening_credit": "0",
+     "opening_balance": "0",
+     "movements": [
+      {
+       "date": "2026-12-31",
+       "entry": "tax",
+       "closing": false,
+       "debit": "17525.00",
+       "credit": "0",
+       "balance": "17525.00"
+      },
+      {
+       "date": "2026-12-31",
+       "entry": "closing: expenses to retained earnings",
+       "closing": true,
+       "debit": "0",
+       "credit": "17525.00",
+       "balance": "0.00"
+      }
+     ],
+     "movement_debits": "17525.00",
+     "movement_credits": "17525.00",
+     "closing_balance": "0.00",
+     "closing_debits": "17525.00",
+     "closing_credits": "17525.00"
+    }
+   ],
+   "t_accounts_export": {
+    "1000": "ACCOUNT Cash\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-01-01  Dr        50,000.00  Cr             0.00  balance        50,000.00  Shares issued\n  2026-01-02  Dr        40,000.00  Cr             0.00  balance        90,000.00  Bank loan\n  2026-01-03  Dr             0.00  Cr        60,000.00  balance        30,000.00  Equipment\n  2026-01-10  Dr             0.00  Cr         6,000.00  balance        24,000.00  Insurance\n  2026-12-31  Dr       120,000.00  Cr             0.00  balance       144,000.00  Cash sales\n  2026-12-31  Dr        65,000.00  Cr             0.00  balance       209,000.00  Collections\n  2026-12-31  Dr             0.00  Cr        55,000.00  balance       154,000.00  Payables paid\n  2026-12-31  Dr             0.00  Cr        35,000.00  balance       119,000.00  Salaries\n  2026-12-31  Dr             0.00  Cr        12,000.00  balance       107,000.00  Rent\n  2026-12-31  Dr             0.00  Cr         2,400.00  balance       104,600.00  Interest\n  Movement, debits less credits                         104,600.00\n  Closing balance                                       104,600.00",
+    "1100": "ACCOUNT Trade receivables\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        80,000.00  Cr             0.00  balance        80,000.00  Credit sales\n  2026-12-31  Dr             0.00  Cr        65,000.00  balance        15,000.00  Collections\n  Movement, debits less credits                          15,000.00\n  Closing balance                                        15,000.00",
+    "1200": "ACCOUNT Inventory\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-01-04  Dr        70,000.00  Cr             0.00  balance        70,000.00  Inventory on credit\n  2026-12-31  Dr             0.00  Cr        60,000.00  balance        10,000.00  cogs\n  Movement, debits less credits                          10,000.00\n  Closing balance                                        10,000.00",
+    "1300": "ACCOUNT Prepaid insurance\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-01-10  Dr         6,000.00  Cr             0.00  balance         6,000.00  Insurance\n  2026-12-31  Dr             0.00  Cr         5,500.00  balance           500.00  ins\n  Movement, debits less credits                             500.00\n  Closing balance                                           500.00",
+    "1500": "ACCOUNT Equipment\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-01-03  Dr        60,000.00  Cr             0.00  balance        60,000.00  Equipment\n  Movement, debits less credits                          60,000.00\n  Closing balance                                        60,000.00",
+    "1510": "ACCOUNT Accumulated depreciation\n  asset, normal side credit, contra\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr        12,000.00  balance        12,000.00  dep\n  Movement, debits less credits                        (12,000.00)\n  Closing balance                                        12,000.00",
+    "2000": "ACCOUNT Trade payables\n  liability, normal side credit\n  Opening balance                                             0.00\n  2026-01-04  Dr             0.00  Cr        70,000.00  balance        70,000.00  Inventory on credit\n  2026-12-31  Dr        55,000.00  Cr             0.00  balance        15,000.00  Payables paid\n  Movement, debits less credits                        (15,000.00)\n  Closing balance                                        15,000.00",
+    "2100": "ACCOUNT Loan\n  liability, normal side credit\n  Opening balance                                             0.00\n  2026-01-02  Dr             0.00  Cr        40,000.00  balance        40,000.00  Bank loan\n  Movement, debits less credits                        (40,000.00)\n  Closing balance                                        40,000.00",
+    "2200": "ACCOUNT Tax payable\n  liability, normal side credit\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr        17,525.00  balance        17,525.00  tax\n  Movement, debits less credits                        (17,525.00)\n  Closing balance                                        17,525.00",
+    "2300": "ACCOUNT Accrued salaries\n  liability, normal side credit\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr         3,000.00  balance         3,000.00  Accrued salaries\n  Movement, debits less credits                         (3,000.00)\n  Closing balance                                         3,000.00",
+    "3000": "ACCOUNT Share capital\n  equity, normal side credit\n  Opening balance                                             0.00\n  2026-01-01  Dr             0.00  Cr        50,000.00  balance        50,000.00  Shares issued\n  Movement, debits less credits                        (50,000.00)\n  Closing balance                                        50,000.00",
+    "3100": "ACCOUNT Retained earnings\n  equity, normal side credit\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr       200,000.00  balance       200,000.00 (closing)  closing: income to retained earnings\n  2026-12-31  Dr       147,425.00  Cr             0.00  balance        52,575.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                        (52,575.00)\n  Closing balance                                        52,575.00",
+    "4000": "ACCOUNT Sales\n  income, normal side credit\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr       120,000.00  balance       120,000.00  Cash sales\n  2026-12-31  Dr             0.00  Cr        80,000.00  balance       200,000.00  Credit sales\n  2026-12-31  Dr       200,000.00  Cr             0.00  balance             0.00 (closing)  closing: income to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+    "5000": "ACCOUNT Cost of sales\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        60,000.00  Cr             0.00  balance        60,000.00  cogs\n  2026-12-31  Dr             0.00  Cr        60,000.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+    "6100": "ACCOUNT Salaries\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        35,000.00  Cr             0.00  balance        35,000.00  Salaries\n  2026-12-31  Dr         3,000.00  Cr             0.00  balance        38,000.00  Accrued salaries\n  2026-12-31  Dr             0.00  Cr        38,000.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+    "6200": "ACCOUNT Rent\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        12,000.00  Cr             0.00  balance        12,000.00  Rent\n  2026-12-31  Dr             0.00  Cr        12,000.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+    "6300": "ACCOUNT Insurance\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr         5,500.00  Cr             0.00  balance         5,500.00  ins\n  2026-12-31  Dr             0.00  Cr         5,500.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+    "6400": "ACCOUNT Depreciation\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        12,000.00  Cr             0.00  balance        12,000.00  dep\n  2026-12-31  Dr             0.00  Cr        12,000.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+    "7000": "ACCOUNT Interest\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr         2,400.00  Cr             0.00  balance         2,400.00  Interest\n  2026-12-31  Dr             0.00  Cr         2,400.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+    "8000": "ACCOUNT Income tax\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        17,525.00  Cr             0.00  balance        17,525.00  tax\n  2026-12-31  Dr             0.00  Cr        17,525.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00"
+   },
+   "journal": [
+    {
+     "date": "2026-01-01",
+     "description": "Shares issued",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "D",
+       "debit": "50000",
+       "credit": "0"
+      },
+      {
+       "account": "3000",
+       "name": "Share capital",
+       "side": "C",
+       "debit": "0",
+       "credit": "50000"
+      }
+     ],
+     "debits": "50000",
+     "credits": "50000",
+     "hash": "deda5bd3ee00a85a9c03a1ca11c74a0c9e3387be86e5117aa0006280febc1bf8"
+    },
+    {
+     "date": "2026-01-02",
+     "description": "Bank loan",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "D",
+       "debit": "40000",
+       "credit": "0"
+      },
+      {
+       "account": "2100",
+       "name": "Loan",
+       "side": "C",
+       "debit": "0",
+       "credit": "40000"
+      }
+     ],
+     "debits": "40000",
+     "credits": "40000",
+     "hash": "c67ffc8633ce7080b3b5858936a3340d27dbbad0dae3a7ffcc05ad96b34c9b3e"
+    },
+    {
+     "date": "2026-01-03",
+     "description": "Equipment",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "1500",
+       "name": "Equipment",
+       "side": "D",
+       "debit": "60000",
+       "credit": "0"
+      },
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "C",
+       "debit": "0",
+       "credit": "60000"
+      }
+     ],
+     "debits": "60000",
+     "credits": "60000",
+     "hash": "43d951ef44d97ff894c1e2ff43d1929c6c4882d31d0523782ca9307c97d682c7"
+    },
+    {
+     "date": "2026-01-04",
+     "description": "Inventory on credit",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "1200",
+       "name": "Inventory",
+       "side": "D",
+       "debit": "70000",
+       "credit": "0"
+      },
+      {
+       "account": "2000",
+       "name": "Trade payables",
+       "side": "C",
+       "debit": "0",
+       "credit": "70000"
+      }
+     ],
+     "debits": "70000",
+     "credits": "70000",
+     "hash": "978b396aaf4f35d95275b514e3644c994ead2a7421c10016a0ec7d4b8279e4cc"
+    },
+    {
+     "date": "2026-01-10",
+     "description": "Insurance",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "1300",
+       "name": "Prepaid insurance",
+       "side": "D",
+       "debit": "6000",
+       "credit": "0"
+      },
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "C",
+       "debit": "0",
+       "credit": "6000"
+      }
+     ],
+     "debits": "6000",
+     "credits": "6000",
+     "hash": "6965a298b36cb3ca58497804449eda5a7e82b2120341d4febe1722841a1897ac"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "Cash sales",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "D",
+       "debit": "120000",
+       "credit": "0"
+      },
+      {
+       "account": "4000",
+       "name": "Sales",
+       "side": "C",
+       "debit": "0",
+       "credit": "120000"
+      }
+     ],
+     "debits": "120000",
+     "credits": "120000",
+     "hash": "d68ac2330c251a0bf2c4659eff6651de3fe0208c976c3a4295add48d5991015f"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "Credit sales",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "1100",
+       "name": "Trade receivables",
+       "side": "D",
+       "debit": "80000",
+       "credit": "0"
+      },
+      {
+       "account": "4000",
+       "name": "Sales",
+       "side": "C",
+       "debit": "0",
+       "credit": "80000"
+      }
+     ],
+     "debits": "80000",
+     "credits": "80000",
+     "hash": "411124df48f4f9f8ca1a01ff3423e03bffbb14175e8517f54c7eb6d93fca91ce"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "Collections",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "D",
+       "debit": "65000",
+       "credit": "0"
+      },
+      {
+       "account": "1100",
+       "name": "Trade receivables",
+       "side": "C",
+       "debit": "0",
+       "credit": "65000"
+      }
+     ],
+     "debits": "65000",
+     "credits": "65000",
+     "hash": "4d3fe85c136c99d77c8da37289370a3a448c8b69261f08b639bfa5860a6ee663"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "Payables paid",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "2000",
+       "name": "Trade payables",
+       "side": "D",
+       "debit": "55000",
+       "credit": "0"
+      },
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "C",
+       "debit": "0",
+       "credit": "55000"
+      }
+     ],
+     "debits": "55000",
+     "credits": "55000",
+     "hash": "e612c93bef5f4dbf09a406e32fe55bab29fcfd098602cff1d51d8bf676dbae47"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "Salaries",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "6100",
+       "name": "Salaries",
+       "side": "D",
+       "debit": "35000",
+       "credit": "0"
+      },
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "C",
+       "debit": "0",
+       "credit": "35000"
+      }
+     ],
+     "debits": "35000",
+     "credits": "35000",
+     "hash": "9bf69a8602bc54ec24be697a702243bbb9571ac66125ac686d0ece8544dd15e2"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "Rent",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "6200",
+       "name": "Rent",
+       "side": "D",
+       "debit": "12000",
+       "credit": "0"
+      },
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "C",
+       "debit": "0",
+       "credit": "12000"
+      }
+     ],
+     "debits": "12000",
+     "credits": "12000",
+     "hash": "2bcf664e69a54d8733c31022f7bfa97cab607cbed81b6ad8793a28a44afddd97"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "Interest",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "7000",
+       "name": "Interest",
+       "side": "D",
+       "debit": "2400",
+       "credit": "0"
+      },
+      {
+       "account": "1000",
+       "name": "Cash",
+       "side": "C",
+       "debit": "0",
+       "credit": "2400"
+      }
+     ],
+     "debits": "2400",
+     "credits": "2400",
+     "hash": "569377326c5a02943ffa10ad82d6a79e3ae4703a04cdea2aa88524f8b438dac0"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "Accrued salaries",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "6100",
+       "name": "Salaries",
+       "side": "D",
+       "debit": "3000",
+       "credit": "0"
+      },
+      {
+       "account": "2300",
+       "name": "Accrued salaries",
+       "side": "C",
+       "debit": "0",
+       "credit": "3000"
+      }
+     ],
+     "debits": "3000",
+     "credits": "3000",
+     "hash": "f70d319bd2c7216390794994c23182443bb1d63ab3ea258b4dcf4005a71e4ad9"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "dep",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "6400",
+       "name": "Depreciation",
+       "side": "D",
+       "debit": "12000.00",
+       "credit": "0"
+      },
+      {
+       "account": "1510",
+       "name": "Accumulated depreciation",
+       "side": "C",
+       "debit": "0",
+       "credit": "12000.00"
+      }
+     ],
+     "debits": "12000.00",
+     "credits": "12000.00",
+     "hash": "c7f431badc5edd4aecd54c7e5c1e97f1ea8f9ee6e047fb43912b0e4bbcafae46"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "ins",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "6300",
+       "name": "Insurance",
+       "side": "D",
+       "debit": "5500.00",
+       "credit": "0"
+      },
+      {
+       "account": "1300",
+       "name": "Prepaid insurance",
+       "side": "C",
+       "debit": "0",
+       "credit": "5500.00"
+      }
+     ],
+     "debits": "5500.00",
+     "credits": "5500.00",
+     "hash": "1932162dab4ac255fc3ae29673b3364951747c7c9c7727dfb51bc8e804a9fb9d"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "cogs",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "5000",
+       "name": "Cost of sales",
+       "side": "D",
+       "debit": "60000.00",
+       "credit": "0"
+      },
+      {
+       "account": "1200",
+       "name": "Inventory",
+       "side": "C",
+       "debit": "0",
+       "credit": "60000.00"
+      }
+     ],
+     "debits": "60000.00",
+     "credits": "60000.00",
+     "hash": "6fc05936770d61f42d438b2ed2c740b1376840683390d58d2103a1323f69c7c2"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "tax",
+     "opening": false,
+     "closing": false,
+     "lines": [
+      {
+       "account": "8000",
+       "name": "Income tax",
+       "side": "D",
+       "debit": "17525.00",
+       "credit": "0"
+      },
+      {
+       "account": "2200",
+       "name": "Tax payable",
+       "side": "C",
+       "debit": "0",
+       "credit": "17525.00"
+      }
+     ],
+     "debits": "17525.00",
+     "credits": "17525.00",
+     "hash": "aab4f5e1fef79927535463d2f48c5eaa9ee1217b4b5bf0f30cab97e3272d1f28"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "closing: income to retained earnings",
+     "opening": false,
+     "closing": true,
+     "lines": [
+      {
+       "account": "4000",
+       "name": "Sales",
+       "side": "D",
+       "debit": "200000",
+       "credit": "0"
+      },
+      {
+       "account": "3100",
+       "name": "Retained earnings",
+       "side": "C",
+       "debit": "0",
+       "credit": "200000"
+      }
+     ],
+     "debits": "200000",
+     "credits": "200000",
+     "hash": "f976fdf6226f43bfd7201b58124c626c2b458e97f93f97f9683b94335c4b382c"
+    },
+    {
+     "date": "2026-12-31",
+     "description": "closing: expenses to retained earnings",
+     "opening": false,
+     "closing": true,
+     "lines": [
+      {
+       "account": "3100",
+       "name": "Retained earnings",
+       "side": "D",
+       "debit": "147425.00",
+       "credit": "0"
+      },
+      {
+       "account": "5000",
+       "name": "Cost of sales",
+       "side": "C",
+       "debit": "0",
+       "credit": "60000.00"
+      },
+      {
+       "account": "6100",
+       "name": "Salaries",
+       "side": "C",
+       "debit": "0",
+       "credit": "38000"
+      },
+      {
+       "account": "6200",
+       "name": "Rent",
+       "side": "C",
+       "debit": "0",
+       "credit": "12000"
+      },
+      {
+       "account": "6300",
+       "name": "Insurance",
+       "side": "C",
+       "debit": "0",
+       "credit": "5500.00"
+      },
+      {
+       "account": "6400",
+       "name": "Depreciation",
+       "side": "C",
+       "debit": "0",
+       "credit": "12000.00"
+      },
+      {
+       "account": "7000",
+       "name": "Interest",
+       "side": "C",
+       "debit": "0",
+       "credit": "2400"
+      },
+      {
+       "account": "8000",
+       "name": "Income tax",
+       "side": "C",
+       "debit": "0",
+       "credit": "17525.00"
+      }
+     ],
+     "debits": "147425.00",
+     "credits": "147425.00",
+     "hash": "952e4b5d6138fb4cd0cca587558a435257538405b7d57ab3363d762de05bc0a2"
+    }
+   ],
+   "journal_export": "JOURNAL  2026-01-01 to 2026-12-31  USD\n2026-01-01  Shares issued\n    Cash                                       Dr        50,000.00\n    Share capital                              Cr        50,000.00\n    entry totals                               Dr     50,000.00  Cr     50,000.00\n2026-01-02  Bank loan\n    Cash                                       Dr        40,000.00\n    Loan                                       Cr        40,000.00\n    entry totals                               Dr     40,000.00  Cr     40,000.00\n2026-01-03  Equipment\n    Equipment                                  Dr        60,000.00\n    Cash                                       Cr        60,000.00\n    entry totals                               Dr     60,000.00  Cr     60,000.00\n2026-01-04  Inventory on credit\n    Inventory                                  Dr        70,000.00\n    Trade payables                             Cr        70,000.00\n    entry totals                               Dr     70,000.00  Cr     70,000.00\n2026-01-10  Insurance\n    Prepaid insurance                          Dr         6,000.00\n    Cash                                       Cr         6,000.00\n    entry totals                               Dr      6,000.00  Cr      6,000.00\n2026-12-31  Cash sales\n    Cash                                       Dr       120,000.00\n    Sales                                      Cr       120,000.00\n    entry totals                               Dr    120,000.00  Cr    120,000.00\n2026-12-31  Credit sales\n    Trade receivables                          Dr        80,000.00\n    Sales                                      Cr        80,000.00\n    entry totals                               Dr     80,000.00  Cr     80,000.00\n2026-12-31  Collections\n    Cash                                       Dr        65,000.00\n    Trade receivables                          Cr        65,000.00\n    entry totals                               Dr     65,000.00  Cr     65,000.00\n2026-12-31  Payables paid\n    Trade payables                             Dr        55,000.00\n    Cash                                       Cr        55,000.00\n    entry totals                               Dr     55,000.00  Cr     55,000.00\n2026-12-31  Salaries\n    Salaries                                   Dr        35,000.00\n    Cash                                       Cr        35,000.00\n    entry totals                               Dr     35,000.00  Cr     35,000.00\n2026-12-31  Rent\n    Rent                                       Dr        12,000.00\n    Cash                                       Cr        12,000.00\n    entry totals                               Dr     12,000.00  Cr     12,000.00\n2026-12-31  Interest\n    Interest                                   Dr         2,400.00\n    Cash                                       Cr         2,400.00\n    entry totals                               Dr      2,400.00  Cr      2,400.00\n2026-12-31  Accrued salaries\n    Salaries                                   Dr         3,000.00\n    Accrued salaries                           Cr         3,000.00\n    entry totals                               Dr      3,000.00  Cr      3,000.00\n2026-12-31  dep\n    Depreciation                               Dr        12,000.00\n    Accumulated depreciation                   Cr        12,000.00\n    entry totals                               Dr     12,000.00  Cr     12,000.00\n2026-12-31  ins\n    Insurance                                  Dr         5,500.00\n    Prepaid insurance                          Cr         5,500.00\n    entry totals                               Dr      5,500.00  Cr      5,500.00\n2026-12-31  cogs\n    Cost of sales                              Dr        60,000.00\n    Inventory                                  Cr        60,000.00\n    entry totals                               Dr     60,000.00  Cr     60,000.00\n2026-12-31  tax\n    Income tax                                 Dr        17,525.00\n    Tax payable                                Cr        17,525.00\n    entry totals                               Dr     17,525.00  Cr     17,525.00\n2026-12-31  closing: income to retained earnings (closing)\n    Sales                                      Dr       200,000.00\n    Retained earnings                          Cr       200,000.00\n    entry totals                               Dr    200,000.00  Cr    200,000.00\n2026-12-31  closing: expenses to retained earnings (closing)\n    Retained earnings                          Dr       147,425.00\n    Cost of sales                              Cr        60,000.00\n    Salaries                                   Cr        38,000.00\n    Rent                                       Cr        12,000.00\n    Insurance                                  Cr         5,500.00\n    Depreciation                               Cr        12,000.00\n    Interest                                   Cr         2,400.00\n    Income tax                                 Cr        17,525.00\n    entry totals                               Dr    147,425.00  Cr    147,425.00",
+   "equity_statement": {
+    "accounts": [
+     {
+      "code": "3000",
+      "name": "Share capital",
+      "role": "capital",
+      "opening": "0",
+      "movements": [
+       {
+        "date": "2026-01-01",
+        "description": "Shares issued",
+        "kind": "capital",
+        "closing_entry": false,
+        "amount": "50000",
+        "balance": "50000"
+       }
+      ],
+      "closing": "50000",
+      "movement_total": "50000"
+     },
+     {
+      "code": "3100",
+      "name": "Retained earnings",
+      "role": "retained_earnings",
+      "opening": "0",
+      "movements": [
+       {
+        "date": "2026-12-31",
+        "description": "closing: income to retained earnings",
+        "kind": "profit for the period",
+        "closing_entry": true,
+        "amount": "200000",
+        "balance": "200000"
+       },
+       {
+        "date": "2026-12-31",
+        "description": "closing: expenses to retained earnings",
+        "kind": "profit for the period",
+        "closing_entry": true,
+        "amount": "-147425.00",
+        "balance": "52575.00"
+       }
+      ],
+      "closing": "52575.00",
+      "movement_total": "52575.00"
+     }
+    ],
+    "by_kind": {
+     "capital": "50000",
+     "profit for the period": "52575.00"
+    },
+    "total_opening": "0",
+    "total_closing": "102575.00",
+    "total_movement": "102575.00"
+   },
+   "equity_statement_export": "STATEMENT OF CHANGES IN EQUITY\nShare capital\n  Opening balance                                             0.00\n  2026-01-01  capital                      50,000.00  Shares issued\n  Closing balance                                        50,000.00\n\nRetained earnings\n  Opening balance                                             0.00\n  2026-12-31  profit for the period       200,000.00  closing: income to retained earnings (closing)\n  2026-12-31  profit for the period     (147,425.00)  closing: expenses to retained earnings (closing)\n  Closing balance                                        52,575.00\n\nTotal opening                                                 0.00\nTotal movement                                          102,575.00\nTotal closing                                           102,575.00",
+   "comprehensive_income": {
+    "profit_for_period": "52575.00",
+    "oci": {},
+    "total_oci": "0",
+    "total_comprehensive_income": "52575.00"
+   },
+   "statements_export": {
+    "trial_balance": "TRIAL BALANCE\n2026-01-01 to 2026-12-31   USD\nAccount                                                      Debit              Credit\nCash                                                    104,600.00                    \nTrade receivables                                        15,000.00                    \nInventory                                                10,000.00                    \nPrepaid insurance                                           500.00                    \nEquipment                                                60,000.00                    \nAccumulated depreciation                                                     12,000.00\nTrade payables                                                               15,000.00\nLoan                                                                         40,000.00\nTax payable                                                                  17,525.00\nAccrued salaries                                                              3,000.00\nShare capital                                                                50,000.00\nRetained earnings                                                            52,575.00\n                                                        190,100.00          190,100.00",
+    "income_statement": "INCOME STATEMENT\n2026-01-01 to 2026-12-31   USD\nRevenue\n  Revenue                                               200,000.00\nTotal revenue                                           200,000.00\nExpenses\n  Cost of sales                                          60,000.00\n  Finance costs                                           2,400.00\n  Operating expenses                                     67,500.00\n  Tax                                                    17,525.00\nTotal expenses                                          147,425.00\nNet income                                               52,575.00",
+    "balance_sheet": "BALANCE SHEET\nAs at 2026-12-31   USD\nCurrent assets\n  Cash                                                  104,600.00\n  Trade receivables                                      15,000.00\n  Inventory                                              10,000.00\n  Prepayments                                               500.00\nTotal current assets                                    130,100.00\nNon-current assets\n  Property, plant and equipment                          48,000.00\nTotal non-current assets                                 48,000.00\nTotal assets                                            178,100.00\nCurrent liabilities\n  Trade payables                                         15,000.00\n  Accruals                                               20,525.00\nTotal current liabilities                                35,525.00\nNon-current liabilities\n  Borrowings                                             40,000.00\nTotal non-current liabilities                            40,000.00\nTotal liabilities                                        75,525.00\nEquity\n  Capital                                                50,000.00\n  Retained earnings                                      52,575.00\nTotal equity                                            102,575.00\nTotal liabilities and equity                            178,100.00",
+    "cash_flow": "CASH FLOW STATEMENT\n2026-01-01 to 2026-12-31   USD\nOperating activities\n  2026-01-10  Insurance                                 (6,000.00)\n  2026-12-31  Cash sales                                120,000.00\n  2026-12-31  Collections                                65,000.00\n  2026-12-31  Payables paid                            (55,000.00)\n  2026-12-31  Salaries                                 (35,000.00)\n  2026-12-31  Rent                                     (12,000.00)\n  2026-12-31  Interest                                  (2,400.00)\nTotal operating activities                               74,600.00\nInvesting activities\n  2026-01-03  Equipment                                (60,000.00)\nTotal investing activities                             (60,000.00)\nFinancing activities\n  2026-01-01  Shares issued                              50,000.00\n  2026-01-02  Bank loan                                  40,000.00\nTotal financing activities                               90,000.00\nNet change in cash                                      104,600.00\nCash at start of period                                       0.00\nCash at end of period                                   104,600.00",
+    "notes": "NOTES\nReporting framework: US_GAAP\nBasis: management accounts prepared from the entries you declared; not GAAP or IFRS statements and not assurance.\nNet income for the period: 52,575.00\nDeclared policy changes: none",
+    "combined": "TRIAL BALANCE\n2026-01-01 to 2026-12-31   USD\nAccount                                                      Debit              Credit\nCash                                                    104,600.00                    \nTrade receivables                                        15,000.00                    \nInventory                                                10,000.00                    \nPrepaid insurance                                           500.00                    \nEquipment                                                60,000.00                    \nAccumulated depreciation                                                     12,000.00\nTrade payables                                                               15,000.00\nLoan                                                                         40,000.00\nTax payable                                                                  17,525.00\nAccrued salaries                                                              3,000.00\nShare capital                                                                50,000.00\nRetained earnings                                                            52,575.00\n                                                        190,100.00          190,100.00\n\nINCOME STATEMENT\n2026-01-01 to 2026-12-31   USD\nRevenue\n  Revenue                                               200,000.00\nTotal revenue                                           200,000.00\nExpenses\n  Cost of sales                                          60,000.00\n  Finance costs                                           2,400.00\n  Operating expenses                                     67,500.00\n  Tax                                                    17,525.00\nTotal expenses                                          147,425.00\nNet income                                               52,575.00\n\nBALANCE SHEET\nAs at 2026-12-31   USD\nCurrent assets\n  Cash                                                  104,600.00\n  Trade receivables                                      15,000.00\n  Inventory                                              10,000.00\n  Prepayments                                               500.00\nTotal current assets                                    130,100.00\nNon-current assets\n  Property, plant and equipment                          48,000.00\nTotal non-current assets                                 48,000.00\nTotal assets                                            178,100.00\nCurrent liabilities\n  Trade payables                                         15,000.00\n  Accruals                                               20,525.00\nTotal current liabilities                                35,525.00\nNon-current liabilities\n  Borrowings                                             40,000.00\nTotal non-current liabilities                            40,000.00\nTotal liabilities                                        75,525.00\nEquity\n  Capital                                                50,000.00\n  Retained earnings                                      52,575.00\nTotal equity                                            102,575.00\nTotal liabilities and equity                            178,100.00\n\nCASH FLOW STATEMENT\n2026-01-01 to 2026-12-31   USD\nOperating activities\n  2026-01-10  Insurance                                 (6,000.00)\n  2026-12-31  Cash sales                                120,000.00\n  2026-12-31  Collections                                65,000.00\n  2026-12-31  Payables paid                            (55,000.00)\n  2026-12-31  Salaries                                 (35,000.00)\n  2026-12-31  Rent                                     (12,000.00)\n  2026-12-31  Interest                                  (2,400.00)\nTotal operating activities                               74,600.00\nInvesting activities\n  2026-01-03  Equipment                                (60,000.00)\nTotal investing activities                             (60,000.00)\nFinancing activities\n  2026-01-01  Shares issued                              50,000.00\n  2026-01-02  Bank loan                                  40,000.00\nTotal financing activities                               90,000.00\nNet change in cash                                      104,600.00\nCash at start of period                                       0.00\nCash at end of period                                   104,600.00\n\nNOTES\nReporting framework: US_GAAP\nBasis: management accounts prepared from the entries you declared; not GAAP or IFRS statements and not assurance.\nNet income for the period: 52,575.00\nDeclared policy changes: none"
+   },
+   "requested": [
+    "IS",
+    "RE",
+    "BS",
+    "CF"
+   ],
+   "hidden": [],
+   "cash_flow_withheld_because": null
+  }
+ },
+ "statements": {
+  "trial_balance": "TRIAL BALANCE\n2026-01-01 to 2026-12-31   USD\nAccount                                                      Debit              Credit\nCash                                                    104,600.00                    \nTrade receivables                                        15,000.00                    \nInventory                                                10,000.00                    \nPrepaid insurance                                           500.00                    \nEquipment                                                60,000.00                    \nAccumulated depreciation                                                     12,000.00\nTrade payables                                                               15,000.00\nLoan                                                                         40,000.00\nTax payable                                                                  17,525.00\nAccrued salaries                                                              3,000.00\nShare capital                                                                50,000.00\nRetained earnings                                                            52,575.00\n                                                        190,100.00          190,100.00",
+  "income_statement": "INCOME STATEMENT\n2026-01-01 to 2026-12-31   USD\nRevenue\n  Revenue                                               200,000.00\nTotal revenue                                           200,000.00\nExpenses\n  Cost of sales                                          60,000.00\n  Finance costs                                           2,400.00\n  Operating expenses                                     67,500.00\n  Tax                                                    17,525.00\nTotal expenses                                          147,425.00\nNet income                                               52,575.00",
+  "balance_sheet": "BALANCE SHEET\nAs at 2026-12-31   USD\nCurrent assets\n  Cash                                                  104,600.00\n  Trade receivables                                      15,000.00\n  Inventory                                              10,000.00\n  Prepayments                                               500.00\nTotal current assets                                    130,100.00\nNon-current assets\n  Property, plant and equipment                          48,000.00\nTotal non-current assets                                 48,000.00\nTotal assets                                            178,100.00\nCurrent liabilities\n  Trade payables                                         15,000.00\n  Accruals                                               20,525.00\nTotal current liabilities                                35,525.00\nNon-current liabilities\n  Borrowings                                             40,000.00\nTotal non-current liabilities                            40,000.00\nTotal liabilities                                        75,525.00\nEquity\n  Capital                                                50,000.00\n  Retained earnings                                      52,575.00\nTotal equity                                            102,575.00\nTotal liabilities and equity                            178,100.00",
+  "equity": "STATEMENT OF CHANGES IN EQUITY\nShare capital\n  Opening balance                                             0.00\n  2026-01-01  capital                      50,000.00  Shares issued\n  Closing balance                                        50,000.00\n\nRetained earnings\n  Opening balance                                             0.00\n  2026-12-31  profit for the period       200,000.00  closing: income to retained earnings (closing)\n  2026-12-31  profit for the period     (147,425.00)  closing: expenses to retained earnings (closing)\n  Closing balance                                        52,575.00\n\nTotal opening                                                 0.00\nTotal movement                                          102,575.00\nTotal closing                                           102,575.00",
+  "notes": "NOTES\nReporting framework: US_GAAP\nBasis: management accounts prepared from the entries you declared; not GAAP or IFRS statements and not assurance.\nNet income for the period: 52,575.00\nDeclared policy changes: none",
+  "cash_flow": "CASH FLOW STATEMENT\n2026-01-01 to 2026-12-31   USD\nOperating activities\n  2026-01-10  Insurance                                 (6,000.00)\n  2026-12-31  Cash sales                                120,000.00\n  2026-12-31  Collections                                65,000.00\n  2026-12-31  Payables paid                            (55,000.00)\n  2026-12-31  Salaries                                 (35,000.00)\n  2026-12-31  Rent                                     (12,000.00)\n  2026-12-31  Interest                                  (2,400.00)\nTotal operating activities                               74,600.00\nInvesting activities\n  2026-01-03  Equipment                                (60,000.00)\nTotal investing activities                             (60,000.00)\nFinancing activities\n  2026-01-01  Shares issued                              50,000.00\n  2026-01-02  Bank loan                                  40,000.00\nTotal financing activities                               90,000.00\nNet change in cash                                      104,600.00\nCash at start of period                                       0.00\nCash at end of period                                   104,600.00",
+  "cash_flow_withheld_because": null
+ },
+ "statements_only": "INCOME STATEMENT\n2026-01-01 to 2026-12-31   USD\nRevenue\n  Revenue                                               200,000.00\nTotal revenue                                           200,000.00\nExpenses\n  Cost of sales                                          60,000.00\n  Finance costs                                           2,400.00\n  Operating expenses                                     67,500.00\n  Tax                                                    17,525.00\nTotal expenses                                          147,425.00\nNet income                                               52,575.00\n\nSTATEMENT OF CHANGES IN EQUITY\nShare capital\n  Opening balance                                             0.00\n  2026-01-01  capital                      50,000.00  Shares issued\n  Closing balance                                        50,000.00\n\nRetained earnings\n  Opening balance                                             0.00\n  2026-12-31  profit for the period       200,000.00  closing: income to retained earnings (closing)\n  2026-12-31  profit for the period     (147,425.00)  closing: expenses to retained earnings (closing)\n  Closing balance                                        52,575.00\n\nTotal opening                                                 0.00\nTotal movement                                          102,575.00\nTotal closing                                           102,575.00\n\nBALANCE SHEET\nAs at 2026-12-31   USD\nCurrent assets\n  Cash                                                  104,600.00\n  Trade receivables                                      15,000.00\n  Inventory                                              10,000.00\n  Prepayments                                               500.00\nTotal current assets                                    130,100.00\nNon-current assets\n  Property, plant and equipment                          48,000.00\nTotal non-current assets                                 48,000.00\nTotal assets                                            178,100.00\nCurrent liabilities\n  Trade payables                                         15,000.00\n  Accruals                                               20,525.00\nTotal current liabilities                                35,525.00\nNon-current liabilities\n  Borrowings                                             40,000.00\nTotal non-current liabilities                            40,000.00\nTotal liabilities                                        75,525.00\nEquity\n  Capital                                                50,000.00\n  Retained earnings                                      52,575.00\nTotal equity                                            102,575.00\nTotal liabilities and equity                            178,100.00\n\nCASH FLOW STATEMENT\n2026-01-01 to 2026-12-31   USD\nOperating activities\n  2026-01-10  Insurance                                 (6,000.00)\n  2026-12-31  Cash sales                                120,000.00\n  2026-12-31  Collections                                65,000.00\n  2026-12-31  Payables paid                            (55,000.00)\n  2026-12-31  Salaries                                 (35,000.00)\n  2026-12-31  Rent                                     (12,000.00)\n  2026-12-31  Interest                                  (2,400.00)\nTotal operating activities                               74,600.00\nInvesting activities\n  2026-01-03  Equipment                                (60,000.00)\nTotal investing activities                             (60,000.00)\nFinancing activities\n  2026-01-01  Shares issued                              50,000.00\n  2026-01-02  Bank loan                                  40,000.00\nTotal financing activities                               90,000.00\nNet change in cash                                      104,600.00\nCash at start of period                                       0.00\nCash at end of period                                   104,600.00",
+ "working": {
+  "journal": "JOURNAL  2026-01-01 to 2026-12-31  USD\n2026-01-01  Shares issued\n    Cash                                       Dr        50,000.00\n    Share capital                              Cr        50,000.00\n    entry totals                               Dr     50,000.00  Cr     50,000.00\n2026-01-02  Bank loan\n    Cash                                       Dr        40,000.00\n    Loan                                       Cr        40,000.00\n    entry totals                               Dr     40,000.00  Cr     40,000.00\n2026-01-03  Equipment\n    Equipment                                  Dr        60,000.00\n    Cash                                       Cr        60,000.00\n    entry totals                               Dr     60,000.00  Cr     60,000.00\n2026-01-04  Inventory on credit\n    Inventory                                  Dr        70,000.00\n    Trade payables                             Cr        70,000.00\n    entry totals                               Dr     70,000.00  Cr     70,000.00\n2026-01-10  Insurance\n    Prepaid insurance                          Dr         6,000.00\n    Cash                                       Cr         6,000.00\n    entry totals                               Dr      6,000.00  Cr      6,000.00\n2026-12-31  Cash sales\n    Cash                                       Dr       120,000.00\n    Sales                                      Cr       120,000.00\n    entry totals                               Dr    120,000.00  Cr    120,000.00\n2026-12-31  Credit sales\n    Trade receivables                          Dr        80,000.00\n    Sales                                      Cr        80,000.00\n    entry totals                               Dr     80,000.00  Cr     80,000.00\n2026-12-31  Collections\n    Cash                                       Dr        65,000.00\n    Trade receivables                          Cr        65,000.00\n    entry totals                               Dr     65,000.00  Cr     65,000.00\n2026-12-31  Payables paid\n    Trade payables                             Dr        55,000.00\n    Cash                                       Cr        55,000.00\n    entry totals                               Dr     55,000.00  Cr     55,000.00\n2026-12-31  Salaries\n    Salaries                                   Dr        35,000.00\n    Cash                                       Cr        35,000.00\n    entry totals                               Dr     35,000.00  Cr     35,000.00\n2026-12-31  Rent\n    Rent                                       Dr        12,000.00\n    Cash                                       Cr        12,000.00\n    entry totals                               Dr     12,000.00  Cr     12,000.00\n2026-12-31  Interest\n    Interest                                   Dr         2,400.00\n    Cash                                       Cr         2,400.00\n    entry totals                               Dr      2,400.00  Cr      2,400.00\n2026-12-31  Accrued salaries\n    Salaries                                   Dr         3,000.00\n    Accrued salaries                           Cr         3,000.00\n    entry totals                               Dr      3,000.00  Cr      3,000.00\n2026-12-31  dep\n    Depreciation                               Dr        12,000.00\n    Accumulated depreciation                   Cr        12,000.00\n    entry totals                               Dr     12,000.00  Cr     12,000.00\n2026-12-31  ins\n    Insurance                                  Dr         5,500.00\n    Prepaid insurance                          Cr         5,500.00\n    entry totals                               Dr      5,500.00  Cr      5,500.00\n2026-12-31  cogs\n    Cost of sales                              Dr        60,000.00\n    Inventory                                  Cr        60,000.00\n    entry totals                               Dr     60,000.00  Cr     60,000.00\n2026-12-31  tax\n    Income tax                                 Dr        17,525.00\n    Tax payable                                Cr        17,525.00\n    entry totals                               Dr     17,525.00  Cr     17,525.00\n2026-12-31  closing: income to retained earnings (closing)\n    Sales                                      Dr       200,000.00\n    Retained earnings                          Cr       200,000.00\n    entry totals                               Dr    200,000.00  Cr    200,000.00\n2026-12-31  closing: expenses to retained earnings (closing)\n    Retained earnings                          Dr       147,425.00\n    Cost of sales                              Cr        60,000.00\n    Salaries                                   Cr        38,000.00\n    Rent                                       Cr        12,000.00\n    Insurance                                  Cr         5,500.00\n    Depreciation                               Cr        12,000.00\n    Interest                                   Cr         2,400.00\n    Income tax                                 Cr        17,525.00\n    entry totals                               Dr    147,425.00  Cr    147,425.00",
+  "trial_balance": "TRIAL BALANCE\n2026-01-01 to 2026-12-31   USD\nAccount                                                      Debit              Credit\nCash                                                    104,600.00                    \nTrade receivables                                        15,000.00                    \nInventory                                                10,000.00                    \nPrepaid insurance                                           500.00                    \nEquipment                                                60,000.00                    \nAccumulated depreciation                                                     12,000.00\nTrade payables                                                               15,000.00\nLoan                                                                         40,000.00\nTax payable                                                                  17,525.00\nAccrued salaries                                                              3,000.00\nShare capital                                                                50,000.00\nRetained earnings                                                            52,575.00\n                                                        190,100.00          190,100.00",
+  "t_accounts": {
+   "1000": "ACCOUNT Cash\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-01-01  Dr        50,000.00  Cr             0.00  balance        50,000.00  Shares issued\n  2026-01-02  Dr        40,000.00  Cr             0.00  balance        90,000.00  Bank loan\n  2026-01-03  Dr             0.00  Cr        60,000.00  balance        30,000.00  Equipment\n  2026-01-10  Dr             0.00  Cr         6,000.00  balance        24,000.00  Insurance\n  2026-12-31  Dr       120,000.00  Cr             0.00  balance       144,000.00  Cash sales\n  2026-12-31  Dr        65,000.00  Cr             0.00  balance       209,000.00  Collections\n  2026-12-31  Dr             0.00  Cr        55,000.00  balance       154,000.00  Payables paid\n  2026-12-31  Dr             0.00  Cr        35,000.00  balance       119,000.00  Salaries\n  2026-12-31  Dr             0.00  Cr        12,000.00  balance       107,000.00  Rent\n  2026-12-31  Dr             0.00  Cr         2,400.00  balance       104,600.00  Interest\n  Movement, debits less credits                         104,600.00\n  Closing balance                                       104,600.00",
+   "1100": "ACCOUNT Trade receivables\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        80,000.00  Cr             0.00  balance        80,000.00  Credit sales\n  2026-12-31  Dr             0.00  Cr        65,000.00  balance        15,000.00  Collections\n  Movement, debits less credits                          15,000.00\n  Closing balance                                        15,000.00",
+   "1200": "ACCOUNT Inventory\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-01-04  Dr        70,000.00  Cr             0.00  balance        70,000.00  Inventory on credit\n  2026-12-31  Dr             0.00  Cr        60,000.00  balance        10,000.00  cogs\n  Movement, debits less credits                          10,000.00\n  Closing balance                                        10,000.00",
+   "1300": "ACCOUNT Prepaid insurance\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-01-10  Dr         6,000.00  Cr             0.00  balance         6,000.00  Insurance\n  2026-12-31  Dr             0.00  Cr         5,500.00  balance           500.00  ins\n  Movement, debits less credits                             500.00\n  Closing balance                                           500.00",
+   "1500": "ACCOUNT Equipment\n  asset, normal side debit\n  Opening balance                                             0.00\n  2026-01-03  Dr        60,000.00  Cr             0.00  balance        60,000.00  Equipment\n  Movement, debits less credits                          60,000.00\n  Closing balance                                        60,000.00",
+   "1510": "ACCOUNT Accumulated depreciation\n  asset, normal side credit, contra\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr        12,000.00  balance        12,000.00  dep\n  Movement, debits less credits                        (12,000.00)\n  Closing balance                                        12,000.00",
+   "2000": "ACCOUNT Trade payables\n  liability, normal side credit\n  Opening balance                                             0.00\n  2026-01-04  Dr             0.00  Cr        70,000.00  balance        70,000.00  Inventory on credit\n  2026-12-31  Dr        55,000.00  Cr             0.00  balance        15,000.00  Payables paid\n  Movement, debits less credits                        (15,000.00)\n  Closing balance                                        15,000.00",
+   "2100": "ACCOUNT Loan\n  liability, normal side credit\n  Opening balance                                             0.00\n  2026-01-02  Dr             0.00  Cr        40,000.00  balance        40,000.00  Bank loan\n  Movement, debits less credits                        (40,000.00)\n  Closing balance                                        40,000.00",
+   "2200": "ACCOUNT Tax payable\n  liability, normal side credit\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr        17,525.00  balance        17,525.00  tax\n  Movement, debits less credits                        (17,525.00)\n  Closing balance                                        17,525.00",
+   "2300": "ACCOUNT Accrued salaries\n  liability, normal side credit\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr         3,000.00  balance         3,000.00  Accrued salaries\n  Movement, debits less credits                         (3,000.00)\n  Closing balance                                         3,000.00",
+   "3000": "ACCOUNT Share capital\n  equity, normal side credit\n  Opening balance                                             0.00\n  2026-01-01  Dr             0.00  Cr        50,000.00  balance        50,000.00  Shares issued\n  Movement, debits less credits                        (50,000.00)\n  Closing balance                                        50,000.00",
+   "3100": "ACCOUNT Retained earnings\n  equity, normal side credit\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr       200,000.00  balance       200,000.00 (closing)  closing: income to retained earnings\n  2026-12-31  Dr       147,425.00  Cr             0.00  balance        52,575.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                        (52,575.00)\n  Closing balance                                        52,575.00",
+   "4000": "ACCOUNT Sales\n  income, normal side credit\n  Opening balance                                             0.00\n  2026-12-31  Dr             0.00  Cr       120,000.00  balance       120,000.00  Cash sales\n  2026-12-31  Dr             0.00  Cr        80,000.00  balance       200,000.00  Credit sales\n  2026-12-31  Dr       200,000.00  Cr             0.00  balance             0.00 (closing)  closing: income to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+   "5000": "ACCOUNT Cost of sales\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        60,000.00  Cr             0.00  balance        60,000.00  cogs\n  2026-12-31  Dr             0.00  Cr        60,000.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+   "6100": "ACCOUNT Salaries\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        35,000.00  Cr             0.00  balance        35,000.00  Salaries\n  2026-12-31  Dr         3,000.00  Cr             0.00  balance        38,000.00  Accrued salaries\n  2026-12-31  Dr             0.00  Cr        38,000.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+   "6200": "ACCOUNT Rent\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        12,000.00  Cr             0.00  balance        12,000.00  Rent\n  2026-12-31  Dr             0.00  Cr        12,000.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+   "6300": "ACCOUNT Insurance\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr         5,500.00  Cr             0.00  balance         5,500.00  ins\n  2026-12-31  Dr             0.00  Cr         5,500.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+   "6400": "ACCOUNT Depreciation\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        12,000.00  Cr             0.00  balance        12,000.00  dep\n  2026-12-31  Dr             0.00  Cr        12,000.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+   "7000": "ACCOUNT Interest\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr         2,400.00  Cr             0.00  balance         2,400.00  Interest\n  2026-12-31  Dr             0.00  Cr         2,400.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00",
+   "8000": "ACCOUNT Income tax\n  expense, normal side debit\n  Opening balance                                             0.00\n  2026-12-31  Dr        17,525.00  Cr             0.00  balance        17,525.00  tax\n  2026-12-31  Dr             0.00  Cr        17,525.00  balance             0.00 (closing)  closing: expenses to retained earnings\n  Movement, debits less credits                               0.00\n  Closing balance                                             0.00"
+  },
+  "derivations": [],
+  "assumptions": [
+   "depreciation.method",
+   "rounding"
+  ],
+  "missing": [
+   "adjusting entries derived: dep, ins, cogs, tax"
+  ]
+ },
+ "diagnosis": null,
+ "checks": [
+  {
+   "name": "trial_balance_debits_equal_credits",
+   "ok": true,
+   "detail": "190100.00 vs 190100.00"
+  },
+  {
+   "name": "assets_equal_liabilities_plus_equity",
+   "ok": true,
+   "detail": "178100.00 vs 178100.00"
+  },
+  {
+   "name": "net_income_agrees_across_routes",
+   "ok": true,
+   "detail": "statements 0, journal 0.00; no opening balances, so the second route is unavailable"
+  },
+  {
+   "name": "opening_balances_equal_prior_closing",
+   "ok": true,
+   "detail": "all agree"
+  },
+  {
+   "name": "statement_lines_foot_to_totals",
+   "ok": true,
+   "detail": "ok"
+  },
+  {
+   "name": "journal_hash_chain_intact",
+   "ok": true,
+   "detail": "ok"
+  },
+  {
+   "name": "cash_flow_agrees_across_routes",
+   "ok": true,
+   "detail": "direct 104600, indirect 104600.00"
+  },
+  {
+   "name": "retained_earnings_rollforward",
+   "ok": true,
+   "detail": "closing 52575.00, expected 52575.00"
+  },
+  {
+   "name": "income_expense_and_dividends_zero_after_closing",
+   "ok": true,
+   "detail": "all closed"
+  },
+  {
+   "name": "statement_internally_consistent",
+   "ok": true,
+   "detail": "no reconciliation was supplied"
+  },
+  {
+   "name": "opening_balances_agree",
+   "ok": true,
+   "detail": "no reconciliation was supplied"
+  }
+ ],
+ "ratios": null,
+ "plan_hash": "sha256:c33abb562eaa0174"
+}

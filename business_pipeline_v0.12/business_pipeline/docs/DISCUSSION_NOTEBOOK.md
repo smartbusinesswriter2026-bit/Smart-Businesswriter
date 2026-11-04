@@ -14,6 +14,236 @@
 
 ---
 
+## 2026-11-04 - [statements] Increment 1 landed: the six seams are closed, and two of my own claims were wrong
+
+**What was asked.** Finish the work that was in flight: run the full suite on HEAD and on the working tree and separate
+the pre-existing failures from the new ones; update the owner's case study with the re-measured income statement; write
+this entry; then update the manual.
+
+**The headline.** All six seams in the entry below are closed, and they are closed *in the code*, not in the prose.
+Measured by `qa/manual/reader-seams-probe.py`, which runs the seven reproductions:
+
+| seam | before | now |
+|---|---|---|
+| 1 — a narrative that opens with a transaction date | period collapsed to one day | `2025-01-01` to `2025-12-31` |
+| 2 — one fiscal year, both ends stated | read as two periods | one period |
+| 3 — a month-day date on a transaction line | read as a comparative | no comparative |
+| 4 — Salaries and Rent on one trial balance | one "Operating expenses" line, refused | Salaries expense 8,000 and Rent expense 4,000, solved |
+| 5 — a stated sales figure beside prose | rewritten to "Other income", dropped | Sales 70,000 → Revenue |
+| 6 — a partition the text states ("of which 55,000 was cash") | refused by the grounding rule | accepted, and proved by code (90,000 − 55,000 = 35,000) |
+| 7 — a detector code the chart does not carry | eight codes had no home | none; the tile has **one** chart (`bp/statement_chart`) |
+
+The gate the plan set for Increment 1 — "a dated multi-clause narrative builds, and the three articulation identities
+pass" — is met, and met **without a model**: a five-clause narrative ("invested 50,000 cash … purchased a delivery van
+for 30,000 cash … paid 6,000 cash rent … paid 8,000 cash salaries") now builds, with the period taken from the text's
+own dates, rent and salaries on their own lines, and **eleven of eleven checks green**.
+
+**Two of my own claims from the entry below were wrong, and I am recording that rather than editing the old entry.**
+
+1. *"With a model configured, the simple transactions narrative now solves correctly (cash 95,000 … nine checks
+   passed)."* The model was never the thing that made that narrative work. The **deterministic** reader does, and it
+   did not: the narrative **crashed** with an uncaught `decimal.InvalidOperation` before this increment, on the phrase
+   "paid 8,000 cash salaries". Four detectors read the same figure from one of two wordings (`amount` or `amount2`), the
+   templates reached for the first one alone, and the entry they posted carried no amount at all. The tile caught
+   `DetectError`; it could not catch a conversion error, so the whole answer died. The same crash was on HEAD — the
+   suite comparison in `qa/baseline/` is what proved it was not mine.
+2. *"The model already extracts a Type 7 case correctly … the bottleneck is not the engine."* Still true, and still
+   resting on one case. But the honest measure of "the engine" is worse than I said: the **financial-computations
+   engine** — the 128-spec catalogue in `src/bp/product/financial_computations.py` — had **no test module at all**, and
+   four defects that no test could have caught. I have fixed them, and the manual now says what the engine can
+   actually do rather than what it was meant to do.
+3. **A third defect, which I had not looked for, and which is the worst of the three.** The owner's own case study
+   (§2.6) says that adding "Also compute the liquidity ratios." to a trial balance gives **the three statements and
+   13 ratios**. Measured on 2026-11-04, that instruction did not: it reached the **balance-sheet-analysis** engine
+   instead of the trial-balance route, and the analysis engine reads the same figures as *balances*, so it ignored
+   the contra accounts — **total assets 86,900 where the trial-balance route prints 77,900** — and it hid the income
+   statement and the statement of changes in equity. The same trial balance, two answers, nothing to say which was
+   right. A trial balance is a trial balance even when the student also asks for ratios; the more specific reading
+   now wins, and the case is back to 13 ratios and the three statements. The ratios also print at the 3 dp the core
+   declares now, rather than at 28.
+
+**What I found in the engine, measured rather than argued.** Four defects, all of them invisible from the source:
+
+- one spec was labelled **"Peso/Dollar Change"** — a home-currency name in a product that must stay global (B-177);
+- **eight** of its input patterns captured a *word* instead of the number (`gain on (disposal|sale)` captured
+  `disposal`), so those figures were silently dropped;
+- the topological sort looked dependencies up by spec **id** while `depends_on` names **output names**, so it resolved
+  nothing: four specs whose producer is registered after its consumer recorded a gap for a value the engine had
+  already computed;
+- values computed in one section never reached a spec in another, so **seventy-two** specs reported a gap for
+  something already known.
+
+With those fixed, the honest coverage number is this: of 218 distinct input names across the 128 specs, **44** can be
+supplied by a text, **50** by another spec's output, and **131 by nothing at all** — so **43 of the 128 specs have no
+reachable input**, and only 56 have every input reachable. The engine is a catalogue of formulas with a thin vocabulary
+in front of it. That is the next increment's bill, and it is now written down instead of implied.
+
+**The other correction the manual needed.** The manual said the narrative reading "REQUIRES a configured LLM" and that
+the integrated case solver was "NOT BUILT". Both were stale by a build and a half. The deterministic detector/runtime
+layer landed in 1.98; the integrated case solver is the six seams, now closed; and a **key opens the door, it does not
+repair the reader** — which is the sentence the entry below got right.
+
+**Where this could be wrong.** The seven seams are the seams **I found**, measured on **my** synthetic wording; the
+notebook below already warns that this is a list of what was found, not a proof of what exists, and a student's
+phrasing may still hit a seam I did not reach — the "paid X cash salaries" crash was exactly that: an ordinary
+sentence, found by accident, while re-measuring a case study. The 128-spec engine is still a catalogue with 43 dead
+specs, and closing that gap means inventing parse rules for 131 names, each of which is a judgement about what a
+student writes; I did not do that here and I should not pretend the engine is finished. The partition rule remains the
+riskiest change in the whole plan, and it now sits in the code: it admits a difference of two stated figures when both
+operands are in the same clause and the arithmetic checks, which is right in principle and is the place a future
+failure would hide. The suite comparison separates *pre-existing* from *new* failures, but it cannot tell you whether a
+passing test is testing the right thing — and the engine's sixteen new tests are mine, written by the person who just
+wrote the code they test.
+
+---
+
+## 2026-11-04 - [statements] The accounting tile's reader refuses what it can read: six seams, and the new plan
+
+**What was asked.** (1) Explore the ways to fix the Type 7 integrated case, and explore the "honest limits" I had
+named the previous turn; recommend the most promising solution. (2) A decision on the classifier: *model-assisted with
+a cue pre-filter*, with an explicit invitation to find a better alternative. (3) "Phase 0's three bugs are new to me."
+(4) Create a new plan, write it in this notebook, and test it if it works.
+
+**What was found — the finding that changes the plan.** The model already extracts a Type 7 case correctly. I captured
+its raw output for a full integrated case (owner investment, bank loan, delivery van, prepaid insurance policy,
+inventory bought on credit, cash and credit sales, collections, supplier payments, salaries, rent, interest, a tax
+rate). It produced **12 entries, each correctly dated (2025-01-01 to 2025-12-31) and each carrying the exact clause
+it came from**; **three adjustments, correctly parameterised** (`straight_line_depreciation {cost 30000, life_years 5,
+residual 0}`, `prepaid_amortization {payment 12000, total_months 12}`, `periodic_cogs {beginning 0, purchases 40000,
+ending 12000}`); `tax_rate 0.25`; **`unplaceable` empty**; and four honest, specific assumptions. The validator
+rejected it for exactly one reason:
+
+    entries[6].lines[0] amount '35000' does not appear in the problem text;
+    a model may not introduce a figure (derived amounts belong to the adjustment stage)
+
+That 35,000 is **credit sales**: sales of 90,000, of which 55,000 was cash. The model did the one arithmetic step
+every accountant does. The grounding rule cannot tell that apart from a hallucination — and the same pipeline
+*accepts* a computed 28,000 (40,000 - 12,000 = COGS) in the adjustment stage. **The rule is applied at the wrong
+granularity: derived amounts are forbidden in `entries` but permitted in `adjustments`.** With the period patched to a
+correct fiscal year, that single line was the only thing left between the tile and a complete integrated case.
+
+So the bottleneck is **not the engine**. It is the contract boundary and the reader's preflight. That moves the plan.
+
+**The three Phase 0 bugs, with their root causes (all three were new to the owner).**
+
+1. **The period collapses to one day.** `period_of` (`src/bp/product/statements.py:199-224`) takes the **first** date
+   in the text as the period *end*, so a narrative that opens "on 1 January 2025" yields the period
+   `2025-01-01 to 2025-01-01`. The model then dates its entries correctly and the validator refuses them as "outside
+   the accounting period" (`src/bp/statement_extract.py:291-292`). A period is a range and a date is a point; the
+   code treats them as the same thing. `periods_in` (`:381-393`) then collects *every* distinct date and calls each a
+   period, so **one fiscal year whose start and end are both stated reads as two periods** and is refused as a
+   comparative. `column_lines` (`:396-415`) strips four-digit years but not month-day dates, so "On 2 January it
+   purchased a delivery van for 30,000 cash" counts as *two figures on one line* and is refused as a comparative too.
+2. **Two operating expenses collide.** `RULES` (`statements.py:149`) maps `rent|salaries|wages|utilities|insurance|
+   advertising|...` all onto one line, `"Operating expenses"`, so a trial balance with Salaries *and* Rent produces
+   that label twice and `preflight_rows` (`:494-504`) refuses it as two sets of balances. **The most common shape in
+   accounting is refused.** The same collapse exists in `src/bp/product/income_statement.py:228-229` and in
+   `statement_plan.DEFAULT_CHART` (`src/bp/statement_plan.py:554`, one `6000 Operating expenses`), while the
+   deterministic detector layer's own chart already has Salaries, Rent and Utilities on separate lines
+   (`statements.py:1164-1166`). The plan chart is behind its own sibling.
+3. **A stated sales figure silently disappears.** `_extract_account_name` (`statements.py:456-469`) scans the *whole*
+   label, surrounding prose included, and returns the **first** `RULES` match. So `Sales 70,000` on the second line of
+   "Compute the net income for Alder Trading for 2025." becomes **`Other income`** (the prose contains "net income"),
+   which `_classify_account` does not know, so the row is dropped: net sales read as **0.00** and net income as
+   **-60,000** where the answer is 10,000. The same accounts in a different surrounding sentence parse correctly. A
+   confidently wrong number, with no warning.
+
+**The honest limits, re-examined.** Two of the three limits I named last turn need restating.
+
+- *"Type 7 integrated case solver: NOT BUILT"* (`docs/FINANCIAL_COMPUTATIONS_MANUAL.md:48-49`) **is wrong in the
+  owner's favour.** The engine is roughly 85% built and tested: the golden engagement in
+  `tests/test_statement_plan.py` is a dated, six-date, twelve-entry, four-adjustment case that builds and passes all
+  three articulation identities, and the committed fixture `tests/fixtures/statements-record.json` carries nineteen
+  entries over the same six dates. What is missing is **six seams**, not an engine. That is a cheaper bill and a
+  better label.
+- *"The fix is one line of configuration: `BP_OPENGO_API_KEY`"* (`docs/HANDOFF_STATEMENTS_TILE.md:382-385`) **is
+  wrong for dated narratives, and I am recording the disagreement rather than quietly overriding it.** That handoff
+  already measured the same five failures I reproduced (a single-year narrative refused as "more than one period"; an
+  adjustments sentence refused as "two figures on one line"; a ratio question refused as "an account has no code"; a
+  cash-flow narrative refused as "the chart needs exactly one retained-earnings account"; an exam preamble read as
+  account rows), and concluded the model reader would open them. **I tested that and it is only half true.** With a
+  model configured, the simple transactions narrative now solves correctly (cash 95,000; assets 158,000 = liabilities
+  37,000 + equity 121,000; nine checks passed). **The integrated case still dies**, because seams 1 and 4 live *inside*
+  the model path. A key opens the door; it does not repair the period model or the grounding rule.
+- **What stays honestly unprovable.** An ambiguous convention can be *declared*, never *proved*. If a student wrote
+  "expected to last 5 years", pro-rata versus full-year is a judgement: the pipeline can record it as an assumption
+  with its reason and show the effect, and that is the boundary, not a defect to eliminate. Multi-period and
+  comparative statements stay refused by decision.
+- **Type 4 (error correction) is the one real engine left.** No "this entry is wrong, here is the correcting entry"
+  machinery exists anywhere in the codebase. It needs a new contract concept, not a router.
+
+**The classifier: a better alternative to model-assisted routing.** The owner proposed *model-assisted with a cue
+pre-filter*. I think there is a better shape, and it is the one this codebase already uses everywhere else: **let the
+model propose, and let the code prove.** The model would propose the problem type; the **cues would verify** it, and a
+disagreement would be a reportable outcome rather than a silent choice. That is precisely the pattern the grounding
+rule, the adjustment registry and the articulation gate already follow. Concretely:
+
+- The cue classifier becomes **coverage-based**, not a cascade. Tip 6's dispatch table says every element has a
+  `(detector, resolver, template/function, gate)` tuple and that "if any of the four is missing for an element the
+  problem contains, the system routes to REVIEW naming the missing piece." So a type scores by **how much of the
+  problem it covers**, not by which keyword fired first. The cascade is what lets a half-matching detector answer
+  before the right route is tried.
+- The model's proposed type is a **cross-check, not the router**. If the two agree, proceed; if they disagree, route
+  to REVIEW naming both. That costs no extra call in the common case, stays replayable, and turns every disagreement
+  into a golden fixture. A model that *routes* introduces non-determinism and a new failure mode: the model picks
+  Type 2 for a Type 6 case, and the golden-fixture discipline the repo depends on stops holding.
+- The attached architecture's Layer 02 is the external name for this ("the model reads every description and decides"),
+  and its own §XXIV warns that routing is probabilistic. In this codebase the decision belongs to the code.
+
+**The new plan.** Four increments. Each ends with something measurable, and each names its own gate.
+
+- **Increment 1 — make the reader stop refusing what it can read.** (a) One period model, owned in one place:
+  `period_of` prefers a stated period phrase, a lone date is a transaction date and not a period end, `periods_in`
+  counts *period-cued* dates rather than every date, and `column_lines` does not count a month-day as a figure.
+  Seven solvers currently each derive their own period (`statements.py:1136, 1237, 1374, 1495, 1743, 1865, 2021`),
+  which is why they disagree. (b) Distinct expense lines, so Salaries and Rent stop colliding, and the plan chart
+  adopts the detector layer's chart. (c) `_extract_account_name` matches the account fragment only, and never
+  rewrites a label into an account the reader cannot classify. (d) Grounding accepts a **partition of a stated total**
+  only when the validator can *prove* it: both operands stated in the same clause, and the arithmetic checked by
+  code. The model proposes the derivation; the code proves it — the rule's intent ("a model may not introduce a
+  figure") is kept, its proxy is strengthened. (e) The first end-to-end test where **the text's own dates drive the
+  period**; today the product test stubs the extract (`tests/test_product_statements.py:172-176`) and the fixture
+  stubs it too (`tests/product_statements_fixture.py:55-61`), so no such test exists.
+  *Gate:* a dated multi-clause narrative builds, and the three articulation identities pass.
+- **Increment 2 — let the text state balances and let the code own the policy.** A `balances` key in the extract
+  contract, so "trade receivables at year end were 8,000" is a fact rather than a smuggled movement, and the core
+  derives the implied movement. Then the policy layer: `src/bp/timing.py` already holds `months_expired()`,
+  `depreciation_for_year()` and `resolve_depreciation_convention()` — **and nothing in `src/` imports them.** The
+  model chose `full_year` for a van bought on 2 January and twelve months expired for a policy that started on
+  1 January; the convention is arithmetic on stated dates and belongs to the code, not to the model's judgement.
+  *Gate:* a part-year asset depreciates pro rata from the stated acquisition date, and a prepaid amortises on the
+  stated coverage.
+- **Increment 3 — the router and the definition of done.** The coverage-based classifier, the model's type as a
+  cross-check, a per-type "Done means" that can be ticked from the output alone, two fix rounds then report. These
+  are the two layers where the attached architecture genuinely earns its keep, and the two where it must be inverted
+  rather than copied.
+- **Increment 4 — Type 4.** A `corrections` contract concept and an error-correction engine. This is an engine, not a
+  route, and it is the only one of Types 1-7 that is.
+
+**What is still missing.** Everything after Increment 1. There is no `balances` key, no policy inference, no
+coverage-based classifier, no per-type done-definition, and no Type 4 engine. The attached architecture's Layers 01,
+03, 04 and 05 map onto machinery this repository already has and are mostly redundant here; its Layers 02 and 06 are
+the two that fill a real hole, and both have to be inverted rather than copied. One test gap is worth naming on its
+own: `qa/manual/extract-smoke.py` exercises a four-clause narrative with a **hardcoded** period, so the reader has
+never been measured against a text that sets its own dates.
+
+**Where this could be wrong.** My central claim is that the model is already good enough for a Type 7 case and the
+pipeline is the obstacle. That rests on **one** case, one model, one run each — the extraction was stochastic and I
+saw it vary. If the model's quality on real student wording is materially worse than on my synthetic case, then
+Increment 2's policy inference becomes the binding constraint rather than the reader, and the order of the increments
+is wrong. The "six seams" list is also a list of what I *found*, not a proof that six is the right number: there may
+be seams I did not reach because I stopped at the first failure in each path. The partition rule in Increment 1(d) is
+the riskiest change in the whole plan — it weakens the rule the repository is proudest of ("no invented numbers") to
+admit a difference of two stated figures, and a wrong implementation of "the same clause" would let a model smuggle
+arithmetic past the grounding rule. It is the one change here that should be argued about before it is written. The
+classifier alternative is a judgement, not a measurement: I have argued that model-proposed, code-verified routing
+beats model-routing, but the only evidence is that the repo's other model boundaries are all of that shape, and that
+is a consistency argument rather than a proof. And the biggest thing this notebook cannot show is what happens with a
+*student's* wording rather than my careful synthetic cases — the tile's copy still says it reads one trial balance,
+and nobody has yet checked whether that copy is right for the other six problem types.
+
+---
+
 ## 2026-11-02 - [validation] Validating subject by subject instead of feature by feature
 
 **What was asked.** "The pipeline has too many features and very laborious for 1 person to validate. Investigate and

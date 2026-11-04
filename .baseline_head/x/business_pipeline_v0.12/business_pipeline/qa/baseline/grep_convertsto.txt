@@ -1,0 +1,25 @@
+﻿methods.py:2013: return ("At the declared rate, " + tok("amount_from") + " converts to " + tok("amount") + ". "
+accounts.py:314: return {**scalars, "_appendix": extra, "_checks": checks}
+check.py:83: tb = built["_appendix"]["trial_balance"]
+methods.py:1929: return {**outputs, "_appendix": appendix, "_checks": _ratio_checks(inp, fig, outputs, rows, not_computed)}
+methods.py:1969: return {"amount": r["amount"], "amount_from": r["amount_from"], "rate": r["rate"], "_appendix": {
+methods.py:2711: "_appendix": {"adjust": method, "alpha": str(alpha), "pairs": [a + " vs " + b for a, b in pairs],
+methods.py:3069: return {**out, "_appendix": appendix, "_checks": _mc_checks(ps, adj, method, alpha)}
+methods.py:3144: return {**out, "_appendix": appendix, "_checks": _power_checks(inp, out)}
+methods.py:3230: return {**out, "_appendix": appendix, "_checks": _md_checks(inp, vals, miss, out)}
+methods.py:3324: return {**out, "_appendix": appendix, "_checks": _w_checks(inp, pairs, out)}
+methods.py:3491: out["_appendix"] = {
+methods.py:10310: out["_appendix"] = {"customers": detail, "segment_order": list(RFM_SEGMENTS),
+methods.py:10338: detail = base["_appendix"]["customers"]
+methods.py:10863: out["_appendix"] = {"segments": [{"name": name, "revenue": str(revenue), "direct_cost": str(direct),
+methods.py:14546: return {**out, "_appendix": appendix, "_checks": checks}
+methods.py:14713: return {**out, "_appendix": appendix, "_checks": checks}
+orchestrator.py:221: outputs = dict(outputs); extra = outputs.pop("_appendix", extra); outputs.pop("_checks", None)
+sandbox_child.py:77: raw = dict(raw); out["appendix_extra"] = raw.pop("_appendix", None); raw.pop("_checks", None); out["outputs"] = raw
+server.py:822: appendix = outputs.pop("_appendix", {})
+server.py:907: appendix = outputs.pop("_appendix", {})
+chat.py:5230: def _method_appendix(state, target):
+chat.py:5505: appendix = _method_appendix(state, target)
+deliverables.py:112: def _appendix(bundle):
+deliverables.py:118: appendix = _appendix(bundle)
+deliverables.py:131: appendix = _appendix(bundle) or {}

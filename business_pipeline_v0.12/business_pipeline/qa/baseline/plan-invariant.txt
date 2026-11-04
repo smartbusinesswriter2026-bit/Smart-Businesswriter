@@ -1,0 +1,11 @@
+accounting           tiles=5  levels_all=True  notes=12 mismatch(level vs notes)=-
+finance              tiles=0  levels_all=True  notes=35 mismatch(level vs notes)=-
+economics            tiles=8  levels_all=True  notes=59 mismatch(level vs notes)=-
+management           tiles=5  levels_all=True  notes=1  mismatch(level vs notes)=-
+project-management   tiles=7  levels_all=True  notes=18 mismatch(level vs notes)=-
+entrepreneurship     tiles=0  levels_all=True  notes=46 mismatch(level vs notes)=-
+operations           tiles=3  levels_all=True  notes=14 mismatch(level vs notes)=-
+supply-chain         tiles=0  levels_all=True  notes=8  mismatch(level vs notes)=-
+marketing            tiles=4  levels_all=True  notes=24 mismatch(level vs notes)=-
+people               tiles=6  levels_all=True  notes=10 mismatch(level vs notes)=-
+research             tiles=4  levels_all=False notes=12 mismatch(level vs notes)=-

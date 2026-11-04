@@ -1,0 +1,4 @@
+﻿"dcfmid": {"objective": "Value the project with mid-year cash flows", "method": "dcf_valuation", "currency": "USD", "period": "annual",
+   "inputs": {"cashflows": ["100000", "120000", "140000", "155000"], "discount_rate": "0.10", "terminal_growth": "0.02", "timing": "mid"}},
+   "equitybridge": {"objective": "What is the equity value after net debt and other claims?", "method": "equity_bridge", "currency": "USD", "period": "annual",
+   "inputs": {"enterprise_value": "1750939.14", "debt": "300000", "cash": "150000", "minority_interest": "20000",

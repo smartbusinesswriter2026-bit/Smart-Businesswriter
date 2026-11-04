@@ -1,0 +1,39 @@
+Computation: attribution split
+Result
+Across the declared channels, the largest difference between the first-click, last-click and linear shares is 22.22%. First-click credit totals 720, last-click 720 and linear 720; each rule spreads the same conversions differently, so a channel's share depends on the rule you choose. The credit counts under each rule are declared by you; the method divides them and compares the shares, it does not allocate credit itself. Credit is not causation: a channel can receive credit for a conversion it did not cause, and no incrementality is measured. Only the three declared rules are compared; time-decay, data-driven and experiment-based attribution are out of scope.
+Inputs and results
+What you declared
+Channels: Name: search; First click: 420; Last click: 260; Linear: 320, Name: social; First click: 180; Last click: 310; Linear: 290, Name: email; First click: 120; Last click: 150; Linear: 110
+What was computed
+Channels: 3
+Total first click: 720
+Total last click: 720
+Total linear: 720
+First share 1: 0.5833
+Last share 1: 0.3611
+Linear share 1: 0.4444
+Spread 1: 0.2222
+First share 2: 0.2500
+Last share 2: 0.4306
+Linear share 2: 0.4028
+Spread 2: 0.1806
+First share 3: 0.1667
+Last share 3: 0.2083
+Linear share 3: 0.1528
+Spread 3: 0.0556
+Max spread: 0.2222
+Honesty: what was not done
+this method: The credit counts under each rule are declared by you; the method divides them and compares the shares, it does not allocate credit itself. Credit is not causation: a channel can receive credit for a conversion it did not cause, and no incrementality is measured. Only the three declared rules are compared; time-decay, data-driven and experiment-based attribution are out of scope.
+Assumptions made
+The three credit columns describe the same conversions under three rules.
+Every conversion is allocated in full under each rule.
+Limitations
+Declared-count arithmetic; no touchpoint log, path or window is processed.
+Credit is not causation and no incrementality is measured.
+Only three rules are compared.
+How the figures were checked
+Second implementation agrees.
+Each model shares sum to one.
+Linear share is declared linear over its total.
+Spread is max minus min per channel.
+Max spread is the largest channel spread.

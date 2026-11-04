@@ -1,0 +1,14 @@
+﻿OUT {'equilibrium_price_no_tax': '20', 'equilibrium_quantity_no_tax': '60', 'tax_per_unit': '6', 'consumer_price': '23', 'producer_price': '17', 'quantity_traded': '54', 'consumer_incidence': '3', 'producer_incidence': '3', 'consumer_share': '0.5', 'producer_share': '0.5', 'tax_revenue': '324', 'deadweight_loss': '18'}
+
+typing consumer_incidence -> ('currency', 2)
+typing consumer_price -> ('currency', 2)
+typing consumer_share -> ('ratio', 4)
+typing deadweight_loss -> ('currency', 2)
+typing equilibrium_price_no_tax -> ('currency', 2)
+typing equilibrium_quantity_no_tax -> ('units', 2)
+typing producer_incidence -> ('currency', 2)
+typing producer_price -> ('currency', 2)
+typing producer_share -> ('ratio', 4)
+typing quantity_traded -> ('units', 2)
+typing tax_per_unit -> ('currency', 2)
+typing tax_revenue -> ('currency', 2)

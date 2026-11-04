@@ -1,0 +1,30 @@
+{
+  "format": "bp-statement-detect/1",
+  "cases": [
+    {
+      "id": "cash_sales",
+      "text": "Cash sales of 50000. Credit sales of 30000.",
+      "expected_detectors": ["cash_sale", "credit_sale"]
+    },
+    {
+      "id": "prepaid_insurance",
+      "text": "Paid 6000 cash for a 12-month insurance policy.",
+      "expected_detectors": ["prepaid_expense"]
+    },
+    {
+      "id": "freight",
+      "text": "Paid freight-in of 2000.",
+      "expected_detectors": ["freight_in"]
+    },
+    {
+      "id": "depreciation",
+      "text": "Depreciate 60000 over 5 years.",
+      "expected_detectors": ["depreciation_sl"]
+    },
+    {
+      "id": "policy",
+      "text": "A full year of depreciation is recorded in the year of acquisition. Periodic inventory system.",
+      "expected_detectors": ["full_year_depreciation", "periodic_inventory"]
+    }
+  ]
+}

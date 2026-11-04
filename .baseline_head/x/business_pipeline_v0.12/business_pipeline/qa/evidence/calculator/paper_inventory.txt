@@ -1,0 +1,46 @@
+Computation: inventory policy
+Result
+At an annual demand of 12,000.00, an order cost of 500.00 and a holding cost of 30.00 a unit, the economic order quantity is 632.46, ordered 18.97 times a year at a total cost of 22,094.56. At the declared service level the safety stock is 104.03 and the reorder point is 432.80. Demand is treated as level over the year and the lead time is constant; seasonality, quantity discounts and supplier reliability are not modelled. Safety stock is the declared service level times the demand standard deviation over the square root of the lead time, using the normal approximation. The total annual cost counts ordering and holding cost only: no purchase cost, stock-out cost, transport or warehouse space cost.
+Inputs and results
+What you declared
+Annual demand: 12000.00
+Order cost: 500.00
+Holding cost per unit: 30.00
+Lead time days: 10.00
+Service level: 0.9500
+Daily demand sd: 20.00
+What was computed
+Annual demand: 12000.00
+Order cost: 500.00
+Holding cost per unit: 30.00
+Lead time days: 10.00
+Days per year: 365
+Service level: 0.9500
+Daily demand sd: 20.00
+Safety factor: 1.6449
+Economic order quantity: 632.46
+Orders per year: 18.97
+Cycle stock: 316.23
+Safety stock: 104.03
+Reorder point: 432.80
+Average inventory: 420.26
+Annual ordering cost: 9486.83
+Annual holding cost: 12607.72
+Total annual cost: 22094.56
+Daily demand: 32.88
+Honesty: what was not done
+this method: Demand is treated as level over the year and the lead time is constant; seasonality, quantity discounts and supplier reliability are not modelled. Safety stock is the declared service level times the demand standard deviation over the square root of the lead time, using the normal approximation. The total annual cost counts ordering and holding cost only: no purchase cost, stock-out cost, transport or warehouse space cost.
+Assumptions made
+Demand is level over the year and the lead time is constant.
+Ordering and holding costs are constant per order and per unit-year.
+The service level and demand variability are declared.
+Limitations
+No quantity discounts, stock-out cost or variable lead time.
+One item only; no warehouse or budget constraint.
+Safety stock uses a normal approximation.
+How the figures were checked
+Second implementation agrees.
+Eoq is the square root formula.
+Doubling demand raises the eoq by the square root of two.
+Reorder point covers lead time demand.
+A higher service level never lowers safety stock.

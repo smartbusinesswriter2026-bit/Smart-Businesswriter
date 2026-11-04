@@ -1,0 +1,59 @@
+﻿equilibrium	demand_supply_equilibrium	intro	market_basics	True	4	0	None
+elasticity	elasticity	intro	market_basics	True	4	0	None
+taxincidence	tax_incidence	intro	market_basics	True	4	0	None
+pricecontrol	price_control	intro	market_basics	True	4	0	None
+concentration	market_concentration	intro	market_basics	True	4	0	None
+costcurves	cost_curves	intro	firm_behaviour	True	4	0	None
+profitmax	profit_maximization	intro	firm_behaviour	True	4	0	None
+marketpower	market_power	intro	firm_behaviour	True	4	0	None
+pricediscrimination	price_discrimination	advanced	firm_behaviour	True	4	0	None
+cournot	cournot_duopoly	advanced	firm_behaviour	True	4	0	None
+nash	nash_equilibrium	advanced	firm_behaviour	True	4	0	None
+panel	panel_regression	advanced	behavioural_evidence	True	4	0	None
+iv	instrumental_variables	advanced	behavioural_evidence	True	4	0	None
+rdd	regression_discontinuity	advanced	behavioural_evidence	True	4	0	None
+probit	probit	advanced	behavioural_evidence	True	4	0	None
+nationalincome	national_income	intro	macroeconomics	True	4	0	None
+growth	growth_rate	intro	macroeconomics	True	4	0	None
+inflation	inflation_cpi	intro	macroeconomics	True	4	0	None
+unemployment	unemployment_rate	intro	macroeconomics	True	4	0	None
+moneymultiplier	money_multiplier	intro	macroeconomics	True	4	0	None
+fiscal	fiscal_multiplier	intro	macroeconomics	True	4	0	None
+budgetdebt	budget_debt	intro	macroeconomics	True	4	0	None
+okun	output_gap_okun	intermediate	macroeconomics	True	4	0	None
+externality	externality_pigouvian	intermediate	welfare_policy	True	4	0	None
+publicgood	public_good	intermediate	welfare_policy	True	4	0	None
+socialwelfare	social_welfare	intermediate	welfare_policy	True	3	0	None
+gini	gini_coefficient	intermediate	welfare_policy	True	4	0	None
+poverty	poverty_measures	intermediate	welfare_policy	True	4	0	None
+taxprogressivity	tax_progressivity	intermediate	welfare_policy	True	4	0	None
+optimalpollution	optimal_pollution	intermediate	welfare_policy	True	4	0	None
+comparative	comparative_advantage	intermediate	international	True	4	0	None
+tariff	tariff_welfare	intermediate	international	True	4	0	None
+ppp	exchange_rate_ppp	intermediate	international	True	4	0	None
+irp	interest_rate_parity	intermediate	international	True	4	0	None
+bop	balance_of_payments	intermediate	international	True	4	0	None
+hdi	hdi	intermediate	international	True	4	0	None
+expectedutility	expected_utility	intermediate	behavioural_evidence	True	4	0	None
+prospect	prospect_theory	intermediate	behavioural_evidence	True	4	0	None
+labour	labour_market	intermediate	behavioural_evidence	True	4	0	None
+did	difference_in_differences	advanced	behavioural_evidence	True	4	0	None
+forecast	trend_forecast	intro	impact_evaluation	True	4	0	a series in period order and the horizon
+currency	currency_convert	intro	impact_evaluation	True	4	0	None
+pricing	pricing_decision	intro	quantitative_core	True	4	0	None
+demandcurve	demand_curve	intermediate	quantitative_core	True	4	0	None
+cba	cost_benefit	intermediate	quantitative_core	True	3	0	None
+cea	cost_effectiveness	intermediate	quantitative_core	True	3	0	None
+sroi	sroi	intermediate	quantitative_core	True	3	0	None
+npv	npv	intro	quantitative_core	True	4	0	the outlay, the later cash flows, and the hurdle rate you will justify
+dcf	dcf_valuation	intermediate	quantitative_core	True	4	0	None
+breakeven	breakeven	intro	quantitative_core	True	4	0	None
+multibreakeven	multi_product_breakeven	intro	quantitative_core	True	4	0	None
+unitecon	unit_economics	intro	quantitative_core	True	4	0	None
+descriptive	descriptive_stats	intro	quantitative_core	True	3	0	the numbers you hold and the group they describe
+pearson	pearson	intermediate	quantitative_core	True	3	0	the two numeric variables you are relating, and the pairs you observed
+ols	ols	advanced	quantitative_core	True	4	0	the outcome, the predictors, and the observations you have for each
+welch	welch_t	advanced	quantitative_core	True	3	0	None
+anova	anova	advanced	quantitative_core	True	3	0	None
+chi_square	chi_square	advanced	quantitative_core	True	3	0	a two-way table of counts, and the categories in each direction
+power	power_analysis	advanced	quantitative_core	True	3	0	the size of the effect you are looking for and the number of observations

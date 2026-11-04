@@ -1,0 +1,2 @@
+﻿d871503 fix(finance): the paper prints money, and the shelf finally has a manual and a suite
+3988bb0 qa(accounting): closing measurement for the owner-approved unfreezes

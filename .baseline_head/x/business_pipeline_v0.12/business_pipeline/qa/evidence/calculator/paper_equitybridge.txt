@@ -1,0 +1,36 @@
+Computation: equity bridge
+Result
+The enterprise value is 1,750,939.14; subtracting net debt of 150,000.00 and the declared minority and preferred claims gives an equity value of 1,570,939.14. With the declared shares outstanding, the value per share is 15.71. This is arithmetic on the enterprise value you supplied; it is not a market price. The equity value is arithmetic on the enterprise value you supplied, not a market price or a trading value. The bridge subtracts net debt (debt minus cash) and the minority and preferred claims you declared; any other claim (pensions, leases, options, contingent liabilities) is missing unless you include it in these inputs. No tax, control premium, liquidity discount or marketability adjustment is applied.
+Inputs and results
+What you declared
+Enterprise value: 1750939.14
+Debt: 300000.00
+Cash: 150000.00
+Minority interest: 20000.00
+Preferred equity: 10000.00
+Shares outstanding: 100000
+What was computed
+Enterprise value: 1750939.14
+Net debt: 150000.00
+Equity value: 1570939.14
+Debt: 300000.00
+Cash: 150000.00
+Minority interest: 20000.00
+Preferred equity: 10000.00
+Per share value: 15.71
+Shares outstanding: 100000
+Honesty: what was not done
+this method: The equity value is arithmetic on the enterprise value you supplied, not a market price or a trading value. The bridge subtracts net debt (debt minus cash) and the minority and preferred claims you declared; any other claim (pensions, leases, options, contingent liabilities) is missing unless you include it in these inputs. No tax, control premium, liquidity discount or marketability adjustment is applied.
+Assumptions made
+The enterprise value and every claim are the owner's declared inputs at one valuation date.
+No claim other than those declared exists.
+Limitations
+Arithmetic on declared inputs only; it is not a market price or a fairness opinion.
+Pension deficits, leases, options and contingent liabilities are missing unless declared.
+No control premium, liquidity discount, tax or dilution modelling.
+How the figures were checked
+Second implementation agrees.
+Equity value is enterprise value minus net debt and claims.
+Adding cash raises equity value one for one.
+Per share value is equity value over shares.
+Negative bridge components are refused.

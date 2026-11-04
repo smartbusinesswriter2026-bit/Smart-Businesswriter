@@ -1,0 +1,14 @@
+net present value of this project          keys=['alternatives', 'format', 'inputs', 'label', 'method', 'missing', 'notes', 'outcome', 'reason', 'text_length', 'tier', 'tool', 'version']
+    {"inputs": {}, "method": "npv", "missing": ["cashflows", "rate"], "reason": "missing: cashflows, rate", "tool": "npv"}
+what is the wacc                           keys=['alternatives', 'format', 'inputs', 'label', 'method', 'missing', 'notes', 'outcome', 'reason', 'text_length', 'tier', 'tool', 'version']
+    {"inputs": {}, "method": "wacc", "missing": ["cost_of_debt_after_tax", "cost_of_equity", "debt_value", "equity_value"], "reason": "missing: cost_of_debt_after_tax, cost_of_equity, debt_value, equity_value", "tool": "wacc"}
+break even units                           keys=['alternatives', 'format', 'inputs', 'label', 'method', 'missing', 'notes', 'outcome', 'reason', 'text_length', 'tier', 'tool', 'version']
+    {"inputs": {}, "method": "breakeven", "missing": ["fixed", "price", "variable"], "reason": "missing: fixed, price, variable", "tool": "breakeven"}
+price this bond                            keys=['alternatives', 'format', 'inputs', 'label', 'method', 'missing', 'notes', 'outcome', 'reason', 'text_length', 'tier', 'tool', 'version']
+    {"inputs": {}, "method": null, "missing": [], "reason": "no_method: no frozen method matches this sentence", "tool": null}
+internal rate of return                    keys=['alternatives', 'format', 'inputs', 'label', 'method', 'missing', 'notes', 'outcome', 'reason', 'text_length', 'tier', 'tool', 'version']
+    {"inputs": {}, "method": "irr", "missing": ["cashflows"], "reason": "missing: cashflows", "tool": "irr"}
+value at risk of my portfolio              keys=['alternatives', 'format', 'inputs', 'label', 'method', 'missing', 'notes', 'outcome', 'reason', 'text_length', 'tier', 'tool', 'version']
+    {"inputs": {}, "method": "risk_metrics", "missing": ["returns"], "reason": "missing: returns", "tool": "risk"}
+future value of a lump sum                 keys=['alternatives', 'format', 'inputs', 'label', 'method', 'missing', 'notes', 'outcome', 'reason', 'text_length', 'tier', 'tool', 'version']
+    {"inputs": {}, "method": "time_value", "missing": ["periods", "present_value", "rate"], "reason": "missing: periods, present_value, rate", "tool": "tvm"}

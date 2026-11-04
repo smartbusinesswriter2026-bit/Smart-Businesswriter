@@ -1,0 +1,28 @@
+﻿F                                                                        [100%]
+================================== FAILURES ===================================
+_ FinanceCatalogueAndContract.test_006__every_preset_default_passes_schema_and_profile _
+
+self = <test_subject_finance_acceptance.FinanceCatalogueAndContract testMethod=test_006__every_preset_default_passes_schema_and_profile>
+
+    def test_006__every_preset_default_passes_schema_and_profile(self):
+        """E-fin-006: a shipped preset is a runnable example, not a broken one."""
+        checked = 0
+        for item in tools():
+            if item["method"] not in methods.LIBRARY or not item.get("preset"):
+                continue          # G-fin-05: ols_robust ships no preset (pinned by test_005)
+            preset_id, request = request_for(item["method"])
+            self.assertIsNotNone(preset_id, item["method"])
+            method = methods.LIBRARY[item["method"]]
+            self.assertEqual(methods.validate_inputs(method, request["inputs"]), [],
+                             "%s: preset %r is rejected by its own schema"
+                             % (item["method"], preset_id))
+            self.assertEqual(list(method.profile(dict(request["inputs"]))), [],
+                             "%s: preset %r fails its own profile" % (item["method"], preset_id))
+            checked += 1
+>       self.assertEqual(checked, 34, "34 of the 35 tools ship a preset")
+E       AssertionError: 33 != 34 : 34 of the 35 tools ship a preset
+
+tests\test_subject_finance_acceptance.py:184: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_subject_finance_acceptance.py::FinanceCatalogueAndContract::test_006__every_preset_default_passes_schema_and_profile
+1 failed, 24 deselected in 0.34s

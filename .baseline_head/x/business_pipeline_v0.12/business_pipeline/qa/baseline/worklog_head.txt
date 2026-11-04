@@ -1,0 +1,14 @@
+﻿[product] Worksheet registration WO-2/WO-3: 32 orphan profiles registered as worksheets, 8 new profiles built, CHG-15/STR-19/STR-20 added. Proposed decision: register orphan framework profiles as T4 worksheets (structure and evidence audit only); does not change frozen core, methods, or paper claims.
+
+
+## 2026-11-02 â€” [core] Owner-approved unfreezes: one unit hook per method, the shelf vocabulary enforces again, an unknown method is refused
+
+**Ask.** "1. what do you need from me? to unfreeze, yes unfreeze it. 2. implement your reco 3. yes
+unfreeze. dont do finance yet, its doing some fixing" â€” i.e. approve the three blocked items from
+QA session 1 and leave `finance` alone while another session works on it.
+
+**Did.** (1) **B-179** â€” renamed the six duplicated `typing` hooks in `src/bp/methods.py`
+(`_risk_metrics_typing`, `_tax_incidence_typing`, `_social_welfare_typing`,
+`_social_engagement_typing`, `_schedule_risk_typing`, `_tax_declared_typing`) and re-pointed the
+six `Method(...)` constructions, so `risk_metrics`, `tax_incidence` and `social_welfare` stop
+answering with another method's units. The edit was applied by `qa/patch_typing_hooks.py`, which

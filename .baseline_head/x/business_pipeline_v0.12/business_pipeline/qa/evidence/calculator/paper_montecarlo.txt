@@ -1,0 +1,44 @@
+Computation: monte carlo
+Result
+Across 2,000 seeded simulations the mean result is -9.20, with median -9.63, ninetieth percentile 143.57 and a 0.4650 share of positive results. The model is limited to NPV of declared cash flows or profit = (price - variable cost) x volume - fixed cost; no arbitrary formula is evaluated. Distributions are fixed, uniform or triangular, and every draw is independent; correlation and distribution fitting are not modelled. The simulation is seeded and reproducible, but a different seed changes the percentiles; it is not a forecast or a guarantee.
+Inputs and results
+What you declared
+Model: npv
+Iterations: 2000
+Seed: 7.00
+Discount rate: 0.10
+Cashflows: Name: outlay; Period: 0; Distribution: fixed; Value: -1000, Name: year_one; Period: 1; Distribution: triangular; Low: 200; Mode: 400; High: 600, Name: year_two; Period: 2; Distribution: triangular; Low: 200; Mode: 400; High: 600, Name: year_three; Period: 3; Distribution: triangular; Low: 200; Mode: 400; High: 600
+What was computed
+Iterations: 2000
+Mean result: -9.20
+P10 result: -162.31
+P50 result: -9.63
+P90 result: 143.57
+Min result: -366.65
+Max result: 359.08
+N positive: 930
+Probability positive: 0.4650
+Sample min outlay: -1000.00
+Sample max outlay: -1000.00
+Sample min year one: 203.78
+Sample max year one: 598.21
+Sample min year two: 204.32
+Sample max year two: 585.94
+Sample min year three: 203.55
+Sample max year three: 594.22
+Honesty: what was not done
+this method: The model is limited to NPV of declared cash flows or profit = (price - variable cost) x volume - fixed cost; no arbitrary formula is evaluated. Distributions are fixed, uniform or triangular, and every draw is independent; correlation and distribution fitting are not modelled. The simulation is seeded and reproducible, but a different seed changes the percentiles; it is not a forecast or a guarantee.
+Assumptions made
+Inputs are independent draws from the declared distributions.
+The NPV discount rate is constant; profit uses one price, variable cost and volume per draw.
+The seed is declared and kept for the report.
+Limitations
+Two declared models only; no arbitrary formula.
+No correlation, distribution fitting or resource constraints.
+A seeded sample is not a forecast or a guarantee.
+How the figures were checked
+Second implementation and seed agree.
+Sampled inputs stay within their bounds.
+Percentiles are ordered.
+The mean lies between the observed extremes.
+The positive probability matches the count.

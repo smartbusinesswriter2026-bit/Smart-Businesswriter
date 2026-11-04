@@ -1,0 +1,243 @@
+"""Runtime state machine for statement problems (tip 9.1, 9.9, 9.10).
+
+Orchestrates the stages: INGEST -> PARSE -> DETECT -> RESOLVE -> JOURNALIZE -> POST ->
+VALIDATE -> RENDER. Each stage either succeeds or returns a Review (terminal) naming the
+stage, the offending input and what was expected. The runtime never auto-corrects.
+
+This first version wires detection, policy inference, journalization, posting and the
+articulation gates. Adjustments and plugs are applied by the caller (statement_plan) when
+present; the runtime reports them as given facts rather than deriving them.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from decimal import Decimal
+from typing import Any, Dict, List, Optional
+
+from . import statement_detect as sd
+
+
+@dataclass
+class Review:
+    stage: str
+    detail: str
+    expected: str = ""
+    offending: str = ""
+
+
+@dataclass
+class RuntimeResult:
+    status: str  # "ok" | "review"
+    claims: List = field(default_factory=list)
+    matches: List = field(default_factory=list)
+    policies: Dict[str, Any] = field(default_factory=dict)
+    conflicts: List = field(default_factory=list)
+    journal: List = field(default_factory=list)
+    trial_balance: Dict[str, Decimal] = field(default_factory=dict)
+    statements: Dict[str, Any] = field(default_factory=dict)
+    output_hash: str = ""
+    gates: Dict[str, bool] = field(default_factory=dict)
+    review: Optional[Review] = None
+    diagnostics: List[str] = field(default_factory=list)
+    review_items: List = field(default_factory=list)
+
+
+def _post(journal):
+    tb = {}
+    for acct, side, amt in journal:
+        d = Decimal(str(amt))
+        tb.setdefault(acct, Decimal(0))
+        if side == "Dr":
+            tb[acct] += d
+        else:
+            tb[acct] -= d
+    return tb
+
+
+def run(problem_text: str, chart: Optional[Dict[str, Any]] = None,
+        adjustments: Optional[List[Dict[str, Any]]] = None,
+        executed_adjustments: Optional[List[str]] = None) -> RuntimeResult:
+    res = RuntimeResult(status="ok")
+    # INGEST
+    if not isinstance(problem_text, str) or not problem_text.strip():
+        res.status = "review"
+        res.review = Review("INGEST", "empty problem text", "non-empty string")
+        return res
+    # PARSE
+    claims = sd.parse_claims(problem_text)
+    res.claims = claims
+    # DETECT
+    matches = sd.detect(problem_text)
+    # extraction grounding guard (G20)
+    try:
+        from . import extraction as ext_guard
+        for m in matches:
+            issues = ext_guard.verify_grounded(
+                ext_guard.Match(m.detector_id, "", m.slots, m.confidence,
+                               {}, m.span), problem_text)
+            if issues:
+                res.diagnostics.append(f"ungrounded slots in {m.detector_id}: {issues}")
+    except Exception:
+        pass
+    res.matches = matches
+    # generic-only matches are not journalizable; if every transaction claim has only
+    # generic matches, route to review
+    tx_claims = [c for c in claims if c.kind == "transaction"]
+    if tx_claims and not any(sd.journalizable(m) for m in matches):
+        res.status = "review"
+        res.review = Review("DETECT", "no specific detector matched any transaction claim",
+                           "a detector with specificity >= 50")
+        return res
+    # RESOLVE (policies)
+    policies = sd.infer_policies(problem_text)
+    conflicts = sd.policy_conflicts(problem_text)
+    # convention conflict guard (G18)
+    try:
+        from . import conflicts as cf_guard
+        claim_objs = [type("C", (), {"text": c.text, "span": c.span})() for c in claims]
+        cf_issues = cf_guard.detect_convention_conflicts(claim_objs)
+        if cf_issues:
+            conflicts = conflicts + [(i.input_ref, i.expected, i.actual) for i in cf_issues]
+    except Exception:
+        pass
+    res.policies = policies
+    res.conflicts = conflicts
+    # assumptions manifest guard (G15)
+    try:
+        from . import assumptions as asm_guard
+        claim_objs = [type("C", (), {"text": c.text, "span": c.span})() for c in claims]
+        res.review_items = asm_guard.build_assumptions_manifest(policies, claim_objs)
+    except Exception:
+        pass
+    if conflicts:
+        res.status = "review"
+        res.review = Review("RESOLVE", "contradictory policy claims",
+                           "a single value per policy", str(conflicts))
+        return res
+    # template coverage guard (G21)
+    try:
+        from . import coverage as cov_guard
+        cov_issues = cov_guard.check_template_coverage(matches, sd.TEMPLATES)
+        if cov_issues:
+            res.status = "review"
+            res.review = Review("JOURNALIZE", "template coverage gap",
+                               "a template per matched detector", str(cov_issues))
+            res.diagnostics.extend(str(i) for i in cov_issues)
+            return res
+    except Exception:
+        pass
+    # JOURNALIZE
+    journal = []
+    for m in matches:
+        if not sd.journalizable(m):
+            continue
+        try:
+            lines = sd.journalize(m.detector_id, m.slots, chart)
+        except sd.DetectError as e:
+            res.status = "review"
+            res.review = Review("JOURNALIZE", str(e), "balanced JE with known accounts",
+                               m.detector_id)
+            return res
+        journal.extend(lines)
+    # POST (transactions)
+    tb = _post(journal)
+    # apply adjustments (each: {"debit": code, "credit": code, "amount": value})
+    for adj in (adjustments or []):
+        amt = Decimal(str(adj["amount"]))
+        journal.append((adj["debit"], "Dr", amt))
+        journal.append((adj["credit"], "Cr", amt))
+    tb = _post(journal)
+    res.trial_balance = tb
+    res.journal = journal
+    # projection + articulation gates (G9)
+    try:
+        class _TB:
+            def __init__(self, b, journal):
+                self.b = b
+                self.journal = journal
+            def balance(self, code):
+                return self.b.get(code, Decimal(0))
+            @property
+            def total_dr(self):
+                return sum(Decimal(str(l[2])) for l in self.journal if l[1] == "Dr")
+            @property
+            def total_cr(self):
+                return sum(Decimal(str(l[2])) for l in self.journal if l[1] == "Cr")
+        from . import statement_project as proj
+        from . import articulation as art
+        tb_obj = _TB(tb, journal)
+        accounts = {}  # metadata supplied by caller; empty => no projection
+        is_lines = proj.project_is(tb_obj, accounts)
+        ni = next((l["amount"] for l in is_lines if l["label"] == "Net income"), Decimal(0))
+        re_lines = proj.project_re(Decimal(0), ni, Decimal(0))
+        bs_lines = proj.project_bs(tb_obj, accounts)
+        cf_lines = proj.project_cf(tb_obj, tb_obj, accounts, ni)
+        res.statements = {"IS": is_lines, "RE": re_lines, "BS": bs_lines, "CF": cf_lines}
+        # build lightweight result objects for gates
+        is_res = type("IS", (), {"net_income": ni})()
+        re_res = type("RE", (), {"net_income": ni, "closing": re_lines[-1]["amount"]})()
+        bs_res = type("BS", (), {"assets": sum(l["amount"] for l in bs_lines if l["kind"] == "asset"),
+                                 "liabilities": sum(l["amount"] for l in bs_lines if l["kind"] == "liability"),
+                                 "equity": sum(l["amount"] for l in bs_lines if l["kind"] == "equity"),
+                                 "retained_earnings": re_lines[-1]["amount"],
+                                 "cash": _bal(tb_obj, "1000")})()
+        cf_res = type("CF", (), {"ending_cash": cf_lines[-1]["amount"], "cfo": cf_lines[1]["amount"],
+                                 "cfi": cf_lines[2]["amount"], "cff": cf_lines[3]["amount"],
+                                 "net_change": cf_lines[4]["amount"]})()
+        issues = art.run_gates(tb_obj, is_res, re_res, bs_res, cf_res)
+        res.gates["articulation"] = (len(issues) == 0)
+        if issues:
+            res.diagnostics.extend(str(i) for i in issues)
+    except Exception as e:
+        res.diagnostics.append(f"projection error: {e}")
+    # double-counting guard (G6):: surface any non-operating addback accounts
+    try:
+        from . import double_counting as dc_guard
+        accts = [ln[0] for ln in journal]
+        addbacks = dc_guard.check_non_operating_addbacks(accts)
+        if addbacks:
+            res.diagnostics.append(f"non-operating addbacks present: {addbacks}")
+    except Exception:
+        pass
+    # adjustment completeness guard (G5)
+    try:
+        from . import completeness as comp_guard
+        claim_objs = [type("C", (), {"text": c.text, "kind": c.kind})() for c in claims]
+        missing = comp_guard.check_adjustment_completeness(claim_objs, executed_adjustments or [])
+        if missing:
+            res.diagnostics.append(f"adjustment completeness: missing {missing}")
+    except Exception:
+        pass
+    # gate: balanced
+    total_dr = sum((Decimal(str(a)) for a, s, _ in []), Decimal(0))  # placeholder
+    # compute debits/credits from journal
+    debits = sum((Decimal(str(ln[2])) for ln in journal if ln[1] == "Dr"), Decimal(0))
+    credits = sum((Decimal(str(ln[2])) for ln in journal if ln[1] == "Cr"), Decimal(0))
+    balanced = debits == credits
+    res.gates["tb_balanced"] = balanced
+    if not balanced:
+        res.status = "review"
+        res.review = Review("POST", f"unbalanced TB: Dr={debits} Cr={credits}",
+                           "equal debits and credits")
+        return res
+    # VALIDATE: at least one articulation gate recorded
+    res.gates["has_journal"] = bool(journal)
+    # cross-reconciliation guard (G13): cash from TB vs journal
+    try:
+        from . import reconcile2 as r2_guard
+        journal_cash = sum(Decimal(str(l[2])) for l in journal if l[0] == "1000" and l[1] == "Dr") - \
+                       sum(Decimal(str(l[2])) for l in journal if l[0] == "1000" and l[1] == "Cr")
+        d = r2_guard.reconcile_cash_two_ways(tb.get("1000", Decimal(0)), journal_cash)
+        if d is not None:
+            res.diagnostics.append(str(d))
+    except Exception:
+        pass
+    # determinism guard (G10)
+    try:
+        from . import determinism as det_guard
+        res.output_hash = det_guard.hash_outputs(res.statements, res.trial_balance)
+    except Exception:
+        pass
+    res.status = "ok"
+    return res

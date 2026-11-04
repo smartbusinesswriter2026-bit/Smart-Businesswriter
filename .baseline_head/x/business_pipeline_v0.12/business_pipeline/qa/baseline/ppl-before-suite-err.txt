@@ -1,0 +1,437 @@
+..........C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\__init__.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\accounts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\artifacts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\assist.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\case_decision.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\catalogue_import.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\check.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\claims.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\currency.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\envpin.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\evaluate.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ingest.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ledger.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\literature.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\llm.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\methods.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\orchestrator.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\quantity.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reconcile.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\registry.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reperform.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\report.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox_child.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\schedules.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\server.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\session.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\spec.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\templates.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....................................C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\registry.py:308: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\data\\registry_v0_2.json' mode='r' encoding='utf-8'>
+  raw = json.load(open(path, encoding="utf-8")); recs = raw["records"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.................................................................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 422: 'Unprocessable Content'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: 'Too Many Requests'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 502: 'Bad Gateway'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 503: 'Service Unavailable'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..........................................................................................................................................................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 401: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+........................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.............D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_frozen_contract.py:28: ResourceWarning: unclosed file <_io.TextIOWrapper name='src\\bp\\server.py' mode='r' encoding='utf-8'>
+  src = open(os.path.join("src", "bp", "server.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.............................................................................................................................................................................................................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+......C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+............................................................................................................................................................................................................................................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py:174: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py:168: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_people_frameworks.py:491: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_people_frameworks.py:497: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....................................................................................................................................................................................................................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_boundary.py:150: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\cases.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(PRODUCT_DIR, "cases.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'refused'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 422: 'refused'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_charts.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmp6l3a4h_6\\case.html' mode='r' encoding='utf-8'>
+  document = open(target, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..............D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_compare.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-compare-test-y0nfl04b\\comparison.html' mode='r' encoding='utf-8'>
+  document = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.........D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_diagrams.py:59: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpjlkhxtdm\\diagram.svg' mode='r' encoding='utf-8'>
+  self.assertTrue(open(path, encoding="utf-8").read().startswith("<svg"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.........incorrect startxref pointer(1)
+parsing for Object Streams
+.invalid pdf header: b'not a'
+EOF marker not found
+..incorrect startxref pointer(1)
+parsing for Object Streams
+...........................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 422: 'Unprocessable Content'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+...C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 405: 'Method Not Allowed'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+................incorrect startxref pointer(1)
+parsing for Object Streams
+.............C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..incorrect startxref pointer(1)
+parsing for Object Streams
+.incorrect startxref pointer(1)
+parsing for Object Streams
+.C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+............EOF marker not found
+...............................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:98: ResourceWarning: unclosed file <_io.BufferedWriter name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-hipwzq59\\broken.zip'>
+  open(path, "wb").write(b"not a zip")
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+........D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:49: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-r5ddx2yo\\state\\requests.jsonl' mode='r' encoding='utf-8'>
+  line = json.loads(open(os.environ["BP_REQUEST_LOG"], encoding="utf-8").read().strip())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:54: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-r5ddx2yo\\state\\requests.jsonl' mode='r' encoding='utf-8'>
+  self.assertEqual(len(open(os.environ["BP_REQUEST_LOG"], encoding="utf-8").read().strip().splitlines()), 2)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: 'Too Many Requests'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 500: 'boom'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+............................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_server.py:110: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-server-cases-5shzetm0\\state\\requests.jsonl' mode='r' encoding='utf-8'>
+  text = open(log, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:69: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-9czuinf1\\648254f55b81\\v001.json' mode='r' encoding='utf-8'>
+  document = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:71: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-9czuinf1\\648254f55b81\\v001.json' mode='w' encoding='utf-8'>
+  json.dump(document, open(path, "w", encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:50: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-2qap7mhf\\24c8f4a7dadd\\signoff\\v001-001.json' mode='r' encoding='utf-8'>
+  before = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:52: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-2qap7mhf\\24c8f4a7dadd\\signoff\\v001-001.json' mode='r' encoding='utf-8'>
+  self.assertEqual(open(path, encoding="utf-8").read(), before)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_spreadsheets.py:103: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmp0rtmp7_1\\artifacts.csv' mode='r' encoding='utf-8'>
+  self.assertIn("50.00", open(csv_path, encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_spreadsheets.py:104: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmp0rtmp7_1\\case.xml' mode='r' encoding='utf-8'>
+  ET.fromstring(open(xml_path, encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...............................................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:81: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-zv5h6fo3\\c59650e2632f\\v001.json' mode='r' encoding='utf-8'>
+  document = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:83: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-zv5h6fo3\\c59650e2632f\\v001.json' mode='w' encoding='utf-8'>
+  json.dump(document, open(path, "w", encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:56: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-rd8yhk_5\\f64ae5a78364\\v001.json' mode='r' encoding='utf-8'>
+  before = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:58: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-rd8yhk_5\\f64ae5a78364\\v001.json' mode='r' encoding='utf-8'>
+  self.assertEqual(open(path, encoding="utf-8").read(), before)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_worksheet_registration.py:21: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\tests\\..\\src\\bp\\data\\registry_v0_2.json' mode='r' encoding='cp1252'>
+  data = json.load(open(os.path.join(os.path.dirname(__file__), "..", "src", "bp", "data", "registry_v0_2.json")))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_product_worksheet_registration.py:16: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\tests\\..\\src\\bp\\data\\registry_v0_2.json' mode='r' encoding='cp1252'>
+  data = json.load(open(os.path.join(os.path.dirname(__file__), "..", "src", "bp", "data", "registry_v0_2.json")))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\__init__.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\accounts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\artifacts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\assist.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\case_decision.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\catalogue_import.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\check.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\claims.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\currency.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\envpin.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\evaluate.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ingest.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ledger.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\literature.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\llm.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\methods.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\orchestrator.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\quantity.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reconcile.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\registry.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reperform.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\report.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox_child.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\schedules.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\server.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\session.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\spec.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\templates.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:28: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\docs\\sources\\Business_Frameworks_and_Quantitative_Methods_Catalogue_v0_2.md' mode='r' encoding='utf-8'>
+  ids = [re.match(r"\|\s*([A-Z]{2,5}-\d+)", l).group(1) for l in open(CAT, encoding="utf-8") if re.match(r"\|\s*[A-Z]{2,5}-\d+\s*\|", l)]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\catalogue_import.py:63: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\docs\\sources\\Business_Frameworks_and_Quantitative_Methods_Catalogue_v0_2.md'>
+  raw = open(path, "rb").read(); lines = raw.decode("utf-8").splitlines()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:13: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\.cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\data\\registry_v0_2.json' mode='r' encoding='utf-8'>
+  fresh = CI.import_catalogue(CAT); shipped = json.load(open(R.DATA, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.C:\Users\Roderick\.cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\src\bp\catalogue_import.py:63: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpqaz243es\\catalogue_crlf.md'>
+  raw = open(path, "rb").read(); lines = raw.decode("utf-8").splitlines()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:101: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\tests\\fixtures\\framework_requests.json' mode='r' encoding='cp1252'>
+  meta = json.load(open(os.path.join(ROOT, "tests", "fixtures", "framework_requests.json"))); self.assertEqual(meta["expert_review"], "pending")
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.........................................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:182: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpk5wdy0cj\\b.json' mode='w' encoding='cp1252'>
+  f = os.path.join(td, "b.json"); json.dump(self.d.appendix["reperform"], open(f, "w"), default=str)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:185: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpk5wdy0cj\\b.json' mode='r' encoding='cp1252'>
+  bad = json.load(open(f)); bad["outputs"]["npv"] = "1"; json.dump(bad, open(f, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:185: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpk5wdy0cj\\b.json' mode='w' encoding='cp1252'>
+  bad = json.load(open(f)); bad["outputs"]["npv"] = "1"; json.dump(bad, open(f, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\unittest\case.py:615: ResourceWarning: unclosed <socket.socket fd=1692, family=2, type=1, proto=0, laddr=('127.0.0.1', 57991)>
+  result = method()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 409: 'Conflict'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..............................................F.................................................................................................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_economics_acceptance.py:205: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  page = open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+........D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_economics_acceptance.py:299: ResourceWarning: unclosed file <_io.TextIOWrapper name='docs/CURRICULUM_MAP.md' mode='r' encoding='utf-8'>
+  text = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+........................................................................................................................................................................................................................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:396: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page_html = open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:400: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\server.py' mode='r' encoding='utf-8'>
+  server_py = open(os.path.join(SRC, "bp", "server.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:402: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\api.py' mode='r' encoding='utf-8'>
+  api_py = open(os.path.join(SRC, "bp", "product", "api.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:406: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page_html = open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:457: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page_html = open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:461: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\session_paper.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(SRC, *relative), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:461: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\completion.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(SRC, *relative), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:461: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\chat.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(SRC, *relative), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:466: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\session_paper.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(SRC, "bp", "product", "session_paper.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:525: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\framework_profiles.py' mode='r' encoding='utf-8'>
+  source = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_management_acceptance.py:536: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\framework_profiles.py' mode='r' encoding='utf-8'>
+  source = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_operations_acceptance.py:455: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page_html = open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_operations_acceptance.py:518: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\completion.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(SRC, *relative), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_operations_acceptance.py:518: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\chat.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(SRC, *relative), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_operations_acceptance.py:518: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\session_paper.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(SRC, *relative), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_operations_acceptance.py:520: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page_html = open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_operations_acceptance.py:528: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page_html = open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_operations_acceptance.py:531: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\server.py' mode='r' encoding='utf-8'>
+  server_py = open(os.path.join(SRC, "bp", "server.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_operations_acceptance.py:533: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\llm-data\\cline\\data\\workspaces\\chat\\ppl-work\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\api.py' mode='r' encoding='utf-8'>
+  api_py = open(os.path.join(SRC, "bp", "product", "api.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:787: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:811: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..........D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:1008: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:1064: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:1082: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:1116: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:1141: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:1182: ResourceWarning: unclosed file <_io.TextIOWrapper name='qa\\evidence\\project-management\\grid-form.json' mode='r' encoding='utf-8'>
+  record = json.load(io.open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+......D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_project_management_acceptance.py:132: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...............................................................D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_subject_supply_chain_acceptance.py:217: ResourceWarning: unclosed file <_io.TextIOWrapper name='web/index.html' mode='r' encoding='utf-8'>
+  html = io.open("web/index.html", encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.............................................................................................................................................................................................................
+======================================================================
+FAIL: test_brave_failure_falls_back_to_firecrawl (test_sources.SearchTest.test_brave_failure_falls_back_to_firecrawl)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\unittest\mock.py", line 1432, in patched
+    return func(*newargs, **newkeywargs)
+  File "D:\llm-data\cline\data\workspaces\chat\ppl-work\business_pipeline_v0.12\business_pipeline\tests\test_sources.py", line 220, in test_brave_failure_falls_back_to_firecrawl
+    self.assertEqual(result["provider"], "firecrawl")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'firecrawl'
+
+----------------------------------------------------------------------
+Ran 3409 tests in 1139.386s
+
+FAILED (failures=1)

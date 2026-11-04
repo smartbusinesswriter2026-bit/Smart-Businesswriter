@@ -1,0 +1,37 @@
+Computation: startup capital
+Result
+The set-up costs of 350,000.00 plus working capital of 120,000.00 give a contingency reserve of 47,000.00 and a total funding requirement of 517,000.00. Against declared sources of 350,000.00, the amount to raise is 167,000.00. The start-up costs and working capital are the figures you declared; the method does not price equipment, rent or inventory. The contingency is a declared percentage of the set-up costs plus working capital, not a risk assessment. When the declared sources exceed the requirement the surplus is reported separately; the amount to raise is never shown as negative.
+Inputs and results
+What you declared
+Start up costs: 350000.00
+Working capital: 120000.00
+Contingency rate: 0.1000
+Owner equity: 150000.00
+Loan amount: 200000.00
+What was computed
+Start up costs: 350000.00
+Working capital: 120000.00
+Contingency rate: 0.1000
+Contingency reserve: 47000.00
+Total funding required: 517000.00
+Owner equity: 150000.00
+Loan amount: 200000.00
+Declared sources: 350000.00
+Amount to raise: 167000.00
+Funding surplus: 0.00
+Funded share: 0.6770
+Honesty: what was not done
+this method: The start-up costs and working capital are the figures you declared; the method does not price equipment, rent or inventory. The contingency is a declared percentage of the set-up costs plus working capital, not a risk assessment. When the declared sources exceed the requirement the surplus is reported separately; the amount to raise is never shown as negative.
+Assumptions made
+The cost and source figures are the owner's declared inputs.
+The contingency is a constant fraction of the requirement.
+Limitations
+No timing, seasonality or financing cost.
+No dilution, grant or supplier-credit modelling.
+A negative amount to raise is reported as a surplus, not as a refund.
+How the figures were checked
+Second implementation agrees.
+Funding requirement is costs plus working capital plus contingency.
+Amount to raise is the unfunded part of the requirement.
+A higher contingency rate raises the requirement.
+More declared funding reduces the amount to raise.

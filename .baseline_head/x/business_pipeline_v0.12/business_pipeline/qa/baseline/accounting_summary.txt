@@ -1,0 +1,110 @@
+counts: {'tools': 12, 'worksheets': 0, 'records': 3, 'tiles': 0}
+tools in def: 12 | worksheets: []
+catalogue_ids: ['QNT-FIN-02', 'QNT-FIN-03', 'QNT-FIN-05']
+
+== TOOLS ==
+[accounts] preset=accounts method=management_accounts group=Bookkeeping and statements period=annual
+   label: Management accounts
+   what : Run the double-entry engagement, confirm the account mapping and produce the statements.
+   need : None
+   level: intermediate
+   formula: Every entry keeps debits equal to credits; assets = liabilities + equity, and net income closes to retained earnings.
+   steps: 4 | mistakes: 4 | related: ['tbcheck', 'ratios', 'scv']
+   diagram: process
+[tbcheck] preset=tbcheck method=trial_balance_check group=Bookkeeping and statements period=annual
+   label: Check a trial balance
+   what : Compare your own trial balance with the one your journal rebuilds to, and see every line that differs or is missing.
+   need : None
+   level: intro
+   formula: A trial balance balances when total debits equal total credits; the check compares each line with the one your own journal rebuilds.
+   steps: 4 | mistakes: 4 | related: ['accounts', 'ratios']
+   diagram: None
+[ratios] preset=ratios method=ratio_analysis group=Bookkeeping and statements period=annual
+   label: Financial statement ratios
+   what : Compute the declared liquidity, profitability, solvency and efficiency ratios from supplied statements.
+   need : None
+   level: intro
+   formula: Current ratio = current assets / current liabilities; margins divide profit by revenue; turnover divides revenue by the balance.
+   steps: 4 | mistakes: 4 | related: ['dupont', 'workingcapital', 'leverage']
+   diagram: None
+[scv] preset=scv method=standard_cost_variances group=Cost and variance analysis period=annual
+   label: Standard-cost variances
+   what : Material price and usage, labour rate and efficiency, and overhead variances for the output produced.
+   need : None
+   level: intermediate
+   formula: Price = AQ(AP - SP); usage = SP(AQ - SQ); rate = AH(AR - SR); efficiency = SR(AH - SH); a positive variance is unfavourable.
+   steps: 4 | mistakes: 4 | related: ['accounts', 'breakeven', 'ratios']
+   diagram: None
+[abc] preset=abc method=abc_costing group=Cost and variance analysis period=annual
+   label: Activity-based costing
+   what : Activity rates, each product's allocation and its unit cost from the drivers it consumes.
+   need : None
+   level: intermediate
+   formula: Rate = pool cost / driver total; product allocation = sum of driver quantity x rate; unit cost = allocation / units.
+   steps: 4 | mistakes: 4 | related: ['scv', 'salesvar', 'ratios']
+   diagram: None
+[salesvar] preset=salesvar method=sales_variances group=Cost and variance analysis period=annual
+   label: Sales price, mix and yield variances
+   what : Reconcile the revenue change into price, mix and yield, per product and in total.
+   need : None
+   level: intermediate
+   formula: Price = actual units x (actual price - budget price); mix = budget price x (actual units - standard-mix units); yield = budget price x (standard-mix units - budget units).
+   steps: 4 | mistakes: 4 | related: ['scv', 'abc', 'pricing']
+   diagram: None
+[breakeven] preset=breakeven method=breakeven group=Cost and variance analysis period=per period
+   label: Break-even point
+   what : Solve the break-even quantity from fixed cost, price and variable cost.
+   need : None
+   level: intro
+   formula: Break-even quantity = fixed cost / (price - variable cost per unit); break-even revenue = quantity x price; margin of safety = expected units - break-even units.
+   steps: 4 | mistakes: 4 | related: ['multibreakeven', 'unitecon', 'pricing']
+   diagram: breakeven
+[multibreakeven] preset=multibreakeven method=multi_product_breakeven group=Cost and variance analysis period=per period
+   label: Multi-product break-even
+   what : Find the sales mix at which several products together cover their fixed costs.
+   need : None
+   level: intro
+   formula: Weighted contribution = sum(mix weight x unit contribution); break-even units = fixed cost / weighted contribution.
+   steps: 4 | mistakes: 3 | related: ['breakeven', 'unitecon']
+   diagram: breakeven
+[workingcapital] preset=workingcapital method=working_capital group=Working capital and financing period=annual
+   label: Working capital and EOQ
+   what : Cash conversion cycle, order quantity, reorder point and the cost of forgoing a discount.
+   need : None
+   level: intro
+   formula: CCC = DSO + DIO - DPO; EOQ = square root of (2 x annual demand x order cost / holding cost per unit).
+   steps: 4 | mistakes: 4 | related: ['dupont', 'ratios', 'loan']
+   diagram: None
+[loan] preset=loan method=loan_amortization group=Working capital and financing period=annual
+   label: Loan amortization
+   what : Find the level payment, total interest and first-payment split on a fixed-rate loan.
+   need : None
+   level: intro
+   formula: PMT = P x r / (1 - (1 + r)^-n), where r is the annual rate divided by payments per year and n is years x payments per year.
+   steps: 4 | mistakes: 4 | related: ['tvm', 'bond', 'leverage']
+   diagram: None
+[trendanalysis] preset=trendanalysis method=trend_analysis group=Working capital and financing period=annual
+   label: Common-size and trend
+   what : Several years of income-statement figures as common-size percentages, an index and compound growth.
+   need : None
+   level: intro
+   formula: Common-size % = line / revenue; index = period value / base value x 100; CAGR = (end / start)^(1 / periods) - 1.
+   steps: 4 | mistakes: 4 | related: ['dupont', 'ratios', 'forecast']
+   diagram: None
+[tax] preset=tax method=tax_declared group=Tax and reporting period=annual
+   label: Tax on declared rates
+   what : Income tax, VAT payable and deferred tax from the rates you declare, with the total charge.
+   need : None
+   level: intro
+   formula: Income tax = positive taxable income x declared rate; VAT payable = output tax - input tax; deferred tax = temporary difference x declared rate; total charge = income tax + deferred tax.
+   steps: 4 | mistakes: 4 | related: ['accounts', 'scv', 'salesprojection']
+   diagram: None
+
+== WORKSHEETS ==
+
+== RECORDS ==
+{'id': 'QNT-FIN-02', 'name': 'Cost and profitability', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: single-product and multi-product break-even, activity-based costing and sales price/mix/yield variances are implemented; operating-leverage, relevant-cost and make-or-buy analysis are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-FIN-03', 'name': 'Financial performance', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: 15 declared financial-statement ratios, the DuPont decomposition (three- and five-step), common-size ratios, one-period growth, multi-year trend analysis and the cash conversion cycle are implemented; industry benchmarks and restatements are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-FIN-05', 'name': 'Management accounting', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: a declarative double-entry engagement is implemented (chart, opening balances, entries, schedules, trial balance, statements, routes for the cash flow, closing and bank reconciliation), together with material, labour and overhead standard-cost variances and activity-based costing; target, life-cycle and budget-variance topics named here are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+
+== TILES ==

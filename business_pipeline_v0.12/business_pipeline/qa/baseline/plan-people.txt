@@ -1,0 +1,5 @@
+people: tools=10 worksheets=19 tiles=6 records=0 theories=0 glossary=0 catalogue=19 does_not=4 start_steps=5 cross=False
+tools: ['alpha', 'weighted', 'descriptive', 'chi_square', 'power', 'pearson', 'ols', 'trainingroi', 'labourtightness', 'programmecost']
+methods: ['chi_square', 'cost_effectiveness', 'descriptive_stats', 'labour_market', 'ols', 'pearson', 'power_analysis', 'reliability_alpha', 'return_on_investment', 'weighted_summary']
+worksheets: ['PPL-03', 'PPL-02', 'PPL-01', 'PPL-05', 'PPL-04', 'PM-10', 'CHG-01', 'CHG-11', 'CHG-12', 'CHG-02', 'CHG-03', 'CHG-04', 'CHG-05', 'CHG-06', 'CHG-07', 'CHG-08', 'CHG-09', 'CHG-10', 'CHG-13']
+forms: {'computed': 0, 'read_only': 0, 'theory': 0}

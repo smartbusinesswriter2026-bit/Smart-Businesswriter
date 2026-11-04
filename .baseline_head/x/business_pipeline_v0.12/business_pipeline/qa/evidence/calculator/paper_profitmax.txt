@@ -1,0 +1,35 @@
+Computation: profit maximization
+Result
+The profit-maximising quantity is 18.00 at a price of 64.00. Revenue is 1,152.00, cost is 442.00 and profit is 710.00; the Lerner index is 0.5625. The firm faces the declared linear inverse demand P = a - bQ and the declared quadratic cost TC = fixed + linear x Q + quadratic x Q squared. The result is a single-period monopoly or monopoly-like optimum; it is not a competitive market outcome. No tax, subsidy, multi-product interaction, entry or dynamic pricing is modelled.
+Inputs and results
+What you declared
+Demand intercept: 100.00
+Demand slope: 2.00
+Fixed cost: 100.00
+Linear cost: 10.00
+Quadratic cost: 0.50
+What was computed
+Profit maximizing quantity: 18.00
+Profit maximizing price: 64.00
+Total revenue: 1152.00
+Total cost: 442.00
+Profit: 710.00
+Marginal cost at optimum: 28.00
+Markup: 36.00
+Lerner index: 0.5625
+Honesty: what was not done
+this method: The firm faces the declared linear inverse demand P = a - bQ and the declared quadratic cost TC = fixed + linear x Q + quadratic x Q squared. The result is a single-period monopoly or monopoly-like optimum; it is not a competitive market outcome. No tax, subsidy, multi-product interaction, entry or dynamic pricing is modelled.
+Assumptions made
+The firm faces the declared linear demand curve.
+The cost function is quadratic and non-decreasing.
+The firm is a single-price monopolist or monopoly-like seller.
+Limitations
+Single product and single period.
+No price discrimination, strategic interaction or entry.
+The result is arithmetic on the declared curves, not evidence about a real market.
+How the figures were checked
+Second implementation agrees.
+Marginal revenue equals marginal cost.
+Profit equals revenue minus cost.
+Lerner index equals markup over price.
+Profit falls away from the optimum.

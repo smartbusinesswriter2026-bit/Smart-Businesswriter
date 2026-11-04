@@ -1,0 +1,15 @@
+﻿14: ## Session 1 — `accounting` (baseline `97544f7`, 2548 tests, 86 failures, 13 errors)
+50: ## Session 2 — `economics` (baseline `ab0be0d`, 2627 tests, 66 failures, 13 errors)
+60: | D-ECO-01 | economics | `labour` tool; E-eco-081 | MAJOR | UNITS | `LIBRARY["labour_marke
+61: | D-ECO-02 | economics | `labour` tightness formula; E-eco-082 | MAJOR | FORMULA | same re
+62: | D-ECO-03 | economics | `currency` tool; E-eco-083 | MAJOR | HONESTY | Preset `currency` 
+63: | D-ECO-04 | economics | 52 tool cards; E-eco-080 | MINOR | CATALOGUE | `subjects.detail("
+64: | D-ECO-05 | economics | No worksheets, frameworks or theories on the shelf | GAP | — | `d
+65: | D-ECO-06 | economics | VAR, cointegration, unit-root tests | GAP | — | Not in `LIBRARY` 
+66: | D-ECO-07 | economics | Diagram renderer, economics catalogue section | GAP | — | Not bui
+67: | D-ECO-08 | economics (docs) | `CURRICULUM_MAP.md` tool count; E-eco-084 | MINOR | DOC-DR
+68: | D-ECO-09 | economics (verification) | Carried-forward D-ACC-06 `tax_incidence` units cla
+88: ## Session 2 — `finance` (baseline `ab0be0d`, 2630 tests, 66 failures, 13 errors)
+92: | D-FIN-01 | finance (core) | `dcfmid` tile; E-fin-007, E-fin-017 | BLOCKER | GATE | `Pipe
+93: | D-FIN-02 | finance | Capability papers; E-fin-047, E-fin-048 | BLOCKER | ROUNDING / UI |
+94: | D-FIN-03 | finance | `chat._generic_lines`; G-fin-08 | MINOR | HONESTY | any capability 

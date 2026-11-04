@@ -1,3 +1,87 @@
+## 2026-11-04 — [computation] The reader stops refusing what it can read (build 1.99)
+
+**Ask.** Finish the work in flight: (1) run the full suite on HEAD and on the working tree and separate the
+pre-existing failures from the new ones; (2) update the owner's case study with the re-measured income statement;
+(3) write the notebook entry; then update the manual.
+
+**Did.**
+
+- **The reader's seams are closed, and the measurement is a script, not a claim.** `qa/manual/reader-seams-probe.py`
+  runs the seven reproductions. A narrative that opens with a transaction date gets `2025-01-01` to `2025-12-31`
+  (was one day); a fiscal year whose start and end are both stated reads as one period (was two); a transaction date
+  on a line is not a comparative; Salaries and Rent arrive on their own lines; a stated sales figure beside prose
+  reads as Revenue; a partition the text states is proved by code and accepted; and every code a detector posts to
+  has a home in the one chart (`src/bp/statement_chart.py`).
+- **The deterministic reader no longer crashes on an ordinary sentence.** "paid 8,000 cash salaries" matched the
+  second wording of the `salaries_payment` detector, whose template reached for the first slot, so the entry carried
+  no amount and the posting died on an uncaught `decimal.InvalidOperation`. The slot that is filled wins; a line
+  with no amount is a named `DetectError`. **This crash was on HEAD** — the suite comparison is what proved it was
+  not mine — and it is why the notebook's claim that the narrative solved "with a model configured" was half true:
+  the model was never what made that narrative work.
+- **"Invested 50,000 cash in the business for shares" is read.** The detector wanted "in exchange for" or nothing,
+  so the equity issue was missed, cash went negative, and the ledger refused the whole answer.
+- **A trial balance keeps its route.** "…and also compute the liquidity ratios" reached the balance-sheet-analysis
+  engine, which printed total assets **86,900** where the trial-balance route prints **77,900**, and hid the income
+  statement. The more specific reading wins now.
+- **Four defects in the 128-spec computation engine, none of them visible from the source.** One spec was labelled
+  **"Peso/Dollar Change"** (a home-currency name in a global product); eight input patterns captured a word instead
+  of the number; the topological sort resolved nothing because it looked dependencies up by spec id while
+  `depends_on` names output names; and values did not travel between sections, so seventy-two specs reported a gap
+  for something already known. `tests/test_financial_computations.py` (new) holds all of it.
+- **A route that computes nothing does not answer.** The engine returned a record even when it had computed nothing,
+  so it answered with a sheet of gaps in place of the reader's answer.
+- **The documents are rewritten to the measurement.** The manual claimed "2 pre-existing failures only" where HEAD
+  has 61; claimed the narrative reader "REQUIRES a configured LLM" when the deterministic layer reads a narrative;
+  and claimed the integrated case solver was "NOT BUILT" when it is six seams, all closed. The case study is
+  re-measured, and its two recorded defects (ratios at 28 decimals, brought-forward retained earnings labelled
+  "other") are fixed, so the case now says so.
+
+**Verified.**
+
+- **The suite, on HEAD and on the working tree.** A byte-exact copy of HEAD (`git archive` into `.baseline_head/`;
+  every one of 5775 tracked files hash-compared against the HEAD blob, with one generated file restored byte-exactly)
+  and the working tree: **3784 tests on HEAD, 22 failures and 39 errors**. The separation of pre-existing from new
+  is in `qa/baseline/seam-suite-comparison.txt`. The 39 errors are the plan layer's golden engagements (bad debt,
+  OCI, revaluation, disposal, deferrals, depreciation methods) and 5 of the failures are the product-boundary and
+  committed-slice tests; both groups are pre-existing on HEAD and are recorded, not hidden.
+- **The new tests.** `tests.test_financial_computations` → 16 tests; `tests.test_statement_reader_seams` → 24;
+  `tests.test_statement_detect` → 3 new (the two wordings of a figure, and the named failure). The increment's own
+  modules: **66 tests, OK**.
+- **The case, over HTTP, with no model configured.** A five-clause transactions narrative → **201 solved**, 11 of 11
+  checks, the period from the text's own dates, rent and salaries on their own lines. An exam question with a
+  preamble → **201 solved**. A trial balance plus the ratio line → **201 solved**, the three statements and 13
+  ratios. An adjustments narrative → 400 "no model is configured" (an honest gate, not a misleading refusal). A
+  cash-flow narrative → 400, naming the account that does not close, in 0.0 s (it took 16.9 s before). EUR → 400,
+  USD only.
+- **The seams, as a script.** `python qa/manual/reader-seams-probe.py` → seven of seven closed, exit 0. It did not
+  run at all before: its `ROOT` pointed one directory too high, and so did the case-study script beside it.
+
+**Not done, and named.**
+
+- **The engine's vocabulary.** Of the 218 distinct input names the 128 specs declare, **44** can be supplied by a
+  text, **50** by another spec's output, and **131 by nothing at all** — so 43 of the 128 specs have no reachable
+  input. Closing that gap means writing a parse pattern for each of the 131 names, and **each pattern is a judgement
+  about what a student writes**. That is an owner's decision, not a mechanical task, and it is now written down
+  instead of implied.
+- **The adjustments still need a model.** Depreciation conventions, prepaid amortisation and tax are derived by the
+  plan layer's model step. A key opens that door; it does not repair the reader, which no longer needs it.
+- **The plan layer's golden engagements still fail on HEAD** — 39 errors in the bad-debt, OCI, revaluation, disposal,
+  deferral and depreciation-method modules, all with the same root cause: `EngagementError: chart[11]: duplicate
+  account code 1100`. The helpers in those modules build an engagement from the `accounts` preset and **append**
+  `1100 Trade receivables` to its chart; the preset's chart now carries that account already, so the append
+  duplicates it. It is a stale test helper, not a product defect — and it is **pre-existing on HEAD**, so this
+  increment neither caused nor fixed it. It is the largest group of red in the tree and somebody owns it.
+- **`web/index.html` is not in this build.** The working tree carries another lane's calculator edits (the sticky
+  shell and the `management_accounts` fit class). They are somebody's in-flight work and were left untouched.
+
+**Learned.** Four defects in a module with no test module is not a coincidence — it is what "no test module" means.
+The engine's formulas were complete and its behaviour was unknown, and the four defects were each invisible from
+reading the code: a label, a capture group, a key used for a lookup, and a scope that stopped one value short. A
+crash is also a measurement: the notebook said the narrative solved, and it did not, and the only way to know was to
+run the sentence through the reader. And the routing defect was the most embarrassing of the three, because it made
+**the same trial balance print two different balance sheets** — a confidently wrong number, which is the one thing
+this repository is not allowed to do.
+
 ## 2026-11-04 — [design] The statements workbook is a workbook (build 1.98)
 
 **Ask.** "You own the Excel workbook the student downloads." — replace `_accounting_rows()` in `src/bp/product/spreadsheets.py` so each requested statement is its own sheet of typed cells (label in column A, amount as a number in column B), add the missing statement of changes in equity, give the working papers and the notes their own sheets, honour `record["requested"]`/`record["hidden"]`, keep `to_xlsx` hand-rolled and byte-identical, and hit the acceptance list in `docs/MINIMAX_STATEMENT_RENDER.md`. The computation lane is frozen; do not recompute anything.

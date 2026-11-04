@@ -1,0 +1,17 @@
+﻿- refuses: Forecasting future growth; fitting a trend; inflation adjustment; a growth-accounting decomposition into capital, labour and productivity.
+- claims: Unemployment rate, labour-force participation rate and employment-population ratio from declared labour-force, employment and working-age population counts.
+- refuses: Retrieving labour-market data; defining who is in the labour force; underemployment, discouragement or informal work; seasonal adjustment.
+- assumptions: The three counts cover the same population and period.; The labour force does not exceed the working-age population.; The employed are a subset of the labour force.
+- limitations: Counts only; no underemployment or informal-sector adjustment.; No seasonal adjustment or demographic standardisation.; The labour-force definition is the owner's.
+- checks: second_implementation_agrees, unemployed_equals_labour_force_minus_employed, unemployment_rate_equals_unemployed_over_labour_force, participation_rate_equals_labour_force_over_working_age_population, employment_population_ratio_equals_employed_over_working_age_population
+| `labour_force` | decimal | True |  | the labour force: employed plus unemployed |
+- refuses: Estimating potential output; estimating the Okun coefficient; a structural model of the labour market; a forecast.
+- claims: Ricardian comparative advantage from two countries' declared unit labour requirements in two goods, with opportunity costs and specialisation flags.
+- assumptions: Unit labour requirements are constant and the only input.; Two countries and two goods.; Labour is mobile within a country and immobile between countries.
+| `countries` | records | True |  | exactly two countries with their unit labour requirements |
+## labour — Real wage and labour market
+- tool key: `labour` · preset: `labour` · method: `labour_market`
+- claims: Real wage, wage share of productivity and optional labour-market tightness from declared nominal wage, CPI, productivity and vacancy/unemployment figures.
+- refuses: Estimating wages or productivity; hours, composition, taxes, benefits or bargaining; a full labour-market model.
+| `labour_productivity` | decimal | True |  | output per worker |
+| `unemployment_rate` | decimal | False |  | optional unemployment rate as a fraction for tightness |

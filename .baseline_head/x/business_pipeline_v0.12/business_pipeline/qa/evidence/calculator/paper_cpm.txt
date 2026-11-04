@@ -1,0 +1,51 @@
+Computation: cpm schedule
+Result
+The project finishes in 12.00 periods, with 3 of 4 activities on the critical path. Durations are deterministic (or the expected value of the three-point estimate); the schedule does not model resource limits, calendars or uncertainty beyond the PERT variance. The critical path is where float is zero; a delay there delays the project, but a critical path is not automatically the riskiest. PERT uses (optimistic + 4 x most likely + pessimistic) / 6 and sums the variances on the critical path; those are declared conventions.
+Inputs and results
+What you declared
+Estimate: single
+Activities: Id: A; Duration: 3; Predecessors: , Id: B; Duration: 4; Predecessors: A, Id: C; Duration: 2; Predecessors: A, Id: D; Duration: 5; Predecessors: B,C
+What was computed
+Project duration: 12.00
+Activity count: 4
+Es A: 0.00
+Ef A: 3.00
+Ls A: 0.00
+Lf A: 3.00
+Float A: 0.00
+Critical A: 1
+Es B: 3.00
+Ef B: 7.00
+Ls B: 3.00
+Lf B: 7.00
+Float B: 0.00
+Critical B: 1
+Es C: 3.00
+Ef C: 5.00
+Ls C: 5.00
+Lf C: 7.00
+Float C: 2.00
+Critical C: 0
+Es D: 7.00
+Ef D: 12.00
+Ls D: 7.00
+Lf D: 12.00
+Float D: 0.00
+Critical D: 1
+Critical count: 3
+Honesty: what was not done
+this method: Durations are deterministic (or the expected value of the three-point estimate); the schedule does not model resource limits, calendars or uncertainty beyond the PERT variance. The critical path is where float is zero; a delay there delays the project, but a critical path is not automatically the riskiest. PERT uses (optimistic + 4 x most likely + pessimistic) / 6 and sums the variances on the critical path; those are declared conventions.
+Assumptions made
+Activities are independent except for the declared predecessors.
+Durations are the declared figures, or the declared PERT expected values.
+The graph is acyclic.
+Limitations
+No resource levelling, calendars, crashing or simulation.
+The critical path is the zero-float path, not the riskiest one.
+PERT variance assumes independent activity durations and sums them along the critical path.
+How the figures were checked
+Second implementation agrees.
+Early start is the latest predecessor finish.
+Late finish is the earliest successor start.
+Critical activities have zero float.
+Project duration is the latest early finish.

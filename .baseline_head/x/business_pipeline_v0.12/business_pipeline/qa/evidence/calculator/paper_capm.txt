@@ -1,0 +1,36 @@
+Computation: capm
+Result
+With a beta of 1.2000 and a market risk premium of 6.00%, the CAPM cost of equity is 11.20%. At the declared debt-to-equity ratio and tax rate, the unlevered beta is 0.8451. The beta and the premium are declared inputs or an estimate from your return series, not a market observation made here. Beta is either declared or estimated by ordinary least squares from the two return series you supplied; the system does not choose a market index, a return interval or a risk-free proxy. CAPM is a model, not a measurement: its single-factor assumption and the stability of beta are not tested here. Hamada relevering uses the declared tax rate and debt-to-equity ratio; it is arithmetic on those declarations, not evidence about the firm's true cost of capital. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Risk free rate: 0.0400
+Market return: 0.1000
+Beta: 1.2000
+Debt to equity: 0.6000
+Tax rate: 0.3000
+What was computed
+Beta: 1.2000
+Cost of equity: 0.1120
+Market risk premium: 0.0600
+Risk free rate: 0.0400
+Market return: 0.1000
+Unlevered beta: 0.8451
+Relevered beta: 1.2000
+Debt to equity: 0.6000
+Tax rate: 0.3000
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+The risk-free rate, market return and beta are the owner's declarations or an estimate from the supplied series.
+CAPM's single-factor relation holds.
+The debt-to-equity ratio is at market values.
+Limitations
+Beta is estimated, not validated; its stability and the choice of market index are not tested.
+No multi-factor, conditional or downside beta.
+The tax rate is a declared input, not computed.
+How the figures were checked
+Second implementation agrees.
+A zero beta earns the risk free rate.
+The cost of equity rises with beta.
+Capm is the risk free rate plus beta times the premium.
+Hamada relevering round trips.

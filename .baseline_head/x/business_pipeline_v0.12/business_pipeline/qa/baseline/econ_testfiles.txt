@@ -1,0 +1,8 @@
+﻿test_appraisal.py 5934
+test_economics.py 13361
+test_economics_remaining.py 10107
+test_macroeconomics.py 13153
+test_market_panels.py 4287
+test_power.py 3526
+test_reconcile.py 7536
+test_registry.py 9771

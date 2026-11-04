@@ -1,0 +1,43 @@
+value-chain: value-chain.docx
+  title      : Porter's Value Chain: A Grocery Retailer Is Reviewing How Its Value Chain Creates Value
+  byline     : ['A Student', 'Example University']
+  byline on the title page: True
+  headings   : ['Introduction', 'Case and Market Context', "Porter's Value Chain", 'Firm Infrastructure', 'Human Resource Management', 'Technology Development', 'Procurement', 'Inbound Logistics', 'Operations', 'Outbound Logistics', 'Marketing and Sales', 'Service', 'Discussion', 'What the Evidence Shows', 'Implications for the Decision', 'Limitations', 'Conclusion', 'References']
+  words      : 1035
+  background disclosure: False
+  footer hits: []
+  diagram promise: False
+  digits in a background item: False
+value-chain-nosource: value-chain-nosource.docx
+  title      : Porter's Value Chain: A Grocery Retailer Is Reviewing How Its Value Chain Creates Value
+  byline     : ['A Student', 'Example University']
+  byline on the title page: True
+  headings   : ['Introduction', 'Case and Market Context', "Porter's Value Chain", 'Firm Infrastructure', 'Human Resource Management', 'Technology Development', 'Procurement', 'Inbound Logistics', 'Operations', 'Outbound Logistics', 'Marketing and Sales', 'Service', 'Discussion', 'What the Evidence Shows', 'Implications for the Decision', 'Limitations', 'Conclusion', 'References']
+  words      : 1035
+  background disclosure: True
+  footer hits: []
+  diagram promise: False
+  digits in a background item: False
+change-organization: change-organization.docx
+  title      : Change and Organization Analysis: A Grocery Retailer Is Planning to Move Its Store Rota and Its Stock-Replenishment Process Onto One System
+  byline     : ['A Student', 'Example University']
+  byline on the title page: True
+  headings   : ['Introduction', 'The Case and Its Industry', 'Change and Organization', 'Change Type', 'Readiness', 'Resistance', 'Support', 'Discussion', 'What the Evidence Shows', 'Implications for the Decision', 'Limitations', 'Conclusion', 'References']
+  words      : 732
+  background disclosure: True
+  footer hits: []
+  diagram promise: False
+  digits in a background item: False
+change-organization-nosource: change-organization-nosource.docx
+  title      : Change and Organization Analysis: A Grocery Retailer Is Planning to Move Its Store Rota and Its Stock-Replenishment Process Onto One System
+  byline     : ['A Student', 'Example University']
+  byline on the title page: True
+  headings   : ['Introduction', 'The Case and Its Industry', 'Change and Organization', 'Change Type', 'Readiness', 'Resistance', 'Support', 'Discussion', 'What the Evidence Shows', 'Implications for the Decision', 'Limitations', 'Conclusion', 'References']
+  words      : 732
+  background disclosure: True
+  footer hits: []
+  diagram promise: False
+  digits in a background item: False
+worksheet-export: worksheet-export.docx
+  headings   : ['Report', 'Verification checks', 'Limitations']
+  footer hits: []

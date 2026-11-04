@@ -1,0 +1,26 @@
+Computation: breakeven
+Result
+At a contribution margin of 10.00 per unit, the business breaks even at 100.00 units, or 2,000.00 of sales. Break-even assumes constant unit price, constant variable cost and constant fixed cost over the relevant range. The margin of safety is measured against the expected volume you declared, not against a forecast the method verifies. A target profit is a pre-tax profit target in the same currency as the costs; tax is not computed.
+Inputs and results
+What you declared
+Fixed: 1000.00
+Price: 20.00
+Variable: 10.00
+What was computed
+Breakeven units: 100.00
+Contribution margin: 10.00
+Contribution margin ratio: 0.5000
+Breakeven revenue: 2000.00
+Assumptions made
+Linear cost and revenue.
+The expected volume is the owner's declared input, not a forecast.
+Limitations
+Single product; a mix needs multi_product_breakeven.
+No tax, financing or working-capital effects.
+The margin of safety is relative to the declared expected volume only.
+How the figures were checked
+Profit at breakeven is zero.
+Contribution margin is price minus variable.
+Breakeven revenue is units times price.
+Margin of safety is expected units minus breakeven.
+Target profit raises the required units.

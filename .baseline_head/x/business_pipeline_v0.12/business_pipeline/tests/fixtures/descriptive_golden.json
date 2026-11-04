@@ -1,0 +1,109 @@
+[
+ {
+  "name": "textbook_eight_values",
+  "values": [
+   "2",
+   "4",
+   "4",
+   "4",
+   "5",
+   "5",
+   "7",
+   "9"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "n": "8",
+   "n_missing": "0",
+   "mean": "5",
+   "median": "4.5",
+   "minimum": "2",
+   "maximum": "9",
+   "variance": "4.571428571428571",
+   "sd": "2.138089935299395"
+  },
+  "source": "hand-checked: sum of squared deviations 32, 32/7"
+ },
+ {
+  "name": "one_to_five",
+  "values": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "n": "5",
+   "n_missing": "0",
+   "mean": "3",
+   "median": "3",
+   "minimum": "1",
+   "maximum": "5",
+   "variance": "2.5",
+   "sd": "1.5811388300841898"
+  },
+  "source": "hand-checked"
+ },
+ {
+  "name": "large_offset_stability",
+  "values": [
+   "10000001",
+   "10000003",
+   "10000002"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "n": "3",
+   "n_missing": "0",
+   "mean": "10000002",
+   "median": "10000002",
+   "minimum": "10000001",
+   "maximum": "10000003",
+   "variance": "1",
+   "sd": "1"
+  },
+  "source": "hand-checked; resembles NIST NumAcc1 [UNVERIFIED provenance, values hand-verified]"
+ },
+ {
+  "name": "user_missing_code_99",
+  "values": [
+   "5",
+   "99",
+   null,
+   "7",
+   "9"
+  ],
+  "missing_codes": [
+   "99"
+  ],
+  "expected": {
+   "n": "3",
+   "n_missing": "2",
+   "mean": "7",
+   "median": "7",
+   "minimum": "5",
+   "maximum": "9",
+   "variance": "4",
+   "sd": "2"
+  },
+  "source": "hand-checked trap case (manual 14)"
+ },
+ {
+  "name": "singleton",
+  "values": [
+   "42"
+  ],
+  "missing_codes": [],
+  "expected": {
+   "n": "1",
+   "n_missing": "0",
+   "mean": "42",
+   "median": "42",
+   "minimum": "42",
+   "maximum": "42"
+  },
+  "source": "hand-checked; spread undefined"
+ }
+]

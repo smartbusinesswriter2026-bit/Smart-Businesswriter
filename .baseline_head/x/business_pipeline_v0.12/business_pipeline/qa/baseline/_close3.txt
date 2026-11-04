@@ -1,0 +1,151 @@
+﻿ .../business_pipeline/docs/CONTRIBUTORS.md         | 54 +++++++-------
+ .../business_pipeline/docs/HANDOFF.md              | 38 +++++-----
+ .../business_pipeline/docs/HOME.md                 | 82 +++++++++++-----------
+ .../business_pipeline/docs/WORKLOG.md              | 32 +++++++++
+ 4 files changed, 119 insertions(+), 87 deletions(-)
+-# Home ΓÇö map of the repository
++# Home ├óΓé¼ΓÇ¥ map of the repository
+-**Start here when you are lost.** This is a curated map (a "MOC" - ma
++**Start here when you are lost.** This is a curated map (a "MOC" - ma
+-| You want toΓÇª | Go to |
++| You want to├óΓé¼┬ª | Go to |
+-| **Use** the system | [`../README.md`](../README.md) ΓÇö commands, w
+-| **Build or extend the chat/paper** | [`CONDUCTOR_MANUAL.md`](CONDUC
+-| **Add the next completing framework** | [`HANDOFF_NEXT_CHAT.md`](HA
+-| **Validate a subject end to end** | [`VALIDATION_HARNESS.md`](VALID
+-| **Change** the system safely | [`CONTRIBUTORS.md`](CONTRIBUTORS.md)
+-| **Know what is decided / open** | [`DECISIONS.md`](DECISIONS.md) ΓÇ
++| **Use** the system | [`../README.md`](../README.md) ├óΓé¼ΓÇ¥ comman
++| **Build or extend the chat/paper** | [`CONDUCTOR_MANUAL.md`](CONDUC
++| **Add the next completing framework** | [`HANDOFF_NEXT_CHAT.md`](HA
++| **Validate a subject end to end** | [`VALIDATION_HARNESS.md`](VALID
++| **Change** the system safely | [`CONTRIBUTORS.md`](CONTRIBUTORS.md)
++| **Know what is decided / open** | [`DECISIONS.md`](DECISIONS.md) ├ó
+-| **Know what happened** | [`WORKLOG.md`](WORKLOG.md) ΓÇö append-only
+-| **Know what is parked and why** | [`PARKED_QUEUE.md`](PARKED_QUEUE.
+-| **Know what is frozen / what the product may rely on** | [`BACKEND_
+-| **Understand the research capability** | [`RESEARCH_EVIDENCE_WORKFL
++| **Know what happened** | [`WORKLOG.md`](WORKLOG.md) ├óΓé¼ΓÇ¥ append
++| **Know what is parked and why** | [`PARKED_QUEUE.md`](PARKED_QUEUE.
++| **Know what is frozen / what the product may rely on** | [`BACKEND_
++| **Understand the research capability** | [`RESEARCH_EVIDENCE_WORKFL
+-| Add a statistical method | `CONTRIBUTORS.md` ┬º3 | `src/bp/methods.
+-| Fix a wrong number | `CONTRIBUTORS.md` ┬º4 | The method's impl **an
+-| Change what the model may do | `CONTRIBUTORS.md` ┬º5, `DECISIONS.md
+-| Change retrieval/citation | `RESEARCH_EVIDENCE_WORKFLOW.md` ┬º9, B-
+-| Change the accounting engine | `CONTRIBUTORS.md` ┬º4/┬º5, B-032/B-0
++| Add a statistical method | `CONTRIBUTORS.md` ├é┬º3 | `src/bp/method
++| Fix a wrong number | `CONTRIBUTORS.md` ├é┬º4 | The method's impl **
++| Change what the model may do | `CONTRIBUTORS.md` ├é┬º5, `DECISIONS.
++| Change retrieval/citation | `RESEARCH_EVIDENCE_WORKFLOW.md` ├é┬º9, 
++| Change the accounting engine | `CONTRIBUTORS.md` ├é┬º4/├é┬º5, B-032
+-| [`spec.py`](../src/bp/spec.py) | Problem Spec: draft ├óΓÇáΓÇÖ confi
++| [`spec.py`](../src/bp/spec.py) | Problem Spec: draft ├â┬ó├óΓé¼┬á├óΓ
+-| [`ledger.py`](../src/bp/ledger.py) | Double-entry kernel, trial bal
++| [`ledger.py`](../src/bp/ledger.py) | Double-entry kernel, trial bal
+-| [`literature.py`](../src/bp/literature.py) | DOI retrieval + verifi
++| [`literature.py`](../src/bp/literature.py) | DOI retrieval + verifi
+-| [`../web/index.html`](../web/index.html) | Workbench shell (vanilla
++| [`../web/index.html`](../web/index.html) | Workbench shell (vanilla
+-| Deterministic compute ├óΓÇáΓÇÖ verified report pipeline | Built, T1
++| Deterministic compute ├â┬ó├óΓé¼┬á├óΓé¼Γäó verified report pipeline 
+-| Management accounts (ledger ├óΓÇáΓÇÖ statements) | Built on the cus
++| Management accounts (ledger ├â┬ó├óΓé¼┬á├óΓé¼Γäó statements) | Built
+-| Research & Evidence Workflow (REW) | Manual ratified (R11); **no st
++| Research & Evidence Workflow (REW) | Manual ratified (R11); **no st
+-| Statistics remainder: range procedures, unbalanced/ANCOVA/repeated 
++| Statistics remainder: range procedures, unbalanced/ANCOVA/repeated 
+-| [`CONTRIBUTORS.md`](CONTRIBUTORS.md) | Living ΓÇö how to work here 
+-| [`CONDUCTOR_MANUAL.md`](CONDUCTOR_MANUAL.md) | Living ΓÇö how the c
++| [`CONTRIBUTORS.md`](CONTRIBUTORS.md) | Living ├óΓé¼ΓÇ¥ how to work 
++| [`CONDUCTOR_MANUAL.md`](CONDUCTOR_MANUAL.md) | Living ├óΓé¼ΓÇ¥ how 
+-| [`HANDOFF_NEXT_CHAT.md`](HANDOFF_NEXT_CHAT.md) | Handoff ΓÇö comple
++| [`HANDOFF_NEXT_CHAT.md`](HANDOFF_NEXT_CHAT.md) | Handoff ├óΓé¼ΓÇ¥ c
+-| [`HOME.md`](HOME.md) | Living ΓÇö this map | Add a row when you add
++| [`HOME.md`](HOME.md) | Living ├óΓé¼ΓÇ¥ this map | Add a row when yo
+-| [`PARKED_QUEUE.md`](PARKED_QUEUE.md) | Living ΓÇö parked frontier-m
+-| [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) | Living ΓÇö frozen co
+-| [`PRODUCT_BACKEND_PLAN.md`](PRODUCT_BACKEND_PLAN.md) | Living ΓÇö p
++| [`PARKED_QUEUE.md`](PARKED_QUEUE.md) | Living ├óΓé¼ΓÇ¥ parked front
++| [`BACKEND_CONTRACT.md`](BACKEND_CONTRACT.md) | Living ├óΓé¼ΓÇ¥ froz
++| [`PRODUCT_BACKEND_PLAN.md`](PRODUCT_BACKEND_PLAN.md) | Living ├óΓé¼
+-| [`PORTFOLIO_LAB_STUDENT_GUIDE.md`](PORTFOLIO_LAB_STUDENT_GUIDE.md) 
++| [`PORTFOLIO_LAB_STUDENT_GUIDE.md`](PORTFOLIO_LAB_STUDENT_GUIDE.md) 
+-| [`VALIDATION_HARNESS.md`](VALIDATION_HARNESS.md) | Living ΓÇö the s
++| [`VALIDATION_HARNESS.md`](VALIDATION_HARNESS.md) | Living ├óΓé¼ΓÇ¥ 
+-| [`SOURCE_INVENTORY.md`](SOURCE_INVENTORY.md) | Historical snapshot 
++| [`SOURCE_INVENTORY.md`](SOURCE_INVENTORY.md) | Historical snapshot 
+-| [`CONTINUATION_NOTE.md`](CONTINUATION_NOTE.md) | Hand-off note on t
++| [`CONTINUATION_NOTE.md`](CONTINUATION_NOTE.md) | Hand-off note on t
+-| [`sources/`](sources/) | Supplied authority material | **Read-only*
++| [`sources/`](sources/) | Supplied authority material | **Read-only*
+-# Contributors' manual ├óΓé¼ΓÇ¥ rules for any human or model touching
++# Contributors' manual ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ rules for any human or mode
+-2. **No invented sources.** A citation is either resolved-and-verifie
+-3. **The verifier is not yours to weaken.** Never loosen a tolerance,
++2. **No invented sources.** A citation is either resolved-and-verifie
++3. **The verifier is not yours to weaken.** Never loosen a tolerance,
+-5. **Fail closed.** Unknown method, unavailable sandbox, failed assum
++5. **Fail closed.** Unknown method, unavailable sandbox, failed assum
+-6. **The verification rules in ├é┬º1 apply to both owners.** Design c
++6. **The verification rules in ├âΓÇÜ├é┬º1 apply to both owners.** Des
+-3. **Unfreeze** = owner approval ├óΓÇáΓÇÖ computation owner writes th
++3. **Unfreeze** = owner approval ├â┬ó├óΓé¼┬á├óΓé¼Γäó computation owne
+-python -m unittest discover -s tests          # currently 2902 tests;
++python -m unittest discover -s tests          # currently 2910 tests;
+-Read in this order: `README.md` ├óΓÇáΓÇÖ this file ├óΓÇáΓÇÖ `docs/HOM
++Read in this order: `README.md` ├â┬ó├óΓé¼┬á├óΓé¼Γäó this file ├â┬ó├óΓ
+-1. **Implementation** ├óΓé¼ΓÇ¥ `foo_impl(inp)` in `src/bp/methods.py`
+-2. **Independent second route** ├óΓé¼ΓÇ¥ `_foo_ref(...)` computed a d
+-3. **Property and wrong-implementation tests** ├óΓé¼ΓÇ¥ `foo_tests(in
+-4. **Golden fixture** ├óΓé¼ΓÇ¥ `tests/fixtures/foo_golden.json`, gene
+-5. **Test file** ├óΓé¼ΓÇ¥ `tests/test_foo.py` comparing goldens with 
+-6. **Registration** ├óΓé¼ΓÇ¥ `Method(...)` entry in `LIBRARY` (`src/b
+-7. **Sandbox parity** ├óΓé¼ΓÇ¥ add the case to `CASES` in `tests/test
+-8. **Workbench preset** ├óΓé¼ΓÇ¥ add an entry to `PRESETS` in `src/bp
+-9. **Docs** ├óΓé¼ΓÇ¥ new `B-xxx` decision (conventions used, what is 
+-10. **Verification** ├óΓé¼ΓÇ¥ full suite green, then commit.
++1. **Implementation** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ `foo_impl(inp)` in `src/bp/m
++2. **Independent second route** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ `_foo_ref(...)` co
++3. **Property and wrong-implementation tests** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ `fo
++4. **Golden fixture** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ `tests/fixtures/foo_golden.j
++5. **Test file** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ `tests/test_foo.py` comparing gol
++6. **Registration** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ `Method(...)` entry in `LIBRAR
++7. **Sandbox parity** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ add the case to `CASES` in `
++8. **Workbench preset** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ add an entry to `PRESETS` 
++9. **Docs** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ new `B-xxx` decision (conventions used
++10. **Verification** ├â┬ó├óΓÇÜ┬¼├óΓé¼┬¥ full suite green, then commit
+-2. **Fix the code, not the expectation.** Editing an expected value i
++2. **Fix the code, not the expectation.** Editing an expected value i
+-4. **Never** delete or weaken checks, tolerances, sandbox guards, or 
+-5. If the bug is an ambiguity in the authority manual, the fix is: am
++4. **Never** delete or weaken checks, tolerances, sandbox guards, or 
++5. If the bug is an ambiguity in the authority manual, the fix is: am
+-These are trust boundaries, not features. Order of work: **design not
++These are trust boundaries, not features. Order of work: **design not
+-Rules: no network in the suite (use fake openers/sources); no sleeps;
++Rules: no network in the suite (use fake openers/sources); no sleeps;
+-# HANDOFF ΓÇö instructions for the next coding agent
++# HANDOFF ├óΓé¼ΓÇ¥ instructions for the next coding agent
+-Tests        : 2902 tests; the People & organisation shelf is green (
++Tests        : 2910 tests; the People & organisation shelf is green (
+-4. **Fail closed**: unknown method, unsupported format, failed check,
++4. **Fail closed**: unknown method, unsupported format, failed check,
+-9. **Two model owners (B-066, extended by B-080).** The computation o
++9. **Two model owners (B-066, extended by B-080).** The computation o
+-| REW R1ΓÇôR10 | Ratify (or not) the proposed stages/checkpoints/taxo
++| REW R1├óΓé¼ΓÇ£R10 | Ratify (or not) the proposed stages/checkpoints
+-### A. ~~Ingestion ├óΓÇáΓÇÖ method-input mapping~~ ΓÇö done (B-071, b
++### A. ~~Ingestion ├â┬ó├óΓé¼┬á├óΓé¼Γäó method-input mapping~~ ├óΓé¼ΓÇ
+-### C. Statistics remainder ΓÇö current status
++### C. Statistics remainder ├óΓé¼ΓÇ¥ current status
+-**Not built, deliberately parked in [`PARKED_QUEUE.md`](PARKED_QUEUE.
++**Not built, deliberately parked in [`PARKED_QUEUE.md`](PARKED_QUEUE.
+-### D. REW stages (blocked until R1ΓÇôR10 ratified)
+-If ratified, start with the cheapest real slice: R0 intake ├óΓÇáΓÇÖ R
++### D. REW stages (blocked until R1├óΓé¼ΓÇ£R10 ratified)
++If ratified, start with the cheapest real slice: R0 intake ├â┬ó├óΓé¼┬
+-### F. Product backend ΓÇö design owner's lane (B-080; unblocked for 
++### F. Product backend ├óΓé¼ΓÇ¥ design owner's lane (B-080; unblocked
+-The remaining heavy statistics work is **parked, not forgotten**: Tuk
++The remaining heavy statistics work is **parked, not forgotten**: Tuk

@@ -1,0 +1,224 @@
+{
+ "detail_keys": [
+  "catalogue",
+  "cross_cutting",
+  "discipline_labels",
+  "disciplines",
+  "does_not",
+  "format",
+  "glossary",
+  "guidance",
+  "icon",
+  "id",
+  "label",
+  "records",
+  "start_steps",
+  "summary",
+  "theories",
+  "tiles",
+  "tools",
+  "worksheets"
+ ],
+ "definition_keys": [
+  "catalogue_ids",
+  "cross_cutting",
+  "disciplines",
+  "does_not",
+  "guidance",
+  "icon",
+  "id",
+  "label",
+  "start_steps",
+  "summary",
+  "tools",
+  "worksheets"
+ ],
+ "definition": {
+  "id": "finance",
+  "label": "Finance",
+  "summary": "Corporate finance, valuation and the investments, debt, risk and international tools a finance student needs.",
+  "guidance": "Start with the question, not the tool. For one cash flow or one instrument, use time value, a loan or a bond. For a project, use NPV, IRR and discounted payback, then rank it. For a company, use WACC and DCF, then bridge to equity. For an investment or a risk question, use CAPM, the portfolio, risk and options tools. For an international question, use the parity and currency tools. Every rate, price and cash flow is yours to declare.",
+  "start_steps": [
+   "One cash flow or instrument: Time value of money, Loan amortization or Bond price and duration.",
+   "A project: NPV, IRR and Discounted payback, then Project ranking metrics and Scenario analysis.",
+   "A company: WACC, DCF valuation, the Equity bridge and Comparable multiples.",
+   "An investment or risk question: CAPM, Portfolio return and risk, Value at risk and Option pricing.",
+   "An international question: FX and interest parity, then Currency conversion."
+  ],
+  "does_not": [
+   "It does not retrieve market prices, yields, exchange rates or peer multiples; you declare them.",
+   "It does not choose the discount rate, the peer set or the risk appetite for you.",
+   "It does not model tax, American exercise, liquidity risk or a full portfolio optimisation."
+  ],
+  "disciplines": [
+   "finance, accounting and managerial economics",
+   "decision analysis and risk quantification"
+  ],
+  "tools": [
+   "tvm",
+   "loan",
+   "dupont",
+   "trendanalysis",
+   "workingcapital",
+   "ratios",
+   "breakeven",
+   "multibreakeven",
+   "unitecon",
+   "forecast",
+   "descriptive",
+   "npv",
+   "irr",
+   "dpayback",
+   "projectmetrics",
+   "wacc",
+   "capm",
+   "leverage",
+   "scenario",
+   "case_decision",
+   "dcf",
+   "dcfmid",
+   "equitybridge",
+   "multiples",
+   "portfolioval",
+   "portfolioperf",
+   "bond",
+   "portfolio",
+   "pearson",
+   "ols",
+   "ols_robust",
+   "risk",
+   "options",
+   "fx",
+   "currency"
+  ],
+  "worksheets": [],
+  "catalogue_ids": [
+   "QNT-FIN-01",
+   "QNT-FIN-02",
+   "QNT-FIN-03",
+   "QNT-FIN-04",
+   "QNT-FIN-05",
+   "QNT-FIN-06",
+   "QNT-FIN-07",
+   "QNT-DEC-01",
+   "QNT-DEC-02",
+   "QNT-DEC-03",
+   "QNT-DEC-04",
+   "QNT-DEC-05",
+   "QNT-DEC-06",
+   "QNT-DEC-07",
+   "RSK-01",
+   "RSK-02",
+   "RSK-03",
+   "RSK-04",
+   "RSK-05",
+   "RSK-06",
+   "RSK-07",
+   "RSK-08",
+   "RSK-09"
+  ],
+  "student_notes": null,
+  "theories": null,
+  "glossary": null
+ },
+ "counts": {
+  "tools": 35,
+  "worksheets": 0,
+  "records": 23,
+  "tiles": 0,
+  "theories": 0,
+  "glossary": 22
+ },
+ "tiles": [],
+ "theories": [],
+ "glossary": [
+  {
+   "term": "NPV",
+   "definition": "Net present value: the value today of a project's future cash flows, less the outlay, at a declared discount rate."
+  },
+  {
+   "term": "IRR",
+   "definition": "Internal rate of return: the discount rate at which NPV is zero."
+  },
+  {
+   "term": "WACC",
+   "definition": "Weighted average cost of capital: the blended after-tax cost of equity and debt, weighted by market values."
+  },
+  {
+   "term": "CAPM",
+   "definition": "Capital asset pricing model: cost of equity = risk-free rate + beta x market risk premium."
+  },
+  {
+   "term": "Beta",
+   "definition": "The sensitivity of an asset's return to the market's return; the market itself has a beta of one."
+  },
+  {
+   "term": "YTM",
+   "definition": "Yield to maturity: the single discount rate that makes a bond's coupon and face payments equal its price."
+  },
+  {
+   "term": "Duration",
+   "definition": "The present-value-weighted average time to a bond's cash flows; modified duration measures price sensitivity to yield."
+  },
+  {
+   "term": "Convexity",
+   "definition": "The curvature of the price-yield relation; it improves the duration estimate for larger yield changes."
+  },
+  {
+   "term": "EOQ",
+   "definition": "Economic order quantity: the order size that minimises the sum of ordering and holding costs."
+  },
+  {
+   "term": "CCC",
+   "definition": "Cash conversion cycle: receivable days plus inventory days minus payable days."
+  },
+  {
+   "term": "VaR",
+   "definition": "Value at risk: the loss that is not expected to be exceeded at a declared confidence over a declared horizon."
+  },
+  {
+   "term": "CVaR",
+   "definition": "Conditional value at risk (expected shortfall): the average loss in the tail beyond VaR."
+  },
+  {
+   "term": "Delta",
+   "definition": "The change in an option's price for a one-unit change in the underlying; a hedge ratio, not a probability."
+  },
+  {
+   "term": "Hedge",
+   "definition": "A position that offsets a risk; here, a forward rate that fixes the domestic value of a foreign-currency exposure."
+  },
+  {
+   "term": "Enterprise value",
+   "definition": "The value of the operating business: equity value plus net debt and other claims."
+  },
+  {
+   "term": "Net debt",
+   "definition": "Interest-bearing debt minus cash and cash equivalents."
+  },
+  {
+   "term": "EBIT / EBITDA",
+   "definition": "Earnings before interest and tax; EBITDA also excludes depreciation and amortisation."
+  },
+  {
+   "term": "EPS",
+   "definition": "Earnings per share: profit available to ordinary shareholders divided by the number of shares."
+  },
+  {
+   "term": "ROE",
+   "definition": "Return on equity: net income divided by equity; DuPont splits it into margin, turnover and leverage."
+  },
+  {
+   "term": "Common-size",
+   "definition": "A line item expressed as a percentage of a base such as revenue, so statements of different size can be compared."
+  },
+  {
+   "term": "CAGR",
+   "definition": "Compound annual growth rate: the constant yearly rate that turns the first period's value into the last."
+  },
+  {
+   "term": "Altman Z",
+   "definition": "A five-term score built from working capital, retained earnings, EBIT, market equity and sales, scaled by assets and liabilities."
+  }
+ ]
+}

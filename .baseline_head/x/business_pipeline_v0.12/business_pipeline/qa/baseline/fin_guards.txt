@@ -1,0 +1,26 @@
+﻿........................................................................ [ 55%]
+.........................................F................               [100%]
+================================== FAILURES ===================================
+_____ DocsStateSyncTest.test_documented_test_count_matches_the_real_suite _____
+
+self = <test_docs_sync.DocsStateSyncTest testMethod=test_documented_test_count_matches_the_real_suite>
+
+    def test_documented_test_count_matches_the_real_suite(self):
+        count = _suite_count()
+        claims = (
+            ("docs/HOME.md", _home_test_count(_read(DOCS / "HOME.md"))),
+            ("docs/HANDOFF.md", _handoff_test_count(_read(DOCS / "HANDOFF.md"))),
+            ("docs/CONTRIBUTORS.md", _contributors_test_count(_read(DOCS / "CONTRIBUTORS.md"))),
+        )
+        for name, claimed in claims:
+>           self.assertEqual(
+                claimed,
+                count,
+                "%s says %d tests, but the suite holds %d tests" % (name, claimed, count),
+            )
+E           AssertionError: 2711 != 2761 : docs/HOME.md says 2711 tests, but the suite holds 2761 tests
+
+tests\test_docs_sync.py:212: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_docs_sync.py::DocsStateSyncTest::test_documented_test_count_matches_the_real_suite
+1 failed, 129 passed in 5.72s

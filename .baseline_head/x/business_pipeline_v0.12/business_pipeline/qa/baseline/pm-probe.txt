@@ -1,0 +1,196 @@
+﻿project-management shelf
+  tools      : 18 ['npv', 'irr', 'dpayback', 'projectmetrics', 'scenario', 'case_decision', 'forecast', 'cpm', 'evm', 'leveling', 'crashing', 'calendar', 'multiproject', 'schedrisk', 'decisiontree', 'realoption', 'mcda', 'montecarlo']
+  worksheets : 6
+  records    : 10
+  theories   : 0
+  glossary   : 23
+  tiles      : 0
+  profiles overall: 75
+
+WORKSHEETS (id | template | draftable | unit | gate | gap mode)
+  PM-05  template_project_charter     draftable=True  unit=unit       gate=1/1/0 fills={'research': 10}
+  PM-09  template_wbs                 draftable=True  unit=unit       gate=1/1/0 fills={'research': 4}
+  PM-10  template_raci                draftable=True  unit=industry   gate=1/1/0 fills={'research': 4}
+  PM-06  template_risk_register       draftable=True  unit=unit       gate=1/1/0 fills={'research': 2}
+  PM-15  template_stakeholder_plan    draftable=True  unit=unit       gate=1/1/0 fills={'research': 9}
+  PM-16  template_lessons_learned     draftable=True  unit=unit       gate=1/1/0 fills={'research': 7}
+
+RECORDS (id | name | form | type | template)
+  PM-01  Balanced Scorecard                                   read_only  F   None
+  PM-02  Strategy Map                                         read_only  F   None
+  PM-03  KPI Tree / Driver Tree                               read_only  F   None
+  PM-04  Objectives and Key Results (OKRs)                    read_only  F   None
+  PM-07  Scrum                                                read_only  F   None
+  PM-08  Kanban Method                                        read_only  F   None
+  PM-11  COBIT                                                read_only  F   None
+  PM-12  ITIL                                                 read_only  F   None
+  PM-13  DeLoneûMcLean IS Success Model                       read_only  M   None
+  PM-14  Technology-Organization-Environment (TOE) Framework  read_only  F   None
+
+DECLARED FORM (bp.templates.describe is the registry's own declaration)
+  PM-05  template_project_charter     form_kind=canvas   tier=T4 registry_ids=['PM-05']
+      objective                      Objective
+      scope_in                       In scope
+      scope_out                      Out of scope
+      deliverables                   Deliverables
+      governance                     Sponsor and governance
+      budget                         Budget and funding
+      milestones                     Milestones
+      success_measures               Success measures
+      assumptions                    Assumptions
+      constraints                    Constraints and dependencies
+  PM-09  template_wbs                 form_kind=canvas   tier=T4 registry_ids=['PM-09']
+      deliverables                   Level 1 deliverables
+      work_packages                  Work packages
+      acceptance                     Acceptance criteria
+      exclusions                     Exclusions
+  PM-10  template_raci                form_kind=matrix   tier=T4 registry_ids=['PM-10']
+      (no canvas blocks: the matrix rows and columns are the form)
+  PM-06  template_risk_register       form_kind=matrix   tier=T4 registry_ids=['PM-06']
+      (no canvas blocks: the matrix rows and columns are the form)
+  PM-15  template_stakeholder_plan    form_kind=canvas   tier=T4 registry_ids=['PM-15']
+      stakeholders                   Stakeholders
+      interests                      Interests and concerns
+      influence                      Influence and impact
+      engagement                     Engagement approach
+      messages                       Key messages
+      channels                       Channels
+      frequency                      Timing and frequency
+      owners                         Communication owner
+      risks                          Communication risks
+  PM-16  template_lessons_learned     form_kind=canvas   tier=T4 registry_ids=['PM-16']
+      went_well                      What went well
+      went_poorly                    What did not go well
+      causes                         Why it happened
+      changes                        What to change next time
+      actions                        Actions and owners
+      share                          Who should see this
+      evidence                       Evidence
+
+K1 double-declaration audit
+  canvas kinds : 68
+  matrix kinds : 6
+  in BOTH      : ['template_customer_journey', 'template_servqual']
+  canvas_meta & matrix_meta: none
+  templates    : 76
+  form=canvas  n=68
+  form=matrix  n=4
+  form=other   n=4
+
+K3 reachability
+  profiles on no subject page : 17
+  PM profiles reached         : 5
+  PM worksheets not draftable : []
+  worksheets not draftable overall: 14
+
+template_project_charter (Project Charter) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  objective                  items=['background']                 gap=
+  scope_in                   items=['background']                 gap=
+  scope_out                  items=['background']                 gap=
+  deliverables               items=['background']                 gap=
+  governance                 items=['background']                 gap=
+  budget                     items=['background']                 gap=
+  milestones                 items=['background']                 gap=
+  success_measures           items=['background']                 gap=
+  assumptions                items=['background']                 gap=
+  constraints                items=['background']                 gap=
+
+template_project_charter (Project Charter) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  objective                  items=['background']                 gap=
+  scope_in                   items=['background']                 gap=
+  scope_out                  items=['background']                 gap=
+  deliverables               items=['background']                 gap=
+  governance                 items=['background']                 gap=
+  budget                     items=['background']                 gap=
+  milestones                 items=['background']                 gap=
+  success_measures           items=['background']                 gap=
+  assumptions                items=['background']                 gap=
+  constraints                items=['background']                 gap=
+
+template_wbs (Work Breakdown Structure) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  deliverables               items=['background']                 gap=
+  work_packages              items=['background']                 gap=
+  acceptance                 items=['background']                 gap=
+  exclusions                 items=['background']                 gap=
+
+template_wbs (Work Breakdown Structure) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  deliverables               items=['background']                 gap=
+  work_packages              items=['background']                 gap=
+  acceptance                 items=['background']                 gap=
+  exclusions                 items=['background']                 gap=
+
+template_raci (RACI) unit={'field': 'industry', 'value': 'grocery retail'} gaps=4
+  responsible                items=['sourced']                    gap=
+  accountable                items=['sourced']                    gap=
+  consulted                  items=['sourced']                    gap=
+  informed                   items=['sourced']                    gap=
+
+template_raci (RACI) unit={'field': 'industry', 'value': 'grocery retail'} gaps=0
+  responsible                items=['background']                 gap=
+  accountable                items=['background']                 gap=
+  consulted                  items=['background']                 gap=
+  informed                   items=['background']                 gap=
+
+template_risk_register (Risk Register) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  risk                       items=['background']                 gap=
+  response                   items=['background']                 gap=
+
+template_risk_register (Risk Register) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  risk                       items=['background']                 gap=
+  response                   items=['background']                 gap=
+
+template_stakeholder_plan (Stakeholder Plan) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  stakeholders               items=['background']                 gap=
+  interests                  items=['background']                 gap=
+  influence                  items=['background']                 gap=
+  engagement                 items=['background']                 gap=
+  messages                   items=['background']                 gap=
+  channels                   items=['background']                 gap=
+  frequency                  items=['background']                 gap=
+  owners                     items=['background']                 gap=
+  risks                      items=['background']                 gap=
+
+template_stakeholder_plan (Stakeholder Plan) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  stakeholders               items=['background']                 gap=
+  interests                  items=['background']                 gap=
+  influence                  items=['background']                 gap=
+  engagement                 items=['background']                 gap=
+  messages                   items=['background']                 gap=
+  channels                   items=['background']                 gap=
+  frequency                  items=['background']                 gap=
+  owners                     items=['background']                 gap=
+  risks                      items=['background']                 gap=
+
+template_lessons_learned (Lessons Learned) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  went_well                  items=['background']                 gap=
+  went_poorly                items=['background']                 gap=
+  causes                     items=['background']                 gap=
+  changes                    items=['background']                 gap=
+  actions                    items=['background']                 gap=
+  share                      items=['background']                 gap=
+  evidence                   items=['background']                 gap=
+
+template_lessons_learned (Lessons Learned) unit={'field': 'unit', 'value': 'the shift-roster replacement project at a grocery retailer', 'country': 'the shift-roster replacement project at a grocery retailer', 'region': 'Global'} gaps=0
+  went_well                  items=['background']                 gap=
+  went_poorly                items=['background']                 gap=
+  causes                     items=['background']                 gap=
+  changes                    items=['background']                 gap=
+  actions                    items=['background']                 gap=
+  share                      items=['background']                 gap=
+  evidence                   items=['background']                 gap=
+
+K5 decision-tool refusal contract
+  decision_tree    REFUSED   a branch with no probability                   chance branch 1 needs a numeric probability
+  decision_tree    REFUSED   chance probabilities that do not sum to one    the probabilities at a chance node must sum to one (found 1.2)
+  real_option      InvalidOperation no declared volatility                         [<class 'decimal.ConversionSyntax'>]
+  multi_criteria   InvalidOperation a criterion with no declared weight            [<class 'decimal.ConversionSyntax'>]
+  scenario_analysis InvalidOperation no declared scenario range                     [<class 'decimal.ConversionSyntax'>]
+  monte_carlo      REFUSED   a distribution with no bounds                  y1 needs numeric low, mode and high values
+
+K5 decision-tool refusal contract
+  decision_tree    REFUSED   a branch with no probability chance branch 1 needs a numeric probability
+  decision_tree    REFUSED   chance probabilities that do not sum to one the probabilities at a chance node must sum to one (found 1.2)
+  real_option      InvalidOperation no declared volatility [<class 'decimal.ConversionSyntax'>]
+  multi_criteria   InvalidOperation a criterion with no declared weight [<class 'decimal.ConversionSyntax'>]
+  scenario_analysis InvalidOperation no declared scenario range [<class 'decimal.ConversionSyntax'>]
+  monte_carlo      REFUSED   a distribution with no bounds y1 needs numeric low, mode and high values

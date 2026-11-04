@@ -1,0 +1,12 @@
+﻿1: import sys, os, json, socket, subprocess, tempfile, threading, unittest
+2: from decimal import Decimal as D
+4: from bp import methods, server, envpin
+5: from bp.methods import LIBRARY
+6: from bp.orchestrator import Pipeline
+7: from bp.reperform import reperform
+8: from bp.sandbox import SubprocessSandbox, SandboxError
+9: from bp.session import SessionManager
+12: SB = SubprocessSandbox(timeout=60)
+112: def test_guards_block_escape_routes(self):
+113: escape = os.path.join(tempfile.gettempdir(), "bp_sandbox_escape.txt")
+118: def test_child_cannot_reach_a_real_listener(self):

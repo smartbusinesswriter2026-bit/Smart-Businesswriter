@@ -1,0 +1,1374 @@
+..........D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\__init__.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\accounts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\artifacts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\assist.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\case_decision.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\catalogue_import.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\check.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\claims.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\currency.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\envpin.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\evaluate.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ingest.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ledger.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\literature.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\llm.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\methods.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\orchestrator.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\quantity.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reconcile.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\registry.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reperform.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\report.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox_child.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\schedules.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\server.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\session.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\spec.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\templates.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....................................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\registry.py:305: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\data\\registry_v0_2.json' mode='r' encoding='utf-8'>
+  raw = json.load(open(path, encoding="utf-8")); recs = raw["records"]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....................................F....................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 422: 'Unprocessable Content'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: 'Too Many Requests'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 502: 'Bad Gateway'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 401: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+.C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 503: 'Service Unavailable'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..........F..F..F...................................F...........F...............................................................................................................................................................FEEEEE..EFE.................F.....................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: ''>
+  _warnings.warn(self.warn_message, ResourceWarning)
+F......................................................F..F..F...................F...........................................F..F..F............................F....................................................F..F..F.......................................................................................................................................................F.........................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+....F...F....D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_frozen_contract.py:28: ResourceWarning: unclosed file <_io.TextIOWrapper name='src\\bp\\server.py' mode='r' encoding='utf-8'>
+  src = open(os.path.join("src", "bp", "server.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+......F.....F.......................F...........F........................................................................................F..F.....................................................................................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+......C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: 'no'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+...................................................................................................F..............F.....F............E.......F...................................................................................F................................................................EE.EE.D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py:163: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py:157: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..................................F...............................................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_people_frameworks.py:491: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_people_frameworks.py:497: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\web\\index.html' mode='r' encoding='utf-8'>
+  page = open(_PATH("web", "index.html"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...................................F............................F.....................................................................................................................F.......................................................................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_boundary.py:150: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\product\\cases.py' mode='r' encoding='utf-8'>
+  source = open(os.path.join(PRODUCT_DIR, "cases.py"), encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'refused'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 422: 'refused'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+............................................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_charts.py:154: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpivrb9rhd\\case.html' mode='r' encoding='utf-8'>
+  document = open(target, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..............D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_compare.py:89: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-compare-test-uv1z19n8\\comparison.html' mode='r' encoding='utf-8'>
+  document = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_diagrams.py:59: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmp3v3yxl1i\\diagram.svg' mode='r' encoding='utf-8'>
+  self.assertTrue(open(path, encoding="utf-8").read().startswith("<svg"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..........invalid pdf header: b'not a'
+EOF marker not found
+.............................................C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 405: 'Method Not Allowed'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+...............C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 422: 'Unprocessable Content'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 400: 'Bad Request'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 404: 'Not Found'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+...EOF marker not found
+.....................................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:98: ResourceWarning: unclosed file <_io.BufferedWriter name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-dv95foa2\\broken.zip'>
+  open(path, "wb").write(b"not a zip")
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+........D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:49: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-cx_0r8gg\\state\\requests.jsonl' mode='r' encoding='utf-8'>
+  line = json.loads(open(os.environ["BP_REQUEST_LOG"], encoding="utf-8").read().strip())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_ops.py:54: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-ops-test-cx_0r8gg\\state\\requests.jsonl' mode='r' encoding='utf-8'>
+  self.assertEqual(len(open(os.environ["BP_REQUEST_LOG"], encoding="utf-8").read().strip().splitlines()), 2)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: 'Too Many Requests'>
+  _warnings.warn(self.warn_message, ResourceWarning)
+..........................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_server.py:110: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-server-cases-9ynbjewv\\state\\requests.jsonl' mode='r' encoding='utf-8'>
+  text = open(log, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:69: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-o_m_tu16\\73a1948fcb7e\\v001.json' mode='r' encoding='utf-8'>
+  document = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:71: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-o_m_tu16\\73a1948fcb7e\\v001.json' mode='w' encoding='utf-8'>
+  json.dump(document, open(path, "w", encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:50: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-p2lfnvld\\7020ebc19e28\\signoff\\v001-001.json' mode='r' encoding='utf-8'>
+  before = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_signoff.py:52: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-signoff-test-p2lfnvld\\7020ebc19e28\\signoff\\v001-001.json' mode='r' encoding='utf-8'>
+  self.assertEqual(open(path, encoding="utf-8").read(), before)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_spreadsheets.py:91: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmphwmn0jy_\\artifacts.csv' mode='r' encoding='utf-8'>
+  self.assertIn("50.00", open(csv_path, encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_spreadsheets.py:92: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmphwmn0jy_\\case.xml' mode='r' encoding='utf-8'>
+  ET.fromstring(open(xml_path, encoding="utf-8").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.............................................................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:81: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-lf8g0psl\\a336fe52a55c\\v001.json' mode='r' encoding='utf-8'>
+  document = json.load(open(path, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:83: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-lf8g0psl\\a336fe52a55c\\v001.json' mode='w' encoding='utf-8'>
+  json.dump(document, open(path, "w", encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:56: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-ubhsiq09\\d89991519cbd\\v001.json' mode='r' encoding='utf-8'>
+  before = open(path, encoding="utf-8").read()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_versions.py:58: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\bp-versions-test-ubhsiq09\\d89991519cbd\\v001.json' mode='r' encoding='utf-8'>
+  self.assertEqual(open(path, encoding="utf-8").read(), before)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_worksheet_registration.py:21: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\tests\\..\\src\\bp\\data\\registry_v0_2.json' mode='r' encoding='cp1252'>
+  data = json.load(open(os.path.join(os.path.dirname(__file__), "..", "src", "bp", "data", "registry_v0_2.json")))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_worksheet_registration.py:16: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\tests\\..\\src\\bp\\data\\registry_v0_2.json' mode='r' encoding='cp1252'>
+  data = json.load(open(os.path.join(os.path.dirname(__file__), "..", "src", "bp", "data", "registry_v0_2.json")))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\__init__.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\accounts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\artifacts.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\assist.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\case_decision.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\catalogue_import.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\check.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\claims.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\currency.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\envpin.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\evaluate.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ingest.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\ledger.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\literature.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\llm.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\methods.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\orchestrator.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\quantity.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reconcile.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\registry.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\reperform.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\report.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\sandbox_child.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\schedules.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\server.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\session.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\spec.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\envpin.py:9: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\templates.py'>
+  h.update(f.encode()); h.update(open(os.path.join(d, f), "rb").read())
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+..................................................................................FFD:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:28: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\docs\\sources\\Business_Frameworks_and_Quantitative_Methods_Catalogue_v0_2.md' mode='r' encoding='utf-8'>
+  ids = [re.match(r"\|\s*([A-Z]{2,5}-\d+)", l).group(1) for l in open(CAT, encoding="utf-8") if re.match(r"\|\s*[A-Z]{2,5}-\d+\s*\|", l)]
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+E....D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\catalogue_import.py:63: ResourceWarning: unclosed file <_io.BufferedReader name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\docs\\sources\\Business_Frameworks_and_Quantitative_Methods_Catalogue_v0_2.md'>
+  raw = open(path, "rb").read(); lines = raw.decode("utf-8").splitlines()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:13: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\src\\bp\\data\\registry_v0_2.json' mode='r' encoding='utf-8'>
+  fresh = CI.import_catalogue(CAT); shipped = json.load(open(R.DATA, encoding="utf-8"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+FD:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\catalogue_import.py:63: ResourceWarning: unclosed file <_io.BufferedReader name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmp2cp1arvt\\catalogue_crlf.md'>
+  raw = open(path, "rb").read(); lines = raw.decode("utf-8").splitlines()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.....D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py:101: ResourceWarning: unclosed file <_io.TextIOWrapper name='D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\tests\\fixtures\\framework_requests.json' mode='r' encoding='cp1252'>
+  meta = json.load(open(os.path.join(ROOT, "tests", "fixtures", "framework_requests.json"))); self.assertEqual(meta["expert_review"], "pending")
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.........................................................................F.....F.........................D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:182: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpshlqafwx\\b.json' mode='w' encoding='cp1252'>
+  f = os.path.join(td, "b.json"); json.dump(self.d.appendix["reperform"], open(f, "w"), default=str)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:185: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpshlqafwx\\b.json' mode='r' encoding='cp1252'>
+  bad = json.load(open(f)); bad["outputs"]["npv"] = "1"; json.dump(bad, open(f, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_sandbox.py:185: ResourceWarning: unclosed file <_io.TextIOWrapper name='C:\\Users\\Roderick\\AppData\\Local\\Temp\\tmpshlqafwx\\b.json' mode='w' encoding='cp1252'>
+  bad = json.load(open(f)); bad["outputs"]["npv"] = "1"; json.dump(bad, open(f, "w"))
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+.......C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\unittest\case.py:615: ResourceWarning: unclosed <socket.socket fd=1632, family=2, type=1, proto=0, laddr=('127.0.0.1', 63693)>
+  result = method()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+...............................F.....F.......................F..F..FE...........................F............................F.....F.....F..F..F...........F......................................................................................F..F..F...........F...................................................F........................FC:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\tempfile.py:484: ResourceWarning: Implicitly cleaning up <HTTPError 429: ''>
+  _warnings.warn(self.warn_message, ResourceWarning)
+FFF...FF............................................
+======================================================================
+ERROR: test_an_empty_cell_does_not_block_the_paper (test_change_organization_completion.ChangeOrganizationCompletionTest.test_an_empty_cell_does_not_block_the_paper)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 109, in test_an_empty_cell_does_not_block_the_paper
+    result = complete()
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 45, in complete
+    return completion.complete("template_change_organization", kwargs.pop("instruction", BRIEF),
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               industry=kwargs.pop("industry", INDUSTRY), **kwargs)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 265, in complete
+    unit = _unit(profile, instruction, declared)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 138, in _unit
+    raise ValueError(profile["unit"]["refuse"])
+ValueError: A change and organisation review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.
+
+======================================================================
+ERROR: test_byline_reaches_the_title_page (test_change_organization_completion.ChangeOrganizationCompletionTest.test_byline_reaches_the_title_page)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 104, in test_byline_reaches_the_title_page
+    result = dict(complete(), byline=["A Student", "Example University"])
+                  ~~~~~~~~^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 45, in complete
+    return completion.complete("template_change_organization", kwargs.pop("instruction", BRIEF),
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               industry=kwargs.pop("industry", INDUSTRY), **kwargs)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 265, in complete
+    unit = _unit(profile, instruction, declared)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 138, in _unit
+    raise ValueError(profile["unit"]["refuse"])
+ValueError: A change and organisation review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.
+
+======================================================================
+ERROR: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_change_organization_completion.ChangeOrganizationCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 49, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    result = complete()
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 45, in complete
+    return completion.complete("template_change_organization", kwargs.pop("instruction", BRIEF),
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               industry=kwargs.pop("industry", INDUSTRY), **kwargs)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 265, in complete
+    unit = _unit(profile, instruction, declared)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 138, in _unit
+    raise ValueError(profile["unit"]["refuse"])
+ValueError: A change and organisation review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.
+
+======================================================================
+ERROR: test_no_source_run_fills_every_cell_with_background (test_change_organization_completion.ChangeOrganizationCompletionTest.test_no_source_run_fills_every_cell_with_background)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 87, in test_no_source_run_fills_every_cell_with_background
+    result = completion.complete("template_change_organization", BRIEF, industry=INDUSTRY)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 265, in complete
+    unit = _unit(profile, instruction, declared)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 138, in _unit
+    raise ValueError(profile["unit"]["refuse"])
+ValueError: A change and organisation review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.
+
+======================================================================
+ERROR: test_one_source_cannot_fill_two_cells (test_change_organization_completion.ChangeOrganizationCompletionTest.test_one_source_cannot_fill_two_cells)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 74, in test_one_source_cannot_fill_two_cells
+    result = complete()
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 45, in complete
+    return completion.complete("template_change_organization", kwargs.pop("instruction", BRIEF),
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               industry=kwargs.pop("industry", INDUSTRY), **kwargs)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 265, in complete
+    unit = _unit(profile, instruction, declared)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 138, in _unit
+    raise ValueError(profile["unit"]["refuse"])
+ValueError: A change and organisation review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.
+
+======================================================================
+ERROR: test_the_industry_is_the_unit_of_analysis (test_change_organization_completion.ChangeOrganizationCompletionTest.test_the_industry_is_the_unit_of_analysis)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 63, in test_the_industry_is_the_unit_of_analysis
+    result = complete()
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 45, in complete
+    return completion.complete("template_change_organization", kwargs.pop("instruction", BRIEF),
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               industry=kwargs.pop("industry", INDUSTRY), **kwargs)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 265, in complete
+    unit = _unit(profile, instruction, declared)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 138, in _unit
+    raise ValueError(profile["unit"]["refuse"])
+ValueError: A change and organisation review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.
+
+======================================================================
+ERROR: test_the_route_generates_a_draft_with_an_empty_cell (test_change_organization_completion.ChangeOrganizationCompletionTest.test_the_route_generates_a_draft_with_an_empty_cell)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 117, in test_the_route_generates_a_draft_with_an_empty_cell
+    result = complete()
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 45, in complete
+    return completion.complete("template_change_organization", kwargs.pop("instruction", BRIEF),
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                               industry=kwargs.pop("industry", INDUSTRY), **kwargs)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 265, in complete
+    unit = _unit(profile, instruction, declared)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\completion.py", line 138, in _unit
+    raise ValueError(profile["unit"]["refuse"])
+ValueError: A change and organisation review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.
+
+======================================================================
+ERROR: test_the_listing_reproduces_a_supplied_line_verbatim (test_marketing_worksheets.ExampleRuns.test_the_listing_reproduces_a_supplied_line_verbatim)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_marketing_worksheets.py", line 76, in test_the_listing_reproduces_a_supplied_line_verbatim
+    text = next(item["text"] for items in first["blocks"].values() for item in items)
+                                          ~~~~~^^^^^^^^^^
+KeyError: 'blocks'
+
+======================================================================
+ERROR: test_a_synthetic_item_stays_marked_and_is_not_presented_as_evidence (test_operations_frameworks.ExampleTest.test_a_synthetic_item_stays_marked_and_is_not_presented_as_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py", line 189, in test_a_synthetic_item_stays_marked_and_is_not_presented_as_evidence
+    checks, out = results("template_sipoc", example("template_sipoc"))
+                                            ~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py", line 58, in example
+    return copy.deepcopy(T.EXAMPLES[kind])
+                         ~~~~~~~~~~^^^^^^
+KeyError: 'template_sipoc'
+
+======================================================================
+ERROR: test_an_empty_block_is_named_and_never_filled (test_operations_frameworks.ExampleTest.test_an_empty_block_is_named_and_never_filled)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py", line 173, in test_an_empty_block_is_named_and_never_filled
+    req = example("template_sipoc")
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py", line 58, in example
+    return copy.deepcopy(T.EXAMPLES[kind])
+                         ~~~~~~~~~~^^^^^^
+KeyError: 'template_sipoc'
+
+======================================================================
+ERROR: test_every_example_runs_and_passes_its_own_checks (test_operations_frameworks.ExampleTest.test_every_example_runs_and_passes_its_own_checks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py", line 169, in test_every_example_runs_and_passes_its_own_checks
+    checks, _out = results(kind, example(kind))
+                                 ~~~~~~~^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py", line 58, in example
+    return copy.deepcopy(T.EXAMPLES[kind])
+                         ~~~~~~~~~~^^^^^^
+KeyError: 'template_sipoc'
+
+======================================================================
+ERROR: test_no_score_ranking_or_verdict_is_derived (test_operations_frameworks.ExampleTest.test_no_score_ranking_or_verdict_is_derived)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py", line 182, in test_no_score_ranking_or_verdict_is_derived
+    _checks, out = results(kind, example(kind))
+                                 ~~~~~~~^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_operations_frameworks.py", line 58, in example
+    return copy.deepcopy(T.EXAMPLES[kind])
+                         ~~~~~~~~~~^^^^^^
+KeyError: 'template_sipoc'
+
+======================================================================
+ERROR: test_every_catalogue_row_is_present_and_nothing_is_dropped (test_registry.Import.test_every_catalogue_row_is_present_and_nothing_is_dropped)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\registry.py", line 360, in get
+    try: return reg["by_id"][rid]
+                ~~~~~~~~~~~~^^^^^
+KeyError: 'STR-20'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py", line 30, in test_every_catalogue_row_is_present_and_nothing_is_dropped
+    for i in ids: self.assertEqual(R.get(i)["id"] in ids or i in R.get(i)["also_listed_as"], True, i)
+                                   ~~~~~^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\registry.py", line 361, in get
+    except KeyError: raise KeyError(f"unknown registry id {rid}")
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'unknown registry id STR-20'
+
+======================================================================
+ERROR: test_the_route_generates_a_draft_with_an_empty_cell (test_social_media_completion.SocialMediaCompletionTest.test_the_route_generates_a_draft_with_an_empty_cell)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_social_media_completion.py", line 122, in test_the_route_generates_a_draft_with_an_empty_cell
+    status, payload = api.handle("POST", "/api/cases/frameworks/report",
+                      ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                 {"completion": result, "version": "draft"})
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\api.py", line 579, in handle
+    document = paper_store.save(data, writing.filename(report), report.get("title"),
+                                    report.get("framework") or "Five Forces",
+                                    "Full paper" if version == "full" else "Draft",
+                                    report.get("words"), report.get("length_label") or "")
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\paper_store.py", line 111, in save
+    _write_index(rows)
+    ~~~~~~~~~~~~^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\product\paper_store.py", line 85, in _write_index
+    os.replace(tmp, INDEX)
+    ~~~~~~~~~~^^^^^^^^^^^^
+PermissionError: [WinError 32] The process cannot access the file because it is being used by another process: 'D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\documents\\index.json.tmp' -> 'D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\documents\\index.json'
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_aida_and_keeps_the_safety_rules (test_aida_completion.AIDACompletionTest.test_the_model_prompt_speaks_aida_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_aida_completion.py", line 144, in test_the_model_prompt_speaks_aida_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a aida paper. use only the case instruction and the stages items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the journey the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_attribution_completion.AttributionCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_attribution_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "Attribution")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Attribution and Campaign Measurement' != 'Attribution'
+- Attribution and Campaign Measurement
++ Attribution
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_attribution_completion.AttributionCompletionTest.test_outline_headings_are_present_and_title_cased)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_attribution_completion.py", line 99, in test_outline_headings_are_present_and_title_cased
+    self.assertEqual(outline["framework"], "Attribution")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Attribution and Campaign Measurement' != 'Attribution'
+- Attribution and Campaign Measurement
++ Attribution
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_attribution_and_keeps_the_safety_rules (test_attribution_completion.AttributionCompletionTest.test_the_model_prompt_speaks_attribution_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_attribution_completion.py", line 144, in test_the_model_prompt_speaks_attribution_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a attribution and campaign measurement paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the attribution the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_bcg_and_keeps_the_safety_rules (test_bcg_completion.BCGCompletionTest.test_the_model_prompt_speaks_bcg_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_bcg_completion.py", line 144, in test_the_model_prompt_speaks_bcg_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a bcg growth-share matrix paper. use only the case instruction and the quadrants items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the portfolio and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the portfolio position the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the portfolio and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_brand_equity_and_keeps_the_safety_rules (test_brand_equity_completion.BrandEquityCompletionTest.test_the_model_prompt_speaks_brand_equity_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_brand_equity_completion.py", line 144, in test_the_model_prompt_speaks_brand_equity_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a brand equity paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the brand the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_a_brief_without_an_industry_is_refused_with_an_actionable_reason (test_change_organization_completion.ChangeOrganizationCompletionTest.test_a_brief_without_an_industry_is_refused_with_an_actionable_reason)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 71, in test_a_brief_without_an_industry_is_refused_with_an_actionable_reason
+    self.assertIn("market", str(refused.exception).lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'market' not found in 'a change and organisation review reads one programme of change. name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.'
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_change_organization_and_keeps_the_safety_rules (test_change_organization_completion.ChangeOrganizationCompletionTest.test_the_model_prompt_speaks_change_organization_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_change_organization_completion.py", line 144, in test_the_model_prompt_speaks_change_organization_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a change and organization paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the change and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the change and the organisation it depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the change and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking (test_chat.ResearchTest.test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\unittest\mock.py", line 1432, in patched
+    return func(*newargs, **newkeywargs)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_chat.py", line 133, in test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking
+    self.assertTrue(all("timed out" in gap["reason"] for gap in state["gaps"]))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_another_template_is_refused (test_completion.CompletionTest.test_another_template_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_completion.py", line 181, in test_another_template_is_refused
+    with self.assertRaises(ValueError):
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_cro_completion.CROCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_cro_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "CRO")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Conversion Rate Optimisation' != 'CRO'
+- Conversion Rate Optimisation
++ CRO
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_cro_completion.CROCompletionTest.test_outline_headings_are_present_and_title_cased)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_cro_completion.py", line 99, in test_outline_headings_are_present_and_title_cased
+    self.assertEqual(outline["framework"], "CRO")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Conversion Rate Optimisation' != 'CRO'
+- Conversion Rate Optimisation
++ CRO
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_cro_and_keeps_the_safety_rules (test_cro_completion.CROCompletionTest.test_the_model_prompt_speaks_cro_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_cro_completion.py", line 141, in test_the_model_prompt_speaks_cro_and_keeps_the_safety_rules
+    self.assertIn("CRO", system)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 'CRO' not found in 'You are an academic analyst writing the opening of a Conversion Rate Optimisation paper. Use only the case instruction and the elements items. Write in formal academic English, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. Do not open with \'This paper\' or \'The case concerns\'; begin with the market and the decision it frames. Write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the test the decision depends on. Write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. Do not restate every item. Do not add facts, numbers, names, sources or citations beyond the items. Do not recommend a decision. Write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. Return only JSON: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_customer_journey_completion.CustomerJourneyCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_customer_journey_completion.py", line 52, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["awareness", "consideration",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                      "purchase", "retention"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['awareness', 'consideration', 'purchase', 'retention', 'advocacy'] != ['awareness', 'consideration', 'purchase', 'retention']
+
+First list contains 1 additional elements.
+First extra element 4:
+'advocacy'
+
+- ['awareness', 'consideration', 'purchase', 'retention', 'advocacy']
+?                                                       ------------
+
++ ['awareness', 'consideration', 'purchase', 'retention']
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_digital_mix_completion.DigitalMixCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_digital_mix_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "Digital Mix")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Digital Marketing Mix' != 'Digital Mix'
+- Digital Marketing Mix
++ Digital Mix
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_digital_mix_completion.DigitalMixCompletionTest.test_outline_headings_are_present_and_title_cased)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_digital_mix_completion.py", line 99, in test_outline_headings_are_present_and_title_cased
+    self.assertEqual(outline["framework"], "Digital Mix")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Digital Marketing Mix' != 'Digital Mix'
+- Digital Marketing Mix
++ Digital Mix
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_digital_mix_and_keeps_the_safety_rules (test_digital_mix_completion.DigitalMixCompletionTest.test_the_model_prompt_speaks_digital_mix_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_digital_mix_completion.py", line 141, in test_the_model_prompt_speaks_digital_mix_and_keeps_the_safety_rules
+    self.assertIn("Digital Mix", system)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Digital Mix' not found in 'You are an academic analyst writing the opening of a Digital Marketing Mix paper. Use only the case instruction and the channels items. Write in formal academic English, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. Do not open with \'This paper\' or \'The case concerns\'; begin with the market and the decision it frames. Write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the channel mix the decision depends on. Write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. Do not restate every item. Do not add facts, numbers, names, sources or citations beyond the items. Do not recommend a decision. Write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. Return only JSON: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_documented_test_count_matches_the_real_suite (test_docs_sync.DocsStateSyncTest.test_documented_test_count_matches_the_real_suite)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_docs_sync.py", line 212, in test_documented_test_count_matches_the_real_suite
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        claimed,
+        ^^^^^^^^
+        count,
+        ^^^^^^
+        "%s says %d tests, but the suite holds %d tests" % (name, claimed, count),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: 2627 != 2630 : docs/HANDOFF.md says 2627 tests, but the suite holds 2630 tests
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_email_crm_completion.EmailCRMCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_email_crm_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "Email CRM")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Email CRM and Lifecycle' != 'Email CRM'
+- Email CRM and Lifecycle
++ Email CRM
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_email_crm_completion.EmailCRMCompletionTest.test_outline_headings_are_present_and_title_cased)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_email_crm_completion.py", line 99, in test_outline_headings_are_present_and_title_cased
+    self.assertEqual(outline["framework"], "Email CRM")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Email CRM and Lifecycle' != 'Email CRM'
+- Email CRM and Lifecycle
++ Email CRM
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_email_crm_and_keeps_the_safety_rules (test_email_crm_completion.EmailCRMCompletionTest.test_the_model_prompt_speaks_email_crm_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_email_crm_completion.py", line 144, in test_the_model_prompt_speaks_email_crm_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a email crm and lifecycle paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the lifecycle programme the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_the_finance_page_groups_tools_and_carries_study_notes (test_finance_additions.StudentFacingContract.test_the_finance_page_groups_tools_and_carries_study_notes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_finance_additions.py", line 273, in test_the_finance_page_groups_tools_and_carries_study_notes
+    self.assertTrue(all(tool["group"] is None for tool in economics["tools"]),
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                    "the finance grouping must not leak onto the economics page")
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true : the finance grouping must not leak onto the economics page
+
+======================================================================
+FAIL: test_a_framework_without_a_profile_has_no_extension (test_framework_profiles.ProfileTest.test_a_framework_without_a_profile_has_no_extension)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_framework_profiles.py", line 82, in test_a_framework_without_a_profile_has_no_extension
+    self.assertIsNone(framework_profiles.describe_extra("template_customer_journey"))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'template': 'template_customer_journey', 'label': 'Customer Journey', 'title_prefix': 'Customer Journey Analysis', 'subject': 'marketing', 'unit': {'example': 'smartphones, grocery retail, banking', 'field': 'industry', 'help': 'The customer journey is read for a firm in a market. Name the industry or market.', 'label': 'Industry or market', 'refuse': 'The customer journey is read for a firm in a market. Name the industry or market.'}, 'ratings': False, 'assumption': 'probe', 'styles': ['apa', 'harvard'], 'lengths': [{'key': 'short', 'label': 'Short (600-1,200 words)'}, {'key': 'mid', 'label': 'Mid (1,200-2,500 words)'}, {'key': 'long', 'label': 'Long (2,500-5,000 words)'}], 'blocks': [{'key': 'awareness', 'label': 'Awareness', 'prompt': 'How customers first learn about the offer', 'fill': 'research'}, {'key': 'consideration', 'label': 'Consideration', 'prompt': 'How customers evaluate the offer', 'fill': 'research'}, {'key': 'purchase', 'label': 'Purchase', 'prompt': 'How customers buy the offer', 'fill': 'research'}, {'key': 'retention', 'label': 'Retention', 'prompt': 'How customers are kept after purchase', 'fill': 'research'}, {'key': 'advocacy', 'label': 'Advocacy', 'prompt': 'How customers recommend the offer', 'fill': 'research'}], 'fills': [{'key': 'research', 'label': 'Research retrieves external evidence for this part.'}, {'key': 'auto', 'label': 'Researched where evidence exists, otherwise taken from your own words.'}, {'key': 'quote', 'label': 'Taken from your own words in the instruction, verbatim.'}, {'key': 'gap', 'label': 'Only you can state this part. It stays a named gap until you do.'}]} is not None
+
+======================================================================
+FAIL: test_the_label_is_the_profiles_not_a_literal (test_framework_profiles.ProfileTest.test_the_label_is_the_profiles_not_a_literal)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_framework_profiles.py", line 101, in test_the_label_is_the_profiles_not_a_literal
+    self.assertEqual(framework_profiles.label_for("template_customer_journey"),
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     "Porter's Five Forces")
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Customer Journey' != "Porter's Five Forces"
+- Customer Journey
++ Porter's Five Forces
+
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_funnel_completion.FunnelCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_funnel_completion.py", line 52, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["awareness", "interest",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+                      "consideration", "intent"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['awareness', 'interest', 'consideration', 'intent', 'evaluation', 'purchase'] != ['awareness', 'interest', 'consideration', 'intent']
+
+First list contains 2 additional elements.
+First extra element 4:
+'evaluation'
+
+- ['awareness', 'interest', 'consideration', 'intent', 'evaluation', 'purchase']
+?                                                    --------------------------
+
++ ['awareness', 'interest', 'consideration', 'intent']
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_funnel_and_keeps_the_safety_rules (test_funnel_completion.FunnelCompletionTest.test_the_model_prompt_speaks_funnel_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_funnel_completion.py", line 144, in test_the_model_prompt_speaks_funnel_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a funnel paper. use only the case instruction and the stages items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the conversion path the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_ge_mckinsey_and_keeps_the_safety_rules (test_ge_mckinsey_completion.GEMcKinseyCompletionTest.test_the_model_prompt_speaks_ge_mckinsey_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_ge_mckinsey_completion.py", line 145, in test_the_model_prompt_speaks_ge_mckinsey_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a ge-mckinsey matrix paper. use only the case instruction and the cells items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the portfolio and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the portfolio assessment the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the portfolio and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_generic_strategies_and_keeps_the_safety_rules (test_generic_strategies_completion.GenericStrategiesCompletionTest.test_the_model_prompt_speaks_generic_strategies_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_generic_strategies_completion.py", line 144, in test_the_model_prompt_speaks_generic_strategies_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a generic strategies paper. use only the case instruction and the types items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the competitive range the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_kano_completion.KanoCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_kano_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "Kano")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Kano Model' != 'Kano'
+- Kano Model
++ Kano
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_kano_completion.KanoCompletionTest.test_outline_headings_are_present_and_title_cased)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_kano_completion.py", line 99, in test_outline_headings_are_present_and_title_cased
+    self.assertEqual(outline["framework"], "Kano")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Kano Model' != 'Kano'
+- Kano Model
++ Kano
+
+
+======================================================================
+FAIL: test_rfm_is_one_record_with_both_ids_and_a_computed_status (test_marketing_additions.MarketingShelf.test_rfm_is_one_record_with_both_ids_and_a_computed_status)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_marketing_additions.py", line 421, in test_rfm_is_one_record_with_both_ids_and_a_computed_status
+    self.assertEqual(record["form"], "computed")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'worksheet' != 'computed'
+- worksheet
++ computed
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_marketing_automation_and_keeps_the_safety_rules (test_marketing_automation_completion.MarketingAutomationCompletionTest.test_the_model_prompt_speaks_marketing_automation_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_marketing_automation_completion.py", line 144, in test_the_model_prompt_speaks_marketing_automation_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a marketing automation paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the automation the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_marketing_plan_completion.MarketingPlanCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_marketing_plan_completion.py", line 52, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["segmentation", "targeting",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                      "positioning", "product"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['seg[44 chars]duct', 'price', 'place', 'promotion', 'people'[28 chars]nce'] != ['seg[44 chars]duct']
+
+First list contains 6 additional elements.
+First extra element 4:
+'price'
+
++ ['segmentation', 'targeting', 'positioning', 'product']
+- ['segmentation',
+-  'targeting',
+-  'positioning',
+-  'product',
+-  'price',
+-  'place',
+-  'promotion',
+-  'people',
+-  'process',
+-  'physical_evidence']
+
+======================================================================
+FAIL: test_every_new_worksheet_is_t4_and_links_its_record (test_marketing_worksheets.Registration.test_every_new_worksheet_is_t4_and_links_its_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_marketing_worksheets.py", line 40, in test_every_new_worksheet_is_t4_and_links_its_record
+    self.assertEqual(T.describe(kind)["form_kind"], form, kind)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'canvas' != 'matrix'
+- canvas
++ matrix
+ : template_customer_journey
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_measurement_plan_completion.MeasurementPlanCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_measurement_plan_completion.py", line 52, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["questions", "metrics",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+                      "events_dimensions", "data_quality"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['questions', 'metrics', 'events_dimensions', 'data_quality', 'governance'] != ['questions', 'metrics', 'events_dimensions', 'data_quality']
+
+First list contains 1 additional elements.
+First extra element 4:
+'governance'
+
+- ['questions', 'metrics', 'events_dimensions', 'data_quality', 'governance']
+?                                                             --------------
+
++ ['questions', 'metrics', 'events_dimensions', 'data_quality']
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_paid_media_plan_completion.PaidMediaPlanCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_paid_media_plan_completion.py", line 52, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["objective", "audience",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^
+                      "channels_placements", "budget_bid"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['obj[51 chars]_bid', 'creative_variants', 'conversion_defini[16 chars]ent'] != ['obj[51 chars]_bid']
+
+First list contains 3 additional elements.
+First extra element 4:
+'creative_variants'
+
++ ['objective', 'audience', 'channels_placements', 'budget_bid']
+- ['objective',
+-  'audience',
+-  'channels_placements',
+-  'budget_bid',
+-  'creative_variants',
+-  'conversion_definition',
+-  'measurement']
+
+======================================================================
+FAIL: test_a_framework_without_a_profile_is_refused_and_names_the_real_options (test_pestel_completion.PestelCompletionTest.test_a_framework_without_a_profile_is_refused_and_names_the_real_options)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_pestel_completion.py", line 188, in test_a_framework_without_a_profile_is_refused_and_names_the_real_options
+    with self.assertRaises(ValueError) as refused:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_no_method_is_framework_only (test_pipeline.T.test_no_method_is_framework_only)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_pipeline.py", line 44, in test_no_method_is_framework_only
+    d = Pipeline().run({**REQ, "method": "mystery"}, yes); self.assertEqual(d.tier, "T4"); self.assertIn("No computed answer", d.report)
+                                                                                           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'No computed answer' not found in ''
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_porters_diamond_and_keeps_the_safety_rules (test_porters_diamond_completion.PortersDiamondCompletionTest.test_the_model_prompt_speaks_porters_diamond_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_porters_diamond_completion.py", line 145, in test_the_model_prompt_speaks_porters_diamond_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a porters diamond paper. use only the case instruction and the determinants items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the competitive position the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_counts_and_types (test_registry.Import.test_counts_and_types)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py", line 33, in test_counts_and_types
+    self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (161, 71, 24, 59, 7))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (160, 70, 24, 59, 7) != (161, 71, 24, 59, 7)
+
+First differing element 0:
+160
+161
+
+- (160, 70, 24, 59, 7)
+?    ^   ^
+
++ (161, 71, 24, 59, 7)
+?    ^   ^
+
+
+======================================================================
+FAIL: test_duplicates_merged_with_both_ids_kept (test_registry.Import.test_duplicates_merged_with_both_ids_kept)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py", line 37, in test_duplicates_merged_with_both_ids_kept
+    self.assertEqual(len({r["id"] for r in R.load()["records"]}), 161)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 160 != 161
+
+======================================================================
+FAIL: test_shipped_registry_equals_fresh_import (test_registry.Import.test_shipped_registry_equals_fresh_import)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py", line 14, in test_shipped_registry_equals_fresh_import
+    self.assertEqual(json.loads(json.dumps(fresh, ensure_ascii=False)), shipped)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: {'sch[15546 chars]d': 'STR-20', 'name': 'Strategy framework: per[116358 chars]1'}]} != {'sch[15546 chars]d': 'CHG-01', 'name': "Kotter's 8-Step Change [115399 chars]1'}]}
+Diff is 210231 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_rfm_completion.RFMCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_rfm_completion.py", line 52, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["recency", "frequency",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^
+                      "monetary", "recency"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['recency', 'frequency', 'monetary'] != ['recency', 'frequency', 'monetary', 'recency']
+
+Second list contains 1 additional elements.
+First extra element 3:
+'recency'
+
+- ['recency', 'frequency', 'monetary']
++ ['recency', 'frequency', 'monetary', 'recency']
+?                                    +++++++++++
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_rfm_and_keeps_the_safety_rules (test_rfm_completion.RFMCompletionTest.test_the_model_prompt_speaks_rfm_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_rfm_completion.py", line 144, in test_the_model_prompt_speaks_rfm_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a rfm paper. use only the case instruction and the dimensions items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the segmentation the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_seo_content_and_keeps_the_safety_rules (test_seo_content_completion.SEOContentCompletionTest.test_the_model_prompt_speaks_seo_content_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_seo_content_completion.py", line 144, in test_the_model_prompt_speaks_seo_content_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a seo and content paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the content plan the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_servqual_completion.SERVQUALCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_servqual_completion.py", line 52, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["tangibles", "reliability",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                      "responsiveness", "assurance"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['tangibles', 'reliability', 'responsiveness', 'assurance', 'empathy'] != ['tangibles', 'reliability', 'responsiveness', 'assurance']
+
+First list contains 1 additional elements.
+First extra element 4:
+'empathy'
+
+- ['tangibles', 'reliability', 'responsiveness', 'assurance', 'empathy']
+?                                                           -----------
+
++ ['tangibles', 'reliability', 'responsiveness', 'assurance']
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_social_media_completion.SocialMediaCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_social_media_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "Social Media")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Social Media and Influencer' != 'Social Media'
+- Social Media and Influencer
++ Social Media
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_social_media_completion.SocialMediaCompletionTest.test_outline_headings_are_present_and_title_cased)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_social_media_completion.py", line 99, in test_outline_headings_are_present_and_title_cased
+    self.assertEqual(outline["framework"], "Social Media")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Social Media and Influencer' != 'Social Media'
+- Social Media and Influencer
++ Social Media
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_social_media_and_keeps_the_safety_rules (test_social_media_completion.SocialMediaCompletionTest.test_the_model_prompt_speaks_social_media_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_social_media_completion.py", line 144, in test_the_model_prompt_speaks_social_media_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a social media and influencer paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the social plan the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_brave_failure_falls_back_to_firecrawl (test_sources.SearchTest.test_brave_failure_falls_back_to_firecrawl)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\unittest\mock.py", line 1432, in patched
+    return func(*newargs, **newkeywargs)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_sources.py", line 220, in test_brave_failure_falls_back_to_firecrawl
+    self.assertEqual(result["provider"], "firecrawl")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: None != 'firecrawl'
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_stp_completion.STPCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_stp_completion.py", line 52, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["segmentation", "targeting",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                      "positioning", "segmentation"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['segmentation', 'targeting', 'positioning'] != ['segmentation', 'targeting', 'positioning', 'segmentation']
+
+Second list contains 1 additional elements.
+First extra element 3:
+'segmentation'
+
+- ['segmentation', 'targeting', 'positioning']
++ ['segmentation', 'targeting', 'positioning', 'segmentation']
+?                                            ++++++++++++++++
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_stp_and_keeps_the_safety_rules (test_stp_completion.STPCompletionTest.test_the_model_prompt_speaks_stp_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_stp_completion.py", line 144, in test_the_model_prompt_speaks_stp_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a stp paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the segmentation and positioning the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_stp_evidence_completion.STPEvidenceCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_stp_evidence_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "STP Evidence")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'STP Evidence Check' != 'STP Evidence'
+- STP Evidence Check
+?             ------
++ STP Evidence
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_stp_evidence_completion.STPEvidenceCompletionTest.test_outline_headings_are_present_and_title_cased)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_stp_evidence_completion.py", line 99, in test_outline_headings_are_present_and_title_cased
+    self.assertEqual(outline["framework"], "STP Evidence")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'STP Evidence Check' != 'STP Evidence'
+- STP Evidence Check
+?             ------
++ STP Evidence
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_stp_evidence_and_keeps_the_safety_rules (test_stp_evidence_completion.STPEvidenceCompletionTest.test_the_model_prompt_speaks_stp_evidence_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_stp_evidence_completion.py", line 144, in test_the_model_prompt_speaks_stp_evidence_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a stp evidence check paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the segment, target and position the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_strategic_positioning_and_keeps_the_safety_rules (test_strategic_positioning_completion.StrategicPositioningCompletionTest.test_the_model_prompt_speaks_strategic_positioning_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_strategic_positioning_completion.py", line 144, in test_the_model_prompt_speaks_strategic_positioning_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a strategic positioning paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the position the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_tam_completion.TAMCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_tam_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "TAM")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Technology Acceptance Model' != 'TAM'
+- Technology Acceptance Model
++ TAM
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_tam_completion.TAMCompletionTest.test_outline_headings_are_present_and_title_cased)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_tam_completion.py", line 99, in test_outline_headings_are_present_and_title_cased
+    self.assertEqual(outline["framework"], "TAM")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Technology Acceptance Model' != 'TAM'
+- Technology Acceptance Model
++ TAM
+
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_tam_and_keeps_the_safety_rules (test_tam_completion.TAMCompletionTest.test_the_model_prompt_speaks_tam_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_tam_completion.py", line 141, in test_the_model_prompt_speaks_tam_and_keeps_the_safety_rules
+    self.assertIn("TAM", system)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: 'TAM' not found in 'You are an academic analyst writing the opening of a Technology Acceptance Model paper. Use only the case instruction and the elements items. Write in formal academic English, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. Do not open with \'This paper\' or \'The case concerns\'; begin with the market and the decision it frames. Write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the acceptance the decision depends on. Write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. Do not restate every item. Do not add facts, numbers, names, sources or citations beyond the items. Do not recommend a decision. Write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. Return only JSON: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_registry_links (test_templates.RegistryAndApi.test_registry_links)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_templates.py", line 127, in test_registry_links
+    self.assertIsNone(R.get("STR-02")["template"]); self.assertEqual(R.validate(), [])
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'template_generic_strategies' is not None
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_utaut_and_keeps_the_safety_rules (test_utaut_completion.UTAUTCompletionTest.test_the_model_prompt_speaks_utaut_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_utaut_completion.py", line 144, in test_the_model_prompt_speaks_utaut_and_keeps_the_safety_rules
+    self.assertIn("industry", system.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'industry' not found in 'you are an academic analyst writing the opening of a utaut paper. use only the case instruction and the elements items. write in formal academic english, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. do not open with \'this paper\' or \'the case concerns\'; begin with the market and the decision it frames. write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the evidence supports the adoption the decision depends on. write a case context of 110 to 140 words in one paragraph that defines the decision, the market and the evidence base in academic terms. do not restate every item. do not add facts, numbers, names, sources or citations beyond the items. do not recommend a decision. write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. return only json: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_an_empty_activity_does_not_block_the_paper (test_value_chain_completion.ValueChainCompletionTest.test_an_empty_activity_does_not_block_the_paper)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_value_chain_completion.py", line 181, in test_an_empty_activity_does_not_block_the_paper
+    self.assertEqual(completion.missing(result), [])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['Service'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'Service'
+
+- ['Service']
++ []
+
+======================================================================
+FAIL: test_an_unfinished_framework_still_names_the_real_options (test_value_chain_completion.ValueChainCompletionTest.test_an_unfinished_framework_still_names_the_real_options)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_value_chain_completion.py", line 201, in test_an_unfinished_framework_still_names_the_real_options
+    with self.assertRaises(ValueError) as refused:
+         ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+AssertionError: ValueError not raised
+
+======================================================================
+FAIL: test_nine_activities_each_carry_a_sourced_item_or_a_named_gap (test_value_chain_completion.ValueChainCompletionTest.test_nine_activities_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_value_chain_completion.py", line 54, in test_nine_activities_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual([block["key"] for block in result["blocks"]],
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     ["inbound", "operations", "outbound", "marketing", "service",
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                      "procurement", "technology", "human", "infrastructure"])
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: ['firm_infrastructure', 'human_resource_man[136 chars]ice'] != ['inbound', 'operations', 'outbound', 'mark[69 chars]ure']
+
+First differing element 0:
+'firm_infrastructure'
+'inbound'
+
+- ['firm_infrastructure',
+-  'human_resource_management',
+-  'technology_development',
++ ['inbound',
++  'operations',
++  'outbound',
++  'marketing',
++  'service',
+   'procurement',
++  'technology',
++  'human',
++  'infrastructure']
+-  'inbound_logistics',
+-  'operations',
+-  'outbound_logistics',
+-  'marketing_and_sales',
+-  'service']
+
+======================================================================
+FAIL: test_no_evidence_is_written_from_general_background (test_value_chain_completion.ValueChainCompletionTest.test_no_evidence_is_written_from_general_background)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_value_chain_completion.py", line 94, in test_no_evidence_is_written_from_general_background
+    self.assertEqual(len(block["items"]), 1, block["key"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1 : firm_infrastructure
+
+======================================================================
+FAIL: test_the_model_prompt_speaks_value_chain_and_keeps_the_safety_rules (test_value_chain_completion.ValueChainCompletionTest.test_the_model_prompt_speaks_value_chain_and_keeps_the_safety_rules)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_value_chain_completion.py", line 161, in test_the_model_prompt_speaks_value_chain_and_keeps_the_safety_rules
+    self.assertIn("market", system)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: 'market' not found in 'You are an academic analyst writing the opening of a Porter\'s Value Chain paper. Use only the case instruction and the activities items. Write in formal academic English, third person, with no contractions, no rhetorical questions, no first or second person, and no reference to this paper, the analysis, the model, the reader or the drafting process. Do not open with \'This paper\' or \'The case concerns\'; begin with the industry and the decision it frames. Write an introduction of 160 to 190 words in two paragraphs that closes with one sentence stating whether the activities the evidence supports give the case a position. Write a case context of 110 to 140 words in one paragraph that defines the decision, the industry and the evidence base in academic terms. Do not restate every item. Do not add facts, numbers, names, sources or citations beyond the items. Do not recommend a decision. Write generic terms in lower case (for example big data, net zero, supply chain) and capitalise only a name that appears in the items. Return only JSON: {"introduction":["..."], "thesis":"...", "context":["..."]}.'
+
+======================================================================
+FAIL: test_the_paper_has_the_value_chain_outline_and_a_value_chain_title (test_value_chain_completion.ValueChainCompletionTest.test_the_paper_has_the_value_chain_outline_and_a_value_chain_title)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_value_chain_completion.py", line 127, in test_the_paper_has_the_value_chain_outline_and_a_value_chain_title
+    self.assertIn(required, headings)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Case and Market Context' not found in ['Introduction', 'The Case and Its Industry', 'Value Chain', 'Firm Infrastructure', 'Human Resource Management', 'Technology Development', 'Procurement', 'Inbound Logistics', 'Operations', 'Outbound Logistics', 'Marketing and Sales', 'Service', 'Discussion', 'What the Evidence Shows', 'Implications for the Decision', 'Limitations', 'Conclusion', 'References']
+
+----------------------------------------------------------------------
+Ran 2630 tests in 641.562s
+
+FAILED (failures=67, errors=14)

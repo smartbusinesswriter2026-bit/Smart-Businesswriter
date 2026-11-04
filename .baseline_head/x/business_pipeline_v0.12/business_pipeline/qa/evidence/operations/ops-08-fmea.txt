@@ -1,0 +1,65 @@
+Failure Mode and Effects Analysis: The Lunch Service at the Meal Counter Takes an Order
+A Student
+Example University
+November 03, 2026
+Failure Mode and Effects Analysis: The Lunch Service at the Meal Counter Takes an Order
+Introduction
+The decision under examination is whether to proceed with the course of action set out in the brief. The unit of analysis is the process or product in scope, because a failure mode is a property of a specific flow rather than of the organisation. The evidence base is confined to the items accepted for the case.
+The analysis treats each of the 6 parts in turn: failure modes, effects, causes, current controls, recommended actions, owners and review. Each is established from the accepted evidence and then interpreted, with attention to its effect on the decision.
+The argument advanced is that the parts supported by evidence constrain the decision, and that a part for which no evidence is recorded cannot be treated as favourable. The conclusion returns to this proposition.
+The Process and Its Failure Modes
+The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant process is the one named in the brief; the parts are properties of that process rather than of the firm.
+Evidence is limited to the accepted items. A part without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
+Failure Mode and Effects Analysis
+Figure 1. FMEA
+Failure modes
+•  the lunch service at the meal counter lunch service meal failure modes in this process (Lovelace, 2024)
+Effects
+•  the lunch service at the meal counter lunch service meal effects of failure on the customer (Lovelace, 2024)
+Causes
+•  the lunch service at the meal counter lunch service meal causes of failure in this process (Lovelace, 2024)
+Current controls
+•  the lunch service at the meal counter lunch service meal prevention and detection controls (Lovelace, 2024)
+Recommended actions
+•  the lunch service at the meal counter lunch service meal risk reduction actions for this process (Lovelace, 2024)
+Owners and review
+•  the lunch service at the meal counter lunch service meal assigning ownership for risk actions (Lovelace, 2024)
+Note. Each failure mode is read across to its effect, cause, control and action; no risk priority number is computed.
+An FMEA lists the ways a process or product can fail, what each failure does, why it happens and what already controls it, then records the actions proposed and who owns them. Each part is treated in turn, first through the evidence accepted for the case and then through what it implies.
+Failure Modes
+Evidence on the lunch service at the meal counter lunch service meal failure modes in this process. A second sentence follows it. (Lovelace, 2024)
+A failure mode is a way the process departs from what it should do. It is stated as what goes wrong, not as its cause. The relevant question is whether each mode could be observed.
+Effects
+Evidence on the lunch service at the meal counter lunch service meal effects of failure on the customer. A second sentence follows it. (Lovelace, 2024)
+The effect is what the failure does to the customer or the next step. Effects that reach the customer matter more than ones caught internally. The relevant question is where each failure is felt.
+Causes
+Evidence on the lunch service at the meal counter lunch service meal causes of failure in this process. A second sentence follows it. (Lovelace, 2024)
+Causes explain why the mode happens. A mode with no evidenced cause cannot be prevented, only detected. The relevant question is whether a cause is known or only suspected.
+Current Controls
+Evidence on the lunch service at the meal counter lunch service meal prevention and detection controls. A second sentence follows it. (Lovelace, 2024)
+Controls are what already prevents or detects the failure. A control that relies on someone noticing is weaker than one built into the step. The relevant question is whether each mode has a control at all.
+Recommended Actions
+Evidence on the lunch service at the meal counter lunch service meal risk reduction actions for this process. A second sentence follows it. (Lovelace, 2024)
+Actions reduce the risk of the modes that matter. An action aimed at no evidenced mode is a general improvement, not a control. The relevant question is which mode each action addresses.
+Owners and Review
+Evidence on the lunch service at the meal counter lunch service meal assigning ownership for risk actions. A second sentence follows it. (Lovelace, 2024)
+Ownership turns an action into work: someone is accountable and a review date exists. The relevant question is whether each action has both.
+Discussion
+What the Evidence Shows About the Failure Modes
+The case supplies 6 accepted items across the parts: 6 sourced items, 0 items of the student's own evidence and 0 case assumptions. The parts carrying evidence are Failure modes (1), Effects (1), Causes (1), Current controls (1), Recommended actions (1), Owners and review (1), while 0 part(s) are recorded as gaps.
+Read together, the parts describe a process in which some risks are evidenced and others are not, and a part without evidence cannot be treated as controlled. A part without evidence carries no weight in the assessment, because a gap is not a finding and cannot be read as either a strength or a weakness.
+Implications for the Decision the Risk Imposes
+The combined reading bears on the decision: the documented conditions must be answered by the proposed position, and the plan must show how each would be met. A part that appears weak in the evidence is not thereby one that can be disregarded; it is a part the case has not documented.
+A decision about the process has to answer the failures the evidence shows: each cause must be prevented or detected, and each action must have an owner. The decision itself remains the student's.
+Limitations
+The analysis does not rate the parts, compute an aggregate score or recommend a decision, because the accepted items do not support a quantitative comparison across them. Several parts may rest on a single item, which limits the weight they can bear; an assumption is not a source and a gap is not a finding. The student must verify every item before submission.
+Conclusion
+The analysis set out to establish, part by part, what the accepted evidence implies for the decision. The parts with evidence are Failure modes (1), Effects (1), Causes (1), Current controls (1), Recommended actions (1), Owners and review (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
+The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
+References
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal failure modes in this process. Journal of Operations Management. 10.1/534364
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal effects of failure on the customer. Journal of Operations Management. 10.1/321349
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal causes of failure in this process. Journal of Operations Management. 10.1/153420
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal prevention and detection controls. Journal of Operations Management. 10.1/611863
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal risk reduction actions for this process. Journal of Operations Management. 10.1/661441
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal assigning ownership for risk actions. Journal of Operations Management. 10.1/753104

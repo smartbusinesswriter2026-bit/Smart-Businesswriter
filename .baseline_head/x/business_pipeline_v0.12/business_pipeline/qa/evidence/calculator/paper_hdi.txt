@@ -1,0 +1,30 @@
+Computation: hdi
+Result
+The life index is 0.7692, the education index is 0.6000 and the income index is 0.5909, giving an HDI of 0.6485. The HDI uses the UNDP goalposts declared in the method: life 20-85, expected schooling 0-18, mean schooling 0-15, GNI 100-75,000. The index is a summary of three dimensions and does not show inequality within them. The GNI figure and the schooling years are the owner's declared values; no data are retrieved.
+Inputs and results
+What you declared
+Life expectancy: 70.0000
+Expected years schooling: 12.0000
+Mean years schooling: 8.0000
+Gni per capita: 5000.0000
+What was computed
+Life index: 0.7692
+Education index: 0.6000
+Income index: 0.5909
+Hdi: 0.6485
+Honesty: what was not done
+this method: The HDI uses the UNDP goalposts declared in the method: life 20-85, expected schooling 0-18, mean schooling 0-15, GNI 100-75,000. The index is a summary of three dimensions and does not show inequality within them. The GNI figure and the schooling years are the owner's declared values; no data are retrieved.
+Assumptions made
+The four inputs are on the UNDP definitions and comparable basis.
+The goalposts are the declared UNDP values.
+GNI per capita is in purchasing-power terms.
+Limitations
+No inequality adjustment or multidimensional poverty.
+The index hides distribution within each dimension.
+The data are declared, not retrieved.
+How the figures were checked
+Second implementation agrees.
+Dimension indices are bounded.
+Hdi is the geometric mean of the indices.
+A higher life expectancy raises the life index.
+The goalposts give an hdi of one.

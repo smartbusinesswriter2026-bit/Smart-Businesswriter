@@ -1,0 +1,38 @@
+Computation: sales variances
+Result
+Revenue moved by -240.00 against budget: a price variance of -40.00, a mix variance of -200.00 and a yield variance of 0.00. Mix and yield are measured at the budgeted prices, with the budget mix held as the standard; a different convention changes the split. Price, mix and yield reconstruct the total revenue change; they do not explain why the mix or the price moved. Two or more products are required; a single product has a price and a volume variance only.
+Inputs and results
+What you declared
+Products: Name: X; Budget units: 100; Budget price: 10; Actual units: 120; Actual price: 11, Name: Y; Budget units: 100; Budget price: 20; Actual units: 80; Actual price: 18
+What was computed
+Budget units: 200.00
+Actual units: 200.00
+Budget revenue: 3000.00
+Actual revenue: 2760.00
+Total sales variance: -240.00
+Price variance X: 120.00
+Mix variance X: 200.00
+Yield variance X: 0.00
+Price variance Y: -160.00
+Mix variance Y: -400.00
+Yield variance Y: 0.00
+Price variance: -40.00
+Mix variance: -200.00
+Yield variance: 0.00
+Volume variance: -200.00
+Variance check: -240.00
+Honesty: what was not done
+this method: Mix and yield are measured at the budgeted prices, with the budget mix held as the standard; a different convention changes the split. Price, mix and yield reconstruct the total revenue change; they do not explain why the mix or the price moved. Two or more products are required; a single product has a price and a volume variance only.
+Assumptions made
+Budget and actual units and prices cover the same period and product set.
+The budget mix is the standard mix.
+Limitations
+No market-size or share variance; no explanation of the movements.
+The split depends on the declared convention.
+One currency and one period.
+How the figures were checked
+Second implementation agrees.
+Total variance is actual minus budget revenue.
+Price mix and yield add to the total variance.
+Volume variance is mix plus yield.
+Per product components sum to the totals.

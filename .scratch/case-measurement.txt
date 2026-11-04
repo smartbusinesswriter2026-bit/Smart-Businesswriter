@@ -1,0 +1,133 @@
+==============================================================================
+1. THE TRIAL BALANCE ALONE
+==============================================================================
+status 201  id 567711341e42  problem_type trial_balance  computed ['IS', 'RE', 'BS', 'CF']  hidden []
+reading source: None
+cue: cue 'trial balance' in: The following trial balance was extracted at 31 December 2026.
+
+--- checks ---
+   [ok] trial_balance_debits_equal_credits
+   [ok] assets_equal_liabilities_plus_equity
+   [ok] net_income_agrees_across_routes
+   [ok] opening_balances_equal_prior_closing
+   [ok] statement_lines_foot_to_totals
+   [ok] journal_hash_chain_intact
+   [ok] cash_flow_agrees_across_routes
+   [ok] retained_earnings_rollforward
+   [ok] income_expense_and_dividends_zero_after_closing
+   [ok] statement_internally_consistent
+   [ok] opening_balances_agree
+
+--- income statement ---
+INCOME STATEMENT
+2026-01-01 to 2026-12-31   USD
+Revenue
+  Other income                                            1,500.00
+  Revenue                                               140,000.00
+Total revenue                                           141,500.00
+Expenses
+  Cost of sales                                          84,000.00
+  Depreciation                                            3,000.00
+  Interest expense                                        1,200.00
+  Rent expense                                            8,000.00
+  Salaries expense                                       19,000.00
+  Utilities expense                                       3,200.00
+Total expenses                                          118,400.00
+Net income                                               23,100.00
+
+--- equity ---
+STATEMENT OF CHANGES IN EQUITY
+Capital
+  Opening balance                                             0.00
+  2026-12-31  capital                      20,000.00  the trial balance as given
+  Closing balance                                        20,000.00
+
+Retained earnings
+  Opening balance                                             0.00
+  2026-12-31  brought forward               8,000.00  the trial balance as given
+  2026-12-31  profit for the period       141,500.00  closing: income to retained earnings (closing)
+  2026-12-31  profit for the period     (118,400.00)  closing: expenses to retained earnings (closing)
+  Closing balance                                        31,100.00
+
+Total opening                                                 0.00
+Total movement                                           51,100.00
+Total closing                                            51,100.00
+
+--- balance sheet ---
+BALANCE SHEET
+As at 2026-12-31   USD
+Current assets
+  Cash                                                   15,900.00
+  Trade receivables                                      18,400.00
+  Inventory                                              22,600.00
+Total current assets                                     56,900.00
+Non-current assets
+  Property, plant and equipment                          21,000.00
+Total non-current assets                                 21,000.00
+Total assets                                             77,900.00
+Current liabilities
+  Trade payables                                         14,800.00
+Total current liabilities                                14,800.00
+Non-current liabilities
+  Borrowings                                             12,000.00
+Total non-current liabilities                            12,000.00
+Total liabilities                                        26,800.00
+Equity
+  Capital                                                20,000.00
+  Retained earnings                                      31,100.00
+Total equity                                             51,100.00
+Total liabilities and equity                             77,900.00
+
+--- cash flow withheld because ---
+a cash flow statement needs the period's flows or a prior balance sheet, and the instruction supplies one trial balance; it is not presented rather than shown as a figure that would be wrong
+
+--- notes ---
+NOTES
+Reporting framework: US_GAAP
+Basis: management accounts prepared from the entries you declared; not GAAP or IFRS statements and not assurance.
+Net income for the period: 23,100.00
+Declared policy changes: none
+
+--- named missing ---
+   {"what": "The following trial balance was extracted at 31 December 2026.", "why": "this line carries no account I can place, so it is shown here and left out of the statements"}
+
+--- core scalars ---
+   cash_net                 15900
+   checks_na                2
+   checks_passed            9
+   checks_total             11
+   n_entries                3
+   n_flags                  1
+   net_income               23100
+   retained_earnings_closing 31100
+   total_assets             77900
+   total_equity             51100
+   total_liabilities        26800
+
+==============================================================================
+2. THE SAME TRIAL BALANCE PLUS THE RATIO LINE
+==============================================================================
+status 201  id c999ea444ed5  problem_type trial_balance  computed ['IS', 'RE', 'BS', 'CF']  hidden []
+--- ratios computed (13) ---
+   current_ratio          3.845      current assets / current liabilities
+   quick_ratio            2.318      (current assets - inventory) / current liabilities
+   cash_ratio             1.074      cash / current liabilities
+   gross_margin           0.406      (revenue - cost of sales) / revenue
+   net_margin             0.163      net income / revenue
+   return_on_assets       0.297      net income / total assets
+   return_on_equity       0.452      net income / equity
+   debt_to_equity         0.524      total liabilities / equity
+   equity_multiplier      1.524      total assets / equity
+   asset_turnover         1.816      revenue / total assets
+   receivables_days       47.5       receivables / revenue x 365
+   inventory_days         98.2       inventory / cost of sales x 365
+   payables_days          64.3       payables / cost of sales x 365
+--- named unsupported (2) ---
+   operating_margin       missing input: operating_profit
+   interest_cover         missing input: operating_profit
+
+==============================================================================
+3. THE SAME TRIAL BALANCE WITH AN ERROR IN IT
+==============================================================================
+status 422
+{"format": "bp-statements/1", "solved": false, "refusal": "the accounts do not build: entries[0]: entry 'the trial balance as given' on 2026-12-31 does not balance: debits 202700, credits 205300", "instruction": "The following trial balance was extracted at 31 December 2026.\nEquipment 30,000\nCash 13,300\nTrade receivables 18,400\nInventory 22,600\nCost of sales 84,000\nWages 19,000\nRent 8,000\nUtilities 3,200\nDepreciation 3,000\nInterest expense 1,200\nTrade payables 14,800 Cr\nLoan 12,000 Cr\nCapital 20,000 Cr\nRetained earnings 8,000 Cr\nSales 140,000 Cr\nOther income 1,500 Cr\nAccumulated depreciation 9,000 Cr", "instruction_hash": "sha256:76a61fa85f537e77", "problem_type": "trial_balance", "why": "cue 'trial balance' in: The following trial balance was extracted at 31 December 2026.", "reading": {"problem_type": "trial_balance", "why": "cue 'trial balance' in: The following trial balance was extracted at 31 December 2026.", "currency": "USD", "framework": "US_GAAP", "places": 2, "period": {"start": "2026-01-01", "end": "2026-12-31"}, "period_source": "declared", "chart": [{"code": "1500", "name": "Equipment", "type": "asset", "line": "Property, plant and equipment", "quote": "Equipment 30,000", "section": "non_current", "activity": "investing"}, {"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "quote": "Cash 13,300", "role": "cash", "section": "current", "activity": "operating"}, {"code": "1100", "name": "Trade receivables", "type": "asset", "line": "Trade receivables", "quote": "Trade receivables 18,400", "section": "current", "activity": "operatin

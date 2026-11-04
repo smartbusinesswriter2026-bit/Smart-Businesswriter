@@ -29,9 +29,14 @@ from decimal import Decimal
 
 from . import cases
 from . import income_statement as is_mod
-from .income_statement import detect_income_statement, detect_ratio_analysis, detect_given_balances
+from .income_statement import (detect_income_statement, detect_ratio_analysis,
+                               detect_given_balances, detect_eps,
+                               parse_eps_problem, compute_eps_problem, render_eps_problem)
+from . import financial_computations as fc
 from . import statements_verify
+from .. import statement_chart
 from .. import statement_detect as sd
+from .. import statement_period as sper
 from .. import statement_plan as sp
 from . import verify
 
@@ -140,21 +145,44 @@ RULES = (
 (r"^(common stock|share capital|capital stock)(\s*\(.*\))?$", "equity", "", "Capital", "capital", "financing", False),
     (r"^(drawings?|dividends?)$", "equity", "", "Dividends", "dividends", "financing", True),
     (r"^(sales|revenue|turnover|fees earned|service revenue)$", "income", "", "Revenue", "", "operating", False),
-    (r"\bincom(e|es)\b|\bgains?\b", "income", "", "Other income", "", "operating", False),
+    (r"^(other income|other gains?|interest income|income|gains?|gain on .+|other .* income|other .* gains?)$",
+     "income", "", "Other income", "", "operating", False),
     (r"^(purchases?|cost of (sales|goods sold)|cogs)$", "expense", "", "Cost of sales", "", "operating", False),
-    (r"^(interest (expense|paid)|finance costs?)$", "expense", "", "Finance costs", "", "operating", False),
-    (r"^(rent|salaries|salary|wages|utilities|insurance|advertising|marketing|depreciation|bad debts?|general expenses|operating expenses|telephone|transport|repairs|stationery|fuel|travel)$",
-     "expense", "", "Operating expenses", "", "operating", False),
-    (r"\bexpenses?\b|\bcosts?\b", "expense", "", "Other expenses", "", "operating", False),
+    (r"^(interest\b.*|loan interest)$", "expense", "", "Interest expense", "", "operating", False),
+    (r"^(finance costs?|financial (expenses?|charges)|bank charges?)$", "expense", "", "Finance costs", "", "operating", False),
+    # The operating expenses are separate accounts, not one catch-all line: Salaries and
+    # Rent are different things, and a statement that cannot tell them apart cannot show
+    # a reader what the business spent money on.
+    (r"^(rent|rental|rent expense)$", "expense", "", "Rent expense", "", "operating", False),
+    (r"^(salaries|salary|wages|staff costs?|salaries and wages)$", "expense", "", "Salaries expense", "", "operating", False),
+    (r"^(utilities|utilities expense|electricity|water)$", "expense", "", "Utilities expense", "", "operating", False),
+    (r"^(insurance|insurance expense)$", "expense", "", "Insurance expense", "", "operating", False),
+    (r"^(advertising|advertising expense|marketing)$", "expense", "", "Advertising expense", "", "operating", False),
+    (r"^(depreciation|depreciation expense)$", "expense", "", "Depreciation", "", "operating", False),
+    (r"^(bad debts?|bad debt expense|provision for doubtful debts)$", "expense", "", "Bad debts", "", "operating", False),
+    (r"^(general expenses?|general expense)$", "expense", "", "General expenses", "", "operating", False),
+    (r"^(operating expenses?|operating expense)$", "expense", "", "Operating expenses", "", "operating", False),
+    (r"^(telephone|telephone expense|phone)$", "expense", "", "Telephone expense", "", "operating", False),
+    (r"^(transport|transport expense|delivery)$", "expense", "", "Transport expense", "", "operating", False),
+    (r"^(repairs?|repairs and maintenance)$", "expense", "", "Repairs expense", "", "operating", False),
+    (r"^(stationery|stationery expense|office supplies)$", "expense", "", "Stationery expense", "", "operating", False),
+    (r"^(fuel|fuel expense)$", "expense", "", "Fuel expense", "", "operating", False),
+    (r"^(travel|travel expense)$", "expense", "", "Travel expense", "", "operating", False),
+    (r"^(other expenses?|costs?|expenses?)$", "expense", "", "Other expenses", "", "operating", False),
 )
 
 #: Internal chart codes.  The statements print the `line`, never the code, so these are
 #: house-keeping rather than a numbering convention the student has to match.
 CODE_FOR_LINE = {"Cash": "1000", "Trade receivables": "1100", "Inventory": "1200", "Prepayments": "1300",
                  "Supplies": "1350", "Property, plant and equipment": "1500", "Trade payables": "2000",
-                 "Accruals": "2100", "Borrowings": "2200", "Capital": "3000", "Retained earnings": "3100",
-                 "Dividends": "3200", "Revenue": "4000", "Other income": "4100", "Cost of sales": "5000",
-                 "Operating expenses": "5100", "Utilities Expense": "6250", "Finance costs": "5200", "Other expenses": "5300"}
+                 "Accruals": "2300", "Borrowings": "2100", "Capital": "3000", "Retained earnings": "3100",
+                 "Dividends": "3200", "Revenue": "4000", "Other income": "4050", "Cost of sales": "5000",
+                 "Operating expenses": "5100", "Telephone expense": "6010", "Transport expense": "6020",
+                 "Repairs expense": "6030", "Stationery expense": "6040", "Fuel expense": "6050",
+                 "Travel expense": "6060", "Salaries expense": "6100", "Rent expense": "6200",
+                 "Utilities expense": "6250", "Insurance expense": "6300", "Advertising expense": "6350",
+                 "Depreciation": "6400", "Bad debts": "6500", "General expenses": "6600",
+                 "Other expenses": "5300", "Finance costs": "5200", "Interest expense": "7100"}
 
 MONTHS = {m: i + 1 for i, m in enumerate(("january february march april may june july august september "
                                           "october november december").split())}
@@ -194,31 +222,14 @@ def classify(text):
 
 
 def period_of(text):
-    """(period, source, quote).  A date is derived from the text; with none, the year is assumed."""
-    iso = re.search(r"\b(\d{4})-(\d{2})-(\d{2})\b", text)
-    if iso:
-        year = iso.group(1)
-        return {"start": year + "-01-01", "end": iso.group(0)}, "derived", _sentence(text, iso.start())
-    named = re.search(r"\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|"
-                      r"october|november|december)\.?\s+(\d{4})\b", text, re.I)
-    if not named:
-        named = re.search(r"\b(january|february|march|april|may|june|july|august|september|"
-                          r"october|november|december)\.?\s+(\d{1,2}),?\s+(\d{4})\b", text, re.I)
-        if named:
-            month, day, year = named.group(1), int(named.group(2)), named.group(3)
-            month = MONTHS[month.lower()]
-            end = "%s-%02d-%02d" % (year, month, day)
-            return {"start": year + "-01-01", "end": end}, "derived", _sentence(text, named.start())
-    if named:
-        day, month, year = int(named.group(1)), MONTHS[named.group(2).lower()], named.group(3)
-        end = "%s-%02d-%02d" % (year, month, day)
-        return {"start": year + "-01-01", "end": end}, "derived", _sentence(text, named.start())
-    year_only = re.search(r"\b(?:year (?:ended|to)|for the year|financial year)\D{0,12}((?:19|20)\d{2})\b",
-                          text, re.I)
-    if year_only:
-        year = year_only.group(1)
-        return {"start": year + "-01-01", "end": year + "-12-31"}, "derived", _sentence(text, year_only.start())
-    return {"start": "2026-01-01", "end": "2026-12-31"}, "assumed", ""
+    """(period, source, quote).  A date is derived from the text; with none, the year is assumed.
+
+    The rules live in `bp.statement_period`, the one place that knows that a period is a
+    range and a date is a point.  A text that states "for the year ended 31 December 2025"
+    declares its period; a text that opens "on 1 January 2025" states a *transaction* date,
+    and the period is then the calendar year the transaction dates fall in.
+    """
+    return sper.period_of(text)
 
 
 def _norm_label(text):
@@ -251,19 +262,50 @@ def place(label):
             "contested": len(hits) > 1, "placement": hits[0] if hits else None}
 
 
+#: Words that cannot open or close an account name.  A line that begins or ends with one of
+#: these is a sentence, not an account: "The owner invested 50,000 cash" is not a Capital
+#: account, and posting it would count the same money a second time.
+SENTENCE_EDGES = re.compile(
+    r"^(the|this|that|these|those|it|they|we|he|she|there|on|in|at|during|after|before|when|while|"
+    r"by|for|from|with|as|and|or|but|because|since|although|if|then|so)\b|"
+    r"\b(the|of|in|on|to|and|or|at|by|with|from|as|for|were|was|is|are)$", re.I)
+
+
+def _is_sentence(label):
+    """True when a label reads as a sentence rather than the name of an account."""
+    words = str(label or "").split()
+    if not words:
+        return True
+    return bool(SENTENCE_EDGES.search(str(label).strip()))
+
+
+def _without_dates(text):
+    """The text with its dates - and the cue word in front of each - taken out."""
+    out = str(text or "")
+    for start, end in reversed(sper.date_spans(out)):
+        before = re.sub(r"\b(as at|as of|at|on|by|from|to|until|ending|ended|of)\s*$", "", out[:start],
+                        flags=re.I)
+        out = before + out[end:]
+    return re.sub(r"\s+", " ", out).strip(" .,:-|()[]")
+
+
 def parse_rows(text):
     """Every 'label ... amount' line whose label the vocabulary knows.
 
-    The amount is the **last** numeric token on the line, so 'Loan 2026 5,000' reads as 5,000.  A
-    line whose label matches no rule is returned as `skipped` with its text: it is shown in the
-    working, never silently dropped.
+    The amount is the **last** numeric token on the line that is not part of a date, so
+    'Loan 2026 5,000' reads as 5,000 and 'Cash 5,000 at 31 December 2026' reads as 5,000
+    rather than as the year.  A line whose label is a sentence and not an account name is
+    returned as `skipped` with its text: it is shown in the working, never silently
+    dropped, and never posted as an account.
     """
     rows, skipped = [], []
     for raw in str(text or "").splitlines():
         line = raw.strip()
         if not line:
             continue
-        found = list(MONEY.finditer(line))
+        spans = sper.date_spans(line)
+        found = [m for m in MONEY.finditer(line)
+                 if not any(start <= m.start() < end for start, end in spans)]
         if not found:
             skipped.append(line)
             continue
@@ -276,6 +318,11 @@ def parse_rows(text):
         # strip parenthetical qualifiers (and anything after an opening paren) before matching
         label = re.sub(r"\s*\(.*", "", label)
         label = re.sub(r"\s+", " ", label).strip(" .,:-|()[]")
+        # A date is a date: it is not part of the account's name.
+        label = _without_dates(label)
+        if not label or _is_sentence(label):
+            skipped.append(line)
+            continue
         # Parenthetical dates like "(Jan 1)" are just date qualifiers, not reasons to skip.
         # Strip them and process the account normally.
         placed = place(label)
@@ -376,39 +423,39 @@ CONSOLIDATION = re.compile(r"\b(consolidated|consolidation|group accounts?|intra
 
 
 def periods_in(text):
-    """Every distinct period the text names: full dates, written dates, or a stated year."""
-    source = str(text or "")
-    ends = set()
-    for match in re.finditer(r"\b(\d{4})-(\d{2})-(\d{2})\b", source):
-        ends.add(match.group(0))
-    for match in re.finditer(r"\b(\d{1,2})\s+(january|february|march|april|may|june|july|august|"
-                             r"september|october|november|december)\.?\s+((?:19|20)\d{2})\b", source, re.I):
-        ends.add("%s-%02d-%02d" % (match.group(3), MONTHS[match.group(2).lower()], int(match.group(1))))
-    if not ends:
-        ends = set(re.findall(r"\b(?:year (?:ended|to)|for the year|financial year)\D{0,12}((?:19|20)\d{2})\b",
-                              source, re.I))
-    return ends
+    """Every distinct period the text names: period phrases and balance dates alike.
+
+    Only a *cue* counts.  A transaction date is a point inside the period, so a narrative
+    that opens "on 1 January 2025" and closes "on 31 December 2025" names **one** period,
+    not two.  The rules live in `bp.statement_period`.
+    """
+    return sper.periods_in(text)
 
 
 def column_lines(text):
     """Lines that carry two figures for one account: a comparative, which this tile does not support.
 
-    A year inside a label ("Loan 2026 5,000") is not a second figure, so year-like tokens are removed
-    before the figures are counted; what remains is a label plus two amounts.
+    A year inside a label ("Loan 2026 5,000") is not a second figure, and neither is a date
+    ("On 2 January it bought a delivery van for 30,000"): every date-like token is removed
+    before the figures are counted, so what remains is a label plus two amounts.
+
+    The figures are counted **per clause**, not per line: a paragraph that states one
+    transaction per sentence is one period's transactions, not a comparative column.
     """
     out = []
     for raw in str(text or "").splitlines():
-        without_years = re.sub(r"\b(?:19|20)\d{2}\b", " ", raw)
-        matches = MONEY.findall(without_years)
-        # Filter out single digits that are part of month dates like "Jan 1"
-        filtered = [m for m in matches if not (
-            len(m) == 1 and re.search(r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d\b", without_years, re.I)
-        )]
-        if len(filtered) < 2:
-            continue
-        label = MONEY.sub(" ", without_years).strip(" .,:-|()[]")
-        if place(label)["candidates"]:
-            out.append(raw.strip())
+        for clause in re.split(r"[.;]", raw):
+            clause = clause.strip()
+            if not clause:
+                continue
+            without_dates = sper.strip_years(clause)
+            matches = MONEY.findall(without_dates)
+            if len(matches) < 2:
+                continue
+            label = MONEY.sub(" ", without_dates).strip(" .,:-|()[]")
+            if place(label)["candidates"]:
+                out.append(clause)
+                break
     return out
 
 
@@ -451,18 +498,25 @@ def _split_semicolon_accounts(text: str) -> str:
 
 
 def _extract_account_name(label: str) -> Optional[str]:
-    """Extract a known account name from a label, if one is present.
+    """The account a label names, if the label names one.
 
-    Scans the label for known account patterns (from RULES) and returns the matched account name
-    if found. This handles labels like "Meridian Ltd reports: revenue" → "revenue".
+    The label is matched on its **account fragment** - the part after the last colon,
+    comma or semicolon - and only on rules that name an account on their own.  A label
+    that merely mentions an account somewhere in a sentence ("Compute the net income for
+    Alder Trading") names no account, so it is returned as it stands and reported as a
+    line the reader did not place, rather than rewritten into an account it does not name.
     """
-    low = label.lower()
+    fragment = re.split(r"[:;,]", str(label or ""))[-1].strip(" .,:-|()[]")
+    if not fragment or len(fragment) > 80:
+        return None
+    low = fragment.lower()
     for rule in RULES:
         pattern = rule[0]
-        line_name = rule[3]
+        if not pattern.startswith("^"):
+            continue          # a rule that can match anywhere in a sentence is not an account name
         match = re.search(pattern, low)
-        if match:
-            return line_name
+        if match and match.group(0).strip() == low:
+            return rule[3]
     return None
 
 
@@ -596,6 +650,27 @@ def _reads_as_balances(text):
     except StatementError:
         return True
     return kind != "transactions"
+
+
+def _reads_as_trial_balance(text):
+    """Whether the instruction reads as a trial balance.
+
+    A trial balance is a trial balance even when the student also asks for
+    something else — "... and also compute the liquidity ratios".  The
+    trial-balance route is the exact one and the more complete answer: it renders
+    the income statement, the statement of changes in equity and the balance
+    sheet, and it carries the ratios when they are asked for.
+
+    The analysis route reads the same figures as *balances*, so it ignores the
+    contra accounts: the same instruction reached it and printed total assets
+    of 86,900 where the trial-balance route prints 77,900, with nothing to say
+    which is right.  The more specific reading wins.
+    """
+    try:
+        kind, _cue, _sentence_text = classify(text)
+    except StatementError:
+        return False
+    return kind == "trial_balance"
 
 
 def wants_ratios(text):
@@ -1020,16 +1095,38 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
         except Exception:
             pass
     # Try the deterministic balance sheet / ratio analysis computation.
-    if detect_ratio_analysis(text):
-        tried = _solve_balance_sheet_analysis(text, currency=currency, framework=framework,
-                                              ratios=ratios, statements=requested)
-        if tried is not None:
-            return tried
+    # A trial balance is not one: it is read exactly, and it carries the ratios
+    # itself when the instruction asks for them.
+    if detect_ratio_analysis(text) and not _reads_as_trial_balance(text):
+        try:
+            tried = _solve_balance_sheet_analysis(text, currency=currency, framework=framework,
+                                                  ratios=ratios, statements=requested)
+            if tried is not None:
+                return tried
+        except Exception:
+            pass
     # Try the deterministic given-balances computation for problems that list
     # account names and amounts but don't match a specific statement template.
     if detect_given_balances(text):
         tried = _solve_given_balances(text, currency=currency, framework=framework,
                                       ratios=ratios, statements=requested)
+        if tried is not None:
+            return tried
+    # Try the deterministic EPS computation.
+    # A trial balance is not one: it is read exactly, and a line called
+    # "Preference dividends" in a trial balance is a dividend, not the start of
+    # an earnings-per-share problem.
+    if detect_eps(text) and not _reads_as_trial_balance(text):
+        tried = _solve_eps(text, currency=currency, framework=framework,
+                           ratios=ratios, statements=requested)
+        if tried is not None:
+            return tried
+    # Try the comprehensive financial computation engine (sections A-K).
+    # A trial balance is read exactly, and it carries the ratios itself, so it
+    # does not go to the engine.
+    if fc.detect_sections(text) and not _reads_as_trial_balance(text):
+        tried = _solve_financial_computations(text, currency=currency, framework=framework,
+                                              ratios=ratios, statements=requested)
         if tried is not None:
             return tried
     reading, rows, source, rejected, same_model = None, [], "parser", [], False
@@ -1122,33 +1219,9 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
     if not journalizable:
         return None
 
-    # Build a chart with every account code used by the templates.
-    chart = [
-        {"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "section": "current", "role": "cash"},
-        {"code": "1100", "name": "Trade receivables", "type": "asset", "line": "Trade receivables", "section": "current"},
-        {"code": "1200", "name": "Inventory", "type": "asset", "line": "Inventory", "section": "current"},
-        {"code": "1300", "name": "Prepaid expenses", "type": "asset", "line": "Prepayments", "section": "current"},
-        {"code": "1350", "name": "Supplies", "type": "asset", "line": "Supplies", "section": "current"},
-        {"code": "1500", "name": "Equipment", "type": "asset", "line": "Property, plant and equipment", "section": "non_current"},
-        {"code": "1700", "name": "Accumulated depreciation", "type": "asset", "line": "Property, plant and equipment", "section": "non_current", "contra": True},
-        {"code": "2000", "name": "Trade payables", "type": "liability", "line": "Trade payables", "section": "current"},
-        {"code": "2100", "name": "Loan", "type": "liability", "line": "Borrowings", "section": "non_current"},
-        {"code": "2300", "name": "Accrued expenses", "type": "liability", "line": "Accruals", "section": "current"},
-        {"code": "2400", "name": "Unearned revenue", "type": "liability", "line": "Unearned revenue", "section": "current"},
-        {"code": "3000", "name": "Share capital", "type": "equity", "line": "Capital", "section": "", "role": "capital"},
-        {"code": "3100", "name": "Retained earnings", "type": "equity", "line": "Retained earnings", "section": "", "role": "retained_earnings"},
-        {"code": "3200", "name": "Dividends", "type": "equity", "line": "Dividends", "section": "", "role": "dividends", "contra": True},
-        {"code": "4000", "name": "Sales revenue", "type": "income", "line": "Revenue", "section": ""},
-        {"code": "5000", "name": "Cost of sales", "type": "expense", "line": "Cost of sales", "section": ""},
-        {"code": "5100", "name": "Operating expenses", "type": "expense", "line": "Operating expenses", "section": ""},
-        {"code": "5200", "name": "Finance costs", "type": "expense", "line": "Finance costs", "section": ""},
-        {"code": "5300", "name": "Other expenses", "type": "expense", "line": "Other expenses", "section": ""},
-        {"code": "6100", "name": "Salaries expense", "type": "expense", "line": "Salaries expense", "section": ""},
-        {"code": "6200", "name": "Rent expense", "type": "expense", "line": "Rent expense", "section": ""},
-        {"code": "6250", "name": "Utilities expense", "type": "expense", "line": "Utilities Expense", "section": ""},
-        {"code": "7100", "name": "Interest expense", "type": "expense", "line": "Interest expense", "section": ""},
-        {"code": "8000", "name": "Income tax expense", "type": "expense", "line": "Income tax", "section": ""},
-    ]
+    # The chart is the one chart of the tile (`bp.statement_chart`), so a detector that
+    # posts to an account code always finds that account where the statement needs it.
+    chart = [dict(account) for account in statement_chart.CHART]
 
     # Build entries: one journal entry per detector match
     entries = []
@@ -1219,6 +1292,11 @@ def _solve_income_statement(text, currency=None, framework=None, ratios=None, st
     period = period_of(text)[0]
 
     lines, tax_rate = is_mod.parse_problem(text)
+    # Validate that we have actual income statement accounts (revenue or cogs),
+    # not just a stray contra-revenue line from a partial text match.
+    has_revenue_or_cogs = any(l.kind in ("revenue", "cogs") for l in lines)
+    if not has_revenue_or_cogs:
+        return None
     result = is_mod.compute_income_statement(lines, tax_rate)
 
     statement_text = is_mod.render_income_statement(result, period["end"], currency)
@@ -1461,7 +1539,12 @@ def _solve_given_balances(text, currency=None, framework=None, ratios=None, stat
     operating expenses 1,500"). The engine classifies each account, computes the
     appropriate statement (income statement or balance sheet analysis), and returns
     a frozen record.
+
+    A trial balance (mentions "trial balance" or carries Dr/Cr markers) is not a
+    "given balances" problem — it goes through the deterministic parser instead.
     """
+    if re.search(r"\btrial balance\b", text, re.I):
+        return None
     currency = currency or currency_of(text) or DEFAULT_CURRENCY
     framework = framework_of(text, framework)
     period = period_of(text)[0]
@@ -1701,6 +1784,288 @@ def _solve_given_balances(text, currency=None, framework=None, ratios=None, stat
 
     # Neither IS nor BS accounts found
     raise StatementError("no recognized account balances in the problem text")
+
+
+def _solve_eps(text, currency=None, framework=None, ratios=None, statements=None):
+    """Compute basic and diluted EPS from given account balances.
+
+    The problem gives profit from continuing operations, loss from discontinued operations,
+    preference dividends, ordinary shares opening, bonus issue ratio, share options,
+    convertible bonds, and tax rate. Computes basic EPS and diluted EPS.
+    """
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+
+    lines, tax_rate = is_mod.parse_eps_problem(text)
+    result = is_mod.compute_eps_problem(lines, tax_rate)
+
+    statement_text = is_mod.render_eps_problem(result, period["end"], currency)
+
+    checks = [
+        ("profit_for_the_year_equals_continuing_minus_discontinued",
+         result.profit_for_the_year == result.profit_from_continuing_operations - result.loss_from_discontinued_operations,
+         f"profit for the year {result.profit_for_the_year} = continuing {result.profit_from_continuing_operations} - discontinued {result.loss_from_discontinued_operations}"),
+        ("numerator_basic_equals_profit_minus_preference",
+         result.numerator_basic == result.profit_for_the_year - result.preference_dividends,
+         f"numerator basic {result.numerator_basic} = profit {result.profit_for_the_year} - preference {result.preference_dividends}"),
+        ("basic_eps_equals_numerator_divided_by_shares",
+         abs(result.basic_eps - result.numerator_basic / result.weighted_average_shares) < Decimal("0.001")
+         if result.weighted_average_shares > 0 else True,
+         f"basic EPS {result.basic_eps} = {result.numerator_basic} / {result.weighted_average_shares}"),
+        ("diluted_eps_equals_adjusted_numerator_divided_by_diluted_shares",
+         abs(result.diluted_eps - result.numerator_diluted / result.diluted_shares) < Decimal("0.001")
+         if result.diluted_shares > 0 else True,
+         f"diluted EPS {result.diluted_eps} = {result.numerator_diluted} / {result.diluted_shares}"),
+    ]
+
+    appendix = {
+        "statements_export": {
+            "income_statement": statement_text,
+            "profit_from_continuing_operations": str(result.profit_from_continuing_operations),
+            "loss_from_discontinued_operations": str(result.loss_from_discontinued_operations),
+            "profit_for_the_year": str(result.profit_for_the_year),
+            "preference_dividends": str(result.preference_dividends),
+            "numerator_basic": str(result.numerator_basic),
+            "weighted_average_shares": str(result.weighted_average_shares),
+            "basic_eps": str(result.basic_eps),
+            "numerator_diluted": str(result.numerator_diluted),
+            "diluted_shares": str(result.diluted_shares),
+            "diluted_eps": str(result.diluted_eps),
+        },
+        "engagement": {
+            "period": {"start": period["start"], "end": period["end"]},
+            "currency": currency,
+            "places": 2,
+        },
+    }
+
+    reading = {
+        "problem_type": "eps",
+        "why": "earnings per share computation from declared figures",
+        "currency": currency,
+        "framework": framework,
+        "period": period,
+        "derivations": [],
+        "assumptions": [f"tax rate {tax_rate * 100:.0f}% applied to pre-tax income"],
+        "missing": [],
+        "diagnosis": None,
+    }
+
+    scalars = {
+        "profit_for_the_year": str(result.profit_for_the_year),
+        "preference_dividends": str(result.preference_dividends),
+        "numerator_basic": str(result.numerator_basic),
+        "weighted_average_shares": str(result.weighted_average_shares),
+        "basic_eps": str(result.basic_eps),
+        "diluted_eps": str(result.diluted_eps),
+    }
+
+    requested_list = list(statements or statements_verify.STATEMENTS)
+    computed = ["IS"]
+    hidden = [s for s in ("IS", "RE", "BS", "CF") if s in requested_list and s != "IS"]
+
+    statements_out = {}
+    if "IS" in requested_list:
+        statements_out["income_statement"] = statement_text
+
+    record = {
+        "format": FORMAT,
+        "solved": True,
+        "refusal": None,
+        "instruction": text,
+        "instruction_hash": verify.brief_hash(text),
+        "problem_type": "eps",
+        "why": reading["why"],
+        "reading": reading,
+        "reading_source": "plan",
+        "same_model_disclosure": False,
+        "rejected": [],
+        "spec": {},
+        "requested": requested_list,
+        "computed": computed,
+        "hidden": hidden,
+        "warnings": [],
+        "core": {
+            "scalars": scalars,
+            "appendix": appendix,
+        },
+        "statements": statements_out,
+        "statements_only": statements_only(statements_out),
+        "working": {
+            "journal": "",
+            "trial_balance": "",
+            "t_accounts": {},
+            "derivations": [],
+            "assumptions": reading["assumptions"],
+            "missing": [],
+        },
+        "diagnosis": None,
+        "checks": [{"name": name, "ok": bool(ok), "detail": detail}
+                   for name, ok, detail in checks],
+        "ratios": None,
+    }
+    return verify.freeze(record)
+
+
+def _solve_financial_computations(text, currency=None, framework=None, ratios=None, statements=None):
+    """Compute financial figures using the comprehensive computation engine (Sections A-K).
+
+    Detects which sections apply from the problem text, parses declared inputs,
+    resolves dependencies, and computes every figure that can be supported.
+    Missing inputs are named as gaps -- never filled, never guessed.
+    """
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+
+    sections = fc.detect_sections(text)
+    if not sections:
+        return None
+
+    # Parse declared inputs from text
+    raw_inputs = fc.parse_inputs_from_text(text, fc.COMMON_PATTERNS)
+
+    # Also extract tax rate if present
+    tax_rate = fc._extract_tax_rate_from_text(text) if hasattr(fc, '_extract_tax_rate_from_text') else Decimal("0")
+    if tax_rate > 0:
+        raw_inputs["tax_rate"] = tax_rate
+
+    # Compute all applicable sections
+    packs = fc.compute_all_sections(text, raw_inputs, sections)
+
+    # Collect all results and gaps
+    all_results = {}
+    all_gaps = []
+    formula_map = {}
+    computed_outputs = {}
+
+    for section, pack in packs.items():
+        for output_name, result in pack.results.items():
+            all_results[output_name] = result
+            computed_outputs[output_name] = result.value
+            formula_map[output_name] = pack.formula_map.get(output_name, "")
+        for gap in pack.gaps:
+            if gap not in all_gaps:
+                all_gaps.append(gap)
+
+    # Build rendered text
+    rendered_lines = []
+    rendered_lines.append(f"FINANCIAL COMPUTATIONS (Sections {', '.join(sorted(sections))})")
+    rendered_lines.append(f"Period: {period['end']}   {currency}")
+    rendered_lines.append("")
+    for section in sorted(sections):
+        pack = packs[section]
+        rendered_lines.append(f"--- Section {section} ---")
+        for output_name, result in sorted(pack.results.items(), key=lambda x: x[0]):
+            if result.ok:
+                rendered_lines.append(
+                    f"  {result.label}: {result.value:>12,.2f}  ({result.description})"
+                )
+            else:
+                rendered_lines.append(
+                    f"  {result.label}: GAP -- {result.gap}  ({result.description})"
+                )
+        rendered_lines.append("")
+
+    statement_text = "\n".join(rendered_lines)
+
+    # Build checks (articulation identities)
+    checks = []
+    # Accounting equation: A = L + E
+    if "accounting_equation_difference" in all_results:
+        diff = all_results["accounting_equation_difference"].value
+        checks.append((
+            "assets_equal_liabilities_plus_equity",
+            diff == Decimal("0"),
+            f"assets - (liabilities + equity) = {diff}",
+        ))
+    # Working capital = CA - CL
+    if "working_capital" in all_results and "total_current_assets" in all_results and "current_liabilities" in all_results:
+        wc = all_results["working_capital"].value
+        ca = all_results["total_current_assets"].value
+        cl = all_results["current_liabilities"].value
+        checks.append((
+            "working_capital_equals_ca_minus_cl",
+            wc == ca - cl,
+            f"working capital {wc} = {ca} - {cl}",
+        ))
+
+    reading = {
+        "problem_type": "financial_computations",
+        "why": f"comprehensive financial computations for sections {', '.join(sorted(sections))}",
+        "currency": currency,
+        "framework": framework,
+        "period": period,
+        "derivations": [],
+        "assumptions": ["every figure computed from declared inputs; missing inputs named as gaps"],
+        "missing": all_gaps,
+        "diagnosis": None,
+    }
+
+    scalars = {}
+    for output_name, result in all_results.items():
+        if result.ok:
+            scalars[output_name] = str(result.value)
+
+    # A route that computed nothing does not answer the question.  The engine is
+    # tried last, so when it holds nothing to say it hands the instruction back
+    # for another route - the model reader, or a refusal - instead of answering
+    # with a sheet of gaps.  A gap is honest; a sheet of gaps in place of an answer
+    # is not.
+    if not scalars:
+        return None
+
+    requested_list = list(statements or statements_verify.STATEMENTS)
+    computed = list(sections)
+    hidden = [s for s in ("IS", "RE", "BS", "CF") if s in requested_list and s not in sections]
+
+    statements_out = {}
+    if "IS" in requested_list:
+        statements_out["income_statement"] = statement_text
+
+    record = {
+        "format": FORMAT,
+        "solved": True,
+        "refusal": None,
+        "instruction": text,
+        "instruction_hash": verify.brief_hash(text),
+        "problem_type": "financial_computations",
+        "why": reading["why"],
+        "reading": reading,
+        "reading_source": "plan",
+        "same_model_disclosure": False,
+        "rejected": [],
+        "spec": {},
+        "requested": requested_list,
+        "computed": computed,
+        "hidden": hidden,
+        "warnings": [],
+        "core": {
+            "scalars": scalars,
+            "appendix": {
+                "financial_computations": statement_text,
+                "formula_map": formula_map,
+                "gaps": all_gaps,
+                "sections": sections,
+            },
+        },
+        "statements": statements_out,
+        "statements_only": statements_only(statements_out),
+        "working": {
+            "journal": "",
+            "trial_balance": "",
+            "t_accounts": {},
+            "derivations": [],
+            "assumptions": reading["assumptions"],
+            "missing": all_gaps,
+        },
+        "diagnosis": None,
+        "checks": [{"name": name, "ok": bool(ok), "detail": detail}
+                   for name, ok, detail in checks],
+        "ratios": None,
+    }
+    return verify.freeze(record)
 
 
 def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None):

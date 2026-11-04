@@ -1,0 +1,146 @@
+{
+ "base": "http://127.0.0.1:8002",
+ "page": {
+  "status": 200,
+  "bytes": 836130,
+  "markers": {
+   "Supply chain": true,
+   "Inventory and network": false,
+   "Cost and mix": false,
+   "Demand and planning": false
+  },
+  "hand_filled_affordance": true
+ },
+ "shelf": {
+  "status": 200,
+  "tools": [
+   "breakeven",
+   "multibreakeven",
+   "unitecon",
+   "forecast",
+   "inventory",
+   "queue",
+   "capacity",
+   "missing"
+  ],
+  "worksheets": [
+   "OPS-01",
+   "OPS-02",
+   "OPS-03",
+   "OPS-04",
+   "OPS-05",
+   "OPS-06",
+   "OPS-07",
+   "OPS-08",
+   "OPS-10",
+   "OPS-11",
+   "OPS-12"
+  ],
+  "records": [
+   "OPS-09",
+   "QNT-OPS-01",
+   "QNT-OPS-02",
+   "QNT-OPS-03",
+   "QNT-OPS-04",
+   "QNT-OPS-05",
+   "QNT-OPS-06",
+   "QNT-OPS-07",
+   "QNT-OPS-08"
+  ],
+  "ops03_draft_note": "No drafting button: this worksheet needs cycle time, lead time, inventory and process observations, which the pipeline does not observe, so you fill it by hand.",
+  "records_with_calculator_elsewhere": [
+   "OPS-09",
+   "QNT-OPS-05",
+   "QNT-OPS-06"
+  ],
+  "qnt05_note": "partial: critical-path dates, total float, the critical path and a PERT expected duration with its variance are implemented; simulation is not implemented, and resource levelling, crashing and calendars are separate methods (`resource_leveling`, `project_crashing`, `calendar_schedule`) rather than part of this one The method is computed, but its calculator is on the Project management shelf, not on this page; open it there and the same frozen method runs."
+ },
+ "tools": {
+  "breakeven": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 6110
+  },
+  "multibreakeven": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 6763
+  },
+  "unitecon": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 7054
+  },
+  "forecast": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 11477
+  },
+  "inventory": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 9321
+  },
+  "queue": {
+   "status": "delivered",
+   "checks": 6,
+   "checks_all_pass": true,
+   "report": true,
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 7655
+  },
+  "capacity": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 7333
+  },
+  "missing": {
+   "status": "delivered",
+   "checks": 5,
+   "checks_all_pass": true,
+   "report": true,
+   "paper_status": 200,
+   "paper_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   "paper_bytes": 6997
+  }
+ },
+ "screenshots": [
+  {
+   "name": "01-shelf-1280.png",
+   "saved": true
+  },
+  {
+   "name": "02-shelf-390.png",
+   "saved": true
+  },
+  {
+   "name": "03-calculator-1280.png",
+   "saved": true
+  }
+ ]
+}

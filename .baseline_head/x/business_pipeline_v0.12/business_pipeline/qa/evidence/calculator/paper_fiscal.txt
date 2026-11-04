@@ -1,0 +1,34 @@
+Computation: fiscal multiplier
+Result
+With an mpc of 0.8000 and a tax rate of 0.2500, the government-spending multiplier is 2.5000, the tax multiplier is -2.0000 and the balanced-budget multiplier is 0.5000. The declared changes imply an output change of 250.00. The multiplier is a closed-economy Keynesian arithmetic identity on the declared mpc and tax rate; it is not an estimated fiscal effect. A proportional income tax is included when tax_rate is declared; a lump-sum tax change uses the same multiplier on the declared tax change. Crowding out, confidence, supply-side effects, lags and open-economy leakages are not modelled.
+Inputs and results
+What you declared
+Mpc: 0.8000
+Tax rate: 0.2500
+Government spending change: 100.00
+Tax change: 0.00
+What was computed
+Mpc: 0.8000
+Tax rate: 0.2500
+Government spending multiplier: 2.5000
+Tax multiplier: -2.0000
+Balanced budget multiplier: 0.5000
+Government spending change: 100.00
+Tax change: 0.00
+Output change: 250.00
+Honesty: what was not done
+this method: The multiplier is a closed-economy Keynesian arithmetic identity on the declared mpc and tax rate; it is not an estimated fiscal effect. A proportional income tax is included when tax_rate is declared; a lump-sum tax change uses the same multiplier on the declared tax change. Crowding out, confidence, supply-side effects, lags and open-economy leakages are not modelled.
+Assumptions made
+The mpc and tax rate are constant over the relevant range.
+Prices and interest rates do not respond.
+There is spare capacity.
+Limitations
+No crowding out, confidence, supply-side or open-economy effects.
+No lags or expectations.
+The multipliers are arithmetic identities, not estimated policy effects.
+How the figures were checked
+Second implementation agrees.
+Government multiplier is one over one minus mpc times one minus tax.
+Tax multiplier is negative mpc times the government multiplier.
+Balanced budget multiplier is one minus mpc times the government multiplier.
+A higher mpc raises the government multiplier.

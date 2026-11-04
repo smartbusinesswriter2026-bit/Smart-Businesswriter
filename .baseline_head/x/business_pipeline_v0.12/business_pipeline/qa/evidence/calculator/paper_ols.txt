@@ -1,0 +1,60 @@
+Computation: ols
+Result
+The model uses 10 complete observations, with 0 excluded as missing, and 2 predictor variable(s). It accounts for 0.933 of the variation in the outcome in this sample (adjusted 0.913), a large effect by the declared thresholds. The overall F test has a p-value below the reporting floor. Each one-unit difference in study_hours is associated with a difference of 4.037 in the outcome, holding the other predictors constant (confidence interval at level 95.00% from 3.066 to 5.007; p-value below the reporting floor; standardized coefficient 0.998). Each one-unit difference in sleep_hours is associated with a difference of -2.380 in the outcome, holding the other predictors constant (confidence interval at level 95.00% from -4.652 to -0.107; p-value 0.0424; standardized coefficient -0.251). The intercept is 63.076, the fitted outcome when all predictors are zero, which may lie outside the observed range. Statistical significance and practical importance are separate questions. Caution: the sample is small, so the estimates are imprecise and should be described, not generalized. These are associations; the analysis makes no causal claim and omitted variables could explain the pattern. The diagnostic screens are coarse; inspect residual plots before relying on the model. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. No multiple-comparison correction is applied automatically: 2 coefficient hypotheses are tested at the same time, so the family-wise chance of a small p-value is higher than the per-test level; read individual coefficient p-values as a family, not in isolation. A declared correction can be computed with the multiple_comparison method (Holm or Bonferroni). No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Y: 52, 55, 61, 58, 70, 72, 69, 80, 66, 74
+Predictors: Study hours: 1, 2, 3, 4, 5, 6, 7, 8, 4, 6; Sleep hours: 6, 7, 5, 8, 6, 7, 8, 6, 7, 7
+Missing codes:
+What was computed
+R squared: 0.933
+Adj r squared: 0.913
+F squared: 13.816
+F stat: 48.358
+P f: 0.0001
+Residual se: 2.646
+N: 10
+N excluded: 0
+K: 2
+Df residual: 7
+Confidence level: 0.95
+Alpha: 0.05
+Coef intercept: 63.076
+Se intercept: 6.290
+P intercept: 0.0000
+Ci lower intercept: 48.202
+Ci upper intercept: 77.950
+Coef study hours: 4.037
+Se study hours: 0.410
+P study hours: 0.0000
+Ci lower study hours: 3.066
+Ci upper study hours: 5.007
+Std beta study hours: 0.998
+Coef sleep hours: -2.380
+Se sleep hours: 0.961
+P sleep hours: 0.0424
+Ci lower sleep hours: -4.652
+Ci upper sleep hours: -0.107
+Std beta sleep hours: -0.251
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: No multiple-comparison correction is applied automatically: 2 coefficient hypotheses are tested at the same time, so the family-wise chance of a small p-value is higher than the per-test level; read individual coefficient p-values as a family, not in isolation. A declared correction can be computed with the multiple_comparison method (Holm or Bonferroni).
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Observations are independent.
+The outcome is approximately linear in the predictors.
+Residual variance is constant (screened) or robust errors are used.
+Limitations
+Linearity, independence, and the correct specification are not tested.
+No interactions, transformations, categorical predictors, weights or clustering.
+At most five predictors.
+F-form Breusch-Pagan and the diagnostic limits are conventions [UNVERIFIED].
+How the figures were checked
+Second implementation agrees.
+Shift changes intercept only.
+Scaling rescales coefficients not significance.
+Row order invariant.
+Incomplete rows excluded not valued.
+Bounded and consistent.
+Cross check partial regression and pearson.

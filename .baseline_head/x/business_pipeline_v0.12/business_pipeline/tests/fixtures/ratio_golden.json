@@ -1,0 +1,180 @@
+{
+  "generated_by": "independent Fraction re-implementation of the declared ratio formulas (offline generation, 2026-10-21); not produced by src/bp/methods.py",
+  "tolerance": "1e-9 relative",
+  "cases": [
+    {
+      "name": "full_pack",
+      "inputs": {
+        "current_assets": "5000",
+        "current_liabilities": "2000",
+        "cash": "800",
+        "inventory": "1200",
+        "receivables": "1500",
+        "payables": "900",
+        "total_assets": "12000",
+        "total_liabilities": "7000",
+        "equity": "5000",
+        "revenue": "20000",
+        "cost_of_sales": "12000",
+        "operating_profit": "3000",
+        "net_income": "1800",
+        "interest_expense": "400"
+      },
+      "expected": {
+        "current_ratio": "2.500000000000",
+        "quick_ratio": "1.900000000000",
+        "cash_ratio": "0.400000000000",
+        "gross_margin": "0.400000000000",
+        "operating_margin": "0.150000000000",
+        "net_margin": "0.090000000000",
+        "return_on_assets": "0.150000000000",
+        "return_on_equity": "0.360000000000",
+        "debt_to_equity": "1.400000000000",
+        "equity_multiplier": "2.400000000000",
+        "interest_cover": "7.500000000000",
+        "asset_turnover": "1.666666666667",
+        "receivables_days": "27.375000000000",
+        "inventory_days": "36.500000000000",
+        "payables_days": "27.375000000000"
+      },
+      "not_computed": []
+    },
+    {
+      "name": "partial_balance_sheet_and_income",
+      "inputs": {
+        "current_assets": "5000",
+        "current_liabilities": "2000",
+        "revenue": "20000",
+        "net_income": "1800"
+      },
+      "expected": {
+        "current_ratio": "2.500000000000",
+        "net_margin": "0.090000000000"
+      },
+      "not_computed": [
+        {
+          "ratio": "quick_ratio",
+          "reason": "missing input: inventory"
+        },
+        {
+          "ratio": "cash_ratio",
+          "reason": "missing input: cash"
+        },
+        {
+          "ratio": "gross_margin",
+          "reason": "missing input: cost_of_sales"
+        },
+        {
+          "ratio": "operating_margin",
+          "reason": "missing input: operating_profit"
+        },
+        {
+          "ratio": "return_on_assets",
+          "reason": "missing input: total_assets"
+        },
+        {
+          "ratio": "return_on_equity",
+          "reason": "missing input: equity"
+        },
+        {
+          "ratio": "debt_to_equity",
+          "reason": "missing input: total_liabilities, equity"
+        },
+        {
+          "ratio": "equity_multiplier",
+          "reason": "missing input: total_assets, equity"
+        },
+        {
+          "ratio": "interest_cover",
+          "reason": "missing input: operating_profit, interest_expense"
+        },
+        {
+          "ratio": "asset_turnover",
+          "reason": "missing input: total_assets"
+        },
+        {
+          "ratio": "receivables_days",
+          "reason": "missing input: receivables"
+        },
+        {
+          "ratio": "inventory_days",
+          "reason": "missing input: inventory, cost_of_sales"
+        },
+        {
+          "ratio": "payables_days",
+          "reason": "missing input: payables, cost_of_sales"
+        }
+      ]
+    },
+    {
+      "name": "zero_denominator",
+      "inputs": {
+        "current_assets": "500",
+        "current_liabilities": "100",
+        "revenue": "0",
+        "net_income": "100"
+      },
+      "expected": {
+        "current_ratio": "5.000000000000"
+      },
+      "not_computed": [
+        {
+          "ratio": "quick_ratio",
+          "reason": "missing input: inventory"
+        },
+        {
+          "ratio": "cash_ratio",
+          "reason": "missing input: cash"
+        },
+        {
+          "ratio": "gross_margin",
+          "reason": "missing input: cost_of_sales"
+        },
+        {
+          "ratio": "operating_margin",
+          "reason": "missing input: operating_profit"
+        },
+        {
+          "ratio": "net_margin",
+          "reason": "zero denominator: revenue"
+        },
+        {
+          "ratio": "return_on_assets",
+          "reason": "missing input: total_assets"
+        },
+        {
+          "ratio": "return_on_equity",
+          "reason": "missing input: equity"
+        },
+        {
+          "ratio": "debt_to_equity",
+          "reason": "missing input: total_liabilities, equity"
+        },
+        {
+          "ratio": "equity_multiplier",
+          "reason": "missing input: total_assets, equity"
+        },
+        {
+          "ratio": "interest_cover",
+          "reason": "missing input: operating_profit, interest_expense"
+        },
+        {
+          "ratio": "asset_turnover",
+          "reason": "missing input: total_assets"
+        },
+        {
+          "ratio": "receivables_days",
+          "reason": "missing input: receivables"
+        },
+        {
+          "ratio": "inventory_days",
+          "reason": "missing input: inventory, cost_of_sales"
+        },
+        {
+          "ratio": "payables_days",
+          "reason": "missing input: payables, cost_of_sales"
+        }
+      ]
+    }
+  ]
+}

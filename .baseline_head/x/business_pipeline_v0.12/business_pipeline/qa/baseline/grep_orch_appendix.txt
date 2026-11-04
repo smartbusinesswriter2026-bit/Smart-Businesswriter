@@ -1,0 +1,27 @@
+﻿30: inferential = m.claim_ceiling in ("associational", "predictive") or bool(m.assumption_checks)
+64: appendix: dict = field(default_factory=dict)
+123: checks=list(t["test_names"]) if t else (list(m.test_names) + list(m.assumption_check_names) + [t for f in fb.values() for t in LIBRARY[f].test_names]) if m else [],
+142: def resume(self, confirmed: bool, builder=None, template: str | None = None, mapping_confirmed: bool = False) -> "Delivery | Pause":
+154: appendix={"spec_hash": spec.hash, "tier": "T4", "frameworks_selected": spec.frameworks_selected, "registry": spec.registry,
+163: bad = [n for n, ok, _ in mp["checks"] if not ok]
+164: if bad: return self._block("formalization", "account mapping checks failed: " + ", ".join(bad), tier)
+167: self.log("formalization", "awaiting_confirmation", checkpoint="account_mapping", rows=mp["rows"], checks=[[n, bool(ok), d] for n, ok, d in mp["checks"]])
+175: # 6a Pre-declared assumption checks; a failure triggers the pre-declared fallback as a logged amendment (9B.3)
+177: if m.assumption_checks:
+178: try: res = self.sb.assumptions(m.name, inp, spec.thresholds)[0] if self.sb else m.assumption_checks(inp, spec.thresholds)
+201: if failed: return self._block("verification", f"checks failed: {failed}; escalate to human/lower tier", "T4")
+211: return self._block("verification", f"checks failed after {amendments} amendment(s): {failed}; escalate to human/lower tier", "T4")
+219: extra = (meta or {}).get("appendix_extra")          # structured, non-numeric results some methods attach
+221: outputs = dict(outputs); extra = outputs.pop("_appendix", extra); outputs.pop("_checks", None)
+285: appendix = {"spec_hash": spec.hash, "tier": tier, "method": {"id": m.name, "version": m.version, "category": m.category, "review_status": m.review_status},
+291: # the key is part of the existing delivery shape for every method that had an appendix;
+293: appendix["detail" if m.name == "trial_balance_check" else "accounts"] = extra
+294: appendix["honesty"] = honesty   # 9B.3 disclosure layer: what was NOT corrected, powered, weighted or established
+296: appendix["reperform"] = {"format": "bp-reperform/1", "method": {"id": m.name, "version": m.version}, "inputs": inp, "sensitivity": spec.sensitivity,
+299: # the rendered appendix is what a reader actually sees; hashing it makes
+303: return Delivery("delivered", tier, rendered, appendix=appendix)
+315: if failed: return self._block("verification", f"checks failed: {failed}; escalate to human review", tier)
+338: appendix = {"spec_hash": spec.hash, "tier": tier, "template": {"id": kind, "version": t["version"], "registry_ids": t["registry_ids"], "review_status": "pending_named_reviewer" if tier == "T2" else "not applicable (nothing is computed)"}, "run_id": run_id, "env_hash": env, "code_hash": code_h,
+346: return Delivery("delivered", tier, report, appendix=appendix)
+357: def _block(self, stage, reason, tier):
+359: return Delivery("blocked", tier, blocked_reason=reason, appendix={"events": self.events})

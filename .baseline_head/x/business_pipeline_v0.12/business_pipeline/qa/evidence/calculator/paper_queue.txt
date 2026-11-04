@@ -1,0 +1,36 @@
+Computation: queue analysis
+Result
+At an arrival rate of 18 and 1 servers each serving 24, utilisation is 0.7500, with 2.25 customers waiting on average and a wait of 0.1250 periods. The model is a multi-server queue with random arrivals and service times (M/M/c), with constant average rates and interchangeable servers. Arrivals must be below the number of servers times the service rate; at or above it the queue never clears and the method blocks. It ignores priorities, abandonment, balking, batch arrivals, server heterogeneity and any distribution other than exponential.
+Inputs and results
+What you declared
+Arrival rate: 18.0000
+Service rate: 24.0000
+What was computed
+Arrival rate: 18.0000
+Service rate: 24.0000
+Servers: 1.0000
+Offered load: 0.7500
+Utilisation: 0.7500
+Average in queue: 2.25
+Average in system: 3.00
+Average wait in queue: 0.1250
+Average time in system: 0.1667
+Probability empty: 0.2500
+Probability waiting: 0.7500
+Honesty: what was not done
+this method: The model is a multi-server queue with random arrivals and service times (M/M/c), with constant average rates and interchangeable servers. Arrivals must be below the number of servers times the service rate; at or above it the queue never clears and the method blocks. It ignores priorities, abandonment, balking, batch arrivals, server heterogeneity and any distribution other than exponential.
+Assumptions made
+Arrivals are random and independent at a constant average rate.
+Service times are exponential with a constant average rate per server.
+Servers are interchangeable, with one queue and no priority or abandonment.
+Limitations
+No priorities, abandonment, batch arrivals or heterogeneous servers.
+The exponential assumption can understate or overstate real queues.
+At or above servers x service rate the queue never clears and the method blocks.
+How the figures were checked
+Second implementation agrees.
+Utilisation is arrival over servers times service.
+Little law holds in the system.
+Little law holds in the queue.
+Queue length is wait probability times rho over one minus rho.
+One server matches the mm1 formula.

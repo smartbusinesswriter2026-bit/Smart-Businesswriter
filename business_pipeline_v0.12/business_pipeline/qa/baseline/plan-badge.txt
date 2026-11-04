@@ -1,0 +1,3 @@
+with level: 12, with study notes: 12
+study-note tools without level: []
+level by tool: [('descriptive', 'intro'), ('pearson', 'intermediate'), ('spearman', None), ('ols', 'advanced'), ('ols_robust', 'advanced'), ('welch', 'advanced'), ('mann_whitney', None), ('anova', 'advanced'), ('kruskal_wallis', None), ('chi_square', 'advanced'), ('factorial', None), ('posthoc', None), ('multicomp', None), ('power', 'advanced'), ('missing', 'intermediate'), ('paired', None), ('onesample', None), ('logit', None), ('alpha', 'intro'), ('weighted', 'intro'), ('forecast', 'intro')]

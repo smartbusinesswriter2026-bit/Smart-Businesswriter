@@ -1,0 +1,29 @@
+Computation: sales from market
+Result
+A declared 3.00% share of a 60,000,000.00 market gives revenue of 1,800,000.00, or 15,000.00 units at 120.00. The market size and the share are declared; the method does not estimate either. Revenue assumes the whole target share is sold at the declared price; no ramp-up, discount or seasonality. A share is a plan assumption, not evidence that customers will buy.
+Inputs and results
+What you declared
+Market size: 60000000.00
+Target share: 0.0300
+Price: 120.00
+What was computed
+Market size: 60000000.00
+Target share: 0.0300
+Price: 120.00
+Target revenue: 1800000.00
+Target units: 15000.00
+Honesty: what was not done
+this method: The market size and the share are declared; the method does not estimate either. Revenue assumes the whole target share is sold at the declared price; no ramp-up, discount or seasonality. A share is a plan assumption, not evidence that customers will buy.
+Assumptions made
+The market size and share are declared.
+All target units sell at the declared price.
+Limitations
+No market estimate, ramp, discount or demand response.
+One period and one product.
+The share is not validated.
+How the figures were checked
+Second implementation agrees.
+Target revenue is the share of the market.
+Target units are revenue over price.
+A higher share raises revenue.
+The share is bounded.

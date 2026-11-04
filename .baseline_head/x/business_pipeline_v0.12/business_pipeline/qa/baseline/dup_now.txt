@@ -1,0 +1,7 @@
+﻿src\bp\methods.py: 0 duplicate definitions
+src\bp\product\chat.py: 0 duplicate definitions
+src\bp\orchestrator.py: 0 duplicate definitions
+share 1.8181818181818181818181818181818181818181818181818 -> ('currency', 2)
+tight 5.0E+3 -> ('currency', 2)
+vac 300 -> ('currency', 2)
+tax producer_share -> ('ratio', 4)

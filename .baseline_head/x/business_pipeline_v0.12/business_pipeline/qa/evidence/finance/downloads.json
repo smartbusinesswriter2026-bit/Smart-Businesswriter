@@ -1,0 +1,319 @@
+{
+ "base": "http://127.0.0.1:8002",
+ "rows": [
+  {
+   "tool": "tvm",
+   "preset": "tvm",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5606,
+   "figure": "412,169.51",
+   "ok": true
+  },
+  {
+   "tool": "loan",
+   "preset": "loan",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5714,
+   "figure": "4,151.67",
+   "ok": true
+  },
+  {
+   "tool": "dupont",
+   "preset": "dupont",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6265,
+   "figure": "0.0900",
+   "ok": true
+  },
+  {
+   "tool": "trendanalysis",
+   "preset": "trendanalysis",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 7094,
+   "figure": "10.00%",
+   "ok": true
+  },
+  {
+   "tool": "workingcapital",
+   "preset": "workingcapital",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5710,
+   "figure": "36.5",
+   "ok": true
+  },
+  {
+   "tool": "ratios",
+   "preset": "ratios",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6311,
+   "figure": "15",
+   "ok": true
+  },
+  {
+   "tool": "breakeven",
+   "preset": "breakeven",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5195,
+   "figure": "10.00",
+   "ok": true
+  },
+  {
+   "tool": "multibreakeven",
+   "preset": "multibreakeven",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5435,
+   "figure": "3.0000",
+   "ok": true
+  },
+  {
+   "tool": "unitecon",
+   "preset": "unitecon",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5247,
+   "figure": "37.00",
+   "ok": true
+  },
+  {
+   "tool": "forecast",
+   "preset": "forecast",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 7977,
+   "figure": "12",
+   "ok": true
+  },
+  {
+   "tool": "descriptive",
+   "preset": "descriptive",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5615,
+   "figure": "6",
+   "ok": true
+  },
+  {
+   "tool": "npv",
+   "preset": "npv",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 4010,
+   "figure": "5.26",
+   "ok": true
+  },
+  {
+   "tool": "irr",
+   "preset": "irr",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 4962,
+   "figure": "21.86%:",
+   "ok": true
+  },
+  {
+   "tool": "dpayback",
+   "preset": "dpayback",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 4978,
+   "figure": "3.02",
+   "ok": true
+  },
+  {
+   "tool": "projectmetrics",
+   "preset": "projectmetrics",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6014,
+   "figure": "267.95",
+   "ok": true
+  },
+  {
+   "tool": "wacc",
+   "preset": "wacc",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5322,
+   "figure": "10.60%",
+   "ok": true
+  },
+  {
+   "tool": "capm",
+   "preset": "capm",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6565,
+   "figure": "1.2000",
+   "ok": true
+  },
+  {
+   "tool": "leverage",
+   "preset": "leverage",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6740,
+   "figure": "2.80",
+   "ok": true
+  },
+  {
+   "tool": "scenario",
+   "preset": "scenario",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5664,
+   "figure": "267.95",
+   "ok": true
+  },
+  {
+   "tool": "case_decision",
+   "preset": "case_decision",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 8941,
+   "figure": "2",
+   "ok": true
+  },
+  {
+   "tool": "dcf",
+   "preset": "dcf",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 7001,
+   "figure": "401,133.80",
+   "ok": true
+  },
+  {
+   "tool": "dcfmid",
+   "preset": "dcfmid",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 7001,
+   "figure": "420,712.68",
+   "ok": true
+  },
+  {
+   "tool": "equitybridge",
+   "preset": "equitybridge",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5628,
+   "figure": "1,750,939.14",
+   "ok": true
+  },
+  {
+   "tool": "multiples",
+   "preset": "multiples",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5825,
+   "figure": "10.0000",
+   "ok": true
+  },
+  {
+   "tool": "portfolioval",
+   "preset": "portfolioval",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5823,
+   "figure": "5,000.00",
+   "ok": true
+  },
+  {
+   "tool": "portfolioperf",
+   "preset": "portfolioperf",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6712,
+   "figure": "2",
+   "ok": true
+  },
+  {
+   "tool": "bond",
+   "preset": "bond",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6050,
+   "figure": "1,148.77",
+   "ok": true
+  },
+  {
+   "tool": "portfolio",
+   "preset": "portfolio",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6800,
+   "figure": "1.70%",
+   "ok": true
+  },
+  {
+   "tool": "pearson",
+   "preset": "pearson",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 7666,
+   "figure": "8",
+   "ok": true
+  },
+  {
+   "tool": "ols",
+   "preset": "ols",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 9252,
+   "figure": "10",
+   "ok": true
+  },
+  {
+   "tool": "ols_robust",
+   "known": "no preset"
+  },
+  {
+   "tool": "risk",
+   "preset": "risk",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6947,
+   "figure": "0.00%",
+   "ok": true
+  },
+  {
+   "tool": "options",
+   "preset": "options",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6176,
+   "figure": "12.34",
+   "ok": true
+  },
+  {
+   "tool": "fx",
+   "preset": "fx",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 6438,
+   "figure": "57.0980",
+   "ok": true
+  },
+  {
+   "tool": "currency",
+   "preset": "currency",
+   "md": 200,
+   "docx": 200,
+   "docx_bytes": 5680,
+   "figure": "1,000.00",
+   "ok": true
+  }
+ ],
+ "failures": [],
+ "known": [
+  "ols_robust: no preset (G-fin-05)"
+ ]
+}

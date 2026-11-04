@@ -1,0 +1,37 @@
+﻿
+> src\bp\product\chat.py:4123:def _capability_lines(row, recorded):
+  src\bp\product\chat.py:4124:    """Format one recorded capability for the draft; a 
+gap is named, never filled."""
+  src\bp\product\chat.py:4125:    key = row["key"]
+  src\bp\product\chat.py:4126:    if recorded.get("ok"):
+  src\bp\product\chat.py:4127:        formatter = CAPABILITY_LINES.get(key)
+  src\bp\product\chat.py:4128:        try:
+  src\bp\product\chat.py:4129:            if formatter is None:
+  src\bp\product\chat.py:4130:                return _generic_lines(row, 
+recorded.get("inputs") or {}, recorded.get("result") or {})
+  src\bp\product\chat.py:4131:            return formatter(row, recorded.get("inputs") 
+or {}, recorded.get("result") or {})
+  src\bp\product\chat.py:4132:        except (KeyError, TypeError, InvalidOperation, 
+ValueError) as error:
+  src\bp\product\chat.py:4133:            # A formatter that cannot read the recorded 
+result must say so, not crash
+  src\bp\product\chat.py:4134:            # the draft and not print a half-built 
+sentence.
+  src\bp\product\chat.py:4135:            return ["The " + row["label"].lower() + " 
+result could not be read from the recorded output ("
+  src\bp\product\chat.py:4136:                    + str(error)[:120] + "); no figure is 
+reported."]
+  src\bp\product\chat.py:4137:    if recorded.get("error"):
+  src\bp\product\chat.py:4138:        return ["The " + row["label"].lower() + " 
+analysis was refused: " + str(recorded["error"])
+  src\bp\product\chat.py:4139:                + " No figure is reported."]
+  src\bp\product\chat.py:4140:    return ["The " + row["label"].lower() + " analysis 
+has not been run, so no figure is reported; "
+  src\bp\product\chat.py:4141:            "this is a named gap, not a result."]
+  src\bp\product\chat.py:4142:
+  src\bp\product\chat.py:4143:
+  src\bp\product\chat.py:4144:def _declared_inputs_line(recorded):
+  src\bp\product\chat.py:4145:    """The declared inputs of one computation, as the 
+paper states them.
+
+

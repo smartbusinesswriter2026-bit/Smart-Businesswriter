@@ -1,0 +1,50 @@
+fix(core): one unit hook per method, shelf vocabulary restored, unknown method refused
+
+Owner-approved unfreezes (B-179, B-180, B-181) of the three findings QA session 1
+had ledgered as BLOCKED. Each has its own trap test and its own decision row.
+
+- B-179 (D-ACC-06, MAJOR/UNITS). `src/bp/methods.py` defined `_risk_typing`,
+  `_tax_typing` and `_social_typing` twice each. Python keeps the last, so every
+  `Method(...)` captured whichever block came last and three methods were handed
+  another method's units: `risk_metrics` reported a mean return in "periods",
+  `tax_incidence` reported a quantity traded in "currency", and `social_welfare`
+  reported a headcount as a "rate". All six hooks are now one-per-method
+  (`_risk_metrics_typing`, `_tax_incidence_typing`, `_social_welfare_typing`,
+  `_social_engagement_typing`, `_schedule_risk_typing`, `_tax_declared_typing`) and
+  the six constructions re-pointed. Labels only: no method, input, check, preset or
+  number changed, and `scripts/econ_shelf.py --check` still says "frozen fixture: in
+  sync". Applied by qa/patch_typing_hooks.py, which asserts every target line first.
+
+- B-180 (D-ACC-07, MAJOR/REFUSAL). `guard.subject_fit()` returned `(True, None)`
+  unconditionally, so a marketing brief typed on the management shelf was refused
+  with "this brief does not yet name an external question" — a true sentence about
+  the wrong thing. It now enforces the shelf vocabulary (`SUBJECT_HINTS`, one
+  recognised word is enough) with `SUBJECT_LABELS` naming the shelf, and three
+  carve-outs that stop it over-refusing: the composer opened on "any", any
+  explicitly named framework, and the computation boundary — which now runs first in
+  `chat.start`, so a journal-entry brief is told to use the Accounting shelf.
+
+- B-181 (D-ACC-09, BLOCKER/GATE). `orchestrator.start` answered an unknown method
+  name with a delivered T4 "no computed answer is given" paper. It now refuses a
+  method that is neither a frozen method nor a template, with the reason and a
+  pointer to /api/methods; the declared `framework_only` sentinel (what a request
+  with no method becomes) still delivers the structure-only paper. Delivery shape
+  unchanged: a blocked Delivery with a blocked_reason. The 12 protected API route
+  families are untouched.
+
+- tests/test_pipeline.py asserted the old fail-open (`method: "mystery"` → T4
+  delivered). Under B-181 that expectation contradicts the decision of record, so
+  the test was the stale side: it is now
+  `test_a_missing_method_is_framework_only_and_an_unknown_one_is_refused` and
+  asserts both halves. No assertion weakened; one added.
+
+- qa/manual/accounting.md gains E-acc-051/052/053 (all PASS, matrix 53 rows / 53
+  tests), qa/QA_DEFECTS.md moves D-ACC-06/-07/-09 to FIXED, qa/QA_STATE.md records
+  the increment, and the documented count moves 2627 -> 2630 in HOME.md, HANDOFF.md
+  and CONTRIBUTORS.md.
+
+Verified: full suite 2630 tests; `pytest tests/test_subject_accounting_acceptance.py`
+53 passed / 136 subtests; `test_pipeline.py` 18 passed; `test_docs_sync.py` 7 passed;
+`tests/test_product_home_routing.py` green including the restored
+`test_shelf_mode_control`; `scripts/econ_shelf.py --check` in sync;
+`qa/probe_duplicates.py src/bp/methods.py` 0 duplicate definitions.

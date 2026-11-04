@@ -1,0 +1,314 @@
+counts: {'tools': 35, 'worksheets': 0, 'records': 23, 'tiles': 0}
+tools in def: 35 | worksheets: []
+catalogue_ids: ['QNT-FIN-01', 'QNT-FIN-02', 'QNT-FIN-03', 'QNT-FIN-04', 'QNT-FIN-05', 'QNT-FIN-06', 'QNT-FIN-07', 'QNT-DEC-01', 'QNT-DEC-02', 'QNT-DEC-03', 'QNT-DEC-04', 'QNT-DEC-05', 'QNT-DEC-06', 'QNT-DEC-07', 'RSK-01', 'RSK-02', 'RSK-03', 'RSK-04', 'RSK-05', 'RSK-06', 'RSK-07', 'RSK-08', 'RSK-09']
+
+== TOOLS ==
+[tvm] preset=tvm method=time_value group=Foundations period=annual
+   label: Time value of money
+   what : Grow a lump sum and a level payment to a future value, and show the effective annual rate behind them.
+   need : None
+   level: intro
+   formula: FV = PV(1 + r)^n + PMT[((1 + r)^n - 1) / r]; the effective annual rate is (1 + r)^m - 1.
+   steps: 4 | mistakes: 4 | related: ['loan', 'npv', 'bond']
+   diagram: None
+[loan] preset=loan method=loan_amortization group=Foundations period=annual
+   label: Loan amortization
+   what : Find the level payment, total interest and first-payment split on a fixed-rate loan.
+   need : None
+   level: intro
+   formula: PMT = P x r / (1 - (1 + r)^-n), where r is the annual rate divided by payments per year and n is years x payments per year.
+   steps: 4 | mistakes: 4 | related: ['tvm', 'bond', 'leverage']
+   diagram: None
+[dupont] preset=dupont method=dupont_analysis group=Foundations period=annual
+   label: DuPont analysis
+   what : Break return on equity into margin, turnover and leverage, with five-step, common-size and prior-period growth.
+   need : None
+   level: intro
+   formula: ROE = net margin x asset turnover x equity multiplier; the five-step form adds tax and interest burdens.
+   steps: 4 | mistakes: 4 | related: ['ratios', 'workingcapital', 'leverage']
+   diagram: None
+[trendanalysis] preset=trendanalysis method=trend_analysis group=Foundations period=annual
+   label: Common-size and trend
+   what : Several years of income-statement figures as common-size percentages, an index and compound growth.
+   need : None
+   level: intro
+   formula: Common-size % = line / revenue; index = period value / base value x 100; CAGR = (end / start)^(1 / periods) - 1.
+   steps: 4 | mistakes: 4 | related: ['dupont', 'ratios', 'forecast']
+   diagram: None
+[workingcapital] preset=workingcapital method=working_capital group=Foundations period=annual
+   label: Working capital and EOQ
+   what : Cash conversion cycle, order quantity, reorder point and the cost of forgoing a discount.
+   need : None
+   level: intro
+   formula: CCC = DSO + DIO - DPO; EOQ = square root of (2 x annual demand x order cost / holding cost per unit).
+   steps: 4 | mistakes: 4 | related: ['dupont', 'ratios', 'loan']
+   diagram: None
+[ratios] preset=ratios method=ratio_analysis group=Foundations period=annual
+   label: Financial statement ratios
+   what : Compute the declared liquidity, profitability, solvency and efficiency ratios from supplied statements.
+   need : None
+   level: intro
+   formula: Current ratio = current assets / current liabilities; margins divide profit by revenue; turnover divides revenue by the balance.
+   steps: 4 | mistakes: 4 | related: ['dupont', 'workingcapital', 'leverage']
+   diagram: None
+[breakeven] preset=breakeven method=breakeven group=Foundations period=per period
+   label: Break-even point
+   what : Solve the break-even quantity from fixed cost, price and variable cost.
+   need : None
+   level: intro
+   formula: Break-even quantity = fixed cost / (price - variable cost per unit); break-even revenue = quantity x price; margin of safety = expected units - break-even units.
+   steps: 4 | mistakes: 4 | related: ['multibreakeven', 'unitecon', 'pricing']
+   diagram: breakeven
+[multibreakeven] preset=multibreakeven method=multi_product_breakeven group=Foundations period=per period
+   label: Multi-product break-even
+   what : Find the sales mix at which several products together cover their fixed costs.
+   need : None
+   level: intro
+   formula: Weighted contribution = sum(mix weight x unit contribution); break-even units = fixed cost / weighted contribution.
+   steps: 4 | mistakes: 3 | related: ['breakeven', 'unitecon']
+   diagram: breakeven
+[unitecon] preset=unitecon method=unit_economics group=Foundations period=per period
+   label: Unit economics
+   what : Work out the margin each customer leaves, what it costs to win one, how long that takes to repay, and the value the customer brings over their life.
+   need : None
+   level: intro
+   formula: Contribution margin = price - variable cost; LTV = margin / churn; CAC payback = acquisition cost / margin.
+   steps: 4 | mistakes: 4 | related: ['breakeven', 'portfolio', 'forecast']
+   diagram: None
+[forecast] preset=forecast method=trend_forecast group=Foundations period=per period
+   label: Trend forecast
+   what : Fit a trend to your own series and record the forecast periods and the range the result could fall in.
+   need : a series in period order and the horizon
+   level: intro
+   formula: Fit y = a + bt to the series; the forecast extends the line and carries a prediction interval.
+   steps: 4 | mistakes: 4 | related: ['scenario', 'risk', 'unitecon']
+   diagram: None
+[descriptive] preset=descriptive method=descriptive_stats group=Foundations period=per observation
+   label: Descriptive statistics
+   what : Record the count, centre, spread and declared missing-value handling for one variable.
+   need : the numbers you hold and the group they describe
+   level: intro
+   formula: Mean = sum of values / count; standard deviation measures typical distance from the mean.
+   steps: 3 | mistakes: 3 | related: ['pearson', 'ols']
+   diagram: None
+[npv] preset=npv method=npv group=Corporate finance period=per period
+   label: Net present value
+   what : Discount a project's cash flows at a declared rate and record the NPV with its checks.
+   need : the outlay, the later cash flows, and the hurdle rate you will justify
+   level: intro
+   formula: NPV = sum of CF_t / (1 + r)^t, with the first cash flow at t = 0 and undiscounted.
+   steps: 4 | mistakes: 4 | related: ['irr', 'dpayback', 'projectmetrics', 'scenario']
+   diagram: None
+[irr] preset=irr method=irr group=Corporate finance period=per period
+   label: Internal rate of return
+   what : Find the rate at which the project's NPV is zero, with the declared search bounds.
+   need : the same cash flows; the method refuses more than one sign change
+   level: intro
+   formula: The IRR is the rate r at which NPV = 0: sum of CF_t / (1 + r)^t = 0.
+   steps: 4 | mistakes: 4 | related: ['npv', 'projectmetrics', 'dpayback']
+   diagram: None
+[dpayback] preset=dpayback method=discounted_payback group=Corporate finance period=per period
+   label: Discounted payback
+   what : Record how long the discounted cash flows take to repay the investment.
+   need : the cash flows and the discount rate
+   level: intro
+   formula: Cumulate the discounted cash flows until they turn positive; interpolate inside the recovering period.
+   steps: 4 | mistakes: 4 | related: ['npv', 'irr', 'projectmetrics']
+   diagram: None
+[projectmetrics] preset=projectmetrics method=project_metrics group=Corporate finance period=per period
+   label: Project ranking metrics
+   what : Profitability index, MIRR, payback and equivalent annual annuity beside NPV and IRR.
+   need : the cash flows, the hurdle rate and a finance rate
+   level: intermediate
+   formula: PI = PV(inflows) / |PV(outflows)|; MIRR reinvests positive flows at the finance rate; EAA = NPV x r / (1 - (1 + r)^-n).
+   steps: 4 | mistakes: 4 | related: ['npv', 'irr', 'dpayback']
+   diagram: None
+[wacc] preset=wacc method=wacc group=Corporate finance period=annual
+   label: Weighted average cost of capital
+   what : Record the WACC from the declared capital structure and component costs.
+   need : None
+   level: intermediate
+   formula: WACC = (E / V) x ke + (D / V) x kd(after tax), where V = E + D.
+   steps: 4 | mistakes: 4 | related: ['capm', 'dcf', 'leverage']
+   diagram: None
+[capm] preset=capm method=capm group=Corporate finance period=annual
+   label: CAPM and beta
+   what : Estimate beta from returns and turn it into a cost of equity, with Hamada relevering.
+   need : None
+   level: intermediate
+   formula: ke = rf + beta x (rm - rf); beta = covariance(asset, market) / variance(market).
+   steps: 4 | mistakes: 4 | related: ['wacc', 'portfolio', 'dcf']
+   diagram: None
+[leverage] preset=leverage method=leverage_analysis group=Corporate finance period=annual
+   label: Leverage, EPS and Altman Z
+   what : EPS, financial leverage, interest cover, tax shield, EBIT-EPS indifference and the Z-score.
+   need : None
+   level: intermediate
+   formula: EPS = (EBIT - interest)(1 - tax) / shares; DFL = EBIT / (EBIT - interest); Z = 1.2WC/TA + 1.4RE/TA + 3.3EBIT/TA + 0.6MVE/TL + Sales/TA.
+   steps: 4 | mistakes: 4 | related: ['wacc', 'dupont', 'ratios']
+   diagram: None
+[scenario] preset=scenario method=scenario_analysis group=Corporate finance period=per period
+   label: Scenario analysis
+   what : Recompute NPV at a low and high discount rate and find the decision-flip rate.
+   need : the cash flows, a base rate and a low/high range
+   level: intro
+   formula: Recompute NPV at the low and high discount rates; the break-even rate is the IRR of the same cash flows.
+   steps: 4 | mistakes: 4 | related: ['npv', 'risk', 'case_decision']
+   diagram: None
+[case_decision] preset=case_decision method=case_decision group=Corporate finance period=per period
+   label: Compare strategic options
+   what : Compare alternatives by NPV and record the crossover rate that flips the decision.
+   need : the facts, the alternatives, their cash flows and provenance
+   level: intermediate
+   formula: Compare each alternative's NPV at the declared rate; the crossover rate is where two alternatives' NPVs are equal.
+   steps: 4 | mistakes: 4 | related: ['npv', 'scenario', 'projectmetrics']
+   diagram: None
+[dcf] preset=dcf method=dcf_valuation group=Valuation period=annual
+   label: DCF valuation (year-end)
+   what : Value a business or project from forecast free cash flows and a declared discount rate.
+   need : None
+   level: intermediate
+   formula: EV = sum of FCF_t / (1 + r)^t + TV / (1 + r)^n; TV = FCF_n(1 + g) / (r - g).
+   steps: 4 | mistakes: 4 | related: ['wacc', 'dcfmid', 'equitybridge', 'multiples']
+   diagram: None
+[dcfmid] preset=dcfmid method=dcf_valuation group=Valuation period=annual
+   label: DCF valuation (mid-year)
+   what : The same DCF with mid-year discounting, recorded separately so the assumption is visible.
+   need : None
+   level: intermediate
+   formula: The same DCF, with every flow discounted at exponent t - 0.5 instead of t.
+   steps: 4 | mistakes: 3 | related: ['dcf', 'wacc', 'equitybridge']
+   diagram: None
+[equitybridge] preset=equitybridge method=equity_bridge group=Valuation period=point in time
+   label: Equity bridge
+   what : Move from enterprise value to equity value through net debt and other declared claims.
+   need : None
+   level: intermediate
+   formula: Equity value = enterprise value - net debt - minority interest - preferred equity; per share = equity value / shares.
+   steps: 4 | mistakes: 4 | related: ['dcf', 'multiples', 'leverage']
+   diagram: None
+[multiples] preset=multiples method=multiples_valuation group=Valuation period=annual
+   label: Comparable multiples
+   what : Apply peer multiples to your own earnings, EBITDA, sales or book value.
+   need : None
+   level: intermediate
+   formula: Implied value = subject metric x peer multiple; EV multiples bridge to equity through net debt.
+   steps: 4 | mistakes: 4 | related: ['dcf', 'equitybridge', 'dupont']
+   diagram: None
+[portfolioval] preset=portfolioval method=portfolio_valuation group=Investments period=point in time
+   label: Portfolio valuation
+   what : Value a dated portfolio from holdings, prices and cash: NAV, weights and concentration.
+   need : None
+   level: intro
+   formula: NAV = sum(shares x price) + cash; weight = value / NAV; top-three concentration = sum of the three largest weights.
+   steps: 4 | mistakes: 4 | related: ['portfolio', 'ratios', 'risk']
+   diagram: None
+[portfolioperf] preset=portfolioperf method=portfolio_performance group=Investments period=period
+   label: Time-weighted return
+   what : Chain dated period returns, net of flows, and compare them with a declared benchmark.
+   need : None
+   level: intro
+   formula: period return = (end NAV - start NAV - flow) / (start NAV + flow); TWR = product(1 + period return) - 1.
+   steps: 4 | mistakes: 4 | related: ['portfolioval', 'irr', 'npv']
+   diagram: None
+[bond] preset=bond method=bond_analysis group=Investments period=annual
+   label: Bond price and duration
+   what : Price a fixed-coupon bond or solve its yield, with duration, convexity and DV01.
+   need : None
+   level: intermediate
+   formula: Price = sum of coupon / (1 + y)^t + face / (1 + y)^n; Macaulay duration is the present-value-weighted time to each cash flow.
+   steps: 4 | mistakes: 4 | related: ['tvm', 'capm', 'risk']
+   diagram: None
+[portfolio] preset=portfolio method=portfolio_analysis group=Investments period=per period
+   label: Portfolio return and risk
+   what : Two-asset return and risk, correlation, Sharpe, beta, Treynor and Jensen's alpha.
+   need : None
+   level: intermediate
+   formula: Rp = wRa + (1 - w)Rb; sigma_p^2 = w^2 sa^2 + (1 - w)^2 sb^2 + 2w(1 - w)cov; Sharpe = (Rp - rf) / sigma_p.
+   steps: 4 | mistakes: 4 | related: ['capm', 'risk', 'bond']
+   diagram: None
+[pearson] preset=pearson method=pearson group=Investments period=per observation
+   label: Pearson correlation
+   what : Record the linear association between two variables with its sample size and checks.
+   need : the two numeric variables you are relating, and the pairs you observed
+   level: intermediate
+   formula: r = covariance(x, y) / (standard deviation of x x standard deviation of y).
+   steps: 3 | mistakes: 3 | related: ['spearman', 'ols']
+   diagram: None
+[ols] preset=ols method=ols group=Investments period=per observation
+   label: Linear regression
+   what : Fit a declared linear model and record coefficients, fit and diagnostics.
+   need : the outcome, the predictors, and the observations you have for each
+   level: advanced
+   formula: y = intercept + coefficient x x + error; the coefficients minimise the sum of squared errors.
+   steps: 4 | mistakes: 3 | related: ['ols_robust', 'pearson', 'logit']
+   diagram: None
+[ols_robust] preset=None method=ols_robust group=Investments period=per observation
+   label: Linear regression (HC3)
+   what : The same regression with heteroskedasticity-robust standard errors.
+   need : None
+   level: advanced
+   formula: The same OLS coefficients with HC3 heteroskedasticity-robust standard errors.
+   steps: 4 | mistakes: 4 | related: ['ols', 'pearson', 'portfolio']
+   diagram: None
+[risk] preset=risk method=risk_metrics group=Risk & derivatives period=per period
+   label: Value at risk
+   what : Parametric and historical VaR and expected shortfall from a declared return series.
+   need : None
+   level: intermediate
+   formula: Parametric VaR = -(mu + z x sigma) at the declared confidence; historical VaR is the matching return quantile; CVaR is the average loss beyond it.
+   steps: 4 | mistakes: 4 | related: ['portfolio', 'options', 'scenario']
+   diagram: None
+[options] preset=options method=option_pricing group=Risk & derivatives period=annual
+   label: Option pricing
+   what : Black-Scholes price and Greeks for a European call or put, with a binomial cross-check.
+   need : None
+   level: advanced
+   formula: Black-Scholes: C = S e^(-qT) N(d1) - K e^(-rT) N(d2); put-call parity: C - P = S e^(-qT) - K e^(-rT).
+   steps: 4 | mistakes: 4 | related: ['risk', 'bond', 'portfolio']
+   diagram: None
+[fx] preset=fx method=fx_parity group=International period=annual
+   label: FX and interest parity
+   what : Implied forward, expected spot, forward premium and real rates, plus a one-forward hedge comparison.
+   need : None
+   level: intermediate
+   formula: Covered parity: F = S(1 + rd)^T / (1 + rf)^T; relative PPP: E[S_T] = S(1 + inflation_d)^T / (1 + inflation_f)^T.
+   steps: 4 | mistakes: 4 | related: ['currency', 'capm', 'scenario']
+   diagram: None
+[currency] preset=currency method=currency_convert group=International period=spot rate
+   label: Currency conversion
+   what : Convert an amount at a rate you declare; the rate and its source are recorded.
+   need : None
+   level: intro
+   formula: Converted amount = amount x rate, with the rate's provenance recorded.
+   steps: 4 | mistakes: 4 | related: ['fx', 'case_decision', 'forecast']
+   diagram: None
+
+== WORKSHEETS ==
+
+== RECORDS ==
+{'id': 'QNT-FIN-01', 'name': 'Capital budgeting', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: NPV, IRR, discounted payback, the profitability index, MIRR, simple payback and the equivalent annual annuity are implemented; unequal-life ranking rules and real options are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-FIN-02', 'name': 'Cost and profitability', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: single-product and multi-product break-even, activity-based costing and sales price/mix/yield variances are implemented; operating-leverage, relevant-cost and make-or-buy analysis are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-FIN-03', 'name': 'Financial performance', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: 15 declared financial-statement ratios, the DuPont decomposition (three- and five-step), common-size ratios, one-period growth, multi-year trend analysis and the cash conversion cycle are implemented; industry benchmarks and restatements are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-FIN-04', 'name': 'Valuation and financing', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: WACC, CAPM, discounted cash flow valuation, the enterprise-to-equity bridge, comparable multiples and bond pricing with duration are implemented; debt-capacity and real-option valuation are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-FIN-05', 'name': 'Management accounting', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: a declarative double-entry engagement is implemented (chart, opening balances, entries, schedules, trial balance, statements, routes for the cash flow, closing and bank reconciliation), together with material, labour and overhead standard-cost variances and activity-based costing; target, life-cycle and budget-variance topics named here are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-FIN-06', 'name': 'Unit economics', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: contribution margin, acquisition payback and LTV/CAC are implemented; retention curves and cohort economics are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-FIN-07', 'name': 'Pricing and demand', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-DEC-01', 'name': 'Decision trees, expected value and expected utility', 'form': 'read_only', 'summary': None, 'implementation_status': 'not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-DEC-02', 'name': 'Sensitivity analysis, scenario analysis, break-even thresholds and decision-flip analysis', 'form': 'computed', 'summary': None, 'implementation_status': 'partial: decision-flip on the NPV discount rate and a declared low/high rate scenario are implemented; multi-input scenario analysis, Monte Carlo and expected-value decision trees are not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-DEC-03', 'name': 'Multi-criteria decision analysis: weighted sum, AHP, TOPSIS and other methods where justified', 'form': 'read_only', 'summary': None, 'implementation_status': 'not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-DEC-04', 'name': 'Monte Carlo simulation with documented distributions, dependence assumptions and model validation', 'form': 'read_only', 'summary': None, 'implementation_status': 'not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-DEC-05', 'name': 'Expected loss, risk exposure and scenario-based stress testing', 'form': 'read_only', 'summary': None, 'implementation_status': 'not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-DEC-06', 'name': 'Fault-tree probability calculations when component probabilities and logical relationships are defensible', 'form': 'read_only', 'summary': None, 'implementation_status': 'not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'QNT-DEC-07', 'name': 'FMEA prioritization scores', 'form': 'read_only', 'summary': None, 'implementation_status': 'not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-01', 'name': 'ISO 31000 Risk Management Process', 'form': 'read_only', 'summary': None, 'implementation_status': 'read-only record: no worksheet yet', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-02', 'name': 'COSO Enterprise Risk Management', 'form': 'read_only', 'summary': None, 'implementation_status': 'read-only record: no worksheet yet', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-03', 'name': 'Bow-Tie Analysis', 'form': 'read_only', 'summary': None, 'implementation_status': 'read-only record: no worksheet yet', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-04', 'name': 'Fault Tree Analysis', 'form': 'read_only', 'summary': None, 'implementation_status': 'not implemented', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-05', 'name': 'Stakeholder Analysis / Power–Interest Matrix', 'form': 'read_only', 'summary': None, 'implementation_status': 'read-only record: no worksheet yet', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-06', 'name': 'Materiality Assessment', 'form': 'read_only', 'summary': None, 'implementation_status': 'read-only record: no worksheet yet', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-07', 'name': 'Red-Team / Premortem Review', 'form': 'read_only', 'summary': None, 'implementation_status': 'read-only record: no worksheet yet', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-08', 'name': "Dialectical Inquiry / Devil's Advocate", 'form': 'read_only', 'summary': None, 'implementation_status': 'read-only record: no worksheet yet', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+{'id': 'RSK-09', 'name': 'Multi-Criteria Decision Analysis (MCDA)', 'form': 'read_only', 'summary': None, 'implementation_status': 'read-only record: no worksheet yet', 'template': None, 'methods': None, 'form_short': None, 'worksheet': None}
+
+== TILES ==

@@ -1,0 +1,52 @@
+Computation: ratio analysis
+Result
+The analysis computes 15 financial-statement ratios from the figures supplied. The liquidity ratios are current ratio of 2.500, quick ratio of 1.900, cash ratio of 0.400. The profitability ratios are gross margin of 0.400, operating margin of 0.150, net margin of 0.090, return on assets of 0.150, return on equity of 0.360. The solvency ratios are debt to equity of 1.400, equity multiplier of 2.400, interest cover of 7.500. The efficiency ratios are asset turnover of 1.667, receivables days of 27.4, inventory days of 36.5, payables days of 27.4. Ratios are descriptive: no benchmark, industry average or pass/fail cut-off is applied, and ratios that cannot be computed are listed in the appendix rather than estimated. A ratio that cannot be computed is listed in the appendix with its reason and is never estimated. A negative denominator (for example negative equity) produces a ratio that must not be read conventionally; it is flagged in the appendix. The efficiency ratios use period-end balances and a 365-day year; average balances would give different numbers. The figures are not validated against a trial balance here; use the management-accounts method for a bookkeeping-level check.
+Inputs and results
+What you declared
+Current assets: 5000.000
+Current liabilities: 2000.000
+Cash: 800.000
+Inventory: 1200.000
+Receivables: 1500.000
+Payables: 900.000
+Total assets: 12000.000
+Total liabilities: 7000.000
+Equity: 5000.000
+Revenue: 20000.000
+Cost of sales: 12000.000
+Operating profit: 3000.000
+Net income: 1800.000
+Interest expense: 400.000
+What was computed
+Current ratio: 2.500
+Quick ratio: 1.900
+Cash ratio: 0.400
+Gross margin: 0.400
+Operating margin: 0.150
+Net margin: 0.090
+Return on assets: 0.150
+Return on equity: 0.360
+Debt to equity: 1.400
+Equity multiplier: 2.400
+Interest cover: 7.500
+Asset turnover: 1.667
+Receivables days: 27.4
+Inventory days: 36.5
+Payables days: 27.4
+N computed: 15
+Honesty: what was not done
+this method: A ratio that cannot be computed is listed in the appendix with its reason and is never estimated. A negative denominator (for example negative equity) produces a ratio that must not be read conventionally; it is flagged in the appendix. The efficiency ratios use period-end balances and a 365-day year; average balances would give different numbers. The figures are not validated against a trial balance here; use the management-accounts method for a bookkeeping-level check.
+Assumptions made
+The figures are as reported for one period, in one currency and on one accounting basis.
+Balance-sheet figures are period-end balances.
+Limitations
+Descriptive arithmetic only; no benchmark, threshold or verdict is applied because none is supplied or verified.
+The figures are not validated against a trial balance here; use the management-accounts method for a bookkeeping-level check.
+There is no tax computation; net income is used exactly as supplied.
+How the figures were checked
+Every ratio is either computed or explained.
+Denominators are nonzero.
+Negative denominators are flagged not dropped.
+Second route agrees on every ratio.
+Balance sheet identity holds when checkable.
+Figures parsed exactly as supplied.

@@ -1,0 +1,29 @@
+Computation: market power
+Result
+At a price of 50.00 and a marginal cost of 20.00, the markup is 30.00 and the Lerner index is 0.6000. The implied demand elasticity is 1.6667. The Lerner index is (price - marginal cost) / price, computed from the two figures you declared. It is a static markup measure, not proof of market power or of harm to consumers. The implied elasticity is the inverse of the Lerner index only under the declared single-price monopoly model.
+Inputs and results
+What you declared
+Price: 50.00
+Marginal cost: 20.00
+What was computed
+Price: 50.00
+Marginal cost: 20.00
+Markup: 30.00
+Lerner index: 0.6000
+Implied demand elasticity: 1.6667
+Honesty: what was not done
+this method: The Lerner index is (price - marginal cost) / price, computed from the two figures you declared. It is a static markup measure, not proof of market power or of harm to consumers. The implied elasticity is the inverse of the Lerner index only under the declared single-price monopoly model.
+Assumptions made
+The declared marginal cost is the relevant marginal cost.
+The firm sets a single price.
+The price and cost are from the same period and product.
+Limitations
+Two declared numbers only; no cost estimation.
+No legal threshold or competitive assessment is applied.
+The implied elasticity is model-conditional.
+How the figures were checked
+Second implementation agrees.
+Lerner index equals markup over price.
+Markup equals price minus marginal cost.
+Price equals marginal cost gives zero lerner.
+A higher price raises the lerner index.

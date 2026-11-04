@@ -1,0 +1,2 @@
+power heading: True / caveat: False
+missing heading: True / caveat: True

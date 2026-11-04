@@ -1,0 +1,34 @@
+Computation: dcf valuation
+Result
+The present value of the explicit forecast is 401,133.80, and the present value of the terminal value is 1,349,805.34 (a terminal share of 0.771), giving an enterprise value of 1,750,939.14. The value is computed from the declared cash flows, discount rate, timing convention and terminal-growth assumptions; it is not a market price. The value is model-conditional: it is the present value of the cash flows and terminal growth you declared, not a market price or a forecast guarantee. Cash flows are discounted at the declared timing convention (end-of-period unless a mid-year convention was declared). No tax is computed: supply after-tax cash flows. The terminal value usually dominates the result and rests entirely on the growth and discount-rate assumptions. The terminal value is more than three quarters of the total value, so the growth assumption drives the answer. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Cashflows: 100000, 120000, 140000, 155000
+Discount rate: 0.10
+Terminal growth: 0.02
+What was computed
+Pv explicit: 401133.80
+Pv terminal: 1349805.34
+Terminal value: 1976250.00
+Enterprise value: 1750939.14
+Terminal share: 0.771
+N periods: 4
+Discount rate: 0.10
+Terminal growth: 0.02
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+The cash flows and the discount rate are the owner's declared inputs.
+The terminal growth rate persists forever and stays below the discount rate.
+Under a mid-year convention every flow is assumed to arrive mid-period.
+Limitations
+The result is model-conditional arithmetic, not a market price or a forecast guarantee.
+The terminal value typically dominates the answer and rests on the growth assumption.
+No tax computation; the enterprise-to-equity bridge is the separate equity_bridge method.
+How the figures were checked
+Second implementation agrees.
+Value scales with the cash flows.
+A higher discount rate lowers the value.
+Terminal value is gordon growth on the last flow.
+Without terminal growth there is no terminal value.
+Mid year convention raises the value.

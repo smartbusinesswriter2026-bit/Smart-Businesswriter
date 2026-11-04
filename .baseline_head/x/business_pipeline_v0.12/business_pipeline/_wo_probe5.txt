@@ -1,0 +1,41 @@
+MKT-08   type=Q   form=computed   tpl=None             linked=[('rfm_scoring', 'partial')]
+         name=RFM Segmentation
+         status=partial: quintile recency, frequency and monetary scores and the eleven named segments are computed from a declared customer list, with each segment's size and the mean scores; external benchmarks, clustering, segment stability over time and next-period value are not implemented
+MKT-19   type=Q   form=computed   tpl=None             linked=[('attribution_split', 'partial')]
+         name=Attribution and campaign measurement
+         status=partial: first-click, last-click and linear shares are compared from declared credit counts, with the spread per channel; touchpoint logs, time-decay, position-based and data-driven models, holdouts and incrementality are not implemented
+MKT-20   type=Q   form=computed   tpl=None             linked=[('ab_test_two_proportion', 'partial'), ('power_analysis', 'partial')]
+         name=Conversion-rate optimisation and landing-page testing
+         status=partial: the two-proportion comparison, its interval and the sample each arm needs are implemented, with a separate sample-size and power method; sequential tests, more than two arms, qualitative research and a design recommendation are not implemented
+OPS-09   type=Q   form=computed   tpl=None             linked=[('process_control', 'partial')]
+         name=Statistical Process Control (SPC)
+         status=partial: an I-MR control chart and Cp/Cpk capability are implemented; subgroup charts (X-bar/R, p, c, u), EWMA, CUSUM and measurement-system analysis are not implemented
+MKT-01   type=F   form=read_only  tpl=None             linked=[]
+         name=Segmentation–Targeting–Positioning (STP)
+         status=read-only record: no worksheet yet
+MKT-03   type=M   form=read_only  tpl=None             linked=[]
+         name=AIDA
+         status=read-only record: no worksheet yet
+MKT-05   type=M   form=read_only  tpl=None             linked=[]
+         name=Marketing / Sales Funnel
+         status=read-only record: no worksheet yet
+
+--- are those method ids real TOOL_INFO keys? ---
+  rfm          in TOOL_INFO: True
+  attribution  in TOOL_INFO: True
+  campaign     in TOOL_INFO: True
+  web          in TOOL_INFO: True
+  funnel       in TOOL_INFO: True
+  mediaplan    in TOOL_INFO: True
+  cro          in TOOL_INFO: False
+  abtest       in TOOL_INFO: True
+  email        in TOOL_INFO: True
+  social       in TOOL_INFO: True
+
+--- registry.validate() errors on current data ---
+errors: 0
+
+--- the 'orphan' profile labels vs catalogue names, all Q orphans ---
+  MKT-08   name=RFM Segmentation                               summary=Customer groups based on recency, frequency and monetary value
+  MKT-19   name=Attribution and campaign measurement           summary=Which touchpoints receive credit, under which rule, and what the campaign changed
+  MKT-20   name=Conversion-rate optimisation and landing-page testing summary=The page or step to change, the hypothesis and the test that decides it

@@ -1,0 +1,24 @@
+﻿
+> qa\baseline\finance_contracts_rows.txt:420:[bond] bond_analysis
+  qa\baseline\finance_contracts_rows.txt:421:  group=Investments level=intermediate 
+period=annual preset=bond preset_matches=True
+  qa\baseline\finance_contracts_rows.txt:422:  RADIO in_library=True tier=T1 
+metric=price unit=currency ceiling=descriptive
+  qa\baseline\finance_contracts_rows.txt:423:  tests=7 typing=True mapping=False 
+assumption_checks=0
+  qa\baseline\finance_contracts_rows.txt:424:  intended_use: Price a plain fixed-coupon 
+bond from its yield, or solve its yield from a declared price, and report Macaulay and 
+modified duration, convexity, DV01 and current yield.
+  qa\baseline\finance_contracts_rows.txt:425:  unsupported_use: Accrued interest 
+between coupon dates; day-count conventions; callable, convertible, floating or 
+amortizing bonds; a spot/forward curve; credit spreads; a traded quote.
+  qa\baseline\finance_contracts_rows.txt:426:  schema required=['face_value', 
+'coupon_rate', 'years_to_maturity']
+  qa\baseline\finance_contracts_rows.txt:427:  schema optional=['yield_to_maturity', 
+'price', 'payments_per_year']
+  qa\baseline\finance_contracts_rows.txt:428:  schema detail: [('face_value', 
+'decimal', None, None), ('coupon_rate', 'decimal', None, None), ('years_to_maturity', 
+'decimal', None, None), ('yield_to_maturity', 'decimal', None, None), ('price', 
+'decimal', None, None), ('payments_per_year', 'decimal', None, None)]
+
+

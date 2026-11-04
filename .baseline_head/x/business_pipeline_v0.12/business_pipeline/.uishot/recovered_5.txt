@@ -1,0 +1,311 @@
+     1→"""Draft a framework worksheet from retrieved sources (product layer).
+     2→
+     3→The source finder retrieves evidence; this module arranges it.  It never writes a
+     4→fact of its own: every drafted item is the source's title plus the first sentence
+     5→of its abstract, and its citation is carried into the worksheet as `sourced`.
+     6→A source that matches no dimension is reported as unmatched, not forced in.
+     7→
+     8→Supported first: SWOT, Five Forces, PESTEL, Business Model Canvas, Lean Canvas,
+     9→Value Proposition Canvas and the marketing plan.
+    10→"""
+    11→
+    12→import re
+    13→
+    14→#: keyword cues per block.  A source is placed in the block with the most hits;
+    15→#: no hit means unmatched, never a made-up placement.
+    16→SCHEMAS = {
+    17→    "template_swot": {"kind": "swot", "blocks": [
+    18→        ("S", "Strengths", "strength advantage capability resource brand loyal efficient leader patent quality"),
+    19→        ("W", "Weaknesses", "weakness disadvantage constraint shortage cost debt dependency capacity inefficiency"),
+    20→        ("O", "Opportunities", "opportunity growth demand expansion trend technology policy support"),
+    21→        ("T", "Threats", "threat competitor competition substitute regulation risk downturn tariff entry"),
+    22→    ]},
+    23→    "template_five_forces": {"kind": "forces", "blocks": [
+    24→        ("rivalry", "Industry rivalry", "rivalry competitor competition market share price war"),
+    25→        ("entrants", "Threat of new entrants", "entry entrant startup capital barrier licence license"),
+    26→        ("substitutes", "Threat of substitutes", "substitute alternative switching"),
+    27→        ("buyers", "Buyer power", "buyer customer client bargaining concentration"),
+    28→        ("suppliers", "Supplier power", "supplier vendor input procurement bargaining"),
+    29→    ]},
+    30→    "template_pestel": {"kind": "canvas", "blocks": [
+    31→        ("political", "Political", "government policy election stability regulation trade"),
+    32→        ("economic", "Economic", "growth inflation interest exchange recession demand income"),
+    33→        ("social", "Social", "demographic culture consumer behaviour behavior population lifestyle labour"),
+    34→        ("technological", "Technological", "technology digital automation innovation research"),
+    35→        ("environmental", "Environmental", "climate emission energy sustainability weather"),
+    36→        ("legal", "Legal", "law legal compliance liability licence license court"),
+    37→    ]},
+    38→    "template_business_model_canvas": {"kind": "canvas", "blocks": [
+    39→        ("key_partners", "Key partners", "partner supplier alliance"),
+    40→        ("key_activities", "Key activities", "activity process operations"),
+    41→        ("key_resources", "Key resources", "resource asset capability"),
+    42→        ("value_propositions", "Value propositions", "value benefit offering proposition"),
+    43→        ("customer_relationships", "Customer relationships", "relationship retention loyalty service"),
+    44→        ("channels", "Channels", "channel distribution retail online"),
+    45→        ("customer_segments", "Customer segments", "segment customer market"),
+    46→        ("cost_structure", "Cost structure", "cost expense fixed variable"),
+    47→        ("revenue_streams", "Revenue streams", "revenue price subscription sales"),
+    48→    ]},
+    49→    "template_lean_canvas": {"kind": "canvas", "blocks": [
+    50→        ("problem", "Problem", "problem pain need gap"),
+    51→        ("customer_segments", "Customer segments", "segment customer market"),
+    52→        ("unique_value_proposition", "Unique value proposition", "value different proposition"),
+    53→        ("solution", "Solution", "solution product service"),
+    54→        ("channels", "Channels", "channel distribution retail online"),
+    55→        ("revenue_streams", "Revenue streams", "revenue price subscription sales"),
+    56→        ("cost_structure", "Cost structure", "cost expense fixed variable"),
+    57→        ("key_metrics", "Key metrics", "metric measure retention conversion"),
+    58→        ("unfair_advantage", "Unfair advantage", "advantage patent exclusive proprietary"),
+    59→    ]},
+    60→    "template_value_proposition_canvas": {"kind": "canvas", "blocks": [
+    61→        ("customer_jobs", "Customer jobs", "job task goal need"),
+    62→        ("customer_pains", "Pains", "pain problem risk cost"),
+    63→        ("customer_gains", "Gains", "gain benefit outcome"),
+    64→        ("products_services", "Products and services", "product service offering"),
+    65→        ("pain_relievers", "Pain relievers", "relief reduce remove"),
+    66→        ("gain_creators", "Gain creators", "create improve increase"),
+    67→    ]},
+    68→    "template_marketing_plan": {"kind": "canvas", "blocks": [
+    69→        ("segmentation", "Segmentation", "segment market divide"),
+    70→        ("targeting", "Targeting", "target choose audience"),
+    71→        ("positioning", "Positioning", "position brand perception"),
+    72→        ("product", "Product", "product feature quality"),
+    73→        ("price", "Price", "price pricing"),
+    74→        ("place", "Place", "channel distribution retail online"),
+    75→        ("promotion", "Promotion", "advertising promotion campaign"),
+    76→        ("people", "People", "staff employee service"),
+    77→        ("process", "Process", "process service journey"),
+    78→        ("physical_evidence", "Physical evidence", "store packaging website"),
+    79→    ]},
+    80→    "template_sipoc": {"kind": "canvas", "blocks": [
+    81→        # Only the parts external evidence can legitimately support are drafted
+    82→        # into.  The steps, the output and the customer are the student's own
+    83→        # process: a published source cannot state them, so a source about them
+    84→        # is reported unmatched rather than placed where it does not belong.
+    85→        ("suppliers", "Suppliers", "supplier vendor producer mill farm distributor deliverer"),
+    86→        ("inputs", "Inputs", "input raw material ingredients stock packaging supply consumption"),
+    87→    ]},
+    88→    "template_toc": {"kind": "canvas", "blocks": [
+    89→        ("identify", "Identify the constraint", "constraint bottleneck capacity throughput limit queue"),
+    90→        ("exploit", "Exploit the constraint", "exploit uptime changeover idle bottleneck loss"),
+    91→        ("subordinate", "Subordinate everything else", "subordinate pace release buffer scheduling flow"),
+    92→        ("elevate", "Elevate the constraint", "elevate invest capacity equipment expansion"),
+    93→        ("reassess", "Reassess", "reassess migration next constraint review"),
+    94→    ]},
+    95→    "template_a3": {"kind": "canvas", "blocks": [
+    96→        ("problem", "Problem", "problem defect delay error gap waste"),
+    97→        ("current_condition", "Current condition", "current baseline delay queue observation data"),
+    98→        ("target", "Target condition", "target benchmark standard reduce within"),
+    99→        ("causes", "Root causes", "cause root reason driver factor why"),
+   100→        ("countermeasures", "Countermeasures", "countermeasure action change improve redesign"),
+   101→        ("plan", "Plan and owners", "plan owner schedule implementation"),
+   102→        ("follow_up", "Follow-up", "follow up review measure sustain verify"),
+   103→    ]},
+   104→    "template_scor": {"kind": "canvas", "blocks": [
+   105→        ("plan", "Plan", "plan forecast demand balance"),
+   106→        ("source", "Source", "supplier procurement purchasing sourcing"),
+   107→        ("make", "Make", "production manufacturing assembly build"),
+   108→        ("deliver", "Deliver", "delivery distribution logistics transport"),
+   109→        ("return", "Return", "return reverse defect recall"),
+   110→        ("enable", "Enable", "governance data contract compliance"),
+   111→    ]},
+   112→    "template_5s": {"kind": "canvas", "blocks": [
+   113→        ("sort", "Sort", "sort remove unnecessary clutter"),
+   114→        ("set_in_order", "Set in order", "order place label location"),
+   115→        ("shine", "Shine", "clean inspect maintenance"),
+   116→        ("standardize", "Standardize", "standard procedure checklist"),
+   117→        ("sustain", "Sustain", "audit habit sustain discipline"),
+   118→    ]},
+   119→    "template_root_cause": {"kind": "canvas", "blocks": [
+   120→        ("problem", "Problem", "problem effect defect delay"),
+   121→        ("people", "People", "people staff training skill"),
+   122→        ("process", "Process / method", "process method procedure workflow"),
+   123→        ("equipment", "Equipment", "equipment machine tool maintenance"),
+   124→        ("materials", "Materials", "material input specification supply"),
+   125→        ("measurement", "Measurement", "measurement metric calibration inspection"),
+   126→        ("environment", "Environment", "environment layout light heat noise"),
+   127→        ("root_cause", "Root cause", "root cause verified evidence"),
+   128→    ]},
+   129→    "template_fmea": {"kind": "canvas", "blocks": [
+   130→        ("failure_modes", "Failure modes", "failure mode defect error"),
+   131→        ("effects", "Effects", "effect impact customer consequence"),
+   132→        ("causes", "Causes", "cause reason source"),
+   133→        ("controls", "Current controls", "control prevention detection inspection"),
+   134→        ("actions", "Recommended actions", "action reduce improve mitigation"),
+   135→        ("owners", "Owners and review", "owner review date"),
+   136→    ]},
+   137→    "template_kraljic": {"kind": "canvas", "blocks": [
+   138→        ("criteria", "Criteria", "criteria impact risk threshold"),
+   139→        ("strategic", "Strategic items", "strategic partnership critical"),
+   140→        ("leverage", "Leverage items", "leverage tender price competition"),
+   141→        ("bottleneck", "Bottleneck items", "bottleneck scarce security supply"),
+   142→        ("non_critical", "Non-critical items", "non critical routine standard"),
+   143→    ]},
+   144→    "template_sop": {"kind": "canvas", "blocks": [
+   145→        ("demand_plan", "Demand plan", "demand forecast sales plan"),
+   146→        ("supply_plan", "Supply plan", "supply production plan"),
+   147→        ("inventory_plan", "Inventory plan", "inventory stock buffer"),
+   148→        ("capacity_plan", "Capacity plan", "capacity constraint resource"),
+   149→        ("financial_plan", "Financial plan", "revenue cost margin budget"),
+   150→        ("decisions", "Gaps and decisions", "gap decision reconcile"),
+   151→    ]},
+   152→    "template_pdca": {"kind": "canvas", "blocks": [
+   153→        ("plan", "Plan", "plan target hypothesis"),
+   154→        ("do", "Do", "do trial pilot implement"),
+   155→        ("check", "Check", "check measure result compare"),
+   156→        ("act", "Act", "act standardise change abandon"),
+   157→    ]},
+   158→    "template_job_characteristics": {"kind": "canvas", "blocks": [
+   159→        ("skill_variety", "Skill variety", "skill skills knowledge training qualification multi-skilled versatile"),
+   160→        ("task_identity", "Task identity", "task identity whole complete finished unit piece job"),
+   161→        ("task_significance", "Task significance", "task significance meaningful consequence impact purpose contribution effect"),
+   162→        ("autonomy", "Autonomy", "autonomy discretion control ownership latitude decide decision"),
+   163→        ("feedback", "Feedback", "feedback performance information review appraisal results know"),
+   164→    ]},
+   165→    "template_kirkpatrick": {"kind": "canvas", "blocks": [
+   166→        ("reaction", "Reaction", "reaction satisfaction happy useful feedback evaluation participants"),
+   167→        ("learning", "Learning", "learning knowledge skill test assessment recall baseline pass"),
+   168→        ("behavior", "Behaviour", "behaviour behavior change application practice transfer supervisor observe"),
+   169→        ("results", "Results", "results outcome impact benefit productivity quality turnover cost savings"),
+   170→    ]},
+   171→    "template_amo": {"kind": "canvas", "blocks": [
+   172→        ("ability", "Ability", "ability skill knowledge competence training qualified experience capability"),
+   173→        ("motivation", "Motivation", "motivation willing effort care morale incentive want commitment"),
+   174→        ("opportunity", "Opportunity", "opportunity allowed permitted resources tools time authority blocked process"),
+   175→    ]},
+   176→    "template_tuckman": {"kind": "canvas", "blocks": [
+   177→        ("forming", "Forming", "forming new team orientation first meeting introduction unsure"),
+   178→        ("storming", "Storming", "storming conflict argument disagreement friction role clash resistance"),
+   179→        ("norming", "Norming", "norming agreement norms routine settle ways working together"),
+   180→        ("performing", "Performing", "performing effective working together delivering interdependent flow"),
+   181→        ("adjourning", "Adjourning", "adjourning ending break up disband member leaving change team closure"),
+   182→    ]},
+   183→    "template_nine_box": {"kind": "canvas", "blocks": [
+   184→        ("performance_criteria", "Performance criteria", "performance criteria measure result quality rating target assessment"),
+   185→        ("potential_criteria", "Potential criteria", "potential criteria ability readiness growth ambition capable future"),
+   186→        ("placements", "Placements", "placement placed grid box performance potential team member staff"),
+   187→        ("development_actions", "Development actions", "development action plan rotation coaching stretch successor"),
+   188→    ]},
+   189→    "template_kotter": {"kind": "canvas", "blocks": [
+   190→        ("urgency", "Create urgency", "urgency crisis deadline losing competitive complaint decline window"),
+   191→        ("coalition", "Form a powerful coalition", "coalition sponsor leadership team group authority power influential"),
+   192→        ("vision", "Create a vision for change", "vision future aim goal state strategy direction picture"),
+   193→        ("communicate", "Communicate the vision", "communicate message brief meeting tell conversation channel explain"),
+   194→        ("empower", "Empower others to act", "empower remove barrier obstacle delegate authority permission freedom"),
+   195→        ("wins", "Plan for and create short-term wins", "win early result milestone quick visible early success short-term"),
+   196→        ("consolidate", "Consolidate gains and produce more change", "consolidate sustain momentum use gains further wave next change"),
+   197→        ("institutionalize", "Institutionalize new approaches", "institutionalize anchor embed culture routine policy standard sustain"),
+   198→    ]},
+   199→    "template_competing_values": {"kind": "canvas", "blocks": [
+   200→        ("clan", "Clan culture", "clan cohesion morale participation family commitment development team care"),
+   201→        ("adhocracy", "Adhocracy culture", "adhocracy innovation experimentation creativity growth external change flexible"),
+   202→        ("market", "Market culture", "market competition achievement results share customer competitive external"),
+   203→        ("hierarchy", "Hierarchy culture", "hierarchy structure control stability predictability process formal rules"),
+   204→    ]},
+   205→    "template_org_design": {"kind": "canvas", "blocks": [
+   206→        ("strategy", "Strategy", "strategy aim goal objective direction plan growth ambition priority"),
+   207→        ("decision_rights", "Decision rights", "decision rights authority accountable escalate approval decide responsibility"),
+   208→        ("structure", "Structure", "structure grouping team department layer span reporting hierarchy organogram"),
+   209→        ("processes", "Processes", "process workflow procedure governance control routine handoff interface"),
+   210→        ("people_capability", "People and capability", "people capability skill role capacity number experience resourcing"),
+   211→        ("incentives", "Incentives", "incentive reward pay bonus measure target performance appraisal remuneration"),
+   212→    ]},
+   213→}
+   214→
+   215→MAX_ITEMS = 20
+   216→MAX_PER_BLOCK = 5
+   217→MAX_TEXT = 400
+   218→
+   219→
+   220→def supported(template):
+   221→    return template in SCHEMAS
+   222→
+   223→
+   224→def _squash(value, limit):
+   225→    text = re.sub(r"<[^>]+>", " ", str(value or ""))
+   226→    text = re.sub(r"\s+", " ", text).strip()
+   227→    return text[:limit]
+   228→
+   229→
+   230→def _citation(source):
+   231→    authors = _squash(source.get("authors"), 120)
+   232→    year = source.get("year")
+   233→    venue = _squash(source.get("venue"), 100)
+   234→    link = source.get("doi") or source.get("url") or ""
+   235→    parts = []
+   236→    for part in (authors, str(year) if year else "", venue, link):
+   237→        if part and part not in parts:
+   238→            parts.append(part)
+   239→    return _squash("; ".join(parts), 400)
+   240→
+   241→
+   242→def _evidence(source):
+   243→    title = _squash(source.get("title"), 220)
+   244→    abstract = _squash(source.get("abstract") or source.get("description"), 800)
+   245→    sentence = re.split(r"(?<=[.!?])\s+", abstract)[0] if abstract else ""
+   246→    text = title + (" — " + sentence if sentence and sentence != title else "")
+   247→    return _squash(text, MAX_TEXT)
+   248→
+   249→
+   250→def _keys(source):
+   251→    return set(re.findall(r"[a-z][a-z0-9'-]+", (
+   252→        _squash(source.get("title"), 400) + " " + _squash(source.get("abstract") or source.get("description"), 1600)
+   253→    ).lower()))
+   254→
+   255→
+   256→def _best_block(schema, source):
+   257→    words = _keys(source)
+   258→    best, best_score = None, 0
+   259→    for key, _label, cues in schema["blocks"]:
+   260→        score = sum(1 for cue in cues.split() if cue in words)
+   261→        if score > best_score:
+   262→            best, best_score = key, score
+   263→    return best, best_score
+   264→
+   265→
+   266→def draft(template, sources, max_items=MAX_ITEMS):
+   267→    """Return worksheet inputs plus a transparent placement report."""
+   268→    schema = SCHEMAS.get(template)
+   269→    if not schema:
+   270→        raise ValueError("drafting is not supported for this worksheet yet")
+   271→    if not isinstance(sources, list) or not sources:
+   272→        raise ValueError("at least one retrieved source is required")
+   273→
+   274→    placed = {key: [] for key, _label, _cues in schema["blocks"]}
+   275→    assigned, unmatched, seen = [], [], set()
+   276→    for source in sources[:40]:
+   277→        if not isinstance(source, dict) or not source.get("title"):
+   278→            continue
+   279→        key = source.get("doi") or _squash(source.get("title"), 120).lower()
+   280→        if key in seen:
+   281→            continue
+   282→        seen.add(key)
+   283→        block, score = _best_block(schema, source)
+   284→        if not block or score == 0:
+   285→            unmatched.append({"title": _squash(source.get("title"), 180), "reason": "no dimension matched"})
+   286→            continue
+   287→        if len(placed[block]) >= MAX_PER_BLOCK:
+   288→            unmatched.append({"title": _squash(source.get("title"), 180), "reason": "block is full"})
+   289→            continue
+   290→        item = {"text": _evidence(source), "provenance": "sourced", "source": _citation(source)}
+   291→        placed[block].append(item)
+   292→        assigned.append({"block": block, "title": _squash(source.get("title"), 180),
+   293→                         "citation": item["source"]})
+   294→        if sum(len(items) for items in placed.values()) >= max_items:
+   295→            break
+   296→
+   297→    if schema["kind"] == "swot":
+   298→        inputs = {"evidence": [dict(item, dimension=key) for key, _label, _cues in schema["blocks"]
+   299→                               for item in placed[key]], "options": []}
+   300→    elif schema["kind"] == "forces":
+   301→        inputs = {"evidence": [dict(item, force=key) for key, _label, _cues in schema["blocks"]
+   302→                               for item in placed[key]], "ratings": {}}
+   303→    else:
+   304→        inputs = {"blocks": {key: placed[key] for key, _label, _cues in schema["blocks"]}, "links": []}
+   305→
+   306→    counts = {key: len(items) for key, items in placed.items()}
+   307→    return {"template": template, "inputs": inputs, "assigned": assigned, "unmatched": unmatched,
+   308→            "counts": counts, "labels": {key: label for key, label, _cues in schema["blocks"]},
+   309→            "n_items": sum(counts.values()),
+   310→            "note": ("Every drafted item is a source title plus a sentence from its abstract, with the "
+   311→                     "citation recorded. Review it before running; no fact or number was invented.")}

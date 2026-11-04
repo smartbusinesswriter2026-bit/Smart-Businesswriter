@@ -1,0 +1,32 @@
+﻿<class 'dict'>
+{
+ "objective": "Where do demand and supply meet?",
+ "method": "demand_supply_equilibrium",
+ "currency": "PHP",
+ "period": "annual",
+ "inputs": {
+  "demand_intercept": "100",
+  "demand_slope": "2",
+  "supply_intercept": "20",
+  "supply_slope": "2"
+ }
+}
+{
+ "objective": "Where are the Nash equilibria in this game?",
+ "method": "nash_equilibrium",
+ "period": "annual",
+ "inputs": {
+  "row_payoffs": [
+   "3",
+   "0",
+   "5",
+   "1"
+  ],
+  "column_payoffs": [
+   "3",
+   "5",
+   "0",
+   "1"
+  ]
+ }
+}

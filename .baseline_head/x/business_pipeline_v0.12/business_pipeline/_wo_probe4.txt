@@ -1,0 +1,212 @@
+PROFILES count: 68
+CATALOGUE count: 158
+WORKSHEETS count: 45
+
+=== ORPHANS: profile exists, but NO catalogue entry has that template ===
+count: 32
+  template_adkar                     label=ADKAR                                  subject=change       key=adkar
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_aida                      label=AIDA                                   subject=marketing    key=aida
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_attribution               label=Attribution and Campaign Measurement   subject=marketing    key=attribution
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_bcg                       label=BCG Growth-Share Matrix                subject=strategy     key=bcg
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_brand_equity              label=Brand Equity                           subject=marketing    key=brand_equity
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_burke_litwin              label=Burke-Litwin                           subject=change       key=burke_litwin
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_change_organization       label=Change and Organization                subject=change       key=change_organization
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_cro                       label=Conversion Rate Optimisation           subject=marketing    key=cro
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_digital_mix               label=Digital Marketing Mix                  subject=marketing    key=digital_mix
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_dmaic                     label=DMAIC                                  subject=quality      key=dmaic
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_email_crm                 label=Email CRM and Lifecycle                subject=marketing    key=email_crm
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_funnel                    label=Funnel                                 subject=marketing    key=funnel
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_galbraith_star            label=Galbraith Star                         subject=management   key=galbraith_star
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_ge_mckinsey               label=GE-McKinsey Matrix                     subject=strategy     key=ge_mckinsey
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_generic_strategies        label=Generic Strategies                     subject=strategy     key=generic_strategies
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_lewin                     label=Lewin                                  subject=change       key=lewin
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_logic_model               label=Logic Model                            subject=management   key=logic_model
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_marketing_automation      label=Marketing Automation                   subject=marketing    key=marketing_automation
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_mckinsey_7s               label=McKinsey 7S                            subject=management   key=mckinsey_7s
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_mintzberg                 label=Mintzberg                              subject=management   key=mintzberg
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_pdsa                      label=PDSA                                   subject=quality      key=pdsa
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_porters_diamond           label=Porters Diamond                        subject=strategy     key=porters_diamond
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_rfm                       label=RFM                                    subject=marketing    key=rfm
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_seo_content               label=SEO and Content                        subject=marketing    key=seo_content
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_social_media              label=Social Media and Influencer            subject=marketing    key=social_media
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_stp                       label=STP                                    subject=marketing    key=stp
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_stp_evidence              label=STP Evidence Check                     subject=marketing    key=stp_evidence
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_strategic_positioning     label=Strategic Positioning                  subject=strategy     key=strategic_positioning
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_strategy_4                label=Strategy 4                             subject=strategy     key=strategy_4
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_tam                       label=Technology Acceptance Model            subject=marketing    key=tam
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_theory_of_change          label=Theory of Change                       subject=change       key=theory_of_change
+        in WORKSHEETS? False   in catalogue(template)? False
+  template_utaut                     label=UTAUT                                  subject=marketing    key=utaut
+        in WORKSHEETS? False   in catalogue(template)? False
+
+=== profiles that ARE registered (catalogue entry with template) ===
+count: 36
+  template_5s                        -> ['OPS-04'] (worksheet ids: ['OPS-04'])
+  template_a3                        -> ['OPS-05'] (worksheet ids: ['OPS-05'])
+  template_activity_system_fit       -> ['STR-04'] (worksheet ids: ['STR-04'])
+  template_amo                       -> ['PPL-01'] (worksheet ids: ['PPL-01'])
+  template_ansoff                    -> ['STR-09'] (worksheet ids: ['STR-09'])
+  template_blue_ocean_errc           -> ['STR-13'] (worksheet ids: ['STR-13'])
+  template_competing_values          -> ['CHG-12'] (worksheet ids: ['CHG-12'])
+  template_customer_journey          -> ['MKT-04'] (worksheet ids: ['MKT-04'])
+  template_five_forces               -> ['STR-01'] (worksheet ids: ['STR-01'])
+  template_fmea                      -> ['OPS-08'] (worksheet ids: ['OPS-08'])
+  template_job_characteristics       -> ['PPL-03'] (worksheet ids: ['PPL-03'])
+  template_kano                      -> ['MKT-06'] (worksheet ids: ['MKT-06'])
+  template_kirkpatrick               -> ['PPL-02'] (worksheet ids: ['PPL-02'])
+  template_kotter                    -> ['CHG-01'] (worksheet ids: ['CHG-01'])
+  template_kraljic                   -> ['OPS-10'] (worksheet ids: ['OPS-10'])
+  template_marketing_plan            -> ['MKT-02'] (worksheet ids: ['MKT-02'])
+  template_measurement_plan          -> ['MKT-18'] (worksheet ids: ['MKT-18'])
+  template_nine_box                  -> ['PPL-04'] (worksheet ids: ['PPL-04'])
+  template_org_design                -> ['CHG-11'] (worksheet ids: ['CHG-11'])
+  template_paid_media_plan           -> ['MKT-15'] (worksheet ids: ['MKT-15'])
+  template_pdca                      -> ['OPS-12'] (worksheet ids: ['OPS-12'])
+  template_pestel                    -> ['STR-06'] (worksheet ids: ['STR-06'])
+  template_raci                      -> ['PM-10'] (worksheet ids: ['PM-10'])
+  template_root_cause                -> ['OPS-07'] (worksheet ids: ['OPS-07'])
+  template_scenario_planning         -> ['STR-14'] (worksheet ids: ['STR-14'])
+  template_scor                      -> ['OPS-01'] (worksheet ids: ['OPS-01'])
+  template_servqual                  -> ['MKT-07'] (worksheet ids: ['MKT-07'])
+  template_sipoc                     -> ['OPS-02'] (worksheet ids: ['OPS-02'])
+  template_sop                       -> ['OPS-11'] (worksheet ids: ['OPS-11'])
+  template_strategic_group_map       -> ['STR-12'] (worksheet ids: ['STR-12'])
+  template_swot                      -> ['STR-07', 'STR-18'] (worksheet ids: ['STR-07', 'STR-18'])
+  template_toc                       -> ['OPS-06'] (worksheet ids: ['OPS-06'])
+  template_tuckman                   -> ['PPL-05'] (worksheet ids: ['PPL-05'])
+  template_value_chain               -> ['STR-03'] (worksheet ids: ['STR-03'])
+  template_value_stream_map          -> ['OPS-03'] (worksheet ids: ['OPS-03'])
+  template_vrio                      -> ['STR-08'] (worksheet ids: ['STR-08'])
+
+=== TEMPLATES in bp.templates with NO profile ===
+templates total: 45  without profile: 9
+  case_decision                            name=Business case: alternatives compared by net present value  registry=['QNT-FIN-01']
+  template_business_model_canvas           name=Business Model Canvas with an evidence audit               registry=['STR-15']
+  template_lean_canvas                     name=Lean Canvas with an evidence audit                         registry=['STR-16']
+  template_lessons_learned                 name=Lessons learned with a cause and action audit              registry=['PM-16']
+  template_project_charter                 name=Project charter with an authorisation and scope audit      registry=['PM-05']
+  template_risk_register                   name=Risk register with a declared-response audit               registry=['PM-06']
+  template_stakeholder_plan                name=Stakeholder engagement and communication plan with an evidence audit registry=['PM-15']
+  template_value_proposition_canvas        name=Value Proposition Canvas with an evidence audit            registry=['STR-17']
+  template_wbs                             name=Work breakdown structure with a scope and acceptance audit registry=['PM-09']
+
+=== the 8 WO-3 targets ===
+  template_business_model_canvas       in PROFILES=False  catalogue=['STR-15'] worksheet=['STR-15']
+        WORKSHEETS record: {
+          "catalogue_id": "STR-15",
+          "template": "template_business_model_canvas",
+          "label": "Business Model Canvas",
+          "draftable": true,
+          "what": "Lay your own evidence into the nine business-model blocks, link related items and audit the empty blocks."
+}
+  template_lean_canvas                 in PROFILES=False  catalogue=['STR-16'] worksheet=['STR-16']
+        WORKSHEETS record: {
+          "catalogue_id": "STR-16",
+          "template": "template_lean_canvas",
+          "label": "Lean Canvas",
+          "draftable": true,
+          "what": "State the problem, solution, metrics and unfair advantage in nine blocks, with the gaps reported rather than filled."
+}
+  template_value_proposition_canvas    in PROFILES=False  catalogue=['STR-17'] worksheet=['STR-17']
+        WORKSHEETS record: {
+          "catalogue_id": "STR-17",
+          "template": "template_value_proposition_canvas",
+          "label": "Value Proposition Canvas",
+          "draftable": true,
+          "what": "Set customer jobs, pains and gains beside your pain relievers and gain creators, and link the fit you claim."
+}
+  template_project_charter             in PROFILES=False  catalogue=['PM-05'] worksheet=['PM-05']
+        WORKSHEETS record: {
+          "catalogue_id": "PM-05",
+          "template": "template_project_charter",
+          "label": "Project charter (PRINCE2)",
+          "draftable": true,
+          "before": "Have the objective, the scope in and out, the sponsor, the budget, the milestones and the success measures. If a figure or date is not agreed, enter it as an assumption.",
+          "what": "Write the authorisation: objective, scope in and out, deliverables, governance, budget, milestones, success measures, assumptions and constraints."
+}
+  template_wbs                         in PROFILES=False  catalogue=['PM-09'] worksheet=['PM-09']
+        WORKSHEETS record: {
+          "catalogue_id": "PM-09",
+          "template": "template_wbs",
+          "label": "Work breakdown structure",
+          "draftable": true,
+          "before": "Start from the scope statement. List the major deliverables first, then the work packages under each, and write the test that shows each one is complete.",
+          "what": "Break the scope into deliverables and work packages, give each an acceptance test, record exclusions and link packages to deliverables."
+}
+  template_risk_register               in PROFILES=False  catalogue=['PM-06'] worksheet=['PM-06']
+        WORKSHEETS record: {
+          "catalogue_id": "PM-06",
+          "template": "template_risk_register",
+          "label": "Risk register (PMBOK)",
+          "draftable": true,
+          "before": "Likelihood and impact are labels you choose, not probabilities. For each risk write the response and the owner; an empty owner is shown as a gap, not filled in.",
+          "what": "Record each risk with your likelihood and impact labels, the response and the owner; empty cells are named, no score is computed."
+}
+  template_stakeholder_plan            in PROFILES=False  catalogue=['PM-15'] worksheet=['PM-15']
+        WORKSHEETS record: {
+          "catalogue_id": "PM-15",
+          "template": "template_stakeholder_plan",
+          "label": "Stakeholder engagement and communication plan",
+          "draftable": true,
+          "before": "List who is affected or can affect the project, what each needs, and who will communicate what, through which channel and when.",
+          "what": "List stakeholders, interests and evidenced influence, then the engagement approach, messages, channels, timing and owner."
+}
+  template_lessons_learned             in PROFILES=False  catalogue=['PM-16'] worksheet=['PM-16']
+        WORKSHEETS record: {
+          "catalogue_id": "PM-16",
+          "template": "template_lessons_learned",
+          "label": "Lessons learned",
+          "draftable": true,
+          "before": "Write what happened, the cause you can evidence, the change for next time and its owner. A lesson without an action, or an action without an owner, is named as a gap.",
+          "what": "Record what went well and what did not, the evidenced cause, the change for next time, its owner and who should see it."
+}
+
+=== WORKSHEETS whose template has no profile ===
+  PM-05    tpl=template_project_charter                 label=Project charter (PRINCE2)
+  PM-06    tpl=template_risk_register                   label=Risk register (PMBOK)
+  PM-09    tpl=template_wbs                             label=Work breakdown structure
+  PM-15    tpl=template_stakeholder_plan                label=Stakeholder engagement and communication plan
+  PM-16    tpl=template_lessons_learned                 label=Lessons learned
+  STR-15   tpl=template_business_model_canvas           label=Business Model Canvas
+  STR-16   tpl=template_lean_canvas                     label=Lean Canvas
+  STR-17   tpl=template_value_proposition_canvas        label=Value Proposition Canvas
+
+=== CATALOGUE worksheet-form entries whose template has no profile ===
+  PM-05    tpl=template_project_charter                 name=PRINCE2
+  PM-06    tpl=template_risk_register                   name=PMBOK / PMI project management standards
+  PM-09    tpl=template_wbs                             name=Work Breakdown Structure (WBS)
+  PM-15    tpl=template_stakeholder_plan                name=Stakeholder engagement and communication plan
+  PM-16    tpl=template_lessons_learned                 name=Lessons learned
+  STR-15   tpl=template_business_model_canvas           name=Business Model Canvas
+  STR-16   tpl=template_lean_canvas                     name=Lean Canvas
+  STR-17   tpl=template_value_proposition_canvas        name=Value Proposition Canvas

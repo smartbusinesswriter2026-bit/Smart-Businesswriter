@@ -1,0 +1,60 @@
+﻿211: "what": "Compare the top quartile's income share with its tax share."},
+307: "what": "Simulate NPV from uncertain cash flows or profit from uncertain price, cost and volume, with seeded percentiles and the share of positive outcomes."},
+360: #: One-line "what to gather" for a tool tile.  Student-facing, not a method description.
+849: "formula": "Progressivity gap = top-quartile tax share - top-quartile income share.",
+851: "Rank by income and take the top quartile.",
+855: "Using the top decile when the method uses the top quartile.",
+1327: "formula": "Parametric VaR = -(mu + z x sigma) at the declared confidence; historical VaR is the matching return quantile; CVaR is the average loss beyond it.",
+1931: "common_mistakes": ["Reporting the P80 as a guarantee rather than a sample percentile.",
+1932: "Changing the seed and presenting the new percentiles as the same result.",
+1985: "Run the simulation and read the mean, median, tenth and ninetieth percentiles, the range and the positive share.",
+1986: "Change the seed or an input to see how much the sample moves before relying on a percentile."],
+1987: "common_mistakes": ["Treating the P90 as a guarantee rather than a sample percentile.",
+2183: #: Period convention shown on the tile, so a per-period return is never read as annual.
+2229: #: Period convention for the Entrepreneurship tiles.  A monthly runway is never
+2280: #: Period convention for the Economics tiles.
+2331: #: Period convention for the Marketing tiles, so a monthly campaign figure is
+2612: #: The People shelf keeps every calculator in one tile, because a survey result
+2638: #: The tiles the People & organisation page shows, in the order a student meets
+2639: #: them.  A tile names the work it covers and what the student needs before
+2640: #: starting; a tile with nothing in it is shown empty and says so, because a
+2642: PEOPLE_TILES = [
+2655: "note": ("The catalogue holds no reward or job-evaluation framework, so this tile is empty by design and not "
+2665: # ---- Economics subject tiles -----------------------------------------------
+2666: #: The tiles the Economics page shows, in the order a student meets them.
+2667: #: A tile names the work it covers and what the student needs before starting;
+2668: #: a tile with nothing in it is shown empty and says so, because a missing
+2670: ECONOMICS_TILES = [
+2697: #: Which tile each Economics catalogue record belongs to.  A record
+2698: #: with no worksheet yet is shown in its tile as something to read and cite, not
+2708: #: Which tile each People worksheet and catalogue record belongs to.  A record
+2709: #: with no worksheet yet is shown in its tile as something to read and cite, not
+2716: # The change-and-organisation frameworks.  Each one keeps the tile its
+2726: #: The strategy shelf.  Five tiles group the frameworks a strategy paper reaches
+2729: STRATEGY_TILES = [
+2775: SUBJECT_TILES = {"people": PEOPLE_TILES, "economics": ECONOMICS_TILES,
+2776: "management": STRATEGY_TILES}
+2891: {"term": "Quintile score", "definition": "A one-to-five band given by ranking the customers in your own file into five equal-count groups; the top band is five, and recency is ranked in reverse."},
+3451: "break-even, plan the cash and the capital you must raise, then appraise the return. Each tile "
+3573: "guidance": ("Start with the tile that matches the decision. Strategy and design covers how the organisation "
+3576: "holds no reward or job-evaluation framework, and the tile says so rather than hiding it. "
+3581: "Open the tile that holds it and read what the framework needs before you start.",
+3587: "The reward tile is empty because no reward or job-evaluation framework is in the catalogue.",
+3730: def _tiles(definition, records, tools, sheets):
+3731: """The subject's tiles: the worksheets, records and calculators of each group.
+3733: A tile that has nothing in it is still returned, carrying the note that says
+3739: tiles = SUBJECT_TILES.get(subject_id)
+3740: if not tiles:
+3744: for tile in tiles:
+3746: "key": tile["key"], "label": tile["label"], "what": tile["what"],
+3747: "need": tile.get("need"), "note": tile.get("note"),
+3748: "worksheets": [sheet for sheet in sheets if sheet.get("group") == tile["key"]],
+3749: "tools": [tool for tool in tools if tool.get("group") == tile["key"]],
+3750: "records": [row for row in records if record_groups.get(row["id"]) == tile["key"]],
+3755: def _subject_definition(subject_id):
+3829: def detail(subject_id):
+3837: definition = _subject_definition(subject_id)
+3869: "tiles": _tiles(definition, records,
+3916: definition = _subject_definition(subject_id)
+4274: 'implementation_status': 'partial: quintile recency, frequency and monetary scores and the eleven named segments are '
+4280: 'status_note': 'partial: quintile recency, frequency and monetary scores and the eleven named segments are computed '

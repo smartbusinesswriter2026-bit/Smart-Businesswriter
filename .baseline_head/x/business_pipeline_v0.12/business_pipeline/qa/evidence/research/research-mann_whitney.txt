@@ -1,0 +1,42 @@
+Computation: mann whitney
+Result
+Group control has 5 valid observations with a median of 13.000, and group treated has 5 with a median of 19.000; 0 entries were excluded as missing. The Hodges-Lehmann estimate of the shift (control minus treated) is -6.000, with a confidence interval at level 95.00% from -9.000 to -3.000. The Mann-Whitney test gives a p-value of 0.0122. The rank-biserial correlation is -1.000, a large difference by the declared thresholds. At the declared significance level of 5.00% the difference is statistically significant. Statistical significance and practical importance are separate questions. Caution: the groups are small, so these estimates are imprecise and should be described, not generalized. A difference between groups does not show that group membership produces it; assignment and other differences between the groups were not assessed, and no causal claim is made. The interval and p-value are normal approximations with a continuity correction, and are less accurate for very small groups. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Groups: Control: 12, 15, 14, 10, 13; Treated: 18, 21, 19, 17, 20
+What was computed
+U stat: 0.000
+P value: 0.0122
+Rank biserial: -1.000
+Hl shift: -6.000
+Ci lower: -9.000
+Ci upper: -3.000
+N control: 5
+Median control: 13.000
+N treated: 5
+Median treated: 19.000
+N excluded: 0
+Confidence level: 0.95
+Alpha: 0.05
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Observations are independent.
+The two distributions have a similar shape if the shift is read as a median difference.
+Limitations
+Normal approximation; the interval method is [UNVERIFIED] against a published reference.
+No interval for the rank-biserial correlation.
+Groups need roughly four or more observations each for an interval.
+How the figures were checked
+Second implementation agrees.
+Interval is test inversion.
+Monotone transform keeps rank statistics.
+Swapping groups flips effect keeps p.
+Shift and scale behave.
+Row order invariant.
+Missing entries excluded not valued.
+Identical samples give no effect.
+Bounded and consistent.

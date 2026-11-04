@@ -1,0 +1,489 @@
+{
+ "base": "http://127.0.0.1:8003",
+ "checks": [
+  "PASS  page marker 'railSubject'",
+  "PASS  page marker 'markCurrentRailItem'",
+  "PASS  page marker 'activate(\"new\")'",
+  "PASS  page marker 'planbrief'",
+  "PASS  page marker 'function rubricNoteHtml'",
+  "PASS  page marker 'id=\"planrubricgate\"'",
+  "PASS  page marker 'Honesty: what was not done'",
+  "PASS  page marker 'Business plan'",
+  "PASS  no reviewer surface 'Reviewer name'",
+  "PASS  no reviewer surface 'Sign-off'",
+  "PASS  no reviewer surface 'Review status'",
+  "PASS  no reviewer surface 'pending_named_reviewer'",
+  "PASS  GET the shelf answers 200 with 46 tools, 5 worksheets, 6 records",
+  "PASS  the marketing plan is not offered on this shelf",
+  "PASS  marketsize       marketsize -> delivered",
+  "PASS  forecast         forecast -> delivered",
+  "PASS  demandcurve      demandcurve -> delivered",
+  "PASS  purchaseintent   purchaseintent -> delivered",
+  "PASS  funnel           funnel -> delivered",
+  "PASS  cohort           cohort -> delivered",
+  "PASS  concentration    concentration -> delivered",
+  "PASS  elasticity       elasticity -> delivered",
+  "PASS  descriptive      descriptive -> delivered",
+  "PASS  chi_square       chi_square -> delivered",
+  "PASS  power            power -> delivered",
+  "PASS  pricing          pricing -> delivered",
+  "PASS  breakeven        breakeven -> delivered",
+  "PASS  multibreakeven   multibreakeven -> delivered",
+  "PASS  unitecon         unitecon -> delivered",
+  "PASS  costcurves       costcurves -> delivered",
+  "PASS  marketpower      marketpower -> delivered",
+  "PASS  capacity         capacity -> delivered",
+  "PASS  inventory        inventory -> delivered",
+  "PASS  frommarket       frommarket -> delivered",
+  "PASS  proforma         proforma -> delivered",
+  "PASS  sensitivity      sensitivity -> delivered",
+  "PASS  ratios           ratios -> delivered",
+  "PASS  depreciation     depreciation -> delivered",
+  "PASS  salesprojection  salesprojection -> delivered",
+  "PASS  startupcapital   startupcapital -> delivered",
+  "PASS  cashrunway       cashrunway -> delivered",
+  "PASS  roi              roi -> delivered",
+  "PASS  tax              tax -> delivered",
+  "PASS  npv              npv -> delivered",
+  "PASS  irr              irr -> delivered",
+  "PASS  dpayback         dpayback -> delivered",
+  "PASS  projectmetrics   projectmetrics -> delivered",
+  "PASS  scenario         scenario -> delivered",
+  "PASS  trendanalysis    trendanalysis -> delivered",
+  "PASS  workingcapital   workingcapital -> delivered",
+  "PASS  captable         captable -> delivered",
+  "PASS  loan             loan -> delivered",
+  "PASS  dcf              dcf -> delivered",
+  "PASS  multiples        multiples -> delivered",
+  "PASS  equitybridge     equitybridge -> delivered",
+  "PASS  currency         currency -> delivered",
+  "PASS  sroi             sroi -> delivered",
+  "PASS  cba              cba -> delivered",
+  "PASS  costeffectiveness cea -> delivered",
+  "PASS  case_decision    case_decision -> delivered",
+  "PASS  the plan carries a Rubric coverage table before its references",
+  "PASS  a complete plan whose guide is satisfied has nothing missing",
+  "PASS  the plan export answers bytes",
+  "PASS  an unaddressed weighted criterion blocks the download and is named",
+  "PASS  the student may accept the gap",
+  "PASS  the accepted gap still downloads",
+  "PASS  the coverage table still names the accepted gap"
+ ],
+ "runs": [
+  {
+   "tool": "marketsize",
+   "preset": "marketsize",
+   "method": "market_sizing",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The declared market is 20,000 customers spending PHP 3,000.00 a year, a total addressable market of PHP 60,000,000.00",
+   "ok": true
+  },
+  {
+   "tool": "forecast",
+   "preset": "forecast",
+   "method": "trend_forecast",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The fitted linear trend on 12 observations has a slope of 1.003 per period and accounts for 0.930 of the variation in the series (0 entries excluded as missing)",
+   "ok": true
+  },
+  {
+   "tool": "demandcurve",
+   "preset": "demandcurve",
+   "method": "demand_curve",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Fitting quantity on price gives a slope of -12.0000 with an R-squared of 1.0000, so at the mean price of PHP 30.00 the elasticity is -1.2857",
+   "ok": true
+  },
+  {
+   "tool": "purchaseintent",
+   "preset": "purchaseintent",
+   "method": "purchase_intent",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Across 400 respondents, the declared weights give an intent rate of 33.75%",
+   "ok": true
+  },
+  {
+   "tool": "funnel",
+   "preset": "funnel",
+   "method": "sales_funnel",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "From 10,000 at the first stage to 500 customers at the last, the overall conversion is 5.00%, with 9,500 leaving the funnel along the way",
+   "ok": true
+  },
+  {
+   "tool": "cohort",
+   "preset": "cohort",
+   "method": "cohort_retention",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Across the declared cohorts, first-period retention is 100.00% and the average retention over the curve is 68.16%, giving an average lifetime of PHP 2.73 periods",
+   "ok": true
+  },
+  {
+   "tool": "concentration",
+   "preset": "concentration",
+   "method": "market_concentration",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Across 5 declared firms the HHI is 2,650 and the four-firm concentration ratio is 90.00",
+   "ok": true
+  },
+  {
+   "tool": "elasticity",
+   "preset": "elasticity",
+   "method": "elasticity",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Between the two declared observations the arc price elasticity of demand is -1.5000, with an absolute value of 1.5000",
+   "ok": true
+  },
+  {
+   "tool": "descriptive",
+   "preset": "descriptive",
+   "method": "descriptive_stats",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The dataset contains 6 valid observations, with 1 excluded as missing",
+   "ok": true
+  },
+  {
+   "tool": "chi_square",
+   "preset": "chi_square",
+   "method": "chi_square",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The table has 300 observations across 9 cells",
+   "ok": true
+  },
+  {
+   "tool": "power",
+   "preset": "power",
+   "method": "power_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At the stated effect the design has power 0.4757 against a declared alpha of 0.0500 (target power 0.8000)",
+   "ok": true
+  },
+  {
+   "tool": "pricing",
+   "preset": "pricing",
+   "method": "pricing_decision",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At a unit cost of PHP 15.00 and a declared markup of 60.00%, the cost-plus price is PHP 24.00",
+   "ok": true
+  },
+  {
+   "tool": "breakeven",
+   "preset": "breakeven",
+   "method": "breakeven",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At a contribution margin of 10.00 per unit, the business breaks even at 100.00 units, or 2,000.00 of sales",
+   "ok": true
+  },
+  {
+   "tool": "multibreakeven",
+   "preset": "multibreakeven",
+   "method": "multi_product_breakeven",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The mix-weighted contribution margin is 3.0000, so break-even needs 2,000.00 units in total and revenue of USD 10,500.00 at the declared mix",
+   "ok": true
+  },
+  {
+   "tool": "unitecon",
+   "preset": "unitecon",
+   "method": "unit_economics",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The unit contribution margin is USD 37.00 (a margin rate of 75.51%), and payback takes 2.162 periods",
+   "ok": true
+  },
+  {
+   "tool": "costcurves",
+   "preset": "costcurves",
+   "method": "cost_curves",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At a quantity of 20.00, average cost is PHP 70.00, average variable cost is PHP 20.00 and marginal cost is PHP 30.00",
+   "ok": true
+  },
+  {
+   "tool": "marketpower",
+   "preset": "marketpower",
+   "method": "market_power",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At a price of PHP 50.00 and a marginal cost of PHP 20.00, the markup is PHP 30.00 and the Lerner index is 0.6000",
+   "ok": true
+  },
+  {
+   "tool": "capacity",
+   "preset": "capacity",
+   "method": "capacity_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The process capacity is 60.00 units, set by the bottleneck resource at position 2",
+   "ok": true
+  },
+  {
+   "tool": "inventory",
+   "preset": "inventory",
+   "method": "inventory_policy",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At an annual demand of 12,000.00, an order cost of PHP 500.00 and a holding cost of PHP 30.00 a unit, the economic order quantity is 632.46, ordered 18.97 times a year at a total c",
+   "ok": true
+  },
+  {
+   "tool": "frommarket",
+   "preset": "frommarket",
+   "method": "sales_from_market",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "A declared 3.00% share of a PHP 60,000,000.00 market gives revenue of PHP 1,800,000.00, or 15,000.00 units at PHP 120.00",
+   "ok": true
+  },
+  {
+   "tool": "proforma",
+   "preset": "proforma",
+   "method": "proforma_statements",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Across the declared periods, revenue totals PHP 4,500,000.00 and net income totals PHP 360,000.00, closing with cash of PHP 337,671.23 and equity of PHP 610,000.00",
+   "ok": true
+  },
+  {
+   "tool": "sensitivity",
+   "preset": "sensitivity",
+   "method": "sensitivity_table",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At the declared base case the profit is PHP 350,000.00; the table reports profit for each declared price and volume change",
+   "ok": true
+  },
+  {
+   "tool": "ratios",
+   "preset": "ratios",
+   "method": "ratio_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The analysis computes 15 financial-statement ratios from the figures supplied",
+   "ok": true
+  },
+  {
+   "tool": "depreciation",
+   "preset": "depreciation",
+   "method": "depreciation_schedule",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Depreciation on a cost of PHP 500,000.00 to a salvage value of PHP 50,000.00 over 5 periods totals PHP 450,000.00, leaving a carrying amount of PHP 50,000.00",
+   "ok": true
+  },
+  {
+   "tool": "salesprojection",
+   "preset": "salesprojection",
+   "method": "sales_projection",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Starting from 300.00 units at PHP 120.00 and growing at 5.00% a period, the projection covers 12 periods, with total revenue of PHP 573,016.55 and total profit of PHP 166,383.97",
+   "ok": true
+  },
+  {
+   "tool": "startupcapital",
+   "preset": "startupcapital",
+   "method": "startup_capital",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The set-up costs of PHP 350,000.00 plus working capital of PHP 120,000.00 give a contingency reserve of PHP 47,000.00 and a total funding requirement of PHP 517,000.00",
+   "ok": true
+  },
+  {
+   "tool": "cashrunway",
+   "preset": "cashrunway",
+   "method": "cash_runway",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "With PHP 300,000.00 of opening cash and a monthly net cash flow of PHP (40,000.00), the runway is 7.50 months",
+   "ok": true
+  },
+  {
+   "tool": "roi",
+   "preset": "roi",
+   "method": "return_on_investment",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "A net gain of PHP 125,000.00 on an investment of PHP 500,000.00 gives a return on investment of 25.00%",
+   "ok": true
+  },
+  {
+   "tool": "tax",
+   "preset": "tax",
+   "method": "tax_declared",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "On taxable income of PHP 1,000,000.00 at a declared rate of 25.00%, the income tax is PHP 250,000.00 and the after-tax income is PHP 750,000.00",
+   "ok": true
+  },
+  {
+   "tool": "npv",
+   "preset": "npv",
+   "method": "npv",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Under the stated assumptions, the npv is USD (5.26)",
+   "ok": true
+  },
+  {
+   "tool": "irr",
+   "preset": "irr",
+   "method": "irr",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The internal rate of return is 21.86%: the discount rate at which the declared cash flows have a net present value of zero (the residual value at that rate is 0.00)",
+   "ok": true
+  },
+  {
+   "tool": "dpayback",
+   "preset": "dpayback",
+   "method": "discounted_payback",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The discounted cash flows recover the initial outlay after USD 3.02 periods (during period 4), and the net present value over the whole horizon is USD 267.95",
+   "ok": true
+  },
+  {
+   "tool": "projectmetrics",
+   "preset": "projectmetrics",
+   "method": "project_metrics",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The project's net present value is USD 267.95 and its profitability index is 1.2679, with a modified internal rate of return of USD 0.16 and an equivalent annual annuity of USD 84.",
+   "ok": true
+  },
+  {
+   "tool": "scenario",
+   "preset": "scenario",
+   "method": "scenario_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The base-case net present value is USD 267.95",
+   "ok": true
+  },
+  {
+   "tool": "trendanalysis",
+   "preset": "trendanalysis",
+   "method": "trend_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Over the declared periods revenue grew at a compound rate of 10.00%, with the latest period 10.00% above the previous one and an index of 133.1000 against the base period",
+   "ok": true
+  },
+  {
+   "tool": "workingcapital",
+   "preset": "workingcapital",
+   "method": "working_capital",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The cash conversion cycle is 36.5 days (27.4 receivable days, 36.5 inventory days and 27.4 payable days)",
+   "ok": true
+  },
+  {
+   "tool": "captable",
+   "preset": "captable",
+   "method": "cap_table_round",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At a pre-money valuation of PHP 4,000,000.00 and an investment of PHP 1,000,000.00, the post-money valuation is PHP 5,000,000.00 at PHP 4.00 a share",
+   "ok": true
+  },
+  {
+   "tool": "loan",
+   "preset": "loan",
+   "method": "loan_amortization",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The level payment is USD 4,151.67 over 60 payments, so the total paid is USD 249,100.26 and the total interest is USD 49,100.26",
+   "ok": true
+  },
+  {
+   "tool": "dcf",
+   "preset": "dcf",
+   "method": "dcf_valuation",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The present value of the explicit forecast is USD 401,133.80, and the present value of the terminal value is USD 1,349,805.34 (a terminal share of 0.771), giving an enterprise valu",
+   "ok": true
+  },
+  {
+   "tool": "multiples",
+   "preset": "multiples",
+   "method": "multiples_valuation",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Across the declared comparables the mean multiple is 10.0000 (median 10.0000), which implies an enterprise value of USD 5,000,000.00 and an equity value of USD 4,700,000.00",
+   "ok": true
+  },
+  {
+   "tool": "equitybridge",
+   "preset": "equitybridge",
+   "method": "equity_bridge",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The enterprise value is USD 1,750,939.14; subtracting net debt of USD 150,000.00 and the declared minority and preferred claims gives an equity value of USD 1,570,939.14",
+   "ok": true
+  },
+  {
+   "tool": "currency",
+   "preset": "currency",
+   "method": "currency_convert",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At the declared rate, an amount you declared in the source currency converts to EUR 920.00",
+   "ok": true
+  },
+  {
+   "tool": "sroi",
+   "preset": "sroi",
+   "method": "sroi",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The present value of the declared benefits is USD 69,014.57 against an investment of USD 60,000.00, a social return of 1.150 per unit invested",
+   "ok": true
+  },
+  {
+   "tool": "cba",
+   "preset": "cba",
+   "method": "cost_benefit",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Over 3 periods the present value of benefits is USD 80,812.01 against present-value costs of USD 65,327.72, a net present value of USD 15,484.29",
+   "ok": true
+  },
+  {
+   "tool": "costeffectiveness",
+   "preset": "cea",
+   "method": "cost_effectiveness",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Compared with the first-listed option, the analysis reports 2 options with an incremental cost per unit of effect for each non-comparator",
+   "ok": true
+  },
+  {
+   "tool": "case_decision",
+   "preset": "case_decision",
+   "method": "case_decision",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "This case comparison covers 2 alternatives you supplied, each citing the case facts it follows from (2 facts in total)",
+   "ok": true
+  }
+ ],
+ "failures": []
+}

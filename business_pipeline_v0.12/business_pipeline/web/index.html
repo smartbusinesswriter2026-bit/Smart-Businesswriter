@@ -699,7 +699,11 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 /* ---------- business calculator shell (display + keypad) ---------- */
 .calcgrid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:18px;align-items:start;margin-top:6px}
 @media (max-width:980px){.calcgrid{grid-template-columns:1fr}}
-.calcgrid > div:first-child { position: sticky; top: 70px; }
+/* Keep the calculator shell pinned in place while the student works through a
+   tall form (common-size and trend has several input rows) and scrolls the
+   result. It clears the 56 px top bar and only applies on the wide two-column
+   layout; on narrow screens the shell stacks and scrolls with the page. */
+.calcgrid > div:first-child { position: sticky; top: 60px; }
 .calcdisplay{border:1px solid var(--navy-300);background:linear-gradient(180deg,#FBFDFF,#F3F7FB);border-radius:var(--r-md);
              padding:12px 14px;}
 .calcdisplay .line{font-family:var(--mono);font-size:16.6px;line-height:1.6;white-space:pre-wrap;min-height:66px}
@@ -1331,21 +1335,18 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <div class="row" style="justify-content:space-between;align-items:flex-start;gap:14px">
           <div>
             <h2 id="statements-title" style="margin:0">Financial statements</h2>
-            <p class="sub" style="margin:4px 0 0">Paste a trial balance &mdash; one account per line, as
-              &ldquo;Cash 5,000&rdquo; or &ldquo;Capital 5,000 Cr&rdquo; &mdash; and the tile does the bookkeeping and shows the
-              statements with the working behind one toggle.</p>
           </div>
           <div class="row" style="gap:8px;align-items:center;justify-content:flex-end">
             <span class="badge mute" id="statementsbadge" hidden></span>
-            <button class="btn sm" id="statementsback" type="button">Back to the shelf</button>
           </div>
         </div>
-        <label class="field" for="statementsinput">Your trial balance &mdash; one account per line, with its debit or credit</label>
-        <textarea id="statementsinput" rows="7" spellcheck="false" placeholder="The following trial balance was extracted at 31 December 2026.&#10;Cash 7,000&#10;Capital 7,000"></textarea>
+        <label class="field" for="statementsinput">Describe the financial statements problem — paste the case, instruction, or trial balance</label>
+        <textarea id="statementsinput" rows="7" spellcheck="false" placeholder="Paste your financial statements case or instruction here (trial balance, adjustments, etc.)"></textarea>
         <div class="row" style="margin-top:10px">
           <button class="btn primary" id="statementsgo" type="button">Solve it</button>
-          <button class="btn" id="statementsdemo" type="button">Use an example</button>
-          <span class="muted">One instruction, no fields to fill, and no totals to balance yourself.</span>
+          <button class="btn" id="statementsdemo" type="button">Instruction file</button>
+          <button class="btn" id="statementsdata" type="button">Data file (xls, csv, etc)</button>
+          <button class="btn" id="statementsclear" type="button">Clear</button>
         </div>
         <div id="statementsout"></div>
       </div>
@@ -5690,7 +5691,10 @@ function calcSchema(tool) {
   return (m && m.input_schema) || {};
 }
 function calcFitOf(tool) {
-  if (tool.kind === "worksheet" || tool.method === "management_accounts") return "C";
+  if (tool.kind === "worksheet") return "C";
+  // management_accounts runs the same frozen ledger kernel as any other
+  // method: its single `spec` (engagement_spec) input is a JSON declaration,
+  // so it fits the "takes a list / JSON form" path and can be calculated.
   const schema = calcSchema(tool);
   const keys = Object.keys(schema);
   if (!keys.length) return "A";
@@ -10062,6 +10066,16 @@ if (new URLSearchParams(location.search).get("pricing")) {
         if (!f) { return; }
         f.value = EXAMPLE;
         f.focus();
+      };
+    }
+    var clear = document.getElementById("statementsclear");
+    if (clear) {
+      clear.onclick = function () {
+        var f = field();
+        if (f) { f.value = ""; }
+        var host = out();
+        if (host) { host.innerHTML = ""; }
+        if (f) { f.focus(); }
       };
     }
     var back = document.getElementById("statementsback");

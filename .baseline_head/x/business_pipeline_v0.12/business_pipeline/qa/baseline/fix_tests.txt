@@ -1,0 +1,12 @@
+﻿            )
+E           AssertionError: 2902 != 2904 : docs/HOME.md says 2902 tests, but the suite holds 2904 tests
+
+tests\test_docs_sync.py:212: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_subject_economics_acceptance.py::EconomicsCrossCutting::test_E_eco_060__no_report_prints_a_raw_decimal_or_scientific_notation
+FAILED tests/test_docs_sync.py::DocsStateSyncTest::test_documented_test_count_matches_the_real_suite
+2 failed, 91 passed in 6.36s
+  advanced     2
+missing student notes or group: none
+glossary terms: 34
+frozen fixture: in sync

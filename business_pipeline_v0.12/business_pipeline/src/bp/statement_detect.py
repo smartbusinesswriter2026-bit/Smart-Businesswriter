@@ -134,7 +134,7 @@ def _validate_slot(slot: Slot, raw: Any) -> Any:
 # ---------------------------------------------------------------------------
 
 DETECTORS: List[Detector] = [
-    Detector("equity_issuance_cash", r"(?:invested|issued)\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+cash\s+(?:in\s+the\s+business\s+)?(?:in\s+exchange\s+for\s+)?(?:common\s+)?(?:shares?|stock)|(?:issued|invested)\s+(?P<shares>[\d,]+)?\s*(?:common\s+)?(?:shares?|stock)\s*(?:for\s+)?cash[, ]*\$?(?P<amount2>[\d,]+(?:\.\d+)?)", 80,
+    Detector("equity_issuance_cash", r"(?:invested|issued)\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+cash\s+(?:in\s+the\s+business\s+)?(?:(?:in\s+exchange\s+|)for\s+)?(?:common\s+)?(?:shares?|stock)|(?:issued|invested)\s+(?P<shares>[\d,]+)?\s*(?:common\s+)?(?:shares?|stock)\s*(?:for\s+)?cash[, ]*\$?(?P<amount2>[\d,]+(?:\.\d+)?)", 80,
              [Slot("shares", "int", required=False, default=None), Slot("amount", "money", required=False, default=None),
               Slot("amount2", "money", required=False, default=None)]),
     Detector("loan_proceeds", r"borrowed\s+\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+from the bank", 80,
@@ -219,6 +219,18 @@ DETECTORS: List[Detector] = [
              [Slot("amount", "money")]),
     Detector("salaries_payment", r"(?:incurred\s+)?\$?(?P<amount>[\d,]+(?:\.\d+)?)\s+in\s+salaries?\s+expense,?\s+paid\s+in\s+cash|paid\s+\$?(?P<amount2>[\d,]+(?:\.\d+)?)\s+cash\s+salaries?", 80,
              [Slot("amount", "money", required=False, default=None), Slot("amount2", "money", required=False, default=None)]),
+    Detector("bonus_issue", r"bonus\s+issue\s+1-for-(\d+)", 90,
+             [Slot("ratio", "int")]),
+    Detector("share_options", r"share options?\s+(\d+)\s+with exercise price\s+\$?([\d,]+(?:\.\d+)?)\s+and average market price\s+\$?([\d,]+(?:\.\d+)?)", 90,
+             [Slot("count", "int"), Slot("exercise_price", "money"), Slot("market_price", "money")]),
+    Detector("convertible_bonds", r"convertible bonds?\s+([\d,]+(?:\.\d+)?)\s+at\s+([\d,]+(?:\.\d+)?)%[,\s]*\s*convertible into\s+(\d+)\s+ordinary shares?", 90,
+             [Slot("face_value", "money"), Slot("rate", "percent"), Slot("shares", "int")]),
+    Detector("preference_dividends", r"preference dividends?\s+\$?([\d,]+(?:\.\d+)?)", 90,
+             [Slot("amount", "money")]),
+    Detector("profit_from_continuing_operations", r"profit from continuing operations\s+\$?([\d,]+(?:\.\d+)?)", 90,
+             [Slot("amount", "money")]),
+    Detector("loss_from_discontinued_operations", r"loss from discontinued operations\s+\$?([\d,]+(?:\.\d+)?)", 90,
+             [Slot("amount", "money")]),
 ]
 
 
@@ -327,12 +339,35 @@ def _lines(*pairs):
     return list(pairs)
 
 
+def _amount(slots: Dict[str, Any], *names: str):
+    """The figure a detection carries.
+
+    Some detectors read the amount from one of two wordings - "incurred 8,000 in
+    salaries expense, paid in cash" and "paid 8,000 cash salaries" - and the wording
+    that matched decides which slot holds it.  A template that reached for the first
+    slot alone posted a journal entry with no amount at all, and the posting died on
+    a conversion error instead of being named and skipped.  The slot that is filled
+    wins.
+    """
+    for name in names:
+        value = slots.get(name)
+        if value is not None:
+            return value
+    raise DetectError("the detection carries no amount")
+
+
+def _simple_entry(dr_account: str, cr_account: str, slots: Dict[str, Any], *amount_slots: str):
+    """A balanced two-line journal entry, using whichever amount slot was filled."""
+    amount = _amount(slots, *amount_slots)
+    return [(dr_account, "Dr", amount), (cr_account, "Cr", amount)]
+
+
 TEMPLATES: Dict[str, Callable[[Dict[str, Any]], List[Tuple[str, str, Any]]]] = {
-    "equity_issuance_cash": lambda s: [("1000", "Dr", s["amount"]), ("3000", "Cr", s["amount"])],
+    "equity_issuance_cash": lambda s: _simple_entry("1000", "3000", s, "amount", "amount2"),
     "loan_proceeds": lambda s: [("1000", "Dr", s["amount"]), ("2100", "Cr", s["amount"])],
     "ppe_purchase": lambda s: [(s.get("asset_account", "1500"), "Dr", s["amount"]),
                                ("1000", "Cr", s["amount"])],
-    "inventory_purchase": lambda s: [("1200", "Dr", s["amount"]), ("2000", "Cr", s["amount"])],
+    "inventory_purchase": lambda s: _simple_entry("1200", "2000", s, "amount", "amount2"),
     "freight_in": lambda s: [("1200", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
     "freight_out": lambda s: [("6900", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
     "cash_sale": lambda s: [("1000", "Dr", s["amount"]), ("4000", "Cr", s["amount"])],
@@ -342,19 +377,19 @@ TEMPLATES: Dict[str, Callable[[Dict[str, Any]], List[Tuple[str, str, Any]]]] = {
     "interest_payment": lambda s: [("7100", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
     "unearned_revenue_receipt": lambda s: [("1000", "Dr", s["amount"]), ("2400", "Cr", s["amount"])],
     "accrued_expense": lambda s: [("6700", "Dr", s["amount"]), ("2300", "Cr", s["amount"])],
-    "dividends": lambda s: [("3200", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
+    "dividends": lambda s: _simple_entry("3200", "1000", s, "amount", "amount2"),
     "physical_count": lambda s: [],  # given fact, no JE
     "sales_return": lambda s: [("4100", "Dr", s["amount"]), ("1100", "Cr", s["amount"])],
     "sales_discount": lambda s: [("4200", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
     "asset_disposal": lambda s: [("1000", "Dr", s["amount"]), ("1500", "Cr", s["amount"])],
     "unearned_earned": lambda s: [("2400", "Dr", s["amount"]), ("4000", "Cr", s["amount"])],
     "accrued_revenue": lambda s: [("1150", "Dr", s["amount"]), ("4000", "Cr", s["amount"])],
-    "bad_debt": lambda s: [("6700", "Dr", s["amount"]), ("1300", "Cr", s["amount"])],
+    "bad_debt": lambda s: [("6700", "Dr", s["amount"]), ("1310", "Cr", s["amount"])],
     "warranty": lambda s: [("6800", "Dr", s["amount"]), ("2500", "Cr", s["amount"])],
     "depreciation_sl": lambda s: _dep_lines(s),
     "rent_payment": lambda s: [("6200", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
     "utilities_payment": lambda s: [("6250", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
-    "salaries_payment": lambda s: [("6100", "Dr", s["amount"]), ("1000", "Cr", s["amount"])],
+    "salaries_payment": lambda s: _simple_entry("6100", "1000", s, "amount", "amount2"),
 }
 
 
@@ -448,10 +483,13 @@ def journalize(detector_id: str, slots: Dict[str, Any],
     if detector_id not in TEMPLATES:
         raise DetectError(f"no template for detector {detector_id!r}")
     lines = TEMPLATES[detector_id](slots)
-    # balance check
-    dr = sum((ln[2] for ln in lines if ln[1] == "Dr"), start=0) if False else None
-    # decimal-safe sum below; these two lines are placeholders
-    # decimal-safe sum:
+    # A line with no amount is a gap, and a gap is named rather than posted.
+    # It must not reach the decimal sums below: a missing figure there raised a
+    # conversion error that nothing in the tile could catch, so the whole answer
+    # died instead of this one entry being skipped.
+    for acct, side, amt in lines:
+        if amt is None:
+            raise DetectError(f"template {detector_id!r} has a line with no amount")
     from decimal import Decimal as D
     debits = sum((D(str(ln[2])) for ln in lines if ln[1] == "Dr"), D(0))
     credits = sum((D(str(ln[2])) for ln in lines if ln[1] == "Cr"), D(0))

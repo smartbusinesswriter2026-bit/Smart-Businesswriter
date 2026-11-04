@@ -1,0 +1,1991 @@
+- 1.98 (2026-11-04): **the statements workbook is a workbook now: one typed sheet per requested statement, then the working papers, then the notes.** The Excel export was a screenshot of text — one string per line in a single sheet, every amount stored as text, and the statement of changes in equity missing altogether. It is now a real spreadsheet, built by hand from the frozen record with `zipfile` and XML, and it presents only what the record holds.
+
+  - **`_accounting_rows()` in `src/bp/product/spreadsheets.py` is replaced.** One sheet per requested statement (`Income statement`, `Changes in equity`, `Balance sheet`, `Cash flow`), then `Working`, then `Notes`. The label is in column A and the amount is a **number** in column B, right-aligned; detail rows indent one level, group headings are bold, subtotals are bold with a top rule and totals bold with a double bottom rule; a blank row separates sections and never separates a subtotal from its total; the header row is frozen, column A is as wide as its longest label, and no cell is merged. The amount format follows the record's decimal places (`#,##0.00;(#,##0.00)` — a negative in parentheses, the record's own convention). The case sheets (the artifact table, the report) keep the stored strings, because those values are not all numbers.
+  - **The statement of changes in equity is a sheet.** It is built from `appendix["equity_statement"]` — per account, the opening balance, each movement with its kind and what it was, and the closing balance — so a reader can check opening + movements = closing line by line. The roll is not reconstructed from the balance sheet.
+  - **The Working sheet** carries the journal (date, description, account, debit, credit), the trial balance (account, debit, credit, totals), the checks (name, PASS/FAIL, detail), the cash-flow reconciliation and the reconciliation statement when the record carries one. A cash flow the record withheld is not a sheet, and the working papers say why, in the record's words. The journal's hashes and entry markers are the system's, not the student's, and are not written (B-199).
+  - **The Notes sheet** is the record's notes text, verbatim.
+  - **The request decides the sheets.** The appendix carries the request's audit trail (`requested`, `hidden`, and the reason a cash flow was withheld), because the workbook is built from the appendix alone; a statement that was computed but not asked for is not a sheet, and an income-statement-only request produces exactly one statement sheet.
+  - **The record now carries three typed blocks the renderer needs — a computation-lane carry, named here.** (1) `appendix["income_groups"]` holds the income statement's lines and totals **by the chart's statement line**. They already existed, but only as text: the record's "Operating expenses 67,500" was a line of the rendered statement, never a value, so a renderer could only have produced it by summing the accounts above — an invented figure. `ledger.income_groups()` now carries what `report.income_statement` already printed, and `report.income_statement` reads its totals from it, so the figure is computed once. (2) `appendix["engagement"]` holds the period, the currency and the places. (3) `appendix["cash_flow"]` holds `opening_cash` and `closing_cash`. No figure changed, no check was loosened, and the statement texts are byte-identical.
+  - **The fixture is regenerated** (`python qa/manual/make_statements_fixture.py`): the pipeline changed intentionally, so the record's `plan_hash` moved. The frozen record now carries the blocks above.
+  - **Verified.** `tests.test_statements_render_contract` → **13 tests, OK**; `tests.test_product_boundary` → OK; `qa/manual/demo_statements_workbook.py` reads the workbook back through `tests/xlsx_read.py` and proves the acceptance list end to end: typed cells on every statement sheet, the income statement foots to the record's net income, the balance sheet balances, the three cash-flow reconciliations hold, a withheld cash flow is absent with its reason on the working sheet, an IS-only request gives one statement sheet, two exports are byte-identical, and **no figure on any sheet is a figure the record does not hold**.
+
+- 1.97 (2026-11-04): **the render lane gets a frozen record and a read-back harness.** The design lane builds the statements workbook next, and it must not build against a moving target. (1) **`tests/fixtures/statements-record.json`** is one solved engagement with all four statements rendered (income statement, changes in equity, balance sheet, cash flow), net income 52,575, total assets 178,100, cash flow 104,600 across operating/investing/financing, and all eleven core checks passing. It is built deterministically from the hand-derived golden engagement in `tests/test_statement_plan.py` through the real plan layer, with the model's extraction step stubbed by the declared journal — no key, no network, no clock. (2) **`tests/product_statements_fixture.py`** builds it and exposes `typed_numbers()`, the set of figures the record holds as values (text renderings excluded), which is what a renderer's cells are checked against. (3) **`qa/manual/make_statements_fixture.py`** regenerates the fixture; the contract test fails when the regenerated record differs, so an unintended pipeline change cannot be absorbed silently. (4) **`tests/xlsx_read.py`** unzips a workbook and returns its sheets as rows of cells (inline strings, shared strings, numeric cells), with `line_value()`/`statement_rows()`/`numbers_in_text()` for assertions. (5) **`tests/test_statements_render_contract.py`** (13 tests) proves the fixture is a complete full request, all checks pass, the three cash-flow reconciliations hold, retained earnings rolls forward, two exports are byte-identical, and **every figure in a workbook produced from the record is a figure the record holds** — the test that catches a renderer inventing a total. (6) **A finding, not fixed here:** the current Excel export omits the statement of changes in equity, because it copies `statements_export` (which carries the other three) and the equity text lives in `appendix.equity_statement_export`. `tests/test_statements_render_contract.py` names it and `docs/MINIMAX_STATEMENT_RENDER.md` adds the sheet to the brief. Suite count 3708.
+
+- 1.96 (2026-11-04): **the Financial statements tile renders only the statements the request names, while always computing the full ledger (Tip 3 and Tip 4).** Compute scope and output scope are now separate: a "balance sheet only" request still computes the income statement and the equity roll, and the record says so. The income statement is the only statement that stands alone; a balance sheet drags in net income and retained earnings; a cash-flow request drags in the whole stack.
+
+  - **`dependency_closure()` / `classify()` in `src/bp/statement_plan.py`.** A declared projection graph (`IS` -> `RE` -> `BS` -> `CF`) gives the topologically ordered set that must be computed, and `classify()` names the four request shapes: full-compute-partial-render, standalone IS, requires-full-ledger, requires-plugs.
+  - **`present(result, problem_type, requested)` is now scoped.** The core still produces every statement; the record carries only the requested ones. The cash-flow rule is unchanged and now request-gated: it is shown only for a transactions problem and only when asked for, and a withheld cash flow carries its reason.
+  - **The record carries the audit trail.** `requested`, `computed` and `hidden` sit beside `statements`: a BS-only record reports `computed: ["IS", "RE", "BS"]` and `hidden: ["IS", "RE"]`, so "where did retained earnings come from" has an answer. `warnings` names a withheld statement.
+  - **`wants_statements()` reads the request from the instruction**, like `wants_ratios()`. Detection is conservative: a mention is not a request. A statement counts when its clause carries a limiting word ("only", "just", "skip", "don't show", "without") or a directive verb ("prepare", "show", "give me"). An explicit `statements` parameter wins, and accepts `IS/RE/BS/CF` or the record keys (`income_statement`, `balance_sheet`, `cash_flow`).
+  - **`verify_output()` in `statements_verify.py`** checks the record against the request: every requested statement is present, nothing unrequested leaked in, and a withheld cash flow has its reason. A single-statement record is complete when that one statement is present. `_record()` refuses to freeze a record that fails it.
+  - **Export can be one statement.** `POST /api/cases/statements/{id}/export` accepts `{"statement": "BS"}` and returns only that statement, with a named file; a statement the record did not render is a 409 that lists what it did render.
+  - **The boundary violation from 1.88 is fixed.** `statements.py` no longer imports `bp.*` anywhere: the plan layer's `extract`/`build` are injected by `bp.server` alongside the rest of the core. This repairs five red boundary/scope tests that were failing at HEAD.
+  - **A substantive plan refusal is final, and a missing model is not.** `NoModel` separates "nothing is configured" (try the next reader) from "this amount is not in the instruction" (refuse, never retry elsewhere), and a `StatementRefused` (two periods, two entities, a consolidation) is no longer softened into "the reading failed".
+
+- 1.95 (2026-11-04): **the golden suite grows to twenty cases.** Six new cases: reducing-balance depreciation in a full engagement, units-of-production depreciation, bad debt expense with a dividend, two prepaids, accrued interest with a loss, and a half-year/pro-rata mix. Every case asserts all three articulation identities. Tip 1's "build ten or twenty of these with different features ... run them on every change" is now satisfied.
+
+- 1.94 (2026-11-04): **tax benefit on a loss is now a registered adjustment.** `tax_benefit_on_loss` computes `-pretax x rate` when pretax is negative and zero otherwise, and is grounded, validated and named in the extraction prompt. The registry now holds nine functions. Two new tests.
+
+- 1.93 (2026-11-04): **the golden suite grows to thirteen cases.** Six new cases exercise reducing-balance depreciation, units-of-production depreciation, bad debt expense, a prior period carrying forward (opening balances tie to prior closing), a no-adjustment engagement, and the half-year convention. Every case asserts all three articulation identities. Tip 1's "build golden test cases ... run them on every change" now has breadth, not just the base case.
+
+- 1.92 (2026-11-04): **bad debt expense under the percentage-of-receivables method is now a registered adjustment.** `bad_debt_expense` computes `receivables x rate - prior_allowance`, clamped at zero, and is grounded, validated and named in the extraction prompt like every other function. The registry now holds seven functions. Two new tests.
+
+- 1.91 (2026-11-04): **two more depreciation methods are registered: reducing-balance and units-of-production.** The registry now holds six functions (straight-line, reducing-balance, units-of-production, prepaid amortization, periodic COGS, tax on pre-tax income). Reducing-balance defaults to the double-declining rate (2 / life) when no rate is declared, accepts a declared rate and an accumulated balance for later periods, and never goes below zero. Units-of-production prorates (cost - residual) by the units of this period over total estimated units. Both are grounded in the same parameters the text states, and both refuse binary floats and negative inputs. The prompt names both, with their parameters. Five new tests.
+
+- 1.90 (2026-11-04): **two display defects in the statements record are fixed: ratios no longer print at 28 decimals, and brought-forward retained earnings is named instead of "other".** The case study (`qa/manual/statements-case-study.md`) recorded both. (1) `ratio_pack` now quantises each computed ratio to the precision the method declares (3 dp for ratios, 1 dp for days) - the browser never rounds, so the fix belongs where the record is packed. (2) `_equity_kind` now returns "brought forward" for a non-closing, non-dividend movement into a retained-earnings account instead of the honest-but-unhelpful "other". (3) `report.statement_of_equity` widens the description column from 34 to 60 characters so a closing entry's description is no longer truncated mid-word ("retained earnin"). All three are presentation-adjacent but are in `src/**` because that is where the record and the report are produced.
+
+- 1.89 (2026-11-04): **the tile now derives the adjusting entries, not only the stated ones.** `statement_extract` now emits adjustment specs as well as journal entries: the model identifies the parameters (cost, life, convention, prepaid payment and months, inventory counts, tax rate) and names the function; the validator refuses any parameter that is not in the source text unless it is a declared default (residual 0, beginning inventory 0, total months 12). `to_policy` normalises the flat `depreciation_convention` a model may emit into the nested shape. The adjustment DAG then computes the amounts and posts them; a tax adjustment is settled in the second pass. This has been run once on a synthetic 11-clause problem and produced depreciation 12,000, prepaid 5,500, COGS 60,000 and tax 17,400 on a pre-tax income of 69,600, with all eleven checks passing. It is not tuned across many problems.
+
+- 1.88 (2026-11-04): **the Financial statements tile now reads a transaction narrative, not only a trial balance.** `solve()` used to raise on anything the deterministic parser refused (a narrative, an adjustments sentence, an exam question with a preamble). It now falls through to the plan layer: the model extracts the journal, the ledger posts it, and the three articulation identities decide whether the record is allowed out. A pasted assignment ("started the business with 20,000 cash; sold 9,500 for cash; paid rent 1,200 and salaries 2,400") now returns a full statement set with net income 5,900, assets 25,900 and cash 22,900, all eleven checks passing. Adjusting entries (prepaids, depreciation, COGS, tax) are still not derived and are named in the record's `missing` - that is the next increment.
+
+  - **`_solve_narrative` in `src/bp/product/statements.py`** (new). It borrows the default chart from `bp.statement_plan.DEFAULT_CHART`, extracts with `statement_extract.extract` (consent-gated, grounded), compiles a plan with the extracted entries and no adjustments, and builds through `statement_plan.build`. The record carries `reading_source: "plan"` and names the missing adjustments.
+  - **`solve()` now rescues a `StatementRefused` too.** The deterministic reader raised it for two figures on one line or two periods; those are exactly the cases the narrative path can handle, so they now fall through instead of dying. A genuinely unworkable input still raises.
+  - **`statement_plan.build` returns `spec`.** The compiled engagement spec now travels on the result, so the product layer can freeze the same record shape the tile already renders.
+  - **`_models_for_extraction()`** (new) uses `bp.llm.from_env()` and falls back to `DEEPSEEK_API_KEY` directly, so the tile works wherever a key exists.
+  - **Verified live** on a synthetic narrative: five grounded entries, posted, net income 5,900, assets 25,900, cash 22,900, all three identities true. No 5xx anywhere on the path.
+  - **Still not done, and named:** adjusting-entry derivation (prepaid amortization, depreciation, COGS, tax) from the text; multi-period and consolidated statements; the tile copy in `subjects.py` still says "the question as you were given it" (that file is another lane's, and is not touched here). Build version moved to 1.88.
+
+- 1.87 (2026-11-04): **the two owner tips become a generic layer: a model reads language, code does arithmetic, and three identities decide whether a statement is allowed out.** The Financial statements tile could prepare statements from a trial balance and nothing else, because the reading layer only parsed one. The owner's tips say where the missing capability actually lives — not in a larger prompt, and not in the page, but in a split of responsibility — and this build makes that split executable.
+
+  - **`src/bp/statement_plan.py` (new).** A plan is data: a chart (`account`), a policy registry (`POLICY_DEFAULTS`, `validate_policy`), journal entries (`validate_entries`, which uses the ledger's own balance rule), and adjustments that name a **registered function** and two accounts. `Node`/`toposort`/`evaluate` give a deterministic adjustment DAG with `$ref` dependencies and a cycle refusal; the registry holds `straight_line_depreciation` (with `full_year` / `half_year` / `pro_rata` conventions), `prepaid_amortization`, `periodic_cogs` and `tax_on_pretax`. `build()` compiles the plan into the declarative engagement `accounts.build` already accepts, settles tax in a **second pass** after the other adjustments (so tax can never precede COGS), and then gates the record.
+  - **The three articulation identities are a hard gate.** `articulation()` checks assets = liabilities + equity; the cash-flow statement's movement = the change in balance-sheet cash; and receipts − payments = ending cash — the check the owner called the strongest, because cash is computed two independent ways. `build()` raises `PlanError` naming the failed check and returns nothing; a statement that does not tie is never emitted.
+  - **Every assumption is visible.** `manifest()` splits what the problem text stated (`explicitly_stated`) from what the build assumed, with a reason per default; the manifest travels on the result. A tax rate is never assumed: a tax adjustment without `policy.tax_rate` is refused.
+  - **`src/bp/statement_extract.py` (new) is the one model-touching step.** It states the contract (`CONTRACT`, `system_prompt`, `user_prompt`), parses the answer (`parse`), and validates it (`validate`): chart membership, the ledger's balance rule, a required `source_text`, and — the load-bearing rule — **every amount must already appear in the problem text**. A derived figure (the 11/12 expired portion, the tax, the COGS) is refused, because derived figures belong to the adjustment stage. That is how "no invented numbers" stays true with a model in the loop. `extract()` uses `bp.llm` and accepts nothing partially.
+  - **The worked example is a test fixture, never product text.** This build hard-codes no engagement: the golden case in `tests/test_statement_plan.py` is assembled from declared parameters (capital, loan, equipment, inventory, prepaid insurance, sales, collections, payables, salaries, rent, interest, ending inventory, depreciation life, tax rate) and its expected figures are derived by hand and asserted: revenue 200,000; expenses 129,900; pre-tax 70,100.00; tax 17,525.00; net income 52,575.00; total assets 178,100.00; liabilities 75,525.00; equity 102,575.00; operating cash flow 74,600; investing −60,000; financing 90,000; net cash 104,600. Variants cover dividends, a perpetual inventory system, and a loss that is not taxed.
+  - **The gate is proved both ways.** A doctored record with total assets moved by 1.00 fails the A=L+E check, and a doctored `cash_flow.net_direct` fails the cash check. 71 tests in `tests/test_statement_plan.py`; the extraction boundary is exercised end to end with a scripted provider, including a model answer carrying a derived figure, which is refused.
+  - **`docs/TIPS_FINANCIAL_STATEMENTS.md` (new)** records both tips, what is built where, the measured figures, and what is deliberately not built. It is linked from `AGENTS.md` (root), `docs/HANDOFF.md`, `docs/HOME.md` and this changelog, so the next model finds it without being told.
+  - **Not done, and named:** live model extraction has been run **once** against DeepSeek on a synthetic problem (five grounded entries, posted, net income tied) and produced three contract hardenings — schema-legal zero-sided lines normalised, `code` accepted as an alias for `account`, an unstated date dated to the period end — but it is not tuned across many problems and is not wired to the tile; reducing-balance depreciation is refused rather than approximated; a loss earns no tax benefit; multi-period, comparative and consolidated statements are out of scope; the tile still reads one trial balance until `statement_extract` is wired behind `POST /api/cases/statements`. Build version moved to 1.87 to match this entry.
+
+- 1.86 (2026-11-04): **the Financial statements tile is a card like every other tile, it opens like every other tile, and it was dead because of a single brace.** The tile had a name, a shelf position, a backend, 41 tests and a page entry that never ran. A stray `}` in the page's `<script id="statements-tile">` block made the whole block a syntax error, so the dialog, the click handler and `window.openStatementsTile` were never defined: the link on the shelf could not have worked as an anchor or as a card. Node's own parser is the evidence, and the CI's page-syntax gate could not see it.
+
+  - **D-ACC-11 (MAJOR, the page) — a brace that killed the whole tile.** `web/index.html` ended the statements block with `}` and then `})();`, so the IIFE body was closed twice. The block failed to parse and nothing in it ran; the router's `head === "statements"` branch always fell through to its `else`, registering a `load` listener that called an undefined `window.openStatementsTile`. One brace removed; the block parses.
+  - **The gate that let it through is now a gate.** `qa/check_page_syntax.py` looked for `<script>` tags with **no attributes** and then checked only the **last** match, so the page's two tagged blocks — `tile-close-shim` and `statements-tile` — were never parsed at all. It now checks every inline block and names each one. **Proved both ways:** the fixed gate reports `3 of 3 blocks parsed` on the current page, and the *same* gate against the pre-fix page reports `FAILED in statements-tile` with `SyntaxError: Unexpected token '}'`. `scripts/ci.py` carries the identical hole and is the computation lane's file: recorded as a `[computation]` request in `docs/WORKLOG.md`.
+  - **The tile is a card now, part for part with the other tiles.** The service tile renders as a `.capcard` in the same `.capgrid` as every other tile — `.caphead` (icon + title) + `.capdesc` + `.capfoot` (the honest label "One instruction", and the `Open →` affordance) — and the **whole card** is the link, not a small control inside a paragraph. Measured: the card's box is **506×149**, the same as the other cards on the shelf.
+  - **The address is canonical, and the old one still works.** `#/financial-statements` opens the tile; `#/statements` stays as the alias it has always been. The click opens the workspace **itself** rather than leaving it to the hash, because a click on a card whose address is already canonical changes no hash — the tile would look dead. `/api/cases/statements` is untouched: it is backend contract.
+  - **It no longer floats, and it no longer floats dark.** It was a `position:fixed` modal appended to `<body>` — a window over the shelf, the way a framework record opens, not the way a tool opens. It is now a real panel, `panel-statements`, in `PANELS` and `SUBJECT_WORKSPACE`, built from the page's own components: `.card`, `.sub`, `.field`, `.badge`, `.toggle` and the amber `.banner.honesty` for the diagnosis. The old panel painted a navy ground (`--navy-800`, `#12161C`) under near-black text (`--text`, `#0C243E`) — about **1.2:1** — and nobody had ever seen it, because the syntax error meant it had never rendered. It is painted with the page's own surfaces now.
+  - **Decoupled from PESTEL and SWOT.** The tile's code never touched the chat, the plan or a framework: **0** occurrences of `chat`, `plan`, `framework`, `pestel`, `swot`, `session` or `delivery` in the statements block. The tie was in the **Help panel's own map**, which led with "Guided paper for a full PESTEL, SWOT or combined paper with sources" and **never mentioned the statements tile at all**. The map now leads with what the product can do — Financial statements, Subjects, Business Calculator, Check — and the guided paper is one option among seven instead of the frame around everything else.
+  - **The tile says what it can actually do, and a refusal is actionable.** The copy used to promise "the question as you were given it", which over-claims: the reading layer reads a **trial balance**, and only that. It now names the shape — one account per line, as "Cash 5,000" or "Capital 5,000 Cr" — and a **Use an example** button fills in a balanced trial balance, the way the trial-balance check page already offers one. A refusal shows the backend's own words unchanged, with the shape the tile reads under it and a pointer to the example. A 5xx now says the server could not answer instead of being rendered as "these figures do not build".
+  - **What the tile can actually solve, measured rather than assumed.** Seven realistic student inputs, posted and recorded: a bare trial balance → **201 solved** (`ni 8000`, `assets 10000`, `checks 11/11`, cash flow withheld and named); a single-year transactions narrative → **400** "this carries more than one period (2026-01-01, 2026-12-31)"; an adjustments narrative → **400** "this puts two figures on one line … which is a comparative"; a ratio question → **400** "an account has no code"; a cash-flow narrative → **16.9 s, then 400** "the chart needs exactly one retained-earnings account, found 0"; an exam question with a preamble → **422** "debits 17000, credits 19026" — the preamble read as account rows; EUR → **400** "this product answers in USD only". **The tile reads one trial balance, and only one**: anything else needs the model reader, and `bp/server.py` says plainly, *"no model is configured (set BP_OPENGO_API_KEY), so only a trial balance can be read."* **The reading layer is why the tile cannot solve a basic accounting problem**, and it is in `src/**` — four defects, with the reproductions, are a `[computation]` request in `docs/WORKLOG.md`.
+  - **The backend is untouched and re-measured.** The brief's transcript is reproduced exactly over HTTP: **34 of 34 checks pass** — 201 with `ni 8000`, `assets 10000`, `checks 11/11`, `checks_na 2`, `cash_flow` null with the withheld note, all three statements and the working keys; 201 with ratios (`computed 8`, `named_unsupported 7`); 422 with the 500 difference; 400 with "two sets of balances … one set at a time"; export 200 `statements_only`; replay 200 `ok`. No 5xx. The download now goes through the server's own export endpoint and says so: *"Download the statements: statements-724b5886d1ed.txt is ready."*
+  - **Seven click-path proofs, in a browser.** Clicking the card opens the workspace; a cold tab on
+    `#/financial-statements` opens it; `#/statements` still opens it; "Back to the shelf" returns to the accounting
+    shelf and the page behind is unchanged; after six seconds the card is still the same node and a click inside the
+    workspace is not replaced under the cursor; Tab reaches the card and Enter opens it; the console holds one
+    informational line and no errors.
+  - **New:** `docs/HANDOFF_STATEMENTS_TILE.md` (the pick-up manual: the root cause, the measured state, the traps
+    and the scope probe). `qa/check_page_syntax.py` rewritten; `qa/QA_DEFECTS.md` carries D-ACC-11. `src/**` and
+    `tests/**` untouched, and the tile test is green.
+
+- 1.84 (2026-11-03): **the People & organisation shelf gets its manual, its acceptance suite, and the four unit and formula defects its own calculators were hiding (B-216).** The shelf was the last of the eleven with no manual and no dedicated acceptance suite. Measured at the opening tree (`b393743`): 10 tools, **19 worksheets, 6 tiles** (the work order said five and named six), 0 records, 0 theories, 0 glossary terms, 18 profiles, 3409 tests with one network failure.
+
+  - **D-PPL-01 (BLOCKER, units) — a programme's effect printed as money.** `src/bp/orchestrator.py` took the request's currency for an `@unit` output **before** it resolved the unit, so `cost_effectiveness` printed an effect of 40 as **"USD 40.00"**, a 20-point difference as "USD 20.000", and its ICER as plain **"USD 400.00"** for a cost *per unit of effect*. The unit is resolved first now; the ICER has a composite unit, `currency_per_effect`, which `Quantity.display` prints in words — **"USD 400.00 per unit of effect"**. `power_analysis.mde`/`se` were typed `probability` and are now `units`.
+  - **Item 11b — tightness divided a count by a rate.** `labour_market` took `unemployment_rate` and divided vacancies by it: ten vacancies over five per cent printed **200.0000**, a number with no reading. It takes an `unemployed` **count** now, tightness is `vacancies / unemployed` (**0.2000**), `unemployment_rate` is refused as an unknown input, a declared check recomputes it, and the template states it — **"tight at 0.2000 vacancies for each unemployed person: 10 vacancies against 50 unemployed"** (Item 11c: the figure never reached the paper before).
+  - **D-PPL-02 — a 2.5-year holding printed "2 years".** `return_on_investment.years` was `("count", 0)`, so a fractional period was rounded in the very sentence beside a return compounded over the unrounded one. It is `("periods", 2)` and the paper reads "Compounded over 2.50 years".
+  - **D-PPL-03 and D-PPL-04 stay ledgered.** Two option names that normalise to the same slug collapse one `icer` key (3 options, 2 ratios), and a worksheet paper prints "0 step(s) are recorded as gaps" beside seven unsourced parts. Both are recorded with their location.
+  - **The shelf's arithmetic is proved by hand, not by a green test.** `tests/test_subject_people_acceptance.py` (85 tests) recomputes every one of the ten calculators independently — every item variance and the Spearman-Brown identity for alpha, the normal equations solved in Fractions for OLS, a Simpson integral of the t density for Pearson's p, the closed form of the chi-square tail at df 4 and `erfc` at df 1 — plus the unit audit of all 96 outputs, the parity tests and the page tests. **10 of the 11 trap tests fail on the pre-fix code.**
+  - **New:** `qa/manual/people.md` (12 sections, 85 E-rows), `qa/clickthrough_people.py` with three screenshots on port 8002 (**10 of 10 calculators delivered over HTTP, 10 of 10 papers downloaded as `.docx`**), `qa/evidence/people/`. `docs/CURRICULUM_MAP.md`'s People row now names the ten methods, six tiles and nineteen worksheets, and the Analytics tile now says it holds money arithmetic as well as statistics. `docs/OPEN_ISSUES.md` Items 11 and 12 are settled — 11 as three defects (one of which, the `icer` *key*, was never a defect), 12 closed as superseded. `test_frozen_contract`, `test_method_contracts`, `test_people_frameworks`, economics and entrepreneurship acceptance (**234 tests**) are green, as are `econ_shelf --check` and `page syntax`.
+
+- 1.85 (2026-11-03): **the Business Calculator is verified end to end, and every one of its 148 tools is launched and read on the paper it produces.** The surface had a page, a route, a guard and 148 launchable tools — and **no acceptance manual and no acceptance suite of its own**. Coverage was complete but unproved: four modules asserted *membership* (the union of the groups, the preset↔method pairs, the method resolution), and nothing ran a tool the way the panel runs it. Re-measured at the opening tree (`05efb8f`): `compute_tools()` **148**, `CALCULATOR_GROUPS` **8 groups / 206 entries / 148 distinct**, 0 tools missing, 0 keys off a page, 144 presets each running the method it claims, 4 tools with typed inputs, 131 of 148 keys **not** library ids, `LIBRARY` 142 / `PRESETS` 144 / fixture in sync.
+
+  - **All 148 tools now have a paper, and every gate is read on it.** `qa/probe_calculator.py --tools` launches each tool through `Pipeline.run` → `session_paper.docx_bytes` → the text a student holds, and checks: every declared check printed exactly once, every figure at the method's declared precision, no `\d\.\d{6,}`, no Python repr, no scientific notation, assumptions and limitations printed, a refusal carrying its reason. **148/148 pass.** Two runs are byte-identical for **148/148**.
+  - **The 31 shared keys are one method with one answer.** `chi_square` is filed under 5 groups and `forecast` under 6; the probe launches each shared key from **every** group that lists it and compares the bytes: **0 disagreements**. The work order's "33" is **disproved**, not merely unmatched: parsed across all 36 revisions of `subjects.py` the count has taken 13/17/20/24/27/30/31 and has never been 33, and no alternative reading of "shared" gives 33 either (method-sharing 31, keys-with-a-shared-method 32, subject-page sharing 45, `entries − distinct` 58). It is recorded as a miscount in the work order (`qa/manual/calculator.md` §5.1) and the taxonomy was not touched — but the suite now pins the **full sharing distribution** (117/19/5/1/4/2), because a count alone would miss a key moving from two groups to three.
+  - **D-CALC-01 / D-CALC-02 — the last two methods that printed six decimals (B-217, owner instruction).** `currency_convert.rate` declared `("ratio", 6)` and printed `Rate: 0.920000`; `real_option` declared 6 dp for `delta`, `risk_neutral_probability`, `up_factor` and `down_factor` and printed `Delta: 0.617058`. This is the D-RES-05 conflict again, on methods no shelf suite had ever read. Both now declare 4 dp and the papers read `Rate: 0.9200` and `Delta: 0.6171`. The frozen fixture pins tier/metric/unit/ceiling/test_names/inputs and **not** precision, so it was not touched: `scripts/econ_shelf.py --check` still says "frozen fixture: in sync" and `test_frozen_contract` is green.
+  - **D-CALC-03 — a wrong refusal.** `POST /api/cases/calculator/nonsense` answered `422 case id must be 12 lowercase hex characters`, naming neither the route nor the mistake: an unknown calculator sub-route fell through to the case-id parser. It is now `404 unknown route /api/cases/calculator/nonsense`.
+  - **D-CALC-04 — the probe's own three false positives, fixed before it judged anything.** Its first run flagged `descriptive` for `1e-9`, which lives inside the declared **limitation** "Float reference comparison tolerance is 1e-9 relative", and flagged the two 6-dp figures above as *legitimate* because they were declared. The shape gates now read the report and the figure lines and exclude declared assumption/limitation/honesty/check prose; the six-decimal ban was kept **strict** (the two figures were real defects, not exemptions). Proved on two shelves whose suites are green: `operations` **14/14**, `research` **21/21**, zero problems — and `test_E_calc_024` is a negative control showing the gates catch a 30-digit Decimal and a missing check.
+  - **The twelve wiring invariants are tests, not prose.** W-01…W-12 are `tests/test_calculator_acceptance.py` (25 tests), one per row of `qa/manual/calculator.md`, committed together. The typed-tool trap is proved in both directions: they deliver with typed figures, and `inputs: {}` **blocks naming the missing input** instead of crashing or delivering an empty success.
+  - **New:** `qa/manual/calculator.md` (25 E-rows, 10 sections), `tests/test_calculator_acceptance.py` (25 tests, 25 passed), `qa/probe_calculator.py`, `qa/evidence/calculator/` (148 papers). `tests/test_product_subjects.py::CalculatorGuardTest`, `tests/test_method_contracts.py`, `tests/test_catalogue_truth.py` unchanged and green.
+
+
+- 1.83 (2026-11-03): **the Research & statistics shelf is verified subject by subject, and five records stop denying methods the page ships.** The shelf is cross-cutting: every other subject's papers cite its numbers. Measured at the opening tree (`6c7073c`): 21 tools, **0 worksheets, 0 tiles**, 10 records (3 computed, 7 read-only), 0 theories, 0 glossary, 8 of 21 tool keys resolving against `LIBRARY`, `LIBRARY` 142 / `PRESETS` 144 and a fixture that pins the same.
+
+  - **D-RES-01 — five records said "Method not built" while the page offered a calculator for the area.** `QNT-STA-02` (power), `-05` (reliability), `-06` (multiple comparison, missing data), `-07` (forecasting) and `-09` (difference-in-differences, regression discontinuity, instrumental variables, panel regression — shipped on the **Economics** shelf) are now `computed`, each with a "partial:" sentence that names the part that ships and the part that does not. The same sentences were added to `registry.METHOD_LINK_RULES`, so the committed slice and the framework API cannot disagree — `test_product_subjects` compares them. `QNT-STA-08` (clustering) and `-10` (SEM) stay read-only because nothing computes them.
+  - **D-RES-06 — the page could group nothing.** 21 tools, 0 groups, 0 tiles and 9 null levels meant `web/index.html` fell back to a flat list. Owner instruction: the tiles are the shelf's own four `start_steps`, verbatim — *Describe the data* (2 tools), *Compare groups* (9), *Relate variables* (6), *Check the design* (4) — and their keys are the tool groups, because `_tiles` matches a calculator to a tile by its group string. The nine null levels stay null: the page now groups by tile, and a second taxonomy was not requested (**B-213**).
+  - **D-RES-03 — every paper with a column-map input printed a Python repr.** `session_paper._render` flattened lists and tuples but not dicts, so a Welch, ANOVA, OLS or logistic paper printed `Groups: {'lecture': ['62', …], 'workshop': […]}` — a P4 breach on the artefact that no numeric test would catch. Dicts are now spelled out like every other declared figure.
+  - **The figures are proved by hand, not by a green test.** `qa/probe_research_shelf.py` re-derives the closed form of every method with its own code (incomplete beta, `erfc`, ranks, sums of squares, the normal CDF) and compares it to the printed paper: **61 figures compared, 0 disagreements**, including Welch–Satterthwaite (`df` 4.959, never `n₁+n₂−2`), the published `P(|T|>2.0 | df 10) = 0.0734`, and `χ²(1) = 4.0 → p = 0.0455`.
+  - **Two measurement traps are now pinned.** 13 of the 21 `tool["key"]` values are not library ids (`welch`→`welch_t`), so a probe that resolves keys reports 13 false defects; and `docs/BACKEND_CONTRACT.md` §2 said "140 methods"/"142 presets" in four places against a measured 142/144 — the **document** was corrected, the fixture was not touched (D-RES-07).
+  - **D-RES-05 — the logistic paper printed six decimals; it now prints four (B-214).** `logistic_regression` declared 6 decimal places for its coefficients, standard errors and both log-likelihoods, so every paper read `-22.806666` — exactly as declared, and against the house rule the other shelves test for. On the owner's instruction the declaration is 4 dp (`_logit_typing`), the paper now reads `-22.8067`, and `test_E_res_019` additionally fails on any six-decimal figure. The frozen fixture pins tier, metric, unit, ceiling, `test_names` and inputs — **not precision** — so it was not touched, and no other shelf offers this method.
+  - **D-RES-04 — every paper now prints "Honesty: what was not done", including the two that did not (B-217, owner unfreeze).** Re-measured first, and the first report was wrong: `power` and `missing` *do* declare caveats (`_power_caveats`, `_md_caveats`) and those sentences already printed — in the middle of the Result, under no heading, because `orchestrator._honesty` fills a fixed four-field structure and fills it only for inferential methods. On the owner's instruction the block gains a fifth field, `this_method`, carrying the method's own caveats, added **only when all four standard fields are empty** so no paper discloses the same thing twice. The power paper now reads "Honesty: what was not done / this method: Power is a planning property of the design, not evidence about the result…"; the bounds paper reads "…They are honest bounds, not estimates". `tests/test_honesty.py` was **strengthened, not loosened**: the four standard fields must always be present, the fifth may appear only alone and non-empty, and `ratio_analysis` still carries no inferential notice.
+  - **New:** `qa/manual/research.md` (53 E-rows, 10 sections), `tests/test_subject_research_acceptance.py` (53 tests, 53 passed), `qa/probe_research_shelf.py`. Re-tested after the precision change: research suite + `test_honesty` + `test_missing` + `test_frozen_contract` **77 passed**; economics + operations acceptance **129 passed**; `test_catalogue_truth`, `test_product_subjects`, `test_docs_sync` green; `scripts/econ_shelf.py --check` (frozen fixture in sync).
+
+
+## The build pill stops claiming a build the tree is not
+
+Found while capturing the grid evidence: the top bar read **v1.45** while the tree was build
+1.76. A number that is always wrong, and always looks current, is worse than no number. Build
+**1.80**.
+
+- **One source for the build, and two tests that hold it there.** `bp/build.py` holds
+  `VERSION`; `/api/health` reports it; the page paints the pill from that at boot. The markup
+  carries no number at all, so a stale one cannot be typed back in. `bp.build.VERSION` must equal
+  the newest `docs/CHANGELOG.md` build - the same number `HOME.md` and `HANDOFF.md` already must
+  state - and `test_the_served_build_is_the_newest_changelog_build` fails when it does not. The
+  pill's `title` now says what the number means (the tree answering you, computed from the
+  checkout on disk) instead of listing features that drift.
+- **The pill is measured, not asserted.** `qa/measure_pm_grid.py` reads the painted pill in a real
+  browser alongside the grid widths and records it in `grid-form.json`, and `test_E_pm_081`
+  requires it to read `v` + the constant at both widths. Measured: **v1.80 at 1280 px and at
+  390 px**.
+- **D-PM-07 closes.** It was ledgered as "an owner call" when three lanes held edits in
+  `web/index.html`; the fix turned out to be smaller than the ledger entry feared, and it removes
+  a whole class of drift rather than one stale string.
+
+- 1.81 (2026-11-03): **the fifteen marketing worksheets that no shelf offered are wired, and the
+  shelf declares tiles first.** Owner instruction: *"wire all 15 but group them into tiles first
+  (the shelf declares no tiles today)."* The marketing page now carries **20 worksheets, 15
+  records, 24 tools and 4 tiles** (was 5 / 30 / 24 / 0): the five it always offered are unchanged
+  and first, and the fifteen D-PLAN-02 held dark follow them. The four tiles are keyed to the
+  shelf's own existing tool groups - `Market size and demand`, `Customer economics and retention`,
+  `Campaigns, channels and web analytics`, `Funnel, surveys and testing` - because `_tiles`
+  matches a calculator to a tile by its group string, so inventing new names would have dropped
+  all twenty-four calculators off the page. All 20 worksheets and all 14 computed records are
+  placed, so nothing is orphaned and no calculator is left described as something to cite.
+  **The stale slice had to move with it.** `CATALOGUE` is generated from the registry, and it
+  still described fifteen of those records as "No worksheet yet" (12) or "Computed" (3);
+  regenerating it is what makes the wired rows say what they are, and the generator's docstring
+  claimed `tests/test_product_subjects.py` guarded that drift when that file compares the registry
+  with itself. **Nothing else moved.** `MKT-07` stays out of the shelf and out of both tile maps:
+  its form is repaired (D-MKT-07) but its tile is still hidden by B-198, and unhiding it is the
+  owner's call. `STR-19` and `CHG-15` were not touched - they are the management and change
+  shelves' own decision - and the shrinking ledger is now three ids. No method, preset, number,
+  check, gate or route changed.
+  Tests: `test_every_offered_worksheet_and_every_calculator_sits_in_exactly_one_tile` (a worksheet
+  dropped from the group map, a tile key that stops matching the tool groups, or an ungrouped
+  record fails it), plus the three-id ledger; `qa/marketing_shelf_audit.py` measures it all.
+
+- 1.80 (2026-11-03): the build number has one source (`bp/build.py`, served by `/api/health`,
+  painted by the page), two tests pin it to the changelog and to the browser, and the top bar's
+  pill no longer states a build the tree is not (D-PM-07).
+
+
+## The Business Bundle: one order, one charge, and the hand-off that makes it true (B-208, B-209)
+
+The owner decided on 2026-11-03 that there is a **$99.99/month bundle giving unlimited use of both
+products** — Write Smarter *and* Smart Business Writer — sold as **one order**, charged **once**,
+with **one login** that works on both products. Smart Business Writer's existing $99.99 tier
+becomes the bundle; the lower tiers keep their prices; the purchase is taken in Smart Business
+Writer. The owner asked for **the payment first**: settled and proved against live PayPal before
+the limits, the allowance numbers and the credit refill are built. Build **1.79**.
+
+- **The bundle tier** (`src/bp/product/billing.py`). The `agency` key is kept — a PayPal plan id is
+  immutable, so renaming the plan in place would have billed the old label — and the customer now
+  reads **"Business Bundle"**. It carries an `unlimited` **flag**, not a number: the other three
+  tiers still report `credits: null` and still print "to be confirmed". A tier whose allowance is
+  undecided is **not** unlimited — *undecided is not free*.
+- **A plan change that prorates** (`paypal.change_plan`, `POST /api/billing/change`). PayPal's plan
+  id is swapped on the running subscription and the difference is settled against the saved payment
+  method, so there is no second approval and no lost period. PayPal's own
+  `billing_info.outstanding_balance` is passed on **untouched** and described as charged, credited
+  or unknown — never estimated.
+- **The ledger records the plan change.** It was **first-wins on a subscription id**, so an upgrade
+  on the same PayPal subscription id would never have appeared on the account page, and the
+  cancellation message would have named the tier the customer had left. The activation is now
+  idempotent on the subscription id **and** the tier it carries: a tier change is recorded, a
+  retried confirmation of the same tier is not, and the latest activation is what stands.
+- **The hand-off — the seam that makes "one charge" true** (new `src/bp/product/write_smarter.py`).
+  On approval, PayPal's `payment_source.vault_id` is posted to the hosted Write Smarter service
+  with a shared secret. That service creates **its own** record from the same vault, switches it
+  off, and reads it back to prove it cannot bill. Two independent guards: the record's plan is
+  **$0**, and a record PayPal still calls ACTIVE fails the grant rather than being reported as
+  switched off. The hand-off client **cannot take a payment** — it never calls a PayPal billing
+  endpoint.
+- **A failed hand-off never undoes a real payment.** The customer paid and the subscription is
+  ACTIVE, so the local grant stands; the failure is reported as a failure of the **other product's
+  half**, with the reason, on the confirm reply, the cancel reply and the account page. A missing
+  URL or secret fails closed and names **every** variable that is absent.
+- **Cancelling one side stops both.** Cancelling here revokes the grant on the other product, and
+  the other product reads the **real** subscription's status. The switched-off record is never what
+  decides whether the customer has paid.
+- **The other product's side** (Write Smarter's live `Backend`, pulled from the VPS): a new
+  `bundle-entitlement.js`, two service routes, and an unlimited pool tier in `auth.js`. The bundle
+  SKU is deliberately **not** in the table the checkout sells from — a bundle SKU there would let a
+  customer buy a second live subscription.
+- **The unlimited wallet.** A bundle holder never receives a 402: the export is still written to the
+  ledger with a zero amount, so the trail stays honest and the balance does not move.
+- **The pricing dialog and the account page.** The bundle carries **no "% off" and no "save $"** line
+  against a made-up total. The account page shows the plan and its allowance.
+- **The bundle is shown as a band below the pricing grid, not as a fourth card.** The owner looked
+  at the dialog and did not see the bundle as one thing, because a fourth card in the grid reads as
+  "a fourth tier of this product" - and the bundle is not that; it is **two** products at one
+  price. The three single-product tiers now sit in a **three**-column grid (Starter, Pro, Studio),
+  and the bundle sits below them in its own band: **$99.99 a month** as one price, tagged "Both
+  products", with what the one price buys in each product side by side — **Write Smarter**'s
+  unlimited Text-Gen, Research Assistant, Humanizer & AI-Detector, Video and Source Finder, and
+  Smart Business Writer's unlimited exports. The band follows the monthly/annual toggle
+  ($959.90 a year) and stacks its two panels on a narrow screen instead of overflowing.
+  The catalogue now says which tiers are cards and which is the band (`card_tiers`, `bundle_tier`),
+  and each tier's colour comes from the catalogue too, so **the page names no tier at all** — a new
+  rung or a price change needs no edit to the page.
+- **D1 amended (B-209).** "Local single-user v1: no accounts" no longer describes the whole
+  product, because one login across two products needs accounts and tenancy isolation. That is
+  recorded as an amendment in `docs/PRODUCT_BACKEND_PLAN.md`, and `deploy/README.md` and
+  `web/account.html` were amended with it — both used to promise "no authentication".
+- **Tests**: `tests/test_product_bundle.py` (37 new), Write Smarter's
+  `Backend/tests/bundle-entitlement.test.mjs` (9). **No live charge has been taken yet** — every
+  claim about PayPal's behaviour here is verified against fixtures, and the seven checks in §6 of
+  `docs/BUNDLE_PRICING_HANDOFF.md` are open. No frozen core, method, preset, template contract,
+  input, check, number or route family changed.
+
+## The grid width claim becomes a measurement, and the copy stops repeating itself
+
+The design lane's B-080 report was checked line by line instead of taken on trust: every gate
+re-run, the code read, the four labels served and compared. The work stood. What did not stand
+was the **evidence** for the layout claim - no screenshot of the grid form, no script, no numbers
+on disk - and two smaller things a reader would notice before a reviewer. Build **1.77**.
+
+- **The 390 px claim is now measured by a committed script.** `qa/measure_pm_grid.py` starts a
+  workbench in its own process on port 8013 (never 8000 or 8021), launches the machine's Chrome
+  headless with a DevTools port of its choosing, and drives it over a minimal standard-library
+  WebSocket client - no dependency added, no product code touched. It opens each of the four grids
+  through the page's own `openWorksheet`, builds the grid, fills every cell and reads
+  `scrollWidth` against `clientWidth`. **8 of 8 clean**: 1280 px reads 1280 = 1280 (table visible),
+  390 px reads 375 = 375 (table hidden, one card per row). The 375 is Chrome's 15 px classic
+  scrollbar inside the emulated viewport; the conclusion matches the earlier hand-measurement of
+  "390 = 390". The refusal state is measured too - banner shown, collector `null`, no `{}`,
+  `template_` or `undefined` at either width.
+- **`test_E_pm_081` reads the artefact.** `grid-form.json` records both widths for all four grids,
+  names which view is visible at each, and cites five screenshots - three of them the first
+  pictures of the grid form itself. The test fails if the file is missing, if any grid scrolls
+  sideways, or if a cited screenshot is gone, so the claim cannot drift away from the measurement.
+- **`test_E_pm_080` asserts rule bodies, not class names.** It used to pass as long as
+  `.mxgridtablewrap`, `.mxcards` and `@media (max-width:760px)` appeared somewhere in the page; a
+  later edit could delete `overflow-x:auto` or the whole 760 px block and stay green. It now reads
+  the rules: the wide grid keeps its own scroll box, the narrow block hides the table and shows the
+  cards, in that order.
+- **A grid names its own columns.** "Fields for each perspective" fixed the plumbing leak and left
+  two grids identical in the header, which read *"Objectives against Fields for each objective"*.
+  The four grids now read *"Objective, measure, target and initiative"*, *"Perspective, objective,
+  driver and measure"*, *"Level, metric, formula or definition and source"* and *"Key result,
+  baseline, target and source"*, with the count moved into the hint. `test_E_pm_075` refuses two
+  grids that share a column label. `matrixEmptyState` also stops printing "4 to 4" for a fixed
+  count.
+- **D-PM-07 ledgered, not fixed.** The top bar's build pill reads **v1.45** while the tree is build
+  1.77 - a literal in `web/index.html` that nothing refreshes from `/api/health`. Global chrome,
+  three lanes in that file, and one source of truth for the build number is the owner's call.
+
+- 1.82 (2026-11-03): **the bundle is a band below the pricing grid, not a fourth card in it.** The owner could not see the bundle in the dialog, and the reason was structural: a fourth card in the same grid reads as "a fourth tier of this product", and the bundle is two products at one price. The three single-product tiers now sit in a three-column grid (Starter, Pro, Studio) and the bundle sits below them in its own band - $99.99 a month as one price, tagged "Both products", with Write Smarter's unlimited Text-Gen, Research Assistant, Humanizer & AI-Detector, Video and Source Finder beside Smart Business Writer's unlimited exports. The band follows the monthly/annual toggle and stacks its two panels on a narrow screen. The catalogue now says which tiers are cards and which is the band (`card_tiers`, `bundle_tier`) and carries each tier's colour, so the page names no tier at all: a new rung or a price change needs no edit to the page. 7 new tests. No price, method, preset, template contract, input, check, number or route family changed.
+- 1.79 (2026-11-03): **the Business Bundle is one order, one charge, and the hand-off that makes it true (B-208, B-209).** The owner's decision of 2026-11-03: a $99.99/month bundle giving unlimited use of Write Smarter *and* Smart Business Writer, sold as one order, charged once, with one login on both products. The bundle tier carries an `unlimited` flag rather than a number (the other three tiers still report `credits: null`); a plan change prorates against the running subscription and PayPal's own `outstanding_balance` is passed on untouched; the ledger, which was first-wins on a subscription id and would have hidden every tier change, now records and reads the latest activation; a bundle holder is never blocked by the export wallet; and the new `write_smarter.py` posts PayPal's vault id to the other product, which creates its own record from that vault, switches it off and proves it cannot bill - so there is one charge and not two. The vault id is remembered between creating and confirming, because PayPal names it on the creation response and not always on the read-back. 37 new tests plus 9 on the other product's side. No live charge has been taken yet. No frozen core, method, preset, template contract, input, check, number or route family changed.
+- 1.78 (2026-11-03): **the SERVQUAL grid declares one form.** `template_servqual` (`MKT-07`) was
+  listed in `CANVAS_BLOCKS` and `MATRIX_META` at the same time, so `describe()` called it a canvas
+  and handed the page a five-block editor, while the template it actually registers is
+  `build_matrix` with the eight grid checks and `rows`/`columns`/`cells` input. It is the last kind
+  carrying the D-MKT-04 class, and the canvas entry was read by nothing but `describe()`: the kind
+  was never in `CANVAS_META`, so no builder ever saw it. The entry is gone, the reason is recorded
+  beside the customer-journey note, and the measured overlap is `[]`.
+  `qa/marketing_shelf_audit.py` re-measures that and the other three claims the audit was sent to
+  prove, so none of them is a remembered number: 16 marketing worksheets are built and offered by no
+  shelf (unchanged - D-PLAN-02 is a curriculum decision and no shelf was wired); RFM is one record
+  under `MKT-08` and `QNT-MKT-04` with `form: worksheet` and its computed half declared in
+  `linked_methods` as `rfm_scoring` (unchanged, and correct - `registry.form()` gives a template link
+  precedence over a linked method); and the marketing-plan door exports 13,853 bytes of `.docx`
+  through its eight sections, with a gate that names plan fields and never `implications`. The
+  SERVQUAL tile stays hidden under B-198: unhiding it is the owner's call, not a consequence of the
+  repair. No method, number, check, gate, record, profile or shelf membership changed.
+  Tests: `test_a_hidden_worksheet_stays_registered_and_is_not_offered` now asserts the single
+  declared form and fails on the pre-repair code; the marketing suites are 80 green.
+  `test_E_pm_057` still asserts the old pair and is the project-management lane's one line to change.
+
+- 1.77 (2026-11-03): the grid width claim is a measurement with an artefact (`qa/measure_pm_grid.py`,
+  `grid-form.json`, five screenshots) and a test that reads it (E-pm-081); `test_E_pm_080` asserts
+  rule bodies instead of class names; the four grids name their own columns so no two headers read
+  alike; a fixed column count prints once; the manual's own stale test counts are corrected to 81.
+
+
+## The brief that named no shelf was judged as the wrong shelf, and three tests were lying
+
+Session 7, after the doors landed: the remaining red was triaged line by line instead of
+assumed. Two of the failures were the product's fault, three were tests asserting what the
+code no longer did, and one was a test that passed alone and failed in the suite. Build
+**1.76**.
+
+- **A brief that names no shelf is no longer refused for not being a management brief.**
+  `chat.start`'s signature defaulted `subject` to `"management"` and then handed that
+  invented shelf to `guard.subject_fit`, so `POST /api/cases/chat {"brief": "What
+  political, economic and social pressures affect coffee growers in Ethiopia…"}` answered
+  *"This does not look like a management or strategy instruction"* before asking a single
+  question (D-PLAN-03). The guard now receives the shelf the student actually named; an
+  unnamed shelf is not refused, a named one still is, with the shelf to use instead. The
+  refusal also stops saying "a entrepreneurship" — the article follows the shelf's name.
+- **One Balanced Scorecard perspective could never carry evidence** (D-PLAN-04). Its
+  `organisational_capacity` block searched `"learning and growth perspective objective
+  measure target"` while its cues were `training, skills, capability, culture, system` —
+  not one word in common, so every retrieved source was discarded and the dimension was
+  permanently a named gap. The query now uses the block's own vocabulary, and the same
+  block accepts its own query (measured: 0 items → 1).
+- **Three tests were stale, not the code** (D-PLAN-06): the rail test demanded the "free
+  quote limit" line the owner had deleted in `8bd1e9f`; the paper-store route test mocked
+  the completion module whole, so the route's newer rubric gate read a truthy `MagicMock`
+  and refused with 409; and the research-deadline stub still took two arguments after
+  `_research_one` gained `corpus_doc_counts`, so every dimension "failed" instantly and no
+  timeout was ever exercised. Each is fixed at the test, and the rubric gate — which had
+  never been tested — now has a test that a weighed criterion returns 409 and writes
+  nothing.
+- **A provider test passed alone and failed in the suite** (D-PLAN-05):
+  `sources._CACHE` is one process-wide cache with a 600 s TTL, so an earlier test's answer
+  was serving the Brave→Firecrawl fallback assertion. New `tests/conftest.py` clears it
+  between tests; the cache itself is untouched.
+- **The unserved worksheets are now a ledger, not a memory** (D-PLAN-02): a test pins the
+  measured set of 18 built-but-unoffered worksheets, so wiring one fails the test until
+  the list is updated and a *new* invisible worksheet fails it immediately. Which shelf
+  owns each one stays a curriculum decision — marketing is not ours to move.
+
+- **Two more traps closed on the way out.** The finance acceptance test froze the *global*
+  tile map at three shelves, so accounting, operations and project management declaring
+  tiles (B-205, B-206) turned a finance test red that only ever meant "this shelf has
+  none"; it now asserts that (`finance` absent from `SUBJECT_TILES`, every tile key a
+  declared shelf) and is green again. And `HANDOFF.md` cited `B-180a` / `B-180b` — the
+  per-tier allowance and the bundle SKU set — with no register row, which the docs spine
+  fails on; both are now **PARKED** rows in `docs/DECISIONS.md`, quoting the owner question
+  as HANDOFF states it and inventing no answer.
+
+- 1.76 (2026-11-03): a brief with no shelf is no longer refused as the wrong shelf; one scorecard perspective can carry evidence again; three stale tests and one cached provider test corrected; the unserved worksheets are trapped. No method, number, gate or shelf membership changed.
+
+
+- 1.75 (2026-11-03): **The Project management worksheet forms are professional to fill in, and the shelf meets them in order.** Owner instruction: *"DO A PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* and *"USE TILES."* Design lane B-080. **The four grids learn their own labels.** A grid's right-hand label was the internal plumbing: the Balanced Scorecard read "Measure field", the Strategy Map "Map field", the KPI tree "Tree field" and OKRs "OKR field". Each grid now declares a `form_copy` object beside its own geometry in `MATRIX_META` - the row label, the column label, the hint under the column label and the sentence that explains what belongs in the grid - and the server publishes it on the template payload. The page reads it; it does not branch on a template id. The three older branches in `matrixForm` stay as the floor for a grid that declares no copy. **A grid now opens its grid form.** This is the defect this session found and fixed: every Project management worksheet carries a completion profile, and `worksheetForm` tested `t.completion` *before* `t.form_kind`, so the four grids opened the evidence form - which collects `{blocks, links}`, a shape the grid's own validator refuses with *"rows must be a list of 4 to 6 perspectives"*. A student typed a grid and the run was refused. The declared form now decides: a grid opens the grid form, and the grid's shape is what is collected. **The four states are designed, not accidental.** *Empty*: the grid says what belongs in a cell and that an unfilled cell is named in the audit. *Loading*: the panel says it is opening the worksheet instead of showing a blank card. *Error*: a template the server would not serve is named. *Refusal*: the audit's own reason, in a sentence, beside the form - never a raw dump and never a template token. **The grid reads at 390 px.** A four-column grid with four to twelve rows is wide, so on a narrow screen it collapses into one card per row, each field stacked under its own label; on a wide screen it is a table inside its own scrolling box. Every cell carries a label naming its row and its column. The page no longer scrolls sideways at 390 px: the capability tile and the top bar both used to push it, and both now shrink. **The shelf has tiles.** The Project management page measured `tiles: 0` and fell back to groups. It now declares seven tiles in the order a student meets the work: **Governance** (the Balanced Scorecard, the Strategy Map, the KPI Tree and the OKRs - the Scorecard first, because the other three hang off it), **Delivery documents** (the charter, the work breakdown structure and the risk register), **People and governance roles** (the RACI, the stakeholder plan and the lessons learned), then **Appraise the business case**, **Compare the options**, **Project cost and benefit** and **Schedule and control** - the last four keeping the group names the shelf already used, so no calculator moved. All ten worksheets and all eighteen calculators land in exactly one tile, and nothing is orphaned. The six held records - Scrum, Kanban, COBIT, ITIL, DeLone-McLean and TOE - stay catalogued and off the page: the owner's hold now covers the leftover section too, which is the one place a held record could have reappeared. The shelf copy says the measured truth: ten completing worksheets and six read-only records, and the product invents no durations, probabilities, weights or owners. **No number, check, citation rule or gate moved.** Every figure, every check and the frozen contract are untouched; no method, preset or core file was edited. Tests: 7 new rows (E-pm-074…080), the shelf suite 80. `qa/check_page_syntax.py` -> page syntax: OK; `scripts/econ_shelf.py --check` -> frozen fixture: in sync.
+
+## The tile is named Financial statements, and the UI is handed to the design lane
+
+The tile's label is now **"Financial statements"** (its `key` and `service` values are contract and
+unchanged), and the UI work is handed over in
+[`MINIMAX_FINANCIAL_STATEMENTS_UI.md`](MINIMAX_FINANCIAL_STATEMENTS_UI.md): the tile must be a real
+card in the same grid as every other section — the link inside a paragraph does not respond to clicks
+— the address becomes `#/financial-statements` with `#/statements` kept as an alias, and seven
+click-path checks to prove before committing. The brief carries the **live backend transcript** (201 /
+422 / 400, the diagnosis, the withheld cash flow, the ratios), the route contract, and the tests the
+design lane must not edit.
+
+The tile test was made tolerant of the address spelling, so the design lane's commit is green on its
+own without touching `tests/**`.
+
+Verified: `test_product_statements_tile` + `test_product_subjects` + `test_subject_accounting_acceptance`
++ `test_docs_sync` = **122 tests OK**.
+
+
+The risk that was left open at close: two entities pasted together could be added into one statement
+that looks right. Probing it found **worse** than a silent merge, and the diagnosis was not the one I
+had written down.
+
+- **A legitimate trial balance crashed.** `Cash 5,000 / Bank 1,000 / Capital 6,000` raised an
+  unhandled `CheckError` — a 500 — because every row was named by its *statement line*, so both
+  accounts became "Cash" and the core refused the duplicate it was shown.
+- **Two entities crashed** from the same root cause, and the merged cases that did not crash were
+  caught by accident and explained with the wrong message ("I could not find an account").
+
+Three changes:
+
+1. **Rows carry their own identity.** `tb_rows` names each row by its label and code; the chart's
+   account identity includes the label. Two accounts may share a statement line (the ledger supports
+   it, and a trial balance expects it); only a repeated account is a duplicate.
+2. **Refusals are contained.** A core refusal becomes a named refusal, and the route has a
+   last-resort guard so a bug is a clean 500 and never a stack trace.
+3. **A preflight names what this tile will not do**, before the chart is built and before any model is
+   asked: two sets of balances (a repeated account — the case that *balances*, so no invariant can
+   catch it), two periods, two figures on one line, or a consolidation mention. Each refusal says what
+   to do instead. A year inside a label is not mistaken for a comparative.
+
+Verified: `test_product_statements` **22 OK** (6 new), `test_product_statements_api` **11 OK** (1 new:
+eight malformed shapes all answer 4xx, none 5xx), `test_product_subjects` + `test_docs_sync` 62 OK.
+
+Also repaired here, because the suite must be green to close: `test_product_subjects` asserted a
+literal `v1.74` in the build pill, which the other lane's D-PM-07 change replaced with a pill painted
+from `bp.build.VERSION`. The assertion now requires the *wiring* that paints it, and the version
+itself stays pinned by `test_docs_sync`.
+
+
+The tile ships whole and the shelf is green on the integrated tree: `discover -s tests` → **Ran 3409
+tests, OK**, `econ_shelf --check` → **frozen fixture: in sync**, `docs_sync` OK. Proved live through
+the real server: one trial balance with a ratio cue → solved, `trial_balance`, 11 of 11 core checks,
+13 ratios computed, the cash-flow statement withheld with its reason, and the frozen record replaying
+to the same hash.
+
+Three pieces: the ratio bridge the product layer may not build itself (B-203), the tile and its four
+routes (B-204), and the tile on the Accounting shelf (B-205). The only thing left is the live model
+run, which the owner will do: a *transaction list* is the only path that reaches the council, because
+a trial balance is read by the grammar and never calls a model.
+
+## The statements tile, part 3: the tile on the Accounting shelf
+
+The Accounting shelf had four groups and no tiles. It now has five tiles, the first of which is the
+statements tile — the first **service** tile in the product (B-205): it runs no frozen preset, so it
+carries `service: "statements"` instead of pretending to be a calculator.
+
+- **Paste the problem, press Solve.** One box, no fields, no totals to balance. The card shows the
+  type it chose and why, the statements, and a **Working / Statements only** toggle. The toggle picks
+  which recorded text is shown, so it cannot change a figure.
+- **A refused problem is diagnosed on the card**: "Out by: 500", the finding with its confidence word,
+  and what the check cannot prove. Never a plugged line.
+- **The withheld cash flow says so**, in place, rather than showing a figure that would be wrong.
+- **Ratios appear only when asked**, with the unsupported ones named under the computed ones.
+- **Download the statements, download the working, replay the record** — replay prints whether the
+  frozen record still reproduces.
+- **A same-model note** appears when both seats resolved to one model, because one model is not a
+  second opinion.
+
+Adding tiles to a shelf that had none is the trap: a tool in no tile disappears from the page. The new
+guard test asserts that every accounting tool lands in exactly one tile, that every existing group
+still has one, and that no other subject gained the tile. `test_product_subjects` and
+`test_product_routes` stay green (59 tests).
+
+Verified: `test_product_statements_tile` 6 tests OK; the tile UI is presentation only, driven by the
+strings the server recorded.
+
+
+Build **1.74** continues, under the standing rule that the core stays unfrozen until the owner freezes
+it again (B-197). The tile itself is now real: `src/bp/product/statements.py`,
+`statements_verify.py`, `statements_council.py`, and four routes on the case route
+(`POST/GET /api/cases/statements`, `GET /{id}`, `POST /{id}/export`, `POST /{id}/replay`).
+
+What it does with one pasted instruction:
+
+- **classifies** the problem (trial balance, transactions, adjustments, incomplete records) and says
+  which cue decided it;
+- **reads** every figure and account with the exact text it came from: a declared grammar and a
+  ~19-rule chart vocabulary first, because that is exact and free on a table; a model only when the
+  grammar cannot read the problem, with a second seat arguing the **contested** labels only;
+- **compiles** the reading into the engagement spec the core accepts and **calls the core** — the tile
+  computes nothing;
+- **presents** the income statement, the statement of changes in equity, the balance sheet and the
+  trial balance as the core rendered them, plus the journal, the T-accounts, the derivations and the
+  assumptions behind one toggle;
+- **diagnoses** an imbalance from the core's own `trial_balance_check` — difference 500, finding
+  `submitted-does-not-balance`, "likely" — and never plugs it;
+- **derives** the missing capital in an incomplete record from that same difference, labelled
+  `derived` with its identity;
+- **computes ratios** only when the instruction asks, and names every ratio the registry cannot
+  support with the input it needs;
+- **freezes** the record with `verify.freeze` and replays it byte-identically.
+
+Three decisions, all from probing the core rather than assuming:
+
+- **A trial balance is posted as one period entry.** As opening balances the same figures fail two
+  core invariants (7/11); as one entry they pass every applicable check (9/11 with `checks_na = 2`).
+- **Its cash-flow statement is withheld**, and the reason is printed. The core will produce one from
+  a single period entry, and it is false: the whole cash balance reads as a period inflow.
+- **A dissent never wins by arguing.** The ranking is declared — vocabulary rule, then the literal
+  standard rule, then the marker convention, then the dissent — and the dissent is recorded so a
+  marker can see what was considered.
+
+The verifier caught two bugs in my own reader while building it, which is the point of it: a
+synthesised retained-earnings account with no quote, and two accounts sharing one statement line
+(equipment and its accumulated depreciation now carry distinct names and codes).
+
+Verified: **41 new tests** — `test_product_statements` (16), `test_product_statements_council` (15),
+`test_product_statements_api` (10) — plus the 219-test affected set (statements, product boundary,
+frozen contract, accounts) green. `tests/fixtures/frozen_contract.json` untouched; no method, preset,
+input, check or number changed.
+
+
+Owner instruction of 2026-11-03, under the standing rule that the core stays unfrozen until the
+owner freezes it again (B-197). Build **1.74** continues.
+
+A new accounting tile takes one instruction box and solves the bookkeeping — trial balance,
+transactions, adjustments or incomplete records — and it is not allowed to add up a statement line
+to feed a ratio. The bridge it needs did not exist, so the core now publishes it:
+
+- **`balance_sheet_groups`** — the current / non-current / unclassified grouping and its totals,
+  computed by the core in the same pass as the statements.
+- **`ratio_figures`** — the values `ratio_analysis` declares as its inputs, *selected* from those
+  totals, from the pre-closing income and expenses, and from the account with role `cash`. Nothing
+  is summed, split or re-rounded outside the core.
+- **`RATIO_GAPS`** — the ten ratios a student may ask for that the registry has no definition for,
+  each named with the inputs it needs (a market value needs a share price and the share count).
+
+Two decisions came out of building it, and both are traps:
+
+- **A current total is published only when every line in that section is classified.** A partly
+  classified balance sheet would publish an understated current total and an undeclared one a zero;
+  both read as facts. Omitted, `ratio_analysis` names the input missing instead — which is what a
+  student should see.
+- **Growth ratios are not gaps**: `dupont_analysis` already computes them from a declared comparison
+  period, so listing them would have been a lie. A test cross-checks `RATIO_GAPS` against the
+  registry, so a gap can never name a ratio the core already computes.
+
+Verified: `test_accounts` **29 tests OK** (8 new, `RatioSelection`), covering the fully classified,
+partly classified and unclassified balance sheets and the determinism of the selection.
+`tests/fixtures/frozen_contract.json` untouched; `scripts/econ_shelf.py --check` → "frozen fixture:
+in sync". No method, preset, route, input, check or number changed.
+
+
+Session 8 of the subject-by-subject validation, on the owner's work order of 2026-11-03
+— *"SUBJECT = operations … Do NOT start marketing, supply-chain, people or any other shelf
+this session"* — and under the owner's standing rule that *"the core is UNFROZEN until I
+freeze it again"* (B-197). Build **1.74**.
+
+The shelf measured as the work order said it would: **14 tools, 11 worksheets, 7
+read-only records, 0 theories, 20 glossary terms, 11 profiles, 0 worked examples**, and
+the four full-suite errors of the day were this shelf's. What the session did, in the
+order the defects were found:
+
+- **Eleven worked examples** (`templates.EXAMPLES`, D-OPS-01). None of the eleven
+  templates had one — 69 examples existed for other shelves — so
+  `test_operations_frameworks.ExampleTest` errored with `KeyError: 'template_sipoc'`
+  instead of testing anything. Each new example is a *synthetic* campus-meal-counter case,
+  labelled illustrative, and it passes its template's own `validate()` **and** every one
+  of its own checks. Four errors → **50 passed**.
+- **The borrowing rule is now declared, not inferred** (B-201, D-OPS-03). A block's `cues`
+  is the vocabulary a *source* is accepted on, and it holds the words every brief uses
+  ("change", "review", "cost", "quality", "flow"). Matching the student's sentence against
+  it printed "The manager reviews the change next term" as what the PDCA *act* stage
+  standardised and "we must cut cost without losing quality" as a root cause *in inputs* —
+  the D-MGT-03 class the owner graded BLOCKER. Blocks may now declare `quote_cues`; the
+  eleven operations profiles declare one per part (59 blocks) and the trap brief produces
+  **zero** quotes.
+- **A `gap` cell says what to state** (D-OPS-05). The value stream map's judgement and
+  proposal cells declared a probe that never reached the paper.
+- **No paper prints its citation twice** (D-OPS-04). Every sourced cell read
+  "(Lovelace, 2024) (Lovelace, 2024)": the item line carried the citation and the block
+  appended it again.
+- **The conclusion states a count, not a ranking** (D-OPS-02). Every operations paper
+  ended "… and Problem carries the most weight … while Problem carries the least", because
+  `index(max())` and `index(min())` name the same part when every part carries one item —
+  and the shelf declares that it never ranks.
+- **The harness, repaired before it was trusted** (`qa/probe_mgt_debug.py`). It reported 5
+  problems on this shelf and all five were its own: it alarmed "no sourced item" on a
+  `quote`/`gap` profile (a value stream map is the student's own process) and it treated
+  `('` and `')` in ordinary English as a Python repr. It now checks whether the profile
+  actually researches, narrows the needles to `{'`/`['`/`'}`/`']`/`,'`, and carries a
+  fourteen-tool pass (`preset` → `Pipeline.run` → `session_paper.docx_bytes` → the text).
+  **0 problems** over 11 worksheets × (evidence, no evidence, determinism) and 14 tools.
+- **The shelf's own probe** (`qa/probe_ops_shelf.py`, new): inventory reconciled against
+  the catalogue, forms, records, glossary, block provenance, the auto-fill trap, and the
+  eleven worksheet papers plus fourteen tool papers written to `qa/evidence/operations/`
+  and read back from `word/document.xml` (P6).
+- **`qa/manual/operations.md`** — 46 E-rows, one row per tool, worksheet, record, glossary
+  term and UI surface, each citing its source of truth, reconciled 1:1 with the traceability
+  matrix — and `tests/test_subject_operations_acceptance.py`, **46 tests, 46 passed**.
+
+**Owner follow-up, same day.** The eleven papers drew no figure, which the session had
+ledgered as G-ops-01 because `matrix.LAYOUTS` names a grid for the strategy and marketing
+shelves only. The owner's instruction — *"Build the 11 figure layouts … each paper gets a
+labelled grid built from the items already accepted — no new number, no new evidence"* —
+closes it: **eleven layouts in `matrix.LAYOUTS`** (B-202), one per operations framework, each
+listing every block of its profile exactly once in the framework's own reading order, with
+spans and axes where the framework has them (A3's follow-up spans the page, Kraljic is a
+quadrant on profit impact × supply risk, root cause is the effect, the six categories, then
+the supported cause). The builder writes nothing: a cell carries the block's label and the
+items already accepted or the gap already named. Every one of the eleven papers now reads
+`Figure 1.` with a labelled cell per block, and `test_E_ops_018` fails if a layout drops a
+block, mislabels a cell or leaves a cell with neither a bullet nor a gap.
+
+Ledgered rather than invented: **G-ops-03** — one brief sentence can fill two adjacent SIPOC
+parts; **D-OPS-07** — a process-unit query repeats the unit. Both are MINOR and pinned.
+
+**Owner follow-up, same day — the three tiles.** The shelf listed its eleven worksheets in one
+flat list while the management, people and project-management shelves grouped theirs. The owner's
+instruction was *"create a group for them"*, and the grouping is not a preference: `_tiles()`
+places a calculator in the tile whose key equals the tool's `group`, so the three tile keys are
+the shelf's own tool groups — **Process and capacity**, **Inventory and planning**, **Quality and
+evidence** — and each tile now holds the worksheets, the calculators and the records of one
+question. A **record map** went in with them (B-206): without it the seven computed records are
+claimed by no tile and the page's leftover heading prints them as *"read and cite — no worksheet
+yet"* cards, which is a calculator described as something to cite. `test_E_ops_010` asserts the
+three keys in page order and that no worksheet, calculator or record is dropped or duplicated.
+
+
+Session 7, fifth pass, on the owner's instruction — *"THIS NEEDS WORKSHEET: Strategy Map,
+KPI Tree, OKRs. DO A PROFESSIONAL WORKSHEET. THEN ENSURE THEY WORK."* Build **1.71**.
+
+- **Three records become completing worksheets**, on the same T4 declared-matrix machinery as
+  the Balanced Scorecard, so each inherits the eight shared checks (every cell placed once,
+  counts recount, verbatim listing, **empty cells named not filled**, assumptions flagged,
+  **no score / ranking / probability**, deterministic render):
+  - **Strategy Map (PM-02)** — rows are objectives; the four declared fields are
+    *Perspective · Objective · Drives · Measure*. A causal link exists only where the student
+    writes one; no arrow, chain or weight is derived.
+  - **KPI Tree (PM-03)** — rows are metrics; fields are *Level (outcome/driver/input) · Metric ·
+    Formula or definition · Source*. No value is calculated and no arithmetic is checked.
+  - **OKRs (PM-04)** — rows are objectives; fields are *Objective · Key results · Baseline to
+    target · Source*. A key result without a baseline is named at audit; no attainment score.
+- **Each has a product profile and a paper**: four/three/three blocks with their own cues and
+  queries, an authored lead, voice and per-block notes, plus the per-block authoring help
+  (`ADVICE`) that tells a student what a usable cell contains.
+- **The remaining six stay off the page**: Scrum, Kanban, COBIT, ITIL, DeLone–McLean, TOE.
+- Tests: **73** shelf rows (E-pm-071…073 new), suite **3184**; `test_product_subjects` now
+  expects 10 worksheets and 6 records. `econ_shelf` in sync, page syntax OK, 278 shared tests
+  green.
+
+
+## The other three long documents get a door, and the export gate learns their names
+
+Session 7, owner's question of 2026-11-03 — *"DID YOU WIRE THOSE TEMPLATES FOR BUSINESS
+PLAN, MARKETING PLAN, AND OTHERS? THEY MAY BE LONG BUT IMPORTANT"* — answered by
+measurement, not memory: the engine composed **four** long documents and exactly **one**
+of them, the business plan, had a way in. Build **1.73**.
+
+- **Three documents were unreachable.** `chat.start(profile=...)` accepts
+  `business_plan`, `feasibility_study`, `marketing_plan` and `project_proposal`; each
+  returns its own sections, student fields and computation blocks. The page posted
+  `profile: "business_plan"` from one hard-coded button, so a marketing plan (8
+  sections), a feasibility study (10) and a project proposal (8) could be built only by
+  hand-writing an API call. `feasibility_study` and `project_proposal` appeared nowhere
+  in the test suite at all.
+- **They could not have been exported even by hand.** `paper._missing_base` gated on
+  the single string `"business_plan"`; every other profile fell through to the
+  framework-paper gate, which demands an `implications` sentence no plan profile has a
+  field for. A marketing plan drafted with `missing: []` then threw `ExportBlocked:
+  ['implications']`. One constant, `paper.DRAFT_PROFILES`, now names all four, and a
+  drift test fails if `chat`'s constants and that set ever disagree.
+- **Two composers stored half a draft.** `_draft_marketing_plan` and
+  `_draft_project_proposal` (and the feasibility study) stored `{sections, style,
+  accepted}` — no `title`, no `outline`, no `missing` — so the Word export crashed
+  reading a title instead of naming what was still required, and the page's "complete
+  the plan" gate had nothing to read. One writer, `_store_plan_draft`, gives all four
+  the same shape the business plan already had.
+- **They also printed a placeholder reference list.** All three hard-coded
+  `"No references supplied."` whether or not a source had been accepted, so a document
+  with accepted evidence claimed it had none. `_plan_reference_section` builds the same
+  deduplicated list the business plan builds, and says "No sources were used." only
+  when that is true.
+- **One door per document, on the shelf it belongs to.** `PLAN_PROFILES` +
+  `SUBJECT_PLAN_DOORS` in `web/index.html`: the entrepreneurship shelf offers the
+  business plan *and* the feasibility study, marketing offers the marketing plan,
+  project management offers the project proposal. `beginPlan` posts
+  `state.planProfile` and the door's own subject, the panel heading follows the
+  document that is open, and the composition label follows the profile's own
+  convention instead of always saying "Business-plan convention".
+- **Measured, not asserted**: a supplied marking-graded-free run of each profile now
+  exports a Word file — 14.0 KB (marketing plan), 20.7 KB (feasibility study, 14
+  headings including the projected statements and sensitivity), 14.0 KB (project
+  proposal) — and the business plan is unchanged.
+
+- 1.74 (2026-11-03): the operations shelf gets eleven real worked examples, a declared borrowing vocabulary per part (B-201), eleven figure layouts so every worksheet paper carries its grid (B-202), three tiles so the page groups its worksheets with the calculators and records that answer the same question (B-206), and three paper fixes found by reading the produced .docx — a doubled citation, a ranking conclusion, and a gap that never said what to state; the probe harness is repaired and carries a fourteen-tool pass. No method, preset, record, worksheet, input, check or number changed.
+
+- 1.73 (2026-11-03): the marketing plan, the feasibility study and the project proposal are reachable, exportable and tested; the plan export gate no longer knows only one profile's name. No method, preset, worksheet, input, check or number changed.
+
+
+## Model-assisted writing for the frameworks: the Balanced Scorecard is now a worksheet you can fill in
+
+Session 7, fourth pass, on the owner's instruction of 2026-11-03 — *"are they just like
+theories? … DELETE THEM"* and *"YES BUILD THIS: Build the Balanced Scorecard as a real
+worksheet."* Build **1.71**.
+
+- **The ten read-only cards are off the shelf page.** `HOLD.groups` in `web/index.html`
+  gains `"project delivery and governance"`, the same switch that already hides "risk and
+  decision analysis". The heading and the ten "Read the framework" cards stop rendering;
+  the catalogue rows stay, so nothing is lost and one line restores them.
+- **The Balanced Scorecard is a completing worksheet.** New core template
+  `template_balanced_scorecard` — T4, **matrix** form, four perspectives as rows and
+  Objective · Measure · Target · Initiative as the four declared columns — registered
+  through `MATRIX_META`, so it inherits the eight shared matrix checks (each cell placed
+  once, counts recount, verbatim listing, empty cells named, assumptions flagged, **no
+  score / ranking / probability**, deterministic render). It is wired to the existing
+  record through `registry.TEMPLATE_LINKS["PM-01"]`, so PM-01 keeps its id and its
+  professionally written text and simply stops saying "no worksheet yet".
+- **The product layer gives it a paper.** A `BALANCED_SCORECARD` profile (four perspective
+  blocks with their own cues and queries, authored lead, voice, per-block notes) and the
+  per-block authoring help (`ADVICE`) so a student knows what a usable cell contains. No
+  weight, no composite index, no verdict is computed anywhere.
+- **The remaining nine stay off the page:** Strategy Map, KPI Tree, OKRs, Scrum, Kanban,
+  COBIT, ITIL, DeLone–McLean, TOE.
+- Tests: **70** shelf rows (E-pm-068…070 are the new ones), suite **3168**;
+  `tests/test_product_subjects.py` updated because the shelf genuinely changed (7
+  worksheets, 9 records). `econ_shelf` in sync, page syntax OK.
+
+
+## Model-assisted writing for the frameworks: what a usable answer contains, and the question that unblocks it
+
+Session 7, third pass. Build **1.71**.
+
+- **Authoring help, per block, in the framework's own words.** `framework_profiles.ADVICE`
+  now carries, for all 36 blocks of the six project-management worksheets (charter, WBS, risk
+  register, RACI, stakeholder plan, lessons learned), two "a usable answer contains …" lines and
+  the question that unblocks an empty cell — e.g. charter *sponsor and governance*: "who sponsors
+  the project and who decides" / "Who can stop this project, and who signs off a change?".
+  Served on the existing `/api/templates/<id>` payload as `blocks[].advice`, so no new route, no
+  new provider, and it works offline.
+- **Model tailoring, validated.** `prose.suggest_questions()` rewords that question in the
+  student's own case words through the existing prose lane, for blocks with **no sourced and no
+  student item**. Every returned string must be a question, ≤25 words, and free of digits, links,
+  DOIs, "et al", "ibid" and template braces — otherwise it is dropped and the authored question
+  stands. `prose.valid_suggestion()` is that filter.
+- **It can never become evidence.** The help renders in a `<details>` beside each input; a
+  suggestion is never written into the textarea and never becomes an item, so provenance stays
+  inside `sourced / student / assumption / background`. `test_E_pm_064…067` pin the four
+  properties: advice exists for every block, the page can only render it, no suggestion becomes
+  an item, and a fabricated question never reaches the paper.
+- Tests: **67** shelf rows (was 63), suite **3162**.
+
+
+## Project management: the paper stops printing the word "lead" as a paragraph
+
+Session 7 debugging pass, second commit. Build **1.71**.
+
+- **D-PM-05 (BLOCKER, V-06 gate).** The project charter, WBS, risk register, stakeholder plan and
+  lessons learned shipped `'lead': 'lead'` in their outline (as did the Business Model Canvas, Lean
+  Canvas and Value Proposition Canvas), so the produced `.docx` carried a paragraph that was the single
+  word **`lead`** under the framework heading — while the pipeline's own `_problems` already reported
+  "lead short". **Fixed in both layers.** `completion._lead_of()` treats a bare token as a **declared
+  absence** (the paragraph and heading are omitted, the section survives only for a figure, and "lead
+  short" is reported only for a lead that exists) — so no future stub can print; and the **eight leads
+  are now authored**, 56–86 words each, grounded on that profile's own block labels with no case fact,
+  number or source. The finished charter now opens its framework section with "A project charter
+  authorises one project: …". Trap test `test_E_pm_063`; before/after in
+  `qa/evidence/project-management/lead-before-after.txt`.
+- **Measured and corrected, not fixed:** the five worksheets' blocks printed `background` because the
+  evidence pack was empty, **not** because retrieval is dead. Instrumenting `retrieval.retrieve` showed
+  the title-cue gate working as designed; a realistic title places a sourced item (`dropped: 1,
+  items: 1`). The manual's G-pm-01 row now records that correction.
+
+
+## Project management: the five delivery worksheets stop searching for the word "evidence"
+
+Session 7 of the shelf-by-shelf debug (`SUBJECT = project-management`). Build **1.71**.
+
+- **D-PM-01 (MAJOR, wiring).** The project charter, WBS, risk register, stakeholder plan and lessons
+  learned declared `cues: ['evidence']` on **every** block and a query built from the raw block key, so
+  the retrieval gate could not tell one dimension from another and the student's search string was a
+  snake_case token (`scope_in evidence`). Each block now names its own vocabulary (`scope_in` →
+  `scope`, `included`, `boundary`; query `project scope statement inclusions`) — 32 blocks across five
+  profiles, product layer only, no frozen-core change. Trap tests: `test_E_pm_049`, `test_E_pm_050`.
+- **D-PM-02 (MAJOR, declaration).** RACI is `PM-10` on **both** the project-management page and the
+  people page, and its profile declared `subject: 'management'`. It now declares
+  `project-management`, so the catalogue id, the two pages and the computation-boundary refusal all
+  agree. Trap test: `test_E_pm_058`.
+- **Measured, not changed:** `case_decision` is a T2 *template* that computes NPV (not a
+  `bp.methods` method) and it delivers (D-PM-04); the two registry kinds still declared as canvas
+  *and* matrix are `template_customer_journey` and `template_servqual` — marketing's, ledgered as
+  D-PM-03; `tiles: 0` is a real fallback layout, not a UI defect (§2.1 of the manual).
+- **The shelf's acceptance manual is new:** `qa/manual/project-management.md` — the 16-item
+  delivery/governance inventory with a per-item verdict, a **ranked, owner-gated proposal** for which
+  read-only records should become worksheets (build none of them), **62 E-rows** reconciled 1:1 with
+  `detail('project-management')`, and the one paper read against V-01…V-20.
+- Tests: **62** new (`tests/test_subject_project_management_acceptance.py`), all passing; suite
+  3151 tests. `scripts/econ_shelf.py --check` → frozen fixture: in sync.
+
+
+## The core is unfrozen (standing rule), and every method now declares its own precision
+
+Owner instruction, 2026-11-03: *"ON QUESTION, UNFREEZE IT. KEEP EVERYTHING UNFREEZE UNTIL I FREEZE IT
+AGAIN, MAKE THIS A RULE."* Decision **B-197**.
+
+- **The standing rule.** `src/bp/**` and the pinned fixture may be changed without a fresh per-change
+  unfreeze until the owner says "frozen" again. The guarantees do not relax: `test_frozen_contract.py`
+  must pass, `scripts/econ_shelf.py --check` must still say "frozen fixture: in sync", no check is
+  loosened or deleted, every behaviour change ships with a trap test that fails on the old code, and
+  every unfreeze is a decision row. Written into `docs/BACKEND_CONTRACT.md` §3 and `docs/HANDOFF.md` §2
+  rule 10 so the next agent reads it as the rule rather than a permission.
+- **First use of it: four methods that declared no precision.** `npv`, `pearson`, `spearman` and
+  `descriptive_stats` had no `typing` hook, so the computation paper printed the Decimal as stored:
+  `Npv A1: 2586.4733808644797823276713689760481408096100978284`. The hooks are now declared where the
+  number is computed — `npv_typing` (money at 2 dp, the convention `_irr_typing` already used),
+  `_corr_typing` (reads the `output_precision`/`output_units` the correlation rows already declared:
+  r/rho 3, intervals 3, p 4, counts 0), `_describe_typing` (counts 0, other statistics at the request's
+  unit and the library's default 2 dp). **142 of 142 methods now declare a precision.**
+- **`case_decision` is a template, not a `Method`,** so its per-alternative keys (`npv_A1`) had no
+  declaration at all. The core already records the unit and precision of every figure it emits in
+  `appendix["analysis"]["artifacts"]`; `session_paper` now reads that record instead of choosing a
+  precision at the paper (the product formats, it never recomputes).
+- **No Python repr in a paper.** The same block printed `Facts: {'text': 'A supermarket chain opened…'}`;
+  nested values are now flattened into words (`Facts: Text: …; Provenance: synthetic`).
+
+Read on the artefacts: the `case_decision` paper now prints `Npv A1: 2586.47`, `Npv A2: 2136.83`,
+`Cross 1: 0.10`, `Rate: 0.08`, and no line matches `\d\.\d{6,}`. No preset, input, check, tier, route
+family or input-schema key changed; `tests/fixtures/frozen_contract.json` is untouched;
+`scripts/econ_shelf.py --check` reports "frozen fixture: in sync". Trap test:
+`test_E_mgt_039__every_method_declares_its_precision_and_no_paper_prints_a_raw_decimal`.
+
+
+## The management shelf, inlined profiles, and no specification footer in any paper
+
+Owner: shelf 4 of 11 (work order: subject audit, `management`). Session record: `qa/QA_STATE.md`
+(“Session 5”); manual: `qa/manual/management.md` (46 E-rows); ledger: `D-MGT-01…11`.
+
+- **The app imports from the repository again.** `framework_profiles.py` ran
+  `exec(open("C:/tmp/profiles_out.py").read())` at import time: eight profiles (Business Model Canvas,
+  Lean Canvas, Value Proposition Canvas, Project Charter, WBS, Risk Register, Stakeholder Plan, Lessons
+  Learned) existed only in that temp file, so the module raised `FileNotFoundError` on any other machine
+  and on a clean checkout. They are now literal data in the module and the `exec` is gone (D-MGT-01,
+  BLOCKER).
+- **One name for each of Porter's nine activities.** The module declared Value Chain twice — a dead
+  short-key copy (`inbound`, `infrastructure`, …) and the live long-key profile that
+  `templates.CANVAS_BLOCKS` and the worksheet form also declare. The dead copy is deleted and the tests
+  moved to the declared names; `matrix.ALIASES` maps the profile keys onto the chain layout, so the
+  figure's nine boxes carry their evidence instead of being empty (D-MGT-02, D-MGT-05).
+- **A cell is evidence, a gap, or a stated background — never a stray sentence of the brief.** The nine
+  blocks were `fill: "auto"`, which quoted “where cost and differentiation come from” into
+  **Procurement** and left eight cells empty on a no-source run. They are `research` again; a cell with
+  no source now says so in the paper before it prints the framework's background (V-12), and firm
+  infrastructure's cue set carries the words its own query asks for (D-MGT-03, D-MGT-04).
+- **Change and Organization analyses an industry,** not “the change you are planning”: the unit of
+  analysis, the refusal and the voice now say so, so the industry brief is no longer refused
+  (D-MGT-06).
+- **The model prompt names the unit of analysis.** `HEAD_SYSTEM` gained
+  `Keep the unit of analysis in view: {unit_rule}`, taken from the profile's own unit label, so a BCG,
+  GE-McKinsey, Diamond or Generic Strategies prompt can no longer write an industry paper without ever
+  naming the industry (D-MGT-07). Twenty-one tests on this shelf and twelve on marketing depend on it.
+- **“a activitie” is gone.** The deterministic draft built the singular with `rstrip("s")` and the
+  article was hard-coded; `_singular`/`_article` fix both, and the paper was read back to prove it
+  (D-MGT-10).
+- **No student paper prints a specification footer.** `deliverables.py` still emitted “How this was
+  produced” / “Method: … (version 1.0.0)” / “Specification hash: …” / “These figures can be re-run from
+  the stored bundle” for every deliverable profile; the block is deleted and asking for it now refuses
+  (P3, D-MGT-11). `tests/test_worksheet_export.py` asserted the footer's presence and now asserts its
+  absence.
+- **Recorded, not fixed.** Four frozen methods declare no `typing` hook, so the computation paper still
+  prints a 50-digit `Npv` (D-MGT-08, BLOCKED — owner decision); the shelf page counts 28 catalogue
+  records beside its 31 worksheets (D-MGT-09, BLOCKED — the number is on the page); Change and
+  Organization works when called but has no worksheet row on any shelf (G-mgt-02).
+
+Measured: full suite **3084 tests, 40 failures, 6 errors** at close (baseline `2932 / 66 / 13`), **0 new
+failure names**, 33 repaired; the framework-completion slice went 60 → 27 failures, and every one of
+the 27 is on the marketing shelf. Decision **B-195**. No method, preset, input, check, number, tier,
+route family or frozen fixture changed; `scripts/econ_shelf.py --check` reports “frozen fixture: in
+sync”.
+
+
+## No hash in a spreadsheet, and the registry rebuilt from its authority
+
+Owner: *"never ever goes to the spreadsheet that is hash. that's your internal marker … regenerate the
+registry."*
+
+- **The rule**: a hash is the system's own marker, never a student's cell. The `.xlsx` and
+  SpreadsheetML workbooks drop the `Outputs hash` row from the `Case` sheet and the `Entry hash`
+  column from the ledger `Journal` sheet. The identifiers stay where they belong — the stored
+  bundle's `outputs_hash`, the appendix, the replay record, and the SHA-256 the exporter returns
+  *beside* the download.
+- **The test that was "failing" was demanding the hash** (`sha256:spec-abc` inside the Case sheet).
+  It is replaced by a trap that fails if either format carries a hash-like cell or a `…hash` column
+  heading. The Word/HTML submission's "How this was produced" block is unchanged (it is the paper's
+  citation of method and record, not a spreadsheet) and is flagged for a separate ruling.
+- **The registry is regenerated from the catalogue** (`catalogue_import.import_catalogue`), not
+  hand-patched: 161 records, 27 lines changed (`STR-20` was missing). Four `test_registry` rows clear.
+- **Two records that the stale file had been hiding were settled by the code's own rule, not by
+  taste**: `STR-02` now links `template_generic_strategies` (the template lists STR-02 in its
+  `registry_ids`), and the RFM record reports `form: worksheet` because `registry.form` says a
+  template link wins — its computed half is carried by `linked_methods` and stated in the
+  implementation note (the catalogue types the row `Q/M`).
+
+- 1.72 (2026-11-03): a spreadsheet carries no hash (B-199), and the shipped registry is rebuilt from the catalogue. No frozen core, method, preset, template contract, input, check, number or route changed.
+
+
+Owner: *"only fix customer journey map; the other SERVQUAL gap grid — hide it."*
+
+- **Customer journey map (MKT-04) fixed.** It is a grid — `MATRIX_META` declares `touchpoint ×
+  stage`, its builder is `render_matrix` with eight checks and its example is written as cells — but
+  it was *also* listed in `CANVAS_BLOCKS`, and `describe()` tests that map first. The page therefore
+  gave it a five-block canvas editor that could never submit. It is now declared only as a grid, and
+  `describe()` publishes the two axis labels so the form reads "Touchpoints" / "Stages" instead of
+  falling back to scenario-planning wording.
+- **SERVQUAL gap grid (MKT-07) hidden, not deleted.** Same double declaration, different decision:
+  the tile is removed from the marketing page's worksheet list. Its template, registry record,
+  matrix declaration and completion profile are untouched, so the framework still runs through the
+  conductor. Repairing it later is one data edit plus putting the id back.
+- **The page offers five worksheets** (MKT-02, 04, 06, 15, 18). `CURRICULUM_MAP`,
+  `QA_DEFECTS.md` (D-MKT-04 FIXED, D-MKT-07 HIDDEN) and `DECISIONS.md` **B-198** record it.
+- **Half of the project-management ledger's D-PM-03 is closed**: `E-pm-057` now pins the single
+  remaining double declaration instead of two.
+- **Two traps added**: a grid may not open a canvas form (it would have caught this defect), and a
+  hidden worksheet must stay registered and stay hidden while the defect exists.
+
+Affected suites (147 tests) pass; page syntax OK. No method, preset, template contract, input,
+check, number or route changed; `tests/fixtures/frozen_contract.json` untouched.
+
+- 1.71 (2026-11-03): the customer journey worksheet opens its grid (one artefact, one form) and the SERVQUAL grid's tile is hidden from the marketing page pending its repair (B-198). No frozen core, method, preset, template contract, input, check, number or route changed.
+
+
+Owner: correction to the entrepreneurship shelf — *"marketing plan: STP and marketing mix should
+belong to marketing, it's already there, so delete that in entrepreneurship."*
+
+- **`MKT-02` is off the entrepreneurship page.** `subjects.SUBJECT_DEFS` drops it from the shelf's
+  `worksheets` and from its `catalogue_ids`, so the page no longer offers a marketing plan and no
+  longer prints its catalogue row either. The worksheet, its template and its catalogue record are
+  untouched: the Marketing shelf still offers it, draftable, and it still runs.
+- **The shelf carries five worksheets**, all shared with the management shelf: the Business Model
+  Canvas, the Lean Canvas, the Value Proposition Canvas, the SWOT evidence-to-action review and the
+  Blue Ocean ERRC grid (offered, not draftable).
+- **Docs follow the code**: `VALIDATION_HARNESS.md` §7.1 drops the MKT-02 row from the shared list
+  and is re-measured (30 of the 59 worksheets a subject page serves are shared; the header said
+  "31 of the 55", which had drifted), `CURRICULUM_MAP` and `KNOWN_LIMITATIONS` say five, and the
+  acceptance manual's §5, E-ent-001, E-ent-085 and E-ent-091 say five with the marketing plan
+  explicitly absent.
+- **Two test expectations were corrected, not loosened**: `test_entrepreneurship_planning`'s
+  shelf-wiring row and `test_product_subjects.test_entrepreneurship_offers_venture_tools_and_canvas_records`
+  now assert the four canvases are present **and** that the marketing plan is not.
+
+Acceptance suite **106 tests, 106 passed**. No method, preset, template, input, check, number or
+route changed; `tests/fixtures/frozen_contract.json` untouched; `scripts/econ_shelf.py --check`:
+**frozen fixture: in sync**.
+
+- 1.70 (2026-11-03): the marketing plan (MKT-02) belongs to the marketing shelf alone; the entrepreneurship page carries its five own worksheets and no longer duplicates STP or the marketing mix. No frozen core, method, preset, template, input, check, number or route changed.
+
+
+Owner: shelf 6 of 11 (work order: subject audit, `entrepreneurship`).
+
+- **The marking guide now reaches the plan.** `chat.start(..., rubric=…)` reads it once, refuses an
+  unreadable one with the reader's own reason, and `chat.draft` measures the finished plan against
+  it: the paper carries a `Rubric coverage` table before its references, and a weighted criterion
+  the plan does not address blocks the download and is named in `missing`. The student may accept
+  the gap (`POST /api/cases/chat/{id}/rubric-gate`); the table keeps naming it and the decision is
+  recorded. `paper.rubric_section` is now one function for both paper paths.
+- **Two rubric-reader defects fixed.** A labelled word budget in a list rubric ("Word limit: 2,500
+  words +/- 10%") was read as a sixth weighted criterion — the tolerance's `%` became its weight,
+  so a complete paper could never be downloaded. A gerund criterion never matched its noun heading
+  ("Referencing" against "References"), a false gap with the same effect. `_read_list` skips a
+  labelled length line and a name that is only a word count; `_covers` accepts two words that share
+  their first six letters.
+- **A plan block's columns are proposed, not refused.** `bp.ingest.to_method_inputs` refused any
+  mapping that left a required scalar out — which is exactly a plan block's shape (list columns
+  from a file, drivers typed). It now names the un-mapped inputs in `not_mapped`; what a mapping
+  gets wrong (a scalar asked from a column, an unknown column, a mixed-type column, a value that
+  fails its own rule, a mapping that names no input at all) is still refused in the core's words.
+- **Eight presets across three shelves deliver again.** A preset that declares no period wrote the
+  literal text `None` into its own reference token, and `ArtifactStore.resolve` compared that text
+  with a real `None`: `reference failure: RefMismatch('token wants n/None, artifact is n/None')`.
+  `pearson` additionally crashed in the frozen `corr_template`. Fixed in the artifact layer and at
+  the template call (never in `methods.py`): accounting's `accounts`, the research/finance
+  statistics presets and three entrepreneurship tools now deliver. **46 of 46 entrepreneurship
+  tools deliver through their own preset** (43 before).
+- **The engine that read a brief reaches the page.** `POST /api/cases/brief` now returns the file
+  it read and, when a vision model read it, the model id; the plan page shows it and says the text
+  is unverified.
+- **Docs corrected**: `CURRICULUM_MAP.md` said 5 worksheets (6), `KNOWN_LIMITATIONS.md` said the
+  SWOT review was the only structured worksheet, and both now describe the six.
+
+Page syntax gate OK. Acceptance suite `tests/test_subject_entrepreneurship_acceptance.py` **106
+tests, 106 passed**; the shelf's own suites (62 + 63 + 39) still pass. No frozen method, preset,
+input, check, number or route family changed; `tests/fixtures/frozen_contract.json` untouched.
+
+- 1.69 (2026-11-03): the marking guide reaches the business plan and its gate is the student's; a dataset proposes a plan block's columns; eight period-less presets deliver again; the OCR engine reaches the page. No frozen core, method, preset, input, check, number or route changed.
+
+
+Owner: approved on accounting — apply to all subjects, and reconcile professionally where a Close
+button sits beside a level-1 heading.
+
+- **Rolled out**: the scope moved from `#subjectout[data-subject="accounting"]` to `#subjectout`, so all
+  eleven shelves carry the filled `--green-700` band with the white label. Home panels and other
+  `.levelhead` uses are untouched, because the rule is scoped to the subject output.
+- **The Close button became part of the bar, and stopped being red.** It was `btn sm danger` with the
+  word *Close* sitting inside the heading. On a green band that was three problems at once: red on
+  green is a chromatic clash, a word is not what a header bar wants at its right edge, and "danger"
+  overstates an action that is reversible — a tile removed from a shelf can be added back. It is now a
+  26 px white icon button in a **right-hand action zone**, separated from the title by a 1 px
+  `rgba(255,255,255,.28)` rule, with a 16 % white hover and a visible focus ring. The word did not
+  disappear, it moved: `title` and `aria-label` read *"Remove <tile> from this shelf"*, so a screen
+  reader and a hover both still get it.
+- **Why a right-hand zone rather than a floating button**: a heading plus a stray control is two
+  objects. A title with a divided action area is one object — a header bar — which is what the eye
+  already reads a full-width band as. Multiple controls stack in that zone with 6 px between them.
+
+Page syntax gate OK; 60 page and contract tests pass (one failure is the pre-existing external
+portfolio-rail assertion). Build 1.68.
+
+- 1.68 (2026-11-03): apply the heading band to every subject and turn its Close button into a named icon control in a right-hand action zone; no frozen core, method, preset, input, check, number or route changed.
+
+
+## Trial: a filled green band behind the accounting level-1 headings, pending approval
+
+Owner: the small green marker beside a level-1 heading is not enough — try a full horizontal bar with
+the text in white, in **accounting first**, and apply it elsewhere only if approved.
+
+- The subject page now records which shelf is on screen (`#subjectout[data-subject="accounting"]`), so a
+  treatment can be trialled on one subject and switched on for all of them by removing one condition.
+- Accounting's `.levelhead` becomes a filled band: `--green-700` background, white label, 8 px radius,
+  9 px × 12 px padding, and the marker pseudo-element switched off because the band itself is the mark.
+- **White on `--green-700` (#076B41) is about 7.5:1** — WCAG AA and AAA for small text. `--green-600`
+  (#02A15E) would be about 3.1:1, which fails for a label this size, so the darker green was chosen
+  deliberately rather than for looks.
+- Any control inside the heading (a Close button on a tile group) is outlined in white with a 14%
+  white hover, so it stays legible on the band.
+
+Scoped to `accounting` only. Every other shelf keeps the marker-and-rule treatment until the owner says
+otherwise.
+
+- 1.67 (2026-11-03): trial the filled heading band on accounting; no frozen core, method, preset, input, check, number or route changed.
+
+
+## Level-1 headings on a subject page get a mark and a rule — and still work with a Close button
+
+Owner: add a green bar to level-1 headings such as *Bookkeeping and statements* and *Cost and variance
+analysis*, to draw the eye and separate groups — and reconcile that with the Close button that sits
+beside the heading on some groups.
+
+The heading is one flex row with a `::before` bar, a hairline rule under the whole line, and any
+trailing control parked at the far right:
+
+- the **bar** is 4 px wide, `1.05em` tall (cap height, so it reads as a marker rather than a block)
+  and sits **outside** the text flow — a button beside the heading cannot push it, and it cannot push
+  the button;
+- the **rule** (`border-bottom`) does the separating, across the full width, so the bar does not have
+  to shout; group spacing rises to 26 px above and 12 px below;
+- the **Close button** takes `margin-left:auto`, so it always lands at the right edge *on* the rule,
+  while the heading keeps its visual weight on the left. Two controls would sit together at that edge;
+- the label is 13.4 px uppercase, 600 weight, `.07em` tracking — smaller than before but stronger, so
+  the bar is what draws the eye, not the type size.
+
+Rejected while designing: a filled green block behind the heading (eats vertical space and fights the
+Close button's contrast), and a `border-left` only (invisible once a button sits beside it, and it
+stops the heading from reading as a separator).
+
+No behaviour, id or markup contract changed: `.levelhead` keeps its class, its count suffix and its
+button. Page syntax gate OK; 60 page/contract tests pass.
+
+- 1.66 (2026-11-03): give `.levelhead` a green marker bar, a full-width separator rule and a right-hand slot for its Close button; no frozen core, method, preset, input, check, number or route changed.
+
+
+## The hidden buttons are actually hidden now, and one Excel button is enough
+
+Owner: "again HIDE CHARTS AND EXPORT", "download the figures (excel) is already redundant if there is
+download spreadsheet", "in trial balance, it wont download docx".
+
+- **Why "hidden" did nothing.** `.btn{display:inline-flex}` overrode the `hidden` attribute, because
+  only `.panel`, `.tabpanel`, `.drawer` and `.modal` had an explicit `[hidden]` rule. There is now one
+  global `[hidden]{display:none !important}`, so both **Charts and exports** buttons (the static one on
+  the calculator and the one the result panel renders) are actually gone from view.
+- **One Excel button.** The result panel rendered two: `Download spreadsheet` (which downloads bytes)
+  and `Download the figures (Excel)`, and the second was bound to `downloadSessionPaper("xlsx")` — a
+  format the paper route refuses, so it never worked at all. It is removed, with its handler.
+- **The Word paper now has a real second route.** A session is in memory only, so a server restart, or
+  a run that came back blocked, left `Download the paper (Word)` dead. The handler now tries the live
+  session and, if that cannot serve the paper, exports the **saved case** (`docx` / `submission`) before
+  reporting failure — and when both fail it shows the reason instead of nothing. This is the path the
+  accounting tiles use, trial balance included.
+
+- 1.65 (2026-11-03): make `[hidden]` win over `.btn`, remove the duplicate Excel button, and give the Word paper a saved-case fallback; no frozen core, method, preset, input, check, number or route changed.
+
+
+## No Markdown downloads, no charts button, and a figures form that fits
+
+Owner instruction: never download `.md` files, and the charts-and-exports button should disappear
+until its handling is decided.
+
+- **"Download the paper (Markdown)" is gone from every tile.** The button and its handler are removed;
+  Word is the only paper download. (A live session can still produce Markdown at the API, which is
+  documented, but no surface offers it.)
+- **"Charts and exports" is hidden** — both the static button on the calculator and the one the result
+  panel renders. The element and its id are kept, hidden, so the surface can return without being
+  rebuilt.
+- **The figures form no longer squeezes its own tables.** The form is a `grid2` whose cells hold a
+  control *and* its hint; at wide widths `auto-fit` was producing three columns, so a row table (the
+  trial-balance rows) was crushed into a column with a sideways scrollbar and a clipped header. Now a
+  field that carries a table spans the whole row, a field's hint stays inside its own cell and is
+  capped to a readable measure, and each cell may shrink (`min-width: 0`) instead of forcing the grid
+  wider than the page. A `.tbwrap` container scrolls a genuinely wide table inside itself rather than
+  dragging the layout sideways.
+
+The trial-balance Word paper was verified on the real routes while checking this: start → confirm →
+`POST /api/sessions/{id}/paper` with `format: docx` answers **200**, 5,497 bytes,
+`application/vnd.openxmlformats-officedocument.wordprocessingml.document`. Its earlier failure was the
+session-versus-saved-case bug fixed in `10a7739`.
+
+- 1.64 (2026-11-03): remove the Markdown download surface, hide the charts-and-exports button, and let a table field span the figures form; no frozen core, method, preset, input, check, number or route changed.
+
+
+## Downloads reach the browser: a file, not a path on the server
+
+Reported by the owner: the accounting result panel answered "Spreadsheet exported to
+exports\<id>.xlsx" and nothing arrived in Downloads, and the Word and Markdown buttons refused.
+
+Two page handlers were at fault, and both were in the one place that had never been tested:
+
+- `downloadResultXlsx()` asked the **server** to write the file and showed the server's path. The
+  browser cannot fetch a path, so nothing was downloaded. It now requests `download: true`, which
+  returns `{data, mime, filename}` and is turned into a file by one small `saveDownload()` helper.
+- `downloadSessionPaper()` required a **live session** id. The accounting flow keeps a saved case, so
+  Word and Markdown always answered "there is no delivered session to download". Word now falls back
+  to the case's own export (`docx` / `submission`), and Markdown says plainly that it comes from the
+  delivered session — because a saved case has no Markdown export yet (`docs/KNOWN_LIMITATIONS.md`).
+
+The route's bytes mode existed and worked all along; `tests/test_exports_credits.py` exercised only
+the `destination` mode, so nothing caught the page drifting away from it. Six tests close that hole,
+two of them behavioural: the route is called in process and the returned package is opened — an
+`.xlsx` and, for a submission that carries a computation, the documented **ZIP companion containing
+a real Word file.
+
+- 1.63 (2026-11-03): fix the result-panel downloads (xlsx bytes, Word via the saved case) and pin the export route's download mode, 6 tests E-dl-001…006; no frozen core, method, preset, input, check or number changed.
+
+
+## A dataset you attached can supply a tool's values — proposed, never run
+
+The frozen core already mapped columns to a method's declared inputs (`ingest.to_method_inputs`,
+reached from `/api/ingest`), but only for a file uploaded in that same request. A file a student
+attached earlier could not feed anything, so a spreadsheet became a typed table and then sat there.
+
+`intake.mapped_request(file_id, method, columns)` now maps from the **stored** table through that
+same core mapper, and `POST /api/intake/{id}/map` exposes it. The core keeps its own rules: it reads
+the method's `input_schema`, accepts only the shapes a column can feed, refuses a scalar in its own
+words, validates the assembled request, runs the method's pre-checks, and returns the inputs with
+their provenance, data manifest and `not_mapped`. **Nothing is executed** — the response has no
+report, delivery or result, so a wrong column is a correction, never a paper built on it.
+
+This is the data path only. The calculator still has no picker that offers it (see
+`docs/KNOWN_LIMITATIONS.md`): that surface, and the one "Your files" card on the calculator and the
+subject pages, remain open.
+
+- 1.62 (2026-11-03): dataset → validated method inputs from a stored attachment (`intake.mapped_request`, `POST /api/intake/{id}/map`), 6 tests E-map-001…006; no frozen core, method, preset, input, check, number or route family changed.
+
+
+## A scanned page is read by a vision model when the machine has no OCR of its own
+
+The owner asked for a free or cheap model to read scanned documents instead of a local stack. The
+repository already had exactly that shape in `prose.py` — optional, key-gated, `available()` false
+without a key, never touched by the tests — so the OCR chain reuses it instead of inventing a second
+model lane.
+
+`bp/product/ocr.py` reads one page through an OpenAI-compatible `chat/completions` endpoint with a
+base64 page image. The chain is fixed by cost and privacy, in this order: the **PDF's own text
+layer** (offline, exact), a **local Tesseract** (offline, free), then the **vision model**. Only a
+page neither of the first two can read reaches the network. The lane is off unless a key **and** a
+model id (`BP_OCR_MODEL`) are configured, so a fresh install and every test run open no socket, and
+no model id is guessed.
+
+The prompt is literal — transcribe, never summarise, translate, correct or add — because the text
+becomes a brief, a rubric or evidence, and a model that "improved" a figure would change what the
+document says. The engine is recorded (`pdf_ocr_model` / `image_ocr_model` plus the model id) and the
+text stays unverified. Every failure is named: an HTTP status, an unreachable endpoint, an empty
+answer, or a page above the 8 MB limit — never a blank success. A scanned PDF still needs
+`pypdfium2` to render its pages, and that missing package is named too.
+
+- 1.61 (2026-11-03): vision-model OCR lane (`bp/product/ocr.py`) behind the text layer and a local Tesseract, B-191, 10 tests E-ocr-001…010; no frozen core, method, preset, input, check, number or route family changed.
+
+
+## Economics: a share is not money, and a conversion stops mislabelling its source (owner-approved unfreeze B-190)
+
+- **A frozen method's fall-through unit was printing shares as money (B-190).** `_labour_typing` in
+  `src/bp/methods.py` named only `cpi`, `labour_productivity` and `unemployment_rate`; every other
+  metric inherited the row unit `currency`. So the labour paper read *"the wage share of
+  productivity is PHP 1.82"* for a share of `1.82`, and printed a tightness ratio of `5,000.00` as
+  money. `wage_share_of_productivity` and `labour_market_tightness` are now `("ratio", 4)` and
+  `vacancies` is `("count", 2)`; `real_wage` and `nominal_wage` remain `currency`. The paper now
+  reads *"the real wage is PHP 95.24 and the wage share of productivity is 0.7937."*
+- **A conversion headline contradicted its own arithmetic (B-190).** `_cc_template` rendered the
+  **source** amount with the request currency, so the `currency` preset (USD 1,000 at 0.92, i.e.
+  EUR 920) delivered *"At the declared rate, EUR 1,000.00 converts to EUR 920.00."* The number was
+  right; the label made it look like nothing had happened. The sentence now quotes the converted
+  amount only and points at the appendix for the source amount, both currency codes, the rate and
+  its provenance.
+- **Neither change touches the pinned contract.** No method, input, preset, check, tier, unit,
+  metric or input-schema key moved; `tests/fixtures/frozen_contract.json` is unedited and
+  `scripts/econ_shelf.py --check` still reports *"frozen fixture: in sync"*.
+- **The economics shelf's acceptance manual now exists.** `qa/manual/economics.md`: ten sections,
+  **59 generated per-tool contract rows** (built from `bp.methods.LIBRARY`, never hand-copied), the
+  records/glossary/tiles, and **84 E-rows** with a traceability scoreboard.
+  `tests/test_subject_economics_acceptance.py` enforces the 83 PASS rows in **83 tests**.
+- **What the sweep found, and what it did not.** All **59 tools** deliver through their own preset,
+  every method's own checks pass, every computation is deterministic, and **all 23 reproducible
+  worked examples in `docs/ECONOMICS_STUDENT_GUIDE.md` match hand arithmetic** — the shelf's
+  arithmetic layer is sound. Two label defects and one doc drift were the whole haul;
+  `docs/CURRICULUM_MAP.md` said 55 tools where the catalogue has 59 (**D-ECO-08**, fixed here).
+- **Tightness stays BLOCKED, deliberately (D-ECO-02).** `labour_market_tightness` divides a count by
+  the unemployment **rate** (`300 / 0.06 = 5000`), which is dimensionally meaningless; the standard
+  definition is vacancies per unemployed person (`300 / 30 = 10`). Choosing the replacement — and
+  whether a new input enters the frozen schema — is an owner modelling decision, so it is recorded
+  as `E-eco-082` rather than guessed.
+- **`docs/ECONOMICS_STUDENT_GUIDE.md` now documents what a student can attach** — an instruction, a
+  dataset (`role: dataset`), declared sources (`kind: sources`, B-182) and a rubric (read-only,
+  `confirm_required`) — so the intake work built in the core is visible on this shelf instead of
+  being rebuilt by the next writer.
+
+
+## The Portfolio Lab teaches itself: four worked cases, click by click
+
+The owner's next step after the audit was teaching: *"make users understand and know how to use it
+by teaching and guiding them through examples … use 3 or more different cases depending on how best
+it can illustrate its capability … then guide students step by step on what to click."* The lab now
+carries a **Learn by example** section with **four worked cases**, and the long version is
+`docs/PORTFOLIO_LAB_STUDENT_GUIDE.md`.
+
+**The four cases are the assignments a finance student actually brings.**
+1. **"Which stocks should I put in my portfolio paper?"** — screening on declared criteria, reading
+   the shortlist, then declaring the names with a reason in *Holdings*.
+2. **"Value my portfolio on one date and hand in the report"** — create the book, declare holdings
+   and cash, enter one price per holding, **Create the snapshot**, export the DOCX.
+3. **"Run a mock fund for the semester and report a time-weighted return"** — weekly snapshots and
+   journal entries with the flow you declare, then **Compute the return**; this is the capability a
+   one-shot chat answer cannot give: the weeks, the flows and an immutable dated record.
+4. **"Compute the risk and return of my stock (and a two-asset portfolio)"** — record or seed a
+   returns series, prefill `risk_metrics` / `portfolio_analysis`, then open the Business Calculator
+   and press `=` yourself.
+
+**Each card says what to click, what you should see, and the sentence to write.** The click steps
+name the real labels on the page (*Add symbols*, *Use my watch list*, *Screen these symbols*,
+*Create the snapshot*, *Download the report (.docx)*, *Compute the return*, *Prefill single-asset
+risk*, *Open in the Business Calculator*), and a test cross-checks every label against
+`web/index.html` so the instructions cannot drift from the shipped page. The "you should see"
+examples are live values from this machine on 2026-11-02, labelled as such: AAPL 344.63 with P/E
+44.90 and the gap text; NAV USD 14,541.93 with weights 0.4740 / 0.2871 / 0.2389; TWR -0.10235 as a
+ratio (-10.235%) across 3 periods with a 500 flow; the AAPL single-asset prefill with 24 returns and
+the two-asset named gap.
+
+**A Start button per case that only opens the right control.** *Start this case: open the watch
+list* switches the lab to *Watch list and prices* and focuses the symbol box; *…open Evaluate* goes
+to the prefill selects; *…create the paper book* / *…create the fund book* return to the landing and
+set *Mode* before focusing the name field. It never creates a book, never presses a button for the
+student, and never runs a method — a test asserts the handler contains no `post(`/`api(` call.
+
+**The long guide** is written for students, not maintainers: the four cases in full, a gap-decoding
+table ("the change needs a previous close" → record another day), a "what a professor can verify in
+your submission" list (dated source per price, response hash, immutable snapshot, published checks,
+the decision journal), a troubleshooting table and a glossary. It is indexed in `docs/HOME.md`.
+Verified live through a headless-Chrome CDP run: the four cards render, the first is open, each Start
+button focuses the intended control (`#plnewsyms`, `#plid`, `#pfname`, fund mode), the lab opens from
+inside a book, and there are no page exceptions.
+
+No method, preset, check, computed number, endpoint or frozen-core entry changed. Tests: new
+`tests/test_portfolio_student_guide.py` (12) pinning the cases, the click labels, the advice
+boundary, the global rule and the non-creating Start handler; suite 2892 tests.
+
+## Rates and FX: the foot sentence is gone
+
+Owner's call, and a fair one — the panel was saying the same thing twice.
+*"Both are published figures, not verified evidence: cite the date you read them. Nothing is auto-filled."*
+is deleted, and its CSS rule (`.lookupnote`) with it.
+
+Nothing factual left with it: the panel's intro still tells the student to read a value, confirm it and
+type it into the tool that needs it, and every result renders `marketFoot` — the publisher's name, an
+as-of date and a link to the source. The securities and macro panels keep their own sentences, because
+those two invite a bulk read of filings and series rather than a single figure.
+
+`test_market_panels.py::test_the_panels_keep_the_never_auto_fill_boundary` becomes
+`test_the_never_auto_fill_boundary_survives_without_a_standing_sentence`, which now asserts the
+sentence is absent, that the read-then-type instruction is present, and that the result footer still
+names the publisher. Suite count unchanged; served page on 8002 no longer contains the line.
+
+
+## The brand name steps back, the body steps down, and the chat gets a reading column
+
+Three instructions from the owner on the same look at the Home page: the brand name under the logo
+is "too loud and big" - two points smaller; the body - one point smaller; and the chat container
+should be the width a chat gets in Codex or ChatGPT.
+
+**The brand name is 43 px** (was 45 px). It is the `h1` under the mark in the hero. The topbar
+wordmark is untouched at 20.2 px, because that one sits *beside* the mark and is the app's own name
+in the chrome, not the hero lockup the instruction named.
+
+**The body is 16.8 px** (was 17.8 px). The body copy that sat one rung above it moved with it, so
+the change is visible and not only structural: the hero paragraph and the slogan are 18 px (was
+19 px) and the composer text is 18 px (was 19 px). The slogan keeps its two-weight step - the bold
+lead and the italic proof line are still one step above and one step below it.
+
+**The chat column is 768 px**, centred. The composer and the conversation card under it are one
+column instead of a box stretched across the whole shell, and `max-width` alone, so a narrow screen
+still gets the full width. The conversation card now sits 16 px under the composer, the gap the
+Documents card already had; before this the two boxes shared an edge.
+
+Measured on the served page (Chrome, 1440x1000): `.hero h1` 45 -> 43 px, `body` 17.8 -> 16.8 px,
+`.actionbox` and `#chatcard` 1116 -> 768 px at the same left (359) and right (1127) and the same
+centre as the hero wordmark.
+
+The pinned body size in `tests/test_product_subjects.py` moved with the page - the assertion now
+pins the body rule itself at `font-size:16.8px` (16.8 px is also a worksheet title size, so the
+loose form would have stopped guarding the body), with the owner's instruction and the date beside
+it. The inline script parses (`node --check`); `tests/test_web_inline_script.py`,
+`tests/test_web_brand_assets.py` and `tests/test_product_subjects.py` pass. No behaviour, number,
+wording or claim changed.
+
+## A rubric can be read, and only what it states is carried
+
+The owner asked for a rubric to be uploaded and followed when the paper is written. The first
+increment is the reader, because everything else would inherit its mistakes: a guessed weight or an
+invented required element would become a requirement the student never wrote.
+
+`bp/product/rubric.py` (standard library only, offline, JSON-safe) reads a pipe table, a numbered or
+bulleted list, or headed criteria into `{criteria[], sections[], word_budget, citation_style,
+total_weight, problems[], confirm_required}`. Six rules keep it from inventing a requirement: a
+weight is read only when stated (`30%`, `30 marks`, a bare number in a `Weight`/`Marks`/`%` column)
+and is `None` otherwise — never an assumed `1/n`; weights that miss 100 are reported, never rescaled;
+a required element comes only from an explicit column or clause and is carried verbatim; a word
+budget is read only from a stated number of words, so `8 pages` stays `None`; sections come only from
+an explicit structure label; a citation style is named only when exactly one is named, and two named
+styles are a problem rather than a silent choice.
+
+A rubric it cannot read is not half-read: `ok: False` with the raw text preserved and
+`confirm_required: True`, so the student corrects the criteria instead of the pipeline guessing. The
+same flag is set when a parse is usable but uncertain. **Nothing is scored** — there is no mark,
+grade or predicted result in the module.
+
+Two defects were caught by the reader's own probe before the suite existed: `WEIGHT_RE` ended in
+`\b`, so `30%` at the end of a cell never matched and every percentage weight was being silently
+dropped; and an unbulleted lead-in line ("The report is marked on:") was read as a criterion.
+
+**Binding is not built.** The outline, the word band, the required elements, a "Rubric coverage"
+appendix and an export gate on a required criterion are the next increment; until then a rubric
+changes nothing about a paper (`docs/KNOWN_LIMITATIONS.md`).
+
+- 1.60 (2026-11-02): rubric reader (`bp/product/rubric.py`), 19 acceptance tests E-rub-001…018, `qa/manual/rubric.md`, B-187; no frozen core, method, preset, input, check, number or route family changed.
+
+
+## Input labels: a title, a dash, then the declared description — on every tile
+
+The "Enter figures" form showed the raw schema id jammed against its description:
+`present_value amount you have today (the lump sum)`. Worse, three of the seven branches built
+their own label from `esc(name)` while the others used a `label` variable, so `cashflows` and
+`present_value` did not even look alike — the calculator form had a fourth copy with the same flaw.
+
+There is now exactly **one** label builder, `fieldLabel(name, desc, extra)`, and one title helper,
+`fieldTitle(name)`, and every branch uses them:
+
+```
+Present Value - amount you have today (the lump sum)
+Periods - number of YEARS the money is invested or borrowed
+EBIT - earnings before interest and taxes
+Tax Rate - the declared rate, not a jurisdiction's law
+```
+
+`fieldTitle` splits the id on `_`, upper-cases a token when it is a real acronym (EBIT, NPV, IRR,
+WACC, CAPM, DCF, YTM, EPS, ROE, ROA, ROI, PV, FV, DSO, DIO, DPO, CCC, EOQ, CAGR, VaR, CVaR, SPI,
+CPI, MIRR, FX) and title-cases the rest, so an id reads as words without becoming a sentence.
+
+**The descriptions are untouched.** *"amount you have today (the lump sum)"* is
+`Method.input_schema[field]["desc"]` — the frozen contract's own sentence — and this change only adds
+the title and the separator. Rewriting those words would be a frozen-core edit and needs an unfreeze.
+
+Verified by `tests/test_product_subjects.py::test_every_input_label_is_a_title_then_a_description`
+(the builder exists, the ` - ` separator is there, and `<label class="field" for="in-` now appears in
+exactly one place in the whole page) and by `qa/check_field_labels.js`, which extracts the two helpers
+from the served page, runs them under Node and prints the labels a student sees — 0 failures. Suite
+count unchanged; page passes the Node `--check` gate.
+
+
+## The Portfolio Lab is re-drawn as a task-by-task workspace, and any ticker can be added
+
+The owner's report was blunt: *"I DONT SEE HERE THAT USER CAN ADD ADDITONAL SYMBOLS ASIDE FROM AAPL.
+ALLOW USERS TO ADD. ALSO ACT AS A PROFESSIONAL UI AND UX DESIGNER AND IMPROVE THE APPEARANCE OF
+PORTFOLIO LAB."* Both halves are answered.
+
+**Adding symbols was a single hard-coded input.** The lab had one `Symbol` box pre-filled with `AAPL`
+and a `Track & record price` button, so the page read as a demo of one ticker. It is now an **Add
+symbols to the watch list** box that takes one or many tickers at once (comma, space or semicolon
+separated, up to 25 per press, any ticker the configured quote provider can resolve - the B-178
+reference list is a browsing aid, not the allowed universe). Each symbol is created and recorded at
+today's sourced price, the result line names what was added and what failed and why, and a per-row
+**Remove** leaves the watch list. The prefill selects are rebuilt from the tracked series, so a symbol
+a student adds is immediately available to evaluate.
+
+**The lab is one task per tab, not one stack of every control.** Three tabs - **Watch list and
+prices**, **Find candidates**, **Evaluate** - with the quote provider lifted into one toolbar so it is
+chosen once. The watch list keeps history, risk-readiness and the last recorded price, with Record
+price / Seed 30 days / Evaluate / Remove per row; screening keeps the candidate list (with *Use my
+watch list*), the sort metric, the fundamentals switch and the sourced shortlist; Evaluate keeps the
+single-asset and two-asset prefill with selects instead of raw instrument ids. A blocked screen now
+names its own reason ("No symbols to screen", "Too many symbols") instead of returning silently.
+
+**The landing page is organised before it is decorated.** The book list and the create form sit side
+by side at the top (each sized to its content), then the lab under a *Before you buy* kicker, then the
+six-step how-to-choose guide collapsed into a `<details>` card so it no longer pushes the tools off
+the screen. The book workspace gains a **Find candidates** tab that renders the same lab, and the
+overview's quick actions jump to it. Holdings is now a card per task: the declared table, the add form,
+then the reference list, the example books and the paste/import box each inside their own collapsible
+card - reference material is available without being in the way.
+
+Verified live on 8000 with a headless Chrome CDP run: adding `MSFT, NVDA` from the box produced
+"Added and recorded: MSFT, NVDA.", the watch list grew from 1 to 3 rows, the Evaluate selects listed
+all three tracked series, tab switches hid and showed the right panel, and screening from the watch
+list returned sourced AAPL/NVDA/MSFT rows with named gaps for every metric the provider could not
+supply. No page exception or console error. Screenshots in `qa/evidence/portfolio/`.
+
+No method, preset, input, check, computed number, endpoint or frozen-core entry changed. The tests in
+`tests/test_portfolio_screener_ui.py` were re-pointed at the tabs, the multi-symbol add and the
+multi-symbol handler.
+
+## The tool page loses five lines of clutter, on the owner's instruction
+
+Every finance tile's session view carried five things the owner asked to delete, and they are gone:
+the tier badge in the header (*"standard method; expert review pending"*), the generic
+*"Gather the figures this calculation needs; nothing is estimated for you."* fallback, the
+*"These are the figures the engine will post, exactly as you enter them."* paragraph, the
+*"Session <id> - <status>"* line under the form, and the **Version / Tier / Verification** rows in the
+Method card. The Method card now states what the method is for (`Intended use`, `Unsupported use`) and
+nothing else; a tool with its own `need` text still shows it, and the engagement copy is unchanged for
+management accounts, where it is true.
+
+The disclosure those lines carried is not lost: every result still shows the **honesty banner**
+("Honesty: what was not done") with the recorded assumptions and limitations, and the paper carries
+them too.
+
+Four assertions that required the deleted strings were updated in the same commit, each with the reason
+recorded: `test_product_subjects` now checks the honesty banner instead of the removed
+"not teacher-approved" line; the accounting acceptance row for GAP G-acc-01 asserts the card prints only
+the tool's own `need`; and the two click-through scripts use the honesty banner as their page marker.
+
+**Download, checked across all tiles:** every delivered computation offers **Word (.docx)** and
+**Markdown** on its result screen; 34 of 35 finance tiles were verified end to end (33 before the mid-year
+DCF fix, 34 after). **PDF is not offered** — the repository reads PDFs but has no PDF writer, and adding
+one would mean a new runtime dependency, which the standing rules forbid. DOCX covers the requirement
+("either DOCX or PDF").
+
+
+## Hidden on request: the framework picker and the "risk and decision analysis" group
+
+The owner asked for two things on the subject pages to be held back: the **Choose a framework**
+dropdown ("N frameworks - choose one") and the **risk and decision analysis** group with all eight tiles
+beneath it. Both are now behind one switch at the top of the page script:
+
+```js
+const HOLD = { picker: true, groups: ["risk and decision analysis"] };
+```
+
+Nothing is deleted: the markup, the tiles and the labels are all still there, and setting
+`picker: false` or emptying `groups` puts them back. The filter runs on the group's own
+`discipline_label`, so a held group is not counted, not grouped and not rendered — on the finance shelf
+that removes "risk and decision analysis - 8" and its eight tiles, and the empty section heading with it.
+Page passes the Node `--check` gate; 146 tests green.
+
+
+## Finance: the shelf copy is measured and kept terse, and the section heading is restored
+
+Two lines of the finance shelf's student-facing copy ran long against a sane ceiling: the unit-economics
+card (28 words) and one break-even step (23). Both are one line now, and the shelf `guidance` — 80 words
+of instruction on the page — is 58. Measured with `qa/probe_wordiness.py`, which reports the word count
+of every `what`, step and common-mistake line: the shelf already met a ceiling of 20/18/18 on 341 of its
+343 lines, so the ceilings are **the measured ones**, not a new voice imposed on copy the owner wrote.
+`tests/test_subject_finance_acceptance.py::test_052__the_shelf_copy_stays_short` pins them, so
+wordiness cannot creep back in on this shelf.
+
+Also restored: the computed-tools heading. The finance shelf names that section **"Quantitative
+Finance"**, and the change that made it dynamic had replaced the plain `With computation` heading for
+every other shelf too, which broke the served-page contract
+(`test_product_subjects.py::test_frameworks_come_before_computation_and_then…`). Both headings are now
+written literally — finance keeps its own name, every other shelf keeps the plain one — so the contract
+holds and the page still passes the Node `--check` gate.
+
+Suite count 2845.
+
+
+## Core: the mid-year DCF check compares the two conventions, so the tile delivers (B-183, owner-approved unfreeze)
+
+The **DCF valuation (mid-year)** tile could not produce a result. `_dcf_tests` built
+`mid = impl({**inp, "timing": "mid"})` and asserted it was worth more than `base = impl(inp)`; when
+the caller already declares `timing="mid"` — which the shipped `dcfmid` preset does — those two
+calls are the same call, so the strict `>` could never hold. The valuation was always right (an
+independent recomputation agrees to 40 digits on both conventions); the check compared the input
+with itself, and a check that cannot pass refuses a correct product.
+
+The check now computes the **other** convention (`"end" if declared == "mid" else "mid"`) and
+asserts the direction that convention implies. Nothing else moved: `test_names`, the metric, the
+unit, the tier, the Decimal route, `_dcf_reference`, the presets and every number are unchanged, and
+`scripts/econ_shelf.py --check` still reports **"frozen fixture: in sync"**. This is an
+owner-approved unfreeze of the B-079 core contract (B-183), and with it the last BLOCKER on the
+finance shelf is closed: D-FIN-01 is **FIXED**, E-fin-007 flips to PASS, and the acceptance
+scoreboard reads **48 PASS, 0 BLOCKED, 2 GAP**.
+
+Verified by `tests/test_subject_finance_acceptance.py::test_007__…` (no self-check fails on its own
+preset) and `::test_017__…` (the mid-year tile delivers a report), plus
+`qa/probe_dcf_midyear.py` (six checks pass on both conventions). Suite count 2830.
+
+
+## Every delivered computation now downloads a paper, and declared sources have their own section (B-182)
+
+The result screen offered **Download spreadsheet** for every computation, but the Word paper only
+appeared when a conductor *draft* existed — so a finance tile (NPV, WACC, DCF, the ratio pack, the
+maturity tools) could be run and read but **not downloaded as a paper**. That is now closed.
+
+`POST /api/sessions/{id}/paper` returns the delivered record as **Word** or **Markdown**. The new
+`bp.product.session_paper` builds it from the delivery itself — report, honesty block, assumptions,
+limitations, recorded checks and the specification hash — and adds no sentence the screen does not
+show. The route refuses with **409** until the result is delivered ("the paper is written only after
+the result is delivered"), refuses an unknown format with **422**, and names the file after the
+method rather than an id. The results screen gains **Download the paper (Word)** and **Download the
+paper (Markdown)** beside the spreadsheet button.
+
+Declared sources are finished in both kinds of paper (B-182). `session_paper` places the student's
+own citations in a section headed **"Sources you declared (not evidence)"** whose first line says, in
+prose, that they are *their* citations, unverified, and not evidence. The conductor gains
+`chat.declare_sources` and a single wrapper on `draft()` that appends the same section exactly once
+(re-drafting does not duplicate it). They are never merged into the references of retrieved evidence,
+and a part of the paper with no retrieved evidence still names that gap.
+
+Verified by `tests/test_session_paper.py` (15 tests: the paper carries the figure, the honesty block
+and the checks; a non-applicable disclosure is omitted, not printed blank; the .docx is a real zip;
+the declared section exists, sits apart, and does not duplicate; the route's 409/200/422/404 paths).
+Page still passes the Node `--check` gate. Suite count 2830.
+
+
+## Ingest: a mapped dataset now keeps its provenance into the specification (B-071)
+
+`bp.ingest.to_method_inputs` already turned named columns into a method request, and it refuses
+loudly (unknown method, unknown column, a scalar input, a `mixed` column feeding a value list, an
+empty mapping). What it did **not** do was survive the last step: the request it returned carried a
+single document-level `provenance` object (`{kind, file, sha256, note}`), while
+`orchestrator.start` reads `provenance` **per input** (`request["provenance"].get(key, "user")`).
+Passing the mapped request straight to a session therefore recorded every value read from the
+file as `"user"` — the specification claimed the student had typed numbers that came out of a
+spreadsheet.
+
+The mapped request now also carries `input_provenance` (`{input: "sourced"}`) and a
+`data_manifest` entry naming the file, its SHA-256 and **only the columns that fed the request**.
+A session built from it records each mapped input as `sourced` and keeps the file hash, so the
+paper can be re-run from the file it actually read.
+
+`tests/test_ingest_pipeline.py` proves the whole chain rather than the mapping alone: a column of
+scores produces the same mean as hand arithmetic (`10.50`) through a real `Pipeline().run`, the
+specification records the input as `sourced` rather than `user`, a two-column map reaches
+`welch_t`, a date column keeps its `date` type, the manifest lists only the used columns, and every
+refusal names its reason. 11 new tests; suite count 2815.
+
+
+## Intake: a student's own sources are read, listed, and never treated as evidence (B-182)
+
+A `.bib`, `.ris` or `.csv` source list can now be attached and read. The new
+`bp.product.sources_file` opens a **declared subset** of each format with the standard library
+only: BibTeX `@type{key, field = {value}}`, RIS `TY…ER` blocks, and a CSV whose header must name
+`title`. Every entry that cannot be read becomes a **named problem** with its record or line number —
+an entry with no title, a URL that is not http(s), a field longer than 1,000 characters — and nothing
+is dropped silently. A file with an extension this reader does not know is refused with the message
+that names the three it does.
+
+`POST /api/intake/{id}/sources` reads a stored list and records it as `role: sources`;
+`GET /api/intake/{id}/sources` returns the entries and one citation line each. The page gains a
+**Show sources** action that lists them under the sentence *"These are your own citations. They are
+not evidence and this system has not verified them…"*. Under B-182 they never enter the evidence
+Reference list, never satisfy an evidence gate (V-12) and never convert a named gap into a filled one
+— a part of the paper with no retrieved evidence still names that as a gap.
+
+Verified by `tests/test_sources_file.py` (18 tests: the three formats, the named problems, the
+refusals, the citation lines and their order) and 10 new tests in `tests/test_product_intake.py`
+(kind and role, the read route's 200/404/422 paths, an unreadable list returned as a problem rather
+than dropped, the declared-sources route, and two page-contract tests). Page still passes the Node
+`--check` gate; the frozen contract is untouched. Suite count 2804.
+
+
+## Intake: a stored file can be used as the paper's instruction (B-182)
+
+The attach mechanism could already read a file for the brief, but only as a throwaway: `POST
+/api/cases/brief` took pasted text or a base64 blob and returned text, so the file was never stored,
+never listed and never re-usable. A student who uploaded their instructions could not see them again
+and the attachments list did not know what any file was for.
+
+`bp.product.intake` now records a **role** on each file (`brief`, `dataset`, `sources`, `reference`,
+or null when the student has not said — a role is never guessed from an extension), and a new additive
+route `POST /api/intake/{id}/brief` reads a **stored** file as the instruction through the same reader
+`POST /api/cases/brief` uses, so the same extensions are accepted and the same refusals apply. The
+text comes back with `unverified: true`; the page's new **"Use as the instruction"** button puts it in
+the brief box and starts nothing — a paper is never begun from text the student has not read. A file
+with no reader (.csv, .xlsx) is refused with the reader's own message, and a file whose text cannot be
+read (a scan with no OCR engine) is recorded `ocr_required` rather than returning an empty
+instruction.
+
+Verified by `tests/test_product_intake.py`: 15 new tests (role round-trip and refusal, a corrupt role
+listed not hidden, `.txt` and PDF-with-text-layer briefs, the no-reader and missing-file refusals, the
+route's 200/400/404/422 paths, and three page-contract tests asserting the button exists, fills
+`#objective`, and never posts a session). The page still passes the Node `--check` gate. Suite count
+2776.
+
+
+## Docs: two decision cross-references corrected, and the declared-sources rule recorded (B-182)
+
+Three documentation corrections, no behaviour change. (1) `src/bp/product/documents.py` cited
+**B-105** for document extraction; B-105 is the entrepreneurship shelf. The correct decision is
+**B-107** ("Document reading: PDF text layer now, OCR only when a local engine exists", the entry
+recording the owner's instruction that *the upload mechanism is needed*). (2)
+`docs/PARKED_QUEUE.md` still listed "PDF/scan/OCR/SPSS ingestion — explicitly refused by design
+(B-065)", which stopped being true when B-107 and B-110 built it; the line now names only the part
+that is still refused (a proprietary SPSS-style format with no declared spec) and records that the
+extracted text remains unverified and must be confirmed by the user. (3) **B-182** records the rule
+the owner set for the sources-file work: a student's own sources are **cited, never evidence** —
+they may appear in References and in a "Sources you declared" block, but they never satisfy an
+evidence gate (V-12), never count as a sourced item, and never convert a named gap into a filled
+one.
+
+
+## Finance: the paper prints money, not the core's fiftieth decimal (QA session 2, D-FIN-02)
+
+The finance shelf's capability papers were quoting the frozen core's exact `Decimal`
+into student-facing prose. Three capabilities (`time_value`, `leverage_analysis`,
+`equity_bridge`) had no bespoke formatter at all, so they fell through to
+`_generic_lines`, which echoes the recorded output verbatim: a paper sentence read
+*"future value 412169.50589505043384053371598616910344392272576332"*. Three more
+(`discounted_payback`, `project_metrics`, `unit_economics`) had a formatter that called
+`_fmt_exact` on a computed non-integer, which returns the raw text by design, so a
+payback of 3.0192500… printed all forty-nine digits and a profitability index printed
+its full expansion.
+
+`src/bp/product/chat.py` now carries `_time_value_lines`, `_leverage_lines` and
+`_equity_bridge_lines`, and the three `_fmt_exact` calls on computed figures became
+`_fmt_number` (two decimals; whole numbers integral). The product still formats the
+core's numbers and never recomputes one. Verified by
+`tests/test_subject_finance_acceptance.py::FinanceProductPath::test_047__capability_papers_print_money_at_two_decimals`
+and `::test_048__every_finance_capability_has_a_formatter_or_a_ledgered_gap`, which drive
+every finance capability through the same recorded shape `chat.run_capability` stores.
+The finance slice is green (147 tests), the acceptance suite is 50 tests, and the
+documented suite count is now 2761.
+
+Also in this entry: `tests/test_finance_additions.py` asserted that *no* economics tool
+carries a group, which stopped being true when the economics shelf declared its own
+grouping (`subjects.ECONOMICS_TILES`). The guard now asserts what it always meant — that
+no **finance** group name appears on the economics page — so it still catches a real leak
+and no longer fails on a legitimate feature.
+
+
+## Core: one unit hook per method, the shelf vocabulary enforces again, and an unknown method is refused (owner-approved unfreezes B-179…B-181)
+
+- **A frozen method owns its own `typing` hook (B-179).** `src/bp/methods.py` defined
+  `_risk_typing`, `_tax_typing` and `_social_typing` twice each; Python keeps the last, so every
+  `Method(...)` construction captured whichever block came last and three methods were handed
+  another method's units: `risk_metrics` reported a mean return in "periods", `tax_incidence`
+  reported a quantity traded in "currency", `social_welfare` reported a headcount as a "rate".
+  All six hooks are renamed one-per-method and re-pointed. Labels only — no method, input, check,
+  preset or number changed, and `scripts/econ_shelf.py --check` still says
+  "frozen fixture: in sync". `src/bp/methods.py` now has zero duplicate definitions.
+- **A shelf refuses another shelf's brief, and names the shelf (B-180).**
+  `guard.subject_fit()` no longer returns `(True, None)` unconditionally: a brief must contain
+  one word from the shelf's own vocabulary, and the refusal reads *"This does not look like a
+  management or strategy instruction. Name the … question, or open the shelf the brief belongs
+  to."* Three carve-outs stop it over-refusing — the composer opened on `any`, any explicitly
+  named framework, and the computation boundary, which is now checked **first** so a
+  journal-entry brief is told to use the Accounting shelf instead of that it is not strategy.
+- **An unknown method name fails closed (B-181).** `orchestrator.start` refuses a `method` that
+  is neither a frozen method nor a template, with the reason and a pointer to `/api/methods`.
+  Previously `{"method": "no_such_method"}` came back `delivered` with a T4 "no computed answer
+  is given" report — a silent substitution of a different artefact. The declared
+  `framework_only` sentinel still produces a structure-only paper; the API route families are
+  untouched.
+- **Manual and suite grow with the changes:** `qa/manual/accounting.md` gains `E-acc-051…053`
+  (all PASS), the traceability matrix moves to 53 rows, and
+  `tests/test_subject_accounting_acceptance.py` gains the three trap tests (53 tests,
+  136 subtests). `qa/QA_DEFECTS.md` moves D-ACC-06/-07/-09 from BLOCKED to FIXED.
+- The documented test count moves 2627 → **2630** in `HOME.md`, `HANDOFF.md` and
+  `CONTRIBUTORS.md`.
+
+
+
+- **A student's accounting paper printed raw core decimals.** `src/bp/product/chat.py` held **two**
+  definitions of `_capability_lines` (and of `_declared_inputs_line`); the later `key: value` stub
+  shadowed the prose formatter, so a delivered section read
+  `payment: 4151.6710452708019636401401930057889326743235830633` and the ratio section printed the
+  whole internal `_appendix` dict. The stubs are removed; every capability keeps its own formatter.
+- **`loan_amortization` and `tax_declared` had no formatter**, so they fell back to the generic line
+  and printed full-precision Decimals. Both now have one (`_loan_lines`, `_tax_lines`), and a plain
+  ratio is reported at the paper's two decimals instead of `1.6666666666666666666666666666666666667`.
+- **`_trend_lines` was defined twice** — for the forecast and for the accounting trend analysis — and
+  both capability entries captured the forecast version, so the accounting trend paper would have
+  printed forecast fields. The forecast formatter is renamed `_forecast_lines` and each capability
+  maps to its own.
+- **A chained input again states its source.** Removing the `_declared_inputs_line` stub restores
+  `" (from the … result)"`, so a derived figure is never presented as one the student typed.
+- **A pure accounting computation is refused by the framework chat.** `chat.start` computed
+  `fits`/`message` and then discarded them, so *"prepare the journal entries and the trial
+  balance"* was answered with a PESTEL paper. The refusal is applied (`stage: not_supported`) and the
+  computation-boundary hunk is restored in `_fit`. This is the design note's WO-1.
+- **Docs:** `CONTINUATION_NOTE.md` and `TAXONOMY_COVERAGE_EVALUATION.md` gain rows in the `HOME.md`
+  documentation spine, and the drafted `B-170` (Home as the open entry point) is recorded in
+  `DECISIONS.md` as **PROPOSED**, which is what the register drift check was reporting.
+- **New:** `qa/manual/accounting.md` (the acceptance manual, 51 expectation rows) and
+  `tests/test_subject_accounting_acceptance.py` (50 tests, 119 subtests), plus the QA baseline and
+  defect ledger under `qa/`. No method, schema, check, preset or frozen-contract entry changed.
+
+
+
+- **FX base and quote are now dropdowns** populated from the ISO 4217 currency catalog (`/api/currencies`), replacing free-text inputs. Defaults are USD/EUR; the full list shows code and name (e.g. "USD — US dollar").
+- **Market-data result footers are redesigned** with a professional "Open the source" button that links to the provider's human-readable website (Frankfurter, U.S. Treasury, Alpha Vantage, SEC EDGAR, World Bank) instead of the raw API endpoint. The SHA-256 hash line and the "published by the source; not independently verified by this app" sentence are no longer shown in the UI; the API response still carries them for programmatic use.
+- **Styles** use the existing `.marketpanel`/`.marketrow` tokens; new `.marketfoot`, `.marketfoot-source`, `.marketfoot-link` classes keep the visual language consistent.
+- Updated `docs/FINANCE_STUDENT_GUIDE.md` and `docs/KNOWN_LIMITATIONS.md` to match the new UI. No method, schema, check, preset or frozen-contract entry changed.
+
+## Brand: the logo loses its white card, and the tab icon comes back (design lane)
+
+- **The Home logo no longer arrives on a white card.** The owner's PNG is RGB with no alpha
+  channel: the mark was flattened onto solid `#FCFCFC` paper, so the logo that went into the
+  page carried that paper with it. On the Home hero - whose background is the canvas with a
+  green wash over it - the mark sat on a white rectangle. `web/assets/mark.png` is now cut
+  from `web/assets/logo.png` with a real alpha channel: the paper *outside* the artwork is
+  transparent, the paper *inside* the book stays opaque, so the book still reads as a solid
+  object. The same cut gives the chat button its round plate back, and the topbar mark loses
+  its card for free.
+- **The favicon is back.** Commit `977c1cc` had pasted a scaffold document
+  (`<!doctype html> ... <!-- Content goes here -->`) in front of the real page. A browser
+  parses that scaffold as the document, so the real `<head>` - and with it the four icon
+  links - ended up in the body, where no browser reads a favicon from. The scaffold is gone
+  and the page is one document again; the four icons (16, 32, 64 and the 180 apple-touch
+  icon) are in the head where they belong.
+- **Measured, not assumed.** Chrome's own parser was asked what it made of the two versions
+  of the page: before, `iconLinksInHead` was **0** (the three icon links were in the body);
+  after, it is **3**, plus the apple-touch icon. The browser made no `/favicon.ico` request
+  after the fix, which is how a browser says it has taken the icon from the page.
+- **The Home mark is larger, and the wordmark sits in the middle of it.** `.hero img` height
+  goes 78px -> 103px (56px -> 74px under 900px), and the space between the mark and
+  "Smart Business Writer" is now the same as the space between that wordmark and "Your
+  reliable business writing assistant" - 25px on each side, measured on the rendered
+  pixels, not on the boxes. The topbar mark and the chat button keep their sizes.
+- **New `scripts/generate_mark.py`** rebuilds `web/assets/mark.png` from
+  `web/assets/logo.png` and re-inlines it, reusing the alpha cut that
+  `scripts/generate_favicons.py` already uses for the tab icons. The file on disk is written
+  from the same bytes that go into the page, so the asset and the inline copy cannot drift.
+- **New `tests/test_web_brand_assets.py`** (5 tests) reads the page and the PNG bytes with
+  the standard library only: one document, the icon links in the head, the logo's corner
+  transparent and its artwork still there, the asset identical to the inline copy, and no
+  white card in any favicon.
+- No computation, route contract, frozen fixture or business number changed.
+
+## Subject-by-subject paper validation: the harness design (proposal, design lane)
+
+- **New living document `docs/VALIDATION_HARNESS.md`.** It records the design of a validation harness that
+  produces a complete paper for every feature, judges each one against a registered rule set, and reports the
+  result **per subject** instead of per feature.
+- **The measured surface: 364 validation targets** — 76 framework papers, 126 capability papers, 9 conductor
+  frameworks, 5 paper profiles and 148 compute-tool deliverables. 86 subject-to-worksheet links resolve to 55
+  distinct worksheets; 31 of them sit on two subject pages, so one paper serves both shelves.
+- **The production side already exists.** `documents/` held 1,781 generated `.docx` papers from the test
+  suite's own runs; `paper_store.py:84` caps its index at 200 rows, so most had no durable record, nothing
+  grouped them by subject and nothing judged them. 125 of the 126 capabilities are already seedable from the
+  existing `PRESETS`.
+- **A 20-rule registry** is seeded from `CONDUCTOR_MANUAL.md` §4 and §8. Each rule carries a status
+  (`enforced` / `advisory` / `relaxed` / `retired` / `proposed`) and the code that backs it.
+- **The rule-relaxation procedure is the point of the document.** A rule can be downgraded so the owner stops
+  seeing noise — but the harness is a report, and the product's export gate is untouched: *relax the alarm,
+  never the guarantee*. V-01, V-03, V-05, V-06, V-07 and V-08 may never be relaxed away.
+- **The owner's model instruction is recorded** (OpenCode or OpenRouter, not the DeepSeek direct API, to cut
+  cost). OpenRouter is reachable today with no code change through the existing OpenAI-compatible provider;
+  OpenCode is an agent harness rather than a provider; and the harness needs no model at all, because the
+  judgement layer is pure code over the deterministic Draft paper.
+- **Nothing was built.** No source file, frozen module, test or product document was changed. Six owner
+  decisions are open and listed in §12 of the new document.
+- Two product findings are recorded rather than acted on: **22 of the 76 framework profiles are not reachable
+  from any subject page**, and 12 profiles have a worksheet that is not marked `draftable`.
+
+## Matrix figures: a framework that is a grid reaches the paper as a grid (B-176)
+
+- **Eight frameworks now carry a figure in the Word paper**: SWOT, Ansoff, Porter's value chain, VRIO,
+  McKinsey 7S, BCG, GE/McKinsey and Blue Ocean's four actions. The figure sits under the H1 framework
+  heading; the H2 prose below it still carries the full evidence.
+- **The geometry is data.** New `bp/product/matrix.py` holds one layout per template - rows, axes, column
+  widths, a shared hub band, the canonical label of every cell - so adding a framework never means editing
+  the renderer. `matrix.build(template, cells, caption=None)` returns the figure or `None`.
+- **The renderer draws tables and nothing else.** `docx._figure_xml` writes a real Word table with borders,
+  a tinted label line per cell, axis rows and APA figure numbering ("Figure 1. ..."), a caption and a note.
+  A grid with a vertical axis rescales its content columns so the table always fits the 9360-twip text
+  column.
+- **A cell is never blank.** It carries the label plus the identity of each item - the student's own
+  sentence, or the source's title with its citation - and where there is nothing it prints the named gap
+  and the probe in italic. Nothing in a figure is a computed number.
+- **Template text in a figure blocks the export.** `paper.check()` scans every string a figure carries, so
+  a bullet that is still an instruction ("not supplied yet") fails the same gate as one in the prose.
+- **A probe cell now asks the student a question instead of sitting empty.** `completion._suggest` gained
+  `mode="question"`: a probe profile's gap keeps its own wording and gains a case-specific line of enquiry,
+  which is stored as a proposal on the block, not as an item, so the paper never presents a question as a
+  case assumption. A reply carrying a number, a link, a DOI or a parenthesis is refused.
+- **The chat offers a proposal drawn from the student's own words.** New `bp/product/proposals.py` proposes
+  up to three candidate statements for a cell using only the brief, the student's answers and the accepted
+  quotes; a candidate carrying a number, a name or a link the student did not write is refused.
+  `POST /api/cases/chat/{id}/assist` offers a proposal, and the same route with `text` records the
+  student's answer. The web chat shows a "Not sure? Propose a line from my own words" button on item
+  questions; a proposal fills the box and the student still edits and sends it.
+- `tests/test_matrix_figure.py`, `tests/test_matrix_completion.py`, `tests/test_matrix_chat.py` and
+  `tests/test_matrix_assist.py` pin the slot, the table, the layouts, both paper paths, the proposal guard
+  and the route. The frozen core was not touched and no test was weakened.
+
+## Worksheet registration (WO-2/WO-3)
+
+- Registered 32 orphan framework profiles as worksheets; added 8 new framework profiles (BMC, Lean Canvas, VPC, charter, WBS, risk register, stakeholder plan, lessons learned).
+- Added catalogue records CHG-15, STR-19, STR-20.
+
+## Manual builder: a table column is never too narrow for its own words (B-171)
+
+- **Table columns.** `table_xml` sized every column in proportion to the total character count of the
+  column, so a column of short labels beside a column of prose was squeezed to the floor and Word broke
+  its content mid-word (`sources.py:4` / `96`, `document` / `s`). `_column_widths` now gives every
+  column the width its longest single word needs - measured in the font that word is set in - and shares
+  the rest of the page in proportion to how much text the column holds.
+- **Italics.** The inline pattern required a non-space before the opening `*`, so `*why*` standing
+  after a space printed its asterisks instead of being emphasis. The rule now follows the usual
+  convention: the opening `*` is followed by a non-space and the closing `*` preceded by a non-space.
+- `tests/test_manual_docx.py` pins both. Documentation and tooling only: no product behaviour, number,
+  claim, endpoint or frozen-core change.
+
+## Proprietary corpus wired as layer 1 (B-172)
+
+- **Corpus adapter.** `_corpus()` in `bp/product/sources.py` reads Meilisearch over stdlib `urllib`,
+  fails open when the index is down, and returns page items in the `_item()` shape. Each item carries a
+  unique `corpus_key` (`corpus:<doc_id>:<pdf_page>`), `database` of `Proprietary corpus`, and `kind` of
+  `proprietary`. Registered in `ADAPTERS` and added to `DATABASES` (access: local, enabled).
+- **Five retrieval traps fixed** (each silently discarded corpus results before):
+  1. Title gate no longer applies to full-text sources — one cue hit in the quoted passage is enough,
+     the title is never sufficient on its own (D-10 / B-168).
+  2. Dedup key prefers `corpus_key`, so two pages of the same book do not collapse into one (Q-02).
+  3. Corpus items score source weight 2, equal to OpenAlex/DOAJ/Crossref (Q-03).
+  4. `_credibility()` is never overwritten when the adapter already set a score; a corpus branch earns
+     a DOI's worth of signal.
+  5. The corpus is searched separately and prepended first in `retrieve()`, so layer 1 answers before
+     the live academic APIs (DATABASE.md §8 trap 5).
+- **Live run verified:** corpus items reach the `items` list first; abstract-only results unchanged.
+  No method, preset, input, check or frozen-core entry changed.
+
+## Corpus learning hook + student-upload path (B-173)
+
+- **Learning hook.** `bp/product/retrieval.py` now POSTs each retrieval to
+  `POST /api/corpus/log` on the corpus admin service (fail-soft, 1-second timeout) so the corpus
+  learns what searches it could not answer (D-19, D-22, D-23). The learning log is a signal, not
+  evidence: a failure there never breaks a paper run.
+- **Student-upload path.** `corpus_lib.ingest_pdf()` gains an `added_by` parameter (`owner` |
+  `student` | `harvest`). Student uploads (`added_by = 'student'`) are ingested as private with
+  `enrichen_at` and `owner_approved_at` NULL — not citable until the owner approves them in the admin
+  UI. `corpus_service.py` gains `POST /api/corpus/upload/student`, `POST /api/corpus/documents/approve`
+  and `GET /api/corpus/documents/pending`. `index_pages()` only indexes documents with
+  `enrichen_at IS NOT NULL`, so unapproved uploads never reach the search index. `documents` gains
+  `added_by`, `enrichen_at`, `owner_approved_at` columns (schema.sql + migration).
+- `corpus-db/build/test_corpus_build.py`: 55 tests pass, including the new settings/schema pins.
+
+## Q-16 per-document page cap (B-174)
+
+- **One corpus document may not supply every dimension of a paper.** `bp/product/retrieval.py` gains `corpus_doc_cap` (default 3) and `corpus_doc_counts` (shared dict threaded across dimensions) on `retrieve()`. When accepting a corpus item, the cap is checked against `corpus_doc_counts[doc_id]`; at the cap, additional pages from the same document are dropped and counted in `dropped`. Live academic and web sources are not capped. `bp/product/sources.py` adds `doc_id` to corpus items so the cap can be keyed per document. `bp/product/completion.py` and `bp/product/chat.py` each create one shared `corpus_doc_counts = {}` per paper and pass it to every dimension's retrieval, so the cap holds per-paper, not per-call. No method, preset, input, check or frozen-core entry changed.
+- `tests/test_sources.py`: 2 new Q-16 cap tests. 28/28 tests pass.
+
+## Corpus seed: 20 documents across 10 subjects (B-175)
+
+- **Step 11 complete.** Seeded 20 documents from `D:\SMART BUSINESSWRITER\DATABASE` into the local corpus database, covering accounting, economics, finance, management, marketing, operations, people, research, entrepreneurship and supply-chain.
+- 15 books + 5 journal-articles; 9 OCR'd/scanned (including OpenStax Principles of Accounting Vol 1 at 973 pages), 11 born-digital text layer.
+- Licences recorded where known (CC BY, CC BY-NC-SA); unknown licences are NULL per C-05.
+- DATABASE.md step 11 acceptance met: 20 documents, 10 subjects (≥2 deep), ≥1 scanned book, ≥1 born-digital.
+- Step 12 (VPS with master key) and step 13 (R2 mirror) are next, per DATABASE.md ordering — no bulk harvest before the seed is complete (§15).
+- `corpus-db/build/test_corpus_build.py`: 55 tests pass.
+
+[product]
+
+# Changelog (build)
+- 1.59 (2026-11-02): **The Portfolio screening lab returns to this branch: a sourced shortlist on declared criteria, a tracked watch list, and one-click prefill into the Business Calculator.** (1) **Why it was missing.** The lab was built on the main line (builds 1.23-1.29: the tracked-instrument price store, `screener.py`, `prefill.py`, the Finance-page UI) and never reached `corpus/merge-v1`; this branch had the B-178 guidance but not the screening tool. (2) **Ported, not re-invented.** `bp/product/screener.py` screens a student-supplied candidate list on declared criteria (one-day return; recorded mean, volatility and Sharpe; price; market cap; P/E; ROE) and returns a ranked, sourced shortlist with a named gap for every metric a provider cannot supply - it is not a recommendation. `bp/product/prefill.py` builds the exact frozen inputs for `risk_metrics`, `portfolio_analysis` and `capm` from recorded price series, with `ready` and named gaps, and never runs a method. `bp/product/instruments.py` gains the append-only tracked-instrument price store (one JSON document per symbol, same-day dedupe, returns series, readiness, 30-day daily-bar seeding) alongside the B-178 guidance, reference list and example books. `bp/product/marketdata.py` gains Massive daily bars and history, Massive and Alpha Vantage overviews, derived P/E and ROE from SEC XBRL plus Massive market cap, and the fundamentals fallback chain. Routes are additive under `/api/cases`: `GET/POST /api/cases/instruments`, `.../{id}`, `.../{id}/record`, `.../{id}/seed`, `POST /api/cases/screen`, `POST /api/cases/prefill`. (3) **Surfaced where the student works.** The panel renders in the **Portfolio Lab** - on the landing page under the How-to-choose guide, and in the Holdings tab of a book - with the watch list (Record / Seed / Use), "Help me choose", and the prefill card whose only action is to fill the Business Calculator fields; the student still presses = to run it, and no arithmetic happens in the browser. (4) **Verified:** 14 ported tests and 7 page/route tests; live on 8000 - tracked AAPL and recorded its 2026-10-30 close of 344.63, screened AAPL/MSFT (344.63 / 521.91), derived an AAPL market cap of 5.03T with P/E 44.90 and ROE 1.519 from SEC/Massive sources, and the risk prefill correctly named the missing-history gap instead of filling it. 2851 tests collected; the pre-existing failures named in `docs/OPEN_ISSUES.md` are unchanged.
+- 1.58 (2026-11-02): **The Portfolio Lab gets the guidance and the instrument choices it was missing, and the create flow can no longer report a name with no field.** (1) **The guide.** A new product module `bp/product/instruments.py` carries a six-step **How to choose what you hold** guide (write the mandate; decide the mix before the names; pick from a neutral list; check it fits the book; write the reason; snapshot and grade the decision), the four principles that keep it a decision aid rather than advice, and its stated limits. It is served by the additive read-only route `GET /api/portfolios/instruments` (a write is 405) and rendered on the Portfolio Lab landing. (2) **The choices and the prefill.** A fixed reference list of 20 widely held, long-only US listings (11 funds, 9 companies), each with a neutral one-line description and a source link, is served in the same bundle. The Holdings tab gains a chooser (filter by funds/companies, search, **Use** prefills the symbol and focuses shares), three labelled example books that load editable rows into the existing import box ("Example only, not advice; nothing is saved until you click Import holdings"), and a **Why you hold it** field that the server already stored but the page never collected - the report's *Holdings and rationale* section now has a source. (3) **The create-flow defect.** A click on Create portfolio with no name reported "a name is required" without showing where to type it. The landing always renders the name field; the handler now focuses and scrolls to it with an explanatory banner, and if the form is not on screen at all it re-renders the landing instead of reporting a name the student cannot enter. (4) **Not advice.** The list is not ranked and carries no expected return, rating or target price; a listing on it is not a recommendation. `tests/test_product_instruments.py` pins it (14 tests: catalogue integrity and sourcing, neutrality, example-book labelling, the guide, the global-copy rule, the route, and the page contracts), and the portfolio explainer gains a *How to choose what you hold* section. No method, preset, input, check, computed number or frozen-core entry changed. 2627 tests collected; the pre-existing failures named in `docs/OPEN_ISSUES.md` are unchanged.
+- 1.57 (2026-11-02): **The retrieved market-data panels are split by the consumer of each lookup, and the product stops naming a home market.** (1) **The split.** A single **Market data (retrieved, not verified)** panel sat above the Finance tools and carried five unrelated lookups. **Rates and FX** stay on the **Finance** shelf, where `fx_parity`, the CAPM risk-free rate and a currency conversion take a declared rate; the **equity quote, SEC fundamentals and SEC filings** move into the **Portfolio Lab**, where a price is actually used and the existing fetch route already reads the same module; the **World Bank macro indicators** move to the **Economics** shelf, where the macro tools are. Each panel renders its own result region (`ratesout`, `secout`, `macroout`) and binds its own handlers; the old `marketPanel()` / `marketout` surface is retired. The boundary is unchanged: every lookup shows its value, source, as-of date and response SHA-256, and nothing is written into a tool or a book automatically. (2) **The product is global (owner instruction, B-177).** The last PSE reference leaves the served page, `marketdata.py` and the finance guide; the FX example is USD/EUR, the macro example is the US, the coffee-shop brief example is a mid-sized city instead of a named place, and the synthetic worksheet examples price in dollars rather than pesos. `tests/test_market_panels.py` pins the placement, the never-auto-fill copy and the absence of a home-market name in the page, the finance guide and the limitations. (3) **No computed number moved.** The example-currency label (`PHP` inside presets, guides and tests) is a separate increment, so no preset, method, schema, check or frozen-contract entry changed. 2558 tests collected; the pre-existing failures named in `docs/OPEN_ISSUES.md` are unchanged.
+- 1.56 (2026-11-02): **The People & organisation shelf stops saying "no worksheet yet".** (1) **The gap, and its cause.** Ten change-and-organisation frameworks - **ADKAR** (`CHG-02`, five parts), **Lewin** (`CHG-03`, three), **McKinsey 7-S** (`CHG-04`, seven), **Burke-Litwin** (`CHG-05`, twelve), **Galbraith Star** (`CHG-06`, five), **Theory of Change** (`CHG-07`, six), **Logic Model** (`CHG-08`, five), **PDSA** (`CHG-09`, four), **DMAIC** (`CHG-10`, five) and **Mintzberg** (`CHG-13`, five) - sat on the People shelf as read-only records: the catalogue said "no worksheet yet", the shelf offered nothing to complete, and the shelf's own test module was red. The cause was a **stale committed catalogue slice**, generated before `registry.TEMPLATE_LINKS` gained the ten links; the registry itself already knew every one of them was a worksheet, so the engine could run them and the page could not offer them. (2) **They are worksheets now.** Each is a T4 worksheet on the shared canvas builder, with a drafting schema, a profile whose parts are `research`, a worked example and a stated refusal. The unit of analysis is the thing the student names - a programme of change, a team, a service - and it is never detected and never guessed; a brief without one is refused with a reason that names what to supply. A part with no source is written from the framework's own general background paragraph as an **uncited** item, so a part is never a notice, never a blank and never a gate. **None of the ten scores a person, ranks a team or predicts who will succeed**: the nine-box criterion stays the student's own placement, and the seven-element and five-element models read fit rather than judge it. (3) **Theory of Change and the Logic Model now reach the impact they contribute to**, and the chain of change names the **assumptions** each link depends on - the part most often left unstated and most often found to be false. (4) **The eight frameworks already on the shelf now have worked examples** (Job Characteristics, Kirkpatrick, AMO, Tuckman, Nine-Box, Kotter, Competing Values, Organisational Design), so every worksheet on the shelf runs and passes its own checks, and the shelf's test module covers all eighteen. (5) **A corrupt generated file was restored.** The shipped registry slice had been rewritten with a double-encoded character set and with three records replaced by structural placeholders; it is the deterministic import of the authority catalogue again, and the fifteen framework names it carries read correctly. The shelf now offers **nineteen worksheets**, and the ten broken per-framework test modules were rewritten to the shelf's standard. 2553 tests.
+- 1.55 (2026-10-30): **Home chat accepts a brief from any subject.** The open composer no longer hard-codes the management subject; `guard.detect_subject` routes the brief, recorded as a routing hint only (never in the paper). Shelf boundary preserved. 2455 tests pass (pre-existing framework-completion failures unchanged).
+
+- 1.54 (2026-10-30): **A tile that names a tool opens that tool.** The owner reported that the "Compare strategic options" tile on the Management & strategy shelf was not clickable - "when i click it, it just loop me on top". The tile was not the fault; the routing behind it was. `createSession()` called `show("new")` **before** the session existed, and `RENDERERS.new` - the renderer added on 2026-10-29 so that a reload cannot land on an empty session page - sends a student who has no session back to the last durable screen. The click was therefore routed back to the subject page, the re-render of that page replaced the DOM and threw the scroll to the top, and the session created a moment later rendered into a panel that was by then hidden: a dead tile, a jump to the top, and a session lost with it. The panel is now **activated** (`activate("new")`) rather than shown while the session is created, so the "Creating the session" card stays on screen and the tool opens where it was asked for; `show("new")` remains for the worksheet path, where a worksheet already exists by the time the panel is shown. **Every computation tile on every shelf was dead the same way** - Finance's net present value took the identical path - and this one fix repairs them all; the worksheet tiles were never affected. **The figures panel now describes the method actually on screen**: it told every method that "the engagement is declared once: the period, the chart, the opening balances, the entries and any schedules", which is the management-accounts engagement and is false for NPV, IRR, break-even and the case comparison, so the sentence follows the method and only management accounts keep the engagement wording. Verified live on the served page: Management & strategy → Compare strategic options opens the case editor with its worked example (two facts, two alternatives, the rate and the decision rule), and **Apply figures and calculate** runs it to the frozen core's own numbers (NPV USD 2,586.47 for *Expand the shop* against USD 2,136.83 for *Office catering* at 8.00%, the order flipping at a 10.16% discount rate, limitations stated); Finance → net present value opens the same way and Porter's Five Forces still opens as a worksheet. Two trap tests pin the routing and the wording, and `scripts/ui_smoke.py` carries a marker for the routing (0 failures against the running workbench). **2471 tests in the suite**; the failures that remain are the concurrent framework-completion build recorded in `docs/OPEN_ISSUES.md` and are unchanged by this increment - no failure is new. No method, preset, input, check, computed number, endpoint or frozen-contract entry changed.
+- 1.53 (2026-10-29): **People & organisation is a shelf, not a list of catalogue entries.** The subject had **no worksheets at all**: nineteen catalogue records and seven borrowed statistics tools, and nothing a student could complete. It now has **eight frameworks that complete from a brief** and **three calculators that run frozen methods**. (1) **Eight frameworks are T4 worksheets on the shared canvas builder**, each with a profile whose blocks are `research`: the Job Characteristics Model (`PPL-03`, five parts), Kirkpatrick (`PPL-02`, four), the AMO performance diagnosis (`PPL-01`, three), Tuckman's stages (`PPL-05`, five), the Nine-Box Talent Grid (`PPL-04`, four), Kotter's eight steps (`CHG-01`, eight), the Competing Values Framework (`CHG-12`, four) and the organisational design star/fit review (`CHG-11`, six). Every part is researched, and a part with no source is written from the framework's own general background paragraph as an **uncited** item, so a part is never a notice, never a blank and never a gate. Each names what it cannot settle: the Job Characteristics Model does not design the role or validate a measure, Kirkpatrick does not run the evaluation, the nine-box scores nobody and predicts nobody, and the design review computes no alignment. (2) **Three calculators, all on frozen methods with their own presets**: training ROI (`return_on_investment`, per period), labour-market tightness (`labour_market`, annual) and people programme cost-effectiveness (`cost_effectiveness`, annual, T2). **No headcount, turnover, absence, cost per hire, time to hire, compa-ratio, span of control, diversity, engagement or eNPS number is computed**, because the frozen core has no such method and a similar method is not a substitute for a missing one; the page says so in the shelf's own words. (3) **Six tiles, in the order a student meets the decision**: Strategy and design, Resourcing, Development, Reward, Engagement and culture, Analytics. Each says what it covers and what the student needs before starting. **The Reward tile is empty and says why** - the catalogue holds no reward or job-evaluation framework - because a gap in a shelf is named, not hidden and not faked. The eleven remaining change frameworks are shown in their tile as **read and cite; no worksheet yet**, never a dead button, and the motivation theories are carried as a reading lens. (4) **The page**: a period badge on every calculator (annual, per period, per observation), the seven statistics tools given their "you will need" lines, and the eight frameworks wired into the drafting schemas so each worksheet is draftable rather than a button that can only 422. (5) Two new documents record what is still missing rather than papering over it: `docs/proposals/PEOPLE_ORGANISATION_COVERAGE.md` (the four coverage tables) and `docs/proposals/PEOPLE_COMPUTATION_UNFREEZE.md` (nine proposed methods, with their inputs, checks and claim ceilings, for the fifteen People metrics the frozen core does not implement). 1961 tests in the suite, with 36 new per-framework guards (registration, profile contract, the six tiles, the unit refusal, the background fallback, one source per block, title-cased headings, byline, the route, the prompt) and the example and registration guards extended to all eight.
+- 1.52 (2026-10-29): **Every operations framework now completes itself.** Owner: "GO COMPLETE THEM." The seven remaining read-only operations frameworks are worksheets on the same engine, all with `auto` blocks, so the shelf has no framework a student must fill in by hand: **SCOR** (`OPS-01`, six processes), **5S** (`OPS-04`, five steps), **root cause analysis** (`OPS-07`, problem, the six fishbone categories and the root cause), **FMEA** (`OPS-08`, modes, effects, causes, controls, actions, owners), **Kraljic** (`OPS-10`, criteria plus the four quadrants), **S&OP** (`OPS-11`, five plans and the decisions) and **PDCA** (`OPS-12`, four stages). Each is a T4 worksheet on the shared canvas builder with an example, a stated refusal and a profile: research first, the student's own words second, a named gap third. None of them computes a score, a risk priority number, a maturity level, a saving or a ranking, and each `unsupported_use` says so in the student's own terms. Registry links, the committed catalogue slice, the Operations and Supply chain worksheet lists, the drafting schemas and the curriculum map are wired in the same change. The Operations shelf now offers **11 worksheets and no read-only framework**. 1913 tests pass, with the example/registration/profile guards extended to all eleven.
+- 1.51 (2026-10-29): **Two more operations frameworks complete themselves, and the shelf stops understating what it has.** Owner: "be mindful on frameworks. no manual only filling out. allow it to be auto-completed just like in Porter." (1) **A new `auto` fill policy**: a block is researched first, then falls back to the student's own words in the brief, then to a named gap with a probe. It is the Porter pattern generalised — a source beats the brief, the brief beats nothing, and nothing is ever invented. `profile_for` requires a query phrase for `auto` as it does for `research`, and only `auto`/`research` blocks are searched. (2) **Theory of Constraints (`OPS-06`)** and **A3 problem solving (`OPS-05`)** are new T4 worksheets on the Operations and Supply chain shelves, on the shared canvas builder, with examples and stated refusals (no observation, no throughput or saving computed, no cause without evidence). Their profiles run all blocks as `auto`: the brief's own sentences fill the problem and current condition, capacity and cause evidence is researched with citations, and a step with neither is a named gap — so the student never fills a block by hand unless the case genuinely lacks it. (3) **Truth fixes on the shelf**, all three found in the review and none of them cosmetic: `OPS-09` said "Method not built" while `process_control` ships on the same page; `QNT-OPS-04` said multi-server queues were not implemented after M/M/c shipped in 1.47; `QNT-OPS-05` said resource levelling and calendars were not implemented while both ship as their own methods. The queue and CPM notes now name what exists and what does not, and the stored procedure-control link is declared. The student guide also pointed the cash-conversion question at `working_capital` as if it were on this shelf; it now says Accounting. (4) **Tests:** eleven new guards on the `auto` policy (source beats brief, brief beats gap, gap names the probe), the two new profiles, and the three truth lines. 1913 tests pass.
+- 1.50 (2026-10-29): **The completed framework is drawn, not just described.** Owner: "close the gap." The gap was the map I had proposed and dropped. (1) **New `bp/product/mapsheet.py`**: a server-side drawing of a completed SIPOC (five columns, declared order) and value stream map (step strip plus the other parts listed beneath, never placed between steps, because placing a wait between two steps would imply a measurement nobody made). It follows the diagram rule already in the product: **labels, not numbers** — a line containing a digit is left out and counted, so a picture can never smuggle a figure into a paper whose numbers must come from the frozen core. Text is escaped, so a label cannot inject markup. (2) **One sentence, one box.** A brief sentence that honestly describes two parts of a map (a process line that is also the output and the customer) is drawn once and the later columns say "see *part*", because repeating it three times reads as three findings. (3) **Route** `POST /api/cases/worksheets/map` returns `{svg, drawn, omitted, kind, process}`; an unsupported framework or an empty completion is refused with a reason. (4) **The page** draws the map under the review once the student applies the items, with a caption naming the process and, when present, the number of lines left out for carrying a number. No map for a worksheet without a profile. Verified live: the Operations SIPOC completed from the meal-counter brief draws Suppliers/Inputs as `gap`, the process sentence in Process steps, and "see Process steps" in Outputs and Customers. 1907 tests pass, including nine new drawing guards (columns, digit omission, empty map, VSM strip, shared sentence, escaping, refusal, route, bad object).
+- 1.49 (2026-10-29): **The self-completing frameworks get a student-facing UI.** Owner: "create a UI and UX suitable for students … add some design to make it a little attractive to use." One page changed (`web/index.html`) plus two small server fields; no computation, method, preset or frozen-contract entry moved. (1) **The shelf leads with the frameworks it can complete.** A subject that has worksheets now opens with **Complete a framework** and the worksheet cards directly under it, above the calculator tiles and the read-only records; the old heading "Frameworks without computation" survives only on shelves that still have no worksheet. The "Choose a framework" picker moves below the worksheets, where it belongs, and only appears when there are records to choose from. (2) **The worksheet is three steps, not one wall of fields**: a step bar (name the unit → write the case → review and generate), the unit field in its own card with the profile's own help text, then the case box with a "a good brief covers" line assembled from the profile's block prompts, so the page tells the student what the pipeline will look for without a hard-coded paragraph. The byline, file upload and Complete button sit under the case; the manual block editor is folded into **Adjust any part by hand**, and the Generate bar is sticky. (3) **The review says why a part is filled.** Each part is a card with one of three badges — **Researched**, **From your brief**, **You state this** — and the header gives the server's own count ("3 of 5 parts have content - 2 gap(s) to acknowledge"). The counts are returned by `completion.complete` as `summary` and by each block as `fill`; the page never counts for itself. (4) **A gap you cannot fix is no longer a trap.** The "record this part as a named gap" control now appears for `gap` blocks too, so a value-added judgement the student does not want to make can be acknowledged instead of silently blocking the paper. (5) Three tokens (`--you`, `--you-bg`, `--ops-tint`) and the components `.stepbar`, `.partcard`, `.fillbadge`, `.gapnote`, `.tickrow`, `.stickybar`; 44 px hit targets, reduced-motion respected, and the sticky bar falls back to a normal block under 640 px. Verified live on the running server: the Operations page opens with the two worksheet cards, the SIPOC page shows the three steps, and a real completion reported "3 of 5 parts have content - 2 gap(s) to acknowledge" with Process, Outputs and Customers badged **From your brief** and Suppliers/Inputs as named gaps. 1898 tests pass, including four new page/contract guards.
+- 1.48 (2026-10-29): **Operations frameworks complete themselves: SIPOC and the value stream map.** Owner: "if you have to do frameworks without computation, make it capable of completing itself where user no longer has to manually encode them … similarly, in other frameworks, they must be capable of completing themselves." (1) **A block now says how it may be completed.** `framework_profiles` gains a `fill` policy per block - `research` (what Five Forces and PESTEL always did), `quote` (the student's own words from the instruction, verbatim) and `gap` (only the student can state it). `profile_for` enforces it: a `research` block must carry its query phrase, a `quote` or `gap` block may not carry one, because a search term on a part that is the student's own invites dressing a process in evidence it cannot support. Only `research` blocks are sent to the databases. (2) **A unit of analysis that is not a market.** `completion._unit` gains `process`: named by the student in the unit field, never detected and never guessed, with the context for a supplier search built from the process name plus the brief's own topic words. The served page sends `body.unit` for it, and `POST /api/cases/frameworks/complete` accepts `unit_value`. (3) **SIPOC (`OPS-02`) and the value stream map (`OPS-03`)** are new T4 worksheets on the Operations and Supply chain shelves, on the shared canvas builder, with the standard nine checks, an example and a stated refusal to observe a process, time a step or read a machine. SIPOC's steps, outputs and customers are quoted from the brief verbatim and its suppliers and inputs are researched (and drafted into from the source finder); the value stream map's steps, times, inventory and waits are quoted, while the **value-added judgement and the improvement proposals stay the student's** and are named as gaps until they give them. (4) **The quote is the student's own sentence, never a paraphrase**, and it is de-duplicated inside its block rather than across the framework, because one sentence of a brief can honestly describe two parts of a map and dropping it from the second would leave a gap the student had already filled in words. A part with no item and no acknowledged gap still blocks the paper. Guard: an operations framework no longer refuses a brief that names capacity or variance, while an accounting brief is still refused on it. `docs/OPERATIONS_STUDENT_GUIDE.md` gains the completion walkthrough and the ten operations frameworks still read-only; `KNOWN_LIMITATIONS.md` states that the worksheets observe nothing and compute nothing. 1894 tests pass, including 30 new ones in `tests/test_operations_frameworks.py`.
+- 1.47 (2026-10-29): **PESTEL is completed from an instruction, on the same engine as Five Forces.** Owner: fix the frameworks that have to be filled in by hand, starting with PESTEL, and make the two surfaces one pipeline. (1) **One retriever.** `bp/product/retrieval.py` now holds the search, gate, ranking and de-duplication; `completion._search` and `chat._research_one` both call it with the same gate, so the same framework, brief, unit and region return the same evidence on the worksheet and in the chat. A test (`test_pestel_completion.SameEvidenceTest`) pins it, including the query strings. Four behaviours the two copies had drifted on are now one: the result cap is 3 items per dimension (the manual's own "one to three"), a source cannot fill two dimensions, one 20 s deadline covers the whole pass, and a query is the unit then one phrase then the region. The chat's search phrases move into the profiles, so "grocery retail" is no longer searched for every rivalry dimension whatever the industry. (2) **Profiles.** `bp/product/framework_profiles.py` holds one dict per framework: dimensions, cue words, one search phrase each, unit of analysis, ratings, gap mode, the interpretive prose, the outline and the prompt slots. `completion.py` reads it, so a framework is data; a profile that is missing or incomplete is refused rather than producing a generic paper. (3) **PESTEL end to end.** Instruction box, `.txt`/`.md` upload, a **Country or market** field (country or the explicit word Global; a brief with neither is refused with an actionable message), six dimensions researched in parallel, one to three sourced items per dimension with their citations, a **named gap plus a probe** ("what to look for") where nothing is found - never a model-written country fact, because that would be invented evidence - review with ticks, apply into the worksheet, and a Draft or Full paper. The paper adds the **Case and country context** and **Implications for the decision** sections PESTEL did not have. (4) **One page form.** `evidenceWorksheetForm` renders both frameworks from the profile payload: instruction, unit, byline, six or five blocks, per-line `text || source`, ratings only where the framework has them, an acknowledged-gap tick on a probe profile, APA/Harvard, Short/Mid/Long. `fiveForcesForm` and the five-force JavaScript are deleted, not kept beside it. (5) **What Five Forces gains or loses, recorded rather than hidden:** the per-force cap falls from 5 to 3, a source can no longer fill two forces, a slow provider can no longer hold the page, an accounting or finance computation brief is refused, the report route now returns **409 with the missing dimension labels** instead of only hiding the button, the worksheet gains the APA/Harvard picker, and a paper generated from the results page keeps the title-page byline (it was read from dom fields that no longer existed). Worksheet element ids move from `ff-*` to `ev-*`, so a half-filled Five Forces browser draft saved before this build does not restore; the changelog says so rather than pretending otherwise. (6) **Measured live on the Iran/smartphone brief:** completion 2.9 s and 6 of 6 dimensions sourced on the run that produced the sample below; a later run on the same build produced 3 sourced dimensions and 3 named gaps with probes, because OpenAlex and Semantic Scholar answered 429 and the web providers returned nothing - the provider limits reach the page as gaps and assumptions, never as invented evidence. Draft 1,429 words from 12 items; Full 1,967 words in 44 s with the six-name outline intact and no template instruction left in the file. (7) **A reference fix.** A site label such as `FRED (St. Louis Fed)` was split into invented initials (`Fed), F. (. L.`); a parenthetical or an organisational suffix now makes the whole string the author. **1847 tests pass.**
+- 1.45 (2026-10-29): **The Portfolio Lab gets a market-style dashboard, a working snapshot route, a generated sample report and a downloadable explainer.** (1) **Dashboard.** A dark gradient hero carries the fund name, mode and benchmark, the NAV, and invested/cash/top-three/return tiles; the overview adds a position board and export tiles; returns are toned green or red by sign. No new browser arithmetic. (2) **Route fix.** `GET /api/portfolios/{id}/snapshot/{date}` now serves the single snapshot the workspace asks for; without it the workspace showed a 404. (3) **Sample and explainer.** `samples/portfolio-mock-fund-sample.docx` is generated from simulated prices and shows the plain-language **"All 12 checks passed"** section; `samples/portfolio-lab-explainer.docx` is a short guide for students and instructors. Both are built by scripts. **1780 tests pass.**
+- 1.44 (2026-10-29): **A hard refresh returns to the last screen, not a dead end.** Reloading used to land on `#/new` (or `#/results`) with no session and show "No session yet - a session lives in this browser tab". The student's last durable screen (Home, a subject, a saved case, the calculator) is now remembered in `sbw.lastRoute`, and a route that needs a live session redirects there instead of rendering the empty page. A first visit with no history goes Home. The "No session yet" card is deleted, and the remaining panel fallback goes Home. Verified in the browser: reloading `#/new` after visiting Management returns to Management, and a cleared profile lands on Home. 1780 tests pass.
+- 1.43 (2026-10-29): **The paper has a length: Short, Mid or Long.** The worksheet's Generate bar now carries a second dropdown beside Draft/Full: **Short (600-1,200 words)**, **Mid (1,200-2,500 words, the default)** and **Long (2,500-5,000 words)**. The choice changes the model briefs per section (introduction, case context, each force, discussion, implications, limitations, conclusion) and the validation floors, so a Short paper is not a truncated Long one: Short gets 110-140 words of introduction and 85-115 per force, Mid 160-190 and 150-180, Long 240-280 and 260-320. The bands match the report-length bands the plan card uses, so the vocabulary does not drift. The deterministic Draft also honours the length (Short keeps two introduction paragraphs, one context paragraph, one discussion paragraph and the first two sentences of each force analysis). Measured live through the API with the same case: Short 1,069 words in 27 s, Mid 1,722 in 37 s, Long 2,877 in 58 s; the deterministic draft returns 683 / 1,199 / 1,199. The report and the Home document record carry `length`, `length_label` and `length_range`, and `POST /api/cases/frameworks/report` refuses a length other than short, mid or long with a 422. The reference list is excluded from every count. The Generate bar shows the selected target before a run ("Target: Mid (1,200-2,500 words) (body only)") and **Word count: N** beside the button after it, with the length label; the toast carries the count and the Home list carries it for every paper, samples included (sample counts are read from the .docx, stopping before the reference list).
+- 1.42 (2026-10-29): **Provider keys can live in a gitignored local file, and QVeris' quote timestamp is read as a date.** (1) **Local keys.** At startup the server calls `_load_local_keys`, which reads `state/market_keys.json` (or `BP_MARKET_KEYS_FILE`) and sets the provider variables only when they are absent. A shell export or CI key always wins, a missing or malformed file is ignored, and the file stays untracked under `state/`. (2) **QVeris live contract.** A declared capability id, symbol parameter and price path are required; `BP_QVERIS_ASOF_PATH` may be an ISO date or an epoch timestamp (seconds or milliseconds), which is converted to a UTC date. Verified live with Finnhub's quote capability (1 credit): AAPL 343.83, as-of 2026-10-28. **1717 tests pass.**
+- 1.41 (2026-10-29): **Equity quotes now fall back from Alpha Vantage to Massive to QVeris, with internal ceilings.** (1) **The chain.** `marketdata.equity_quote` tries Alpha Vantage first, then Massive's previous-close endpoint (`/v2/aggs/ticker/{ticker}/prev`, included in the free Stocks Basic plan), then a declared QVeris capability. A provider without its key is skipped; a provider at its own internal ceiling, or one the vendor rate-limits, is skipped and the next is tried. The payload records the provider that answered and every attempt, so the report can say which source was used and why the others were not. (2) **Ceilings.** Defaults are Alpha 25/day and 5/minute, Massive 5/minute, QVeris 60/minute; each is an environment override (`BP_ALPHA_DAILY_CEILING`, `BP_ALPHA_PER_MINUTE_CEILING`, `BP_MASSIVE_PER_MINUTE_CEILING`, `BP_QVERIS_PER_MINUTE_CEILING`). The ceiling is checked before the request and never waits. (3) **Keys and provenance.** `BP_MASSIVE_KEY`; QVeris needs `BP_QVERIS_KEY`, `BP_QVERIS_TOOL_ID`, `BP_QVERIS_PRICE_PATH` and optionally `BP_QVERIS_SYMBOL_PARAM`, `BP_QVERIS_ASOF_PATH`, `BP_QVERIS_MODEL`. Alpha and Massive keys stay in the query/header, never the page, and every returned URL is redacted. (4) **Status.** `/api/market/status` lists the chain with each provider's configuration and ceiling, and `sources.equity` is true when any provider is ready. **1716 tests pass.**
+- 1.40 (2026-10-29): **The report states what was checked in plain language, and a reached quota falls back to manual prices.** (1) **Verification, not internals.** The Word report's Checks section no longer prints machine names such as `nav_equals_invested_plus_cash`; it says "All 12 checks passed (6 valuation, 6 performance)" and that the checks confirm the arithmetic and the weights, not the prices. The stored snapshot still keeps the machine-readable names for audit, and a failed check is named and blocks the result. (2) **Quota is its own error.** `marketdata.MarketDataQuota` distinguishes a rate-limit or daily-limit response from a bad symbol. `POST /api/portfolios/{id}/prices/fetch` returns **429** with `quota: true` when the limit stops the whole fetch; a partial fetch stores what succeeded and names the rest. (3) **Fallback.** The UI shows an honesty banner that points to manual entry or paste; nothing is estimated. The free tier is 25 requests/day; the premium page quotes $49.99/month for 75 requests/minute with no daily limit. **1710 tests pass.**
+- 1.39 (2026-10-29): **The Portfolio Lab can fetch a quote per holding from the configured free equity source, and still treats every price as declared.** (1) **Route.** `POST /api/portfolios/{id}/prices/fetch` takes the price date, reads `BP_ALPHAVANTAGE_KEY` from the server environment, asks the existing market-data module for one quote per holding and stores each price with its source and its real trading day. No key in the page, no quote invented. (2) **Failures are named.** A symbol that fails is returned in a `failed` list with the source's message; a successful subset is stored, and a date that already carries a snapshot is refused before anything is fetched. A missing key is refused with the variable name to set. (3) **Provenance.** `set_price` accepts the quote's `as_of`, so a Friday close used for a weekend snapshot is recorded as Friday, not relabelled. (4) **UI.** The Prices tab gains a **Fetch prices (Alpha Vantage)** button, disabled until `/api/market/status` reports equity is configured, with the hint that each price should still be checked. **1708 tests pass.**
+- 1.38 (2026-10-29): **The Portfolio Lab becomes a mock fund: a weekly journal, a time-weighted return and a fund report.** (1) **Frozen method.** `portfolio_performance` (T1, category `portfolio`) takes one row per period (label, start NAV, end NAV, external flow) plus optional benchmark levels and returns the time-weighted return, total flow, start and final NAV, best and worst period and, when every period carries both levels, the benchmark and active return. The flow is declared to occur at the start of its period, so the period return is (end - start - flow) / (start + flow); nothing is fetched or forecast. Six checks, including a float second route, the independent `end / (start + flow)` chain, the zero-flow NAV ratio, the geometric-mean bound and the benchmark chain. (2) **Journal.** `bp.product.portfolios` gains `journal`, `save_journal` and `remove_journal`: one entry per period-ending date with the student's note, that period's flow and an optional benchmark level; the portfolio now also records an objective, a roster and a per-holding rationale. (3) **Routes.** `GET .../performance` chains the stored snapshots through the frozen method (two snapshots minimum; a partial benchmark is reported as a named gap); `GET/POST .../journal` and `DELETE .../journal/{date}`. (4) **Workspace.** Fund creation is enabled; a fund adds a **Journal and return** tab with the period table, the return, the entry form and its notes, plus optional CSV/TSV **file** input beside each paste box. (5) **Report.** The Word report is rubric-shaped: objective and mandate, summary, holdings **and rationale**, performance with the period table and conventions, journal of decisions, provenance, checks and limits; a missing benchmark or a single snapshot is named, not filled. **1705 tests pass.**
+- 1.37 (2026-10-29): **The Portfolio Lab accepts a pasted or CSV book and a pasted price list.** (1) **Parsing.** `bp.product.portfolios.parse_holdings` and `parse_prices` accept comma, tab or semicolon tables, an optional labelled header, an optional cost basis and an optional price source; a duplicate symbol in one paste is refused. (2) **One write, all or nothing.** `import_holdings` upserts every row in one write; `import_prices` stores one date in one write, refuses a symbol that is not a holding and refuses a date that already carries a snapshot. Every row is validated before anything is stored, so one bad row refuses the whole paste with its row number and leaves the book unchanged. (3) **Routes.** `POST /api/portfolios/{id}/holdings/import` and `POST /api/portfolios/{id}/prices/import`. (4) **Workspace.** The Holdings tab and the Prices tab each gain a paste area; the browser sends the text and prints the server's reply, so no arithmetic happens client-side. **1694 tests pass.**
+- 1.36 (2026-10-29): **A Portfolio Lab values a dated portfolio and exports the report** (owner: "start with the build. we will do the manual later when its done"). (1) **Frozen method.** `portfolio_valuation` (T1, category `portfolio`) takes declared holdings (symbol, shares, price) and a cash balance in one base currency and returns NAV, invested value, cash, cash share, holding count, the largest weight, top-three concentration and HHI, plus a `value_<SYM>` / `weight_<SYM>` pair per holding. A float second route and six checks (second implementation agrees, NAV equals invested plus cash, holding weights plus cash sum to one, doubling every price doubles invested value, one more unit of cash raises NAV by one, concentration is bounded); refusals for an empty book, a duplicate or blank symbol, non-positive shares or prices and negative cash. Weights are value / NAV, so cash is inside the denominator. No FX, fees, tax, dividends, forecast or recommendation. (2) **Store.** `bp.product.portfolios` keeps one directory per portfolio (`portfolio.json`, `holdings.json`, `prices/<date>.json`, immutable `snapshots/<date>.json`, `exports/`), writes atomically, refuses traversal and refuses a second snapshot for the same date; a price is refused unless the symbol is a holding. (3) **Routes.** `GET/POST /api/portfolios`, `PATCH/DELETE /api/portfolios/{id}`, `POST/DELETE .../holdings`, `POST .../prices`, `GET .../snapshots`, `POST .../snapshot` (accepts the prices and cash in the body, computes through the frozen method, refuses on a missing price or a failed check) and `POST .../export`. (4) **Workspace.** A fourteenth rail item, **Portfolio**, sits above the Business Calculator and opens a landing page, a creation form (name, base currency, optional benchmark; paper mode only) and a three-tab workspace (overview, holdings, prices and snapshot) with a Home entry. No arithmetic is done in the browser: every figure shown is the stored snapshot. (5) **Report.** `bp.product.portfolio_docx` renders the stored snapshot to a Word file: summary, holdings table, data-provenance table, checks and assumptions; it formats only. **1670 tests pass**, including `tests/test_portfolio_valuation.py` and `tests/test_product_portfolios.py`.
+- 1.35 (2026-10-29): **The paper is now a paper, the title page is a title page, and Home lists the documents.** (1) **Depth.** The Five Forces paper is written to a full outline: introduction with a stated thesis, case and industry context, five force sections, discussion, **implications for the decision** (a section that did not exist), limitations, conclusion and references. The model writes it in a thesis call and then seven section calls in parallel; measured live at 2,149 words in 56 s. Word floors are enforced (introduction 150, each force 140, discussion 130, implications 150, conclusion 110, total 1,400): a thin paper is retried once and then refused, never downloaded. The deterministic **Draft** uses the same outline and grew from 290 to about 1,200 words. (2) **Title page.** The title begins three double-spaced lines below the top margin (measured at 154.8 pt on a 792 pt page, 19.5% down), not at the top edge and never vertically centred; the student's name, institution, course and instructor follow, then the date, then a page break, and the title is repeated at the top of the first page of text. The four byline fields live on the worksheet and persist in the browser; nothing is invented and there is no `[your name]` placeholder. The title no longer carries the raw instruction's trailing period. (3) **Word format.** The DOCX now carries a real `styles.xml`: Heading 1/2/3 are Word heading styles with outline levels, so the navigation pane and Word's outline work. The page number moved from the footer to the header, top right, as APA 7 asks. Body text stays Times New Roman 12, double spaced, 1-inch margins, first-line indent, hanging references. (4) **Documents on Home.** A new Documents card lists every generated paper and the shipped samples with title, framework, Draft/Full, words, size, date and a Download link. New `paper_store` (files in `documents/` plus an index) and routes `GET /api/cases/documents` and `GET /api/cases/documents/{id}`; ids are validated and traversal is refused. (5) **Model reliability.** Calls raised their output budget to 6,000 tokens after empty responses were traced to reasoning consuming the cap; each section is a small independent call, so one failure is retried without regenerating the paper. 1659 tests pass.
+- 1.34 (2026-10-29): **The computation explainer travels with the paper.** When a paper carries a recorded computation, the download is now one **ZIP with two separate files**: `<slug>.docx` (or `.html`) and `<slug>-explainer.docx` (or `.html`); a paper without a computation keeps the plain single-file download. The explainer is a teachable walkthrough for the student and a defence aid for the professor, not an audit sheet: the question, why the method was chosen, the declared formula and steps from the catalogue's study notes, a table of the declared figures, the values the frozen engine recorded with their derivations, what the result means, the declared checks, common mistakes, the defaults applied, the limits and unsupported uses, a short "If your professor asks" Q&A, and a small provenance appendix (case id, method version/tier, hashes). Accounting cases also get the recorded accounting cycle: journal, T-accounts, trial balance, statements, reconciliation and PASS/FAIL checks. The document is built from the case bundle or chat state, the new committed `data/explain_contracts_v0_1.json` (intended use, unsupported use, claim ceiling, assumptions, limitations, defaults and checks for all 140 core methods, regenerated by `scripts/generate_explain_contracts.py`) and the subject catalogue's `formula`/`steps`/`common_mistakes` notes. No arithmetic, no model prose and no invented figure: every figure is copied from the recorded input or output; a method without notes names that gap instead of improvising a derivation (ten statistics tools remain declared gaps in `explain.NOTES_GAPS`). New routes: `POST /api/cases/{id}/explanation` (Word or print-ready HTML), `POST /api/cases/chat/{id}/explanation` (the paper companion alone), and the existing exports now bundle when a computation is present. The case page, calculator result, chat paper and plan show the explainer action; the ZIP is built from the same snapshot and the paper export gate still runs first, so an incomplete paper produces no partial bundle. No frozen method, preset, input, check, computed number or frozen-contract entry changed; no unfreeze. 1630 tests pass.
+- 1.33 (2026-10-28): **Eight sample papers generated by the conductor and the existing APA/Harvard formatter** (owner: "there's actually a formatter that is already available you use"; then "reco accepted, go"). (1) **Samples are built, not written.** `scripts/build_conductor_samples.py` runs the real conductor (start, answer, plan, draft) and renders through `bp.product.docx.render_academic`, so a sample cannot drift from the product. `scripts/sample_evidence.py` freezes nine sources already cited in this repository's Apple-Iran paper, with the exact claim each one supports, and states which source backs which dimension; nothing is newly retrieved or invented. Output: Ansoff, Value Chain, VRIO and Break-even papers, each in APA 7 and Harvard, named `<Paper title> - <Framework> - <Style>.docx`. VRIO and Break-even use no external sources and say so. (2) **Two product defects the samples exposed, fixed at source.** The academic renderer put `Author: [your name]` and `Institution: [your institution]` on every title page, which is exactly the template text the manual forbids; the byline is now an optional list of the student's own lines and is omitted when empty (samples pass an honest "Worked example for students"). A paper with no retrieval no longer claims "The search may be incomplete" when no search ran, and the introduction reads "the Middle East" rather than "Middle East". (3) **Guard test:** `tests/test_sample_papers.py` (12 tests) pins the filename convention, the eight builds, the H1/H2 hierarchy, References versus Bibliography, citations that resolve to the reference list, the byline, the absence of template text, the named value-chain gap, the core break-even figures and byte determinism. Full suite 1575 tests pass. **Still open:** the sample set covers the four frameworks added in B-151; PESTEL/SWOT keep their existing sample papers.
+- 1.32 (2026-10-28): **The full paper now actually writes the paper, and nothing downloads until it succeeds.** (1) **Two output versions.** The Generate control carries a version picker: **Draft (evidence-led)** is deterministic and quotes the accepted items; **Full paper (model-assisted)** sends the same structured items to DeepSeek V4.1 Flash, which writes the introduction, one paragraph per force, the discussion and the conclusion as finished prose. Full is the default. (2) **Never a silent download.** While the model writes, the Generate button is disabled and reads "Writing...", and the worksheet says the run can take up to half a minute. If the model returns invalid JSON, breaks a rule, or fails twice, the paper is **not** downloaded: the page says the full paper failed and asks the student to choose Draft explicitly. (3) **Integrity rules for the model.** The model may not add a citation, source name, URL, number, percentage, named market condition, actor, technology or country that is not in the items; an inference must read as an inference ("this suggests", "this implies"). The validator checks citations, links, numbers and mid-sentence proper nouns, and retries once before it refuses. Citations are appended by the system afterwards, never written by the model. (4) **Student inputs stay student inputs.** An item marked as the student's own evidence is presented as case evidence, not relabelled "case assumption"; only assumption-flagged items carry that label, and the discussion counts the three kinds separately. (5) **The paper uses the case the student typed.** Generation reads the worksheet's case instruction; a missing instruction, or the worksheet's own tool title, is refused instead of being written into the title and introduction. (6) The deterministic introduction no longer reads "This draft responds to", and the limitations and conclusion no longer call the output a draft. 1563 tests pass; the full-paper path was re-run end to end in a browser, taking 20-30 s and returning model prose with the real citations appended.
+- 1.31 (2026-10-28): **The conductor can build four more papers, and a computation can ride on any of them** (owner: "1-3", accepting the framework plan). (1) **Four frameworks wired into the chat**, each with its own question bank, search cues, plan wording (what it does, what it misses, the output), draft branch, Discussion integration where it applies, and export-gate inputs: **Porter's Value Chain** (nine activities), **Ansoff Growth Matrix** (four options), **VRIO** (your resources and the four judgments, no external evidence) and **Break-even** (a computation paper, no external evidence). `_infer_framework` now recognises "value chain", "VRIO", "Ansoff" and a break-even brief, and a break-even or VRIO brief is no longer refused as "a computation, not a strategy"; an unknown framework still refuses and names the real options. (2) **Any framework can now carry the break-even computation**: `chat.attach_computation` validates the declared figures through the frozen `breakeven` method before storing them, the draft adds the Financial Feasibility H1 and the Break-even H2 to whatever framework is in use, adds the integration paragraph and the limitation, and `POST /api/cases/chat/{id}/computation` exposes it. The Five Forces + Break-even combo keeps its own key, label and questions, so nothing that already worked changed. (3) **The export gate** now also requires a VRIO paper's resources and at least one value judgment, and names missing break-even inputs on an attached computation. (4) **Tests**: `tests/test_conductor_frameworks.py` (20 tests) covers registration, inference, plan wording, the nine/four/five-section hierarchies, verbatim student judgments, named gaps, the core break-even figures, attachment refusals (including a price below variable cost), the export gate and the new API action. Full suite 1560 tests pass. The conductor manual, limitations, worklog and handoff are updated with this build; APA and Harvard sample papers for the four new frameworks are **not** added yet (manual §5 item 10) and that is named as the remaining step.
+- 1.30 (2026-10-28): **Student orientation closes the UI phase: every subject now has a guide, and Home asks which path you need** (owner instruction: "close the UI product phase ... make it usable and intuitive for students"). (1) Every subject page now carries a **Student guide**: a plain-language description, a **Start here** path with the recommended first tools, and an explicit **What this shelf does not do** list. Accounting, Finance, Economics, Operations, Supply chain, People and Research gained the guide; Management, Entrepreneurship, Marketing and Project management kept theirs and gained start steps or limits. (2) Home gains a **Which one do I need?** chooser — one calculation, one topic, a guided paper or a business plan — and each choice opens the right workspace. The three-step How it works is rewritten around those paths. (3) The Help drawer now explains the entry points and the key words students meet: calculation, worked example, checks, T1/T2 and blocked. (4) The decision grid stacks on narrow screens. No computation, method, preset, route or number changed. 1561 tests pass.
+- 1.29 (2026-10-28): **The Entrepreneurship shelf's remaining tool gaps now have a usable UI.** (1) **Compare strategic options (`case_decision`)** is a template, not a frozen method, so the generic schema form used to say "This method declares no inputs"; clicking Apply dropped the preset and the engine refused with "`facts` must be a non-empty list". The page now draws a dedicated **case facts and alternatives editor**: fact text, provenance and source with stable `F1..Fn` ids; two to five alternatives with name, description, cash flows from t=0, supported fact ids, cash-flow provenance and source; base rate, low/high range, rate provenance, decision rule and currency. Add/remove rows are bounded and the engine still validates every figure. The **Business Calculator** delegates this method to the same editor instead of showing an empty pad. (2) **Schema forms use controls where the method declares them**: `enum` inputs are dropdowns (for example the depreciation method) rather than free text; `value_list` and `code_list` are comma-separated fields; `value_matrix` is an explicit JSON row editor. Existing JSON fallbacks remain for records, tables and maps. (3) Static page guards cover the new editor and the calculator delegation. Verified in Chromium: the case tile rendered 2 facts and 2 alternatives, Apply delivered USD 2,586.47 / 2,136.83 with a 10.16% crossover; the proforma tile accepted comma-separated revenue lists and delivered; the depreciation method was a real dropdown; the calculator's case tool opened the same editor. 1560 tests run.
+- 1.28 (2026-10-28): **Instruction guard and source-quality gates stop off-topic evidence.** New `bp.product.guard` checks every chat instruction against the selected subject and refuses an accounting/finance computation in the management chat. Porter's Five Forces now requires an **industry or market**, not only a company and a country: the completion and chat ask for it, and the Apple/Iran instruction is refused with a clear request for `smartphones`, `grocery retail` or another industry. The source finder now applies a query-match gate before returning academic results: at least two distinctive query terms for a multi-term query, with a medical/clinical blocklist. Five Forces completion goes further: a candidate must carry both the industry and a force cue in the **title**, not only somewhere in the abstract. The Apple/Iran test now returns smartphone-industry sources and no apple-orchard or clinical items; without an industry it returns the guard message instead of evidence. No method, preset, computed number or frozen-contract entry changed. 1538 tests pass.
+- 1.27 (2026-10-28): **Increment 3: the decision-tree builder, plus guided project and weighted-matrix editors** (owner: "go"). (1) **Decision tree:** alternatives with add/remove and an outcome table of probability and value for each; a certain outcome is probability 1; the builder submits the engine's declared tree without JSON. (2) **Multi-project:** project cards with name, priority and a per-project activity table (id, duration, resource, demand, predecessors); add and remove projects and activities. (3) **Weighted matrix:** alternative score rows are generated from the criteria table, with a Refresh score columns action and add/remove rows. (4) The JSON field remains for nested decision-tree cases and schemas without a guided form. No method, preset, input, check or computed number changed; 1531 tests pass.
+- 1.26 (2026-10-28): **A business plan is now a paper profile, with all its computations, brief upload and two entry points** (owner: "I confirm the convention. now go"). (1) **Four plan-level T1 methods** join the frozen core, each with a float second route and five checks: **`sales_from_market`** (target revenue and units from a declared market, share and price), **`depreciation_schedule`** (straight-line or declining-balance charge, accumulated depreciation and carrying amount, with the final period plugged to salvage), **`proforma_statements`** (projected income statement, cash flow and balance sheet from declared revenue, margin, costs, depreciation, interest and principal — or a declared opening loan — tax, working-capital days and opening balances, with a balance check in every period) and **`sensitivity_table`** (profit across one to five declared price and volume changes). **`proforma_statements` refuses an opening balance sheet that does not balance and names the equity that would balance it**; it also refuses a loan repaid faster than it is owed. Presets `depreciation`, `proforma`, `frommarket`, `sensitivity`; README method list, calculator slice and frozen fixture regenerated (140 methods, 142 presets). (2) **The conductor gains a `business_plan` profile**, separate from the framework registry: sections are student input, evidence, computation or integration; the **Financial Plan is one H1 with its computation blocks as H2s**. The SHS core requires sales from market, break-even, depreciation, projected statements and sensitivity; college adds tax, the cap table and a cost-effectiveness impact ratio. Student inputs are reproduced verbatim; the market analysis retrieves four dimensions and names a gap when no source matches; the executive summary, risk analysis, limitations and conclusion use only supplied facts and stored core results. (3) **The plan is proposed, confirmed and customised before research or computation**; `customise` changes the level, the composition or (open mode only) an optional section; the strict convention keeps every standard section. (4) **Brief upload** accepts a PDF text layer, a Word `.docx`, a TXT file, an image when a local Tesseract is installed, or pasted text; `POST /api/cases/brief` reads it and says `ocr_required` rather than guessing. Word text is read from `word/document.xml` with the standard library; intake now treats `.docx` as a document. (5) **Routes and UI**: `customise`, `inputs`, `compute` and `draft` join the chat actions; the plan builder renders the proposed sections and blocks, the student fields, a form per block from its declared schema, the evidence review, the draft and the export gate. The **Entrepreneurship page** opens the strict convention; **Home** opens open composition; both use the same engine and the same gate. An incomplete plan exports **409 with the missing list**. 1536 tests run.
+- 1.25 (2026-10-28): **Porter's Five Forces can now be completed from an instruction, with provenance and a downloadable draft.** The STR-01 worksheet gains a **Complete this framework** box. The student pastes a case instruction or a `.txt`; `bp.product.completion` extracts the country and context, runs one short query per force, and ranks academic and vetted web results. Each force ends with one to three sourced items, a labelled **suggested case assumption** (no citation, never evidence), or a named gap. The review lets the student tick items before applying. The worksheet accepts per-line `text || citation`, so one force can carry several sources without losing traceability. The subject-level source finder is removed from the page; the student describes the case first and all research now happens inside the suggested worksheet. The review also offers **Download the draft (Word)**, generated from the completion without new facts; the results page carries the same button. The live Saudi grocery/cold-chain case returned five blocks: two sourced forces and three suggested assumptions; the worksheet ran with five evidence items and zero unexpected ratings. This pilot is deliberately limited to Porter's Five Forces; other frameworks remain manual until reviewed. No method, preset, computed number or frozen-contract entry changed. 1536 tests run.
+- 1.24 (2026-10-28): **Result-screen polish: key numbers first and exports from the result** (Increment 2 of the student UI). (1) The result now leads with **What this means**, then a **Key numbers** table chosen per method (duration, critical activities, levelled duration, crash cost, SPI/CPI, P50/P80/P90, option value, weighted total, Monte Carlo range), with the full artifact table kept under **For audit**. (2) **Download spreadsheet** exports the case as XLSX directly from the result; **Download Gantt (SVG)** writes the same client-rendered arrowed Gantt as an SVG file. (3) Saving a case no longer navigates away from the result; the save is reusable for exports. No method, preset, input, check or computed number changed; 1467 tests pass.
+- 1.23 (2026-10-28): **Student UX layer: a guided Home, a subject "Start here", plain tool tiles, structured input tables and a result that leads with the answer** (owner: "increment 1 with student UX"). (1) **Home** gains a three-step "How it works" and a "Try the Project management example" action. (2) **Subject pages** gain a six-step "Start here" for the PM shelf and a collapsed "What this shelf does not do"; tiles say what the student will need and whether a worked example is loaded, instead of showing method and preset ids. (3) **Tool screen** gains a "Before you start" card, a note that the worked example is loaded, and a "Clear the example figures" action. (4) **Structured editors**: activities, resources, criteria, cash-flow and variable distributions are edited in tables with add/remove rows, not JSON; projects, decision trees and MCDA score maps keep the JSON field as an advanced fallback. (5) **Worksheets** show their own "before you start" line; RACI explains R/A/C/I and the risk register explains that likelihood and impact are labels. (6) **Results** gain a direct "View the Gantt" button for CPM and relabel the technical record "For audit". No method, preset, input, check or computed number changed; 1467 tests pass.
+- 1.22 (2026-10-28): **Project renderer extras: dependency arrows, a client-side Gantt and an XLSX bar strip, with the core-computation boundary restored** (owner: "renderer extras"). (1) **Gantt dependencies:** the chart spec now accepts `dependencies` (`{from, to}` activity ids), validates unique ids and known endpoints, and draws right-angle arrows between the stored bars; server SVG, tests and the Charts panel spec builder all carry the declared predecessors. (2) **Client-side Gantt:** the Charts panel draws the same spec in the browser from the case's stored `es_/ef_/float_/critical_` values, including arrows, with the caption that the server render and export remain authoritative. No model and no new dependency. (3) **XLSX bar strip:** the Schedule sheet gains one coloured cell per period (critical red, normal blue) beside the dates, using the workbook's own fills; the dates remain the stored strings. (4) **Boundary fix:** the chat break-even section now calls the frozen core through a callable attached by the server, instead of reimplementing the arithmetic in the product layer; the product package still imports no core module. No method, preset, input, check or computed number changed; 1467 tests pass.
+- 1.21 (2026-10-28): **Generic Monte Carlo for non-schedule decisions** (owner: "generic Monte Carlo"). One T1 method, `monte_carlo`, with two declared models: **NPV** of uncertain cash flows and **profit = (price - variable cost) x volume - fixed cost**. Each input is a fixed, uniform or triangular distribution; the simulation is seeded and reports the mean, P10/P50/P90, range, the share of positive outcomes and the observed bounds of every input (worked NPV example, 2,000 runs at seed 7: mean -9.20, P50 -9.63, P90 143.57, 46.5% positive; profit example: mean 120.76, 84.2% positive). Five frozen checks: the float route and repeated seed agree, bounded draws stay inside their bounds, percentiles are ordered, the mean lies inside the range and the positive share matches the count. Preset `montecarlo`; PM page now 18 tools; Calculator Operations group, notes and README updated. Frozen fixture regenerated (136 methods, 138 presets). No existing method, input, check or number changed; 1465 tests pass.
+- 1.20 (2026-10-28): **Five Forces + break-even is the first non-PESTEL/SWOT combination; the stress test now holds.** The conductor adds `five_forces` and `five_forces_breakeven`, with five industry dimensions and a numeric break-even question set (fixed cost, price, variable cost, optional expected volume). Break-even calls the frozen `bp.methods.breakeven` function; the product formats the declared inputs and the core result and never recomputes them. The paper uses H1 Five Forces and H1 Financial Feasibility, with H2 Industry rivalry, Entrants, Substitutes, Buyer power, Supplier power and Break-even Analysis, then Discussion, Implications, Limitations and Conclusion. The Chat panel offers both new frameworks. A live stress case produced 5 evidence items, 2 named gaps and a 15.9 KB DOCX with the break-even block at 166,666.67 units. New samples: `saudi-cold-chain-five-forces-breakeven-apa.docx` and `-harvard.docx` (876 words, 6 real sources). Unsupported frameworks are still refused rather than silently substituted; the next registry additions can follow the same pattern. No method, preset, computed number or frozen-contract entry changed. 1465 tests run; the remaining failures are the concurrent method-slice drift outside this change.
+- 1.19 (2026-10-28): **Decision batch C: decision tree, real option and weighted decision matrix** (owner: "start batch C"). Three T1 methods, each with a float second route and five frozen checks. **`decision_tree`**: rolls back a declared decision/chance/terminal tree, returning each alternative's expected value, the best alternative, its loss probability and best/worst terminal value (worked example: Launch 52 against Pilot 29.5, loss probability 0.4). **`real_option`**: Cox-Ross-Rubinstein lattice for a declared call or put, European or American, returning the option value, intrinsic value, delta, up/down factors and risk-neutral probability (worked example: 14.79 with delta 0.617). **`multi_criteria`**: weighted totals and ranks from declared criteria, weights and scores, with weights required to sum to one (worked example: 7.4, 7.2, 7.0). PM page now 17 tools, grouped Appraise the business case / Compare the options; Calculator Operations group, notes and presets `decisiontree`/`realoption`/`mcda` added. Frozen fixture regenerated (135 methods, 137 presets). Also removed a product-layer import of the frozen core in the chat break-even helper, so the product boundary holds. No existing method, input, check or number changed; 1458 tests pass.
+- 1.18 (2026-10-28): **Project scheduling batch B: shared-resource multi-project scheduling and seeded schedule risk** (owner: "b"). Two T1 methods. **`multi_project_schedule`**: sequences several projects against shared resource capacities by declared project priority, then early start, duration and id; returns every activity's start and finish, each project's finish and delay against its own CPM, and the overall duration (worked example: alpha finishes at 4, beta waits for the crew and finishes at 8). **`schedule_risk`**: a seeded Monte Carlo over independent triangular PERT durations; returns the mean, median, eightieth and ninetieth percentile duration, the observed range, the share of runs within a declared target and each activity's criticality index (worked example, 1,000 runs at seed 42: mean 7.71, median 7.68, P80 8.46, P90 8.86, 92.9% within nine periods). Both have a float second route, five and six frozen checks respectively, refusals, notes and presets `multiproject`/`schedrisk`. PM page now 14 tools; Calculator Operations group and README updated. Frozen fixture regenerated (132 methods, 134 presets). No existing method, input, check or number changed; 1446 tests pass.
+- 1.17 (2026-10-28): **Project scheduling batch A: resource levelling, crashing and calendars** (owner: "start batch A"). Three T1 methods, each with a float second route and five frozen checks. **`resource_leveling`**: a non-preemptive serial schedule against declared resource capacities, returning levelled starts/finishes, per-activity delay, the levelled and unconstrained durations, and the over-capacity periods and peak demand before and after (worked example: 5 periods unconstrained, 7 after levelling, 2 over-capacity periods removed). **`project_crashing`**: greedy one-period crashing of the cheapest critical activity with a linear crash cost, returning final durations, crash periods, per-activity cost and total cost to a declared target (worked example: 9 periods crushed to 7 at a cost of 130). **`calendar_schedule`**: CPM over a declared list of working period numbers, with early/late dates, float and the critical path in calendar periods (worked example: 7 calendar periods; an activity runs over periods 2 and 5 across a non-working gap). PM page gains a **Schedule and control** set of 12 tools; Calculator Operations group, student notes, presets `leveling`/`crashing`/`calendar` and README updated. Frozen fixture regenerated (130 methods, 132 presets). No existing method, input, check or number changed; 1438 tests pass.
+- 1.16 (2026-10-28): **Optional model-assisted prose, proposed and confirmed.** New `bp.product.prose` asks DeepSeek V4.1 Flash (`opencode-go/deepseek-v4.1-flash`) to rewrite only the introduction, one linking sentence per dimension, the PESTEL?SWOT integration and the conclusion. The model never rewrites evidence paragraphs, references or the student's implications. Every proposal is validated before it is shown: no new number, citation, link, DOI, heading or template text; the proposal is stored and the student must accept or discard it. `POST /api/cases/chat/{id}/polish` returns the proposal, `apply-prose` applies it and `discard-prose` discards it; the Chat panel shows the proposal with **Use this version** and **Discard**, and keeps the deterministic draft as the fallback. A live call returned a valid proposal with the thesis preserved and no new facts. No method, preset, computed number or frozen-contract entry changed. Targeted conductor, writer and prose tests pass; the full suite runs 1438 tests with five failures and one error from concurrent frozen-contract/method drift, outside this change.
+- 1.15 (2026-10-28): **Project management closes its delivery-document set: stakeholder/communication plan and lessons learned** (owner: "close 1-3"). Two new catalogue records, **PM-15 Stakeholder engagement and communication plan** and **PM-16 Lessons learned** (158 records; the importer regenerated the registry), and two canvas worksheets on the shared evidence builder: the stakeholder plan records stakeholders, interests, evidenced influence, engagement approach, messages, channels, timing, owner and communication risks; the lessons-learned sheet records what went well and what did not, the evidenced cause, the change for next time, its owner, the audience and the evidence. The PM page now shows **9 tools, 6 worksheets and 10 read-only records**. Empty blocks and assumption-flagged items are named; neither worksheet scores, ranks or assigns blame. No method, preset, input, check, computed number or frozen-contract entry changed; 1427 tests pass.
+- 1.14 (2026-10-28): **The paper is now a hierarchy, not a stack of sections, and it cannot export incomplete.** New `bp.product.paper` gives every section a level: H1 for Introduction, PESTEL, SWOT, Discussion, Conclusion and References; H2 for the six PESTEL dimensions, the four SWOT quadrants, Integration, Implications and Limitations. `docx.render_academic` accepts the outline and renders APA/Harvard H1 centred bold, H2 flush-left bold and H3 flush-left bold italic. The chat draft now writes one paragraph per section, removes `(your analysis)`, `Not supplied yet` and every other instructional placeholder, adds a thesis to the introduction and a Conclusion that answers it, and gives combined papers a Discussion with an explicit Integration of PESTEL and SWOT. The export gate blocks a Word file when implications are missing, or when a SWOT paper has no strength or no weakness; the API returns 409 with the missing list, the UI disables Download, and the paper never contains the placeholder. The sample builders use the same hierarchy and the samples were regenerated: PESTEL, SWOT and PESTEL+SWOT in APA and Harvard. `bp.product.paper.check` reports heading jumps, missing conclusion/references, meta-text and missing inputs. No method, preset, computed number or frozen-contract entry changed. 1427 tests run; two registry checks are waiting on the concurrent catalogue regeneration.
+- 1.13 (2026-10-28): **Project management gets a real Gantt and a schedule workbook** (owner: "close remaining PM gaps", after the answer that drawing is a deterministic renderer job, not a model job). (1) **New `gantt` chart kind** in `bp.product.charts`: each activity names its stored early-start and early-finish artifact, with optional float and critical flag; the SVG draws one bar per activity against a shared time axis, marks the critical path in red and draws float as a thin whisker. Labels may not contain digits, every position comes from the stored CPM artifacts, and the same case and spec produce byte-identical SVG. The Charts panel offers **gantt (CPM schedule)** and builds the spec from the case's `es_`, `ef_`, `float_` and `critical_` artifacts. (2) **Schedule sheet**: SpreadsheetML and XLSX exports now add a `Schedule` sheet (activity, early/late start and finish, float, critical) whenever CPM artifacts are present, copied verbatim and never recomputed. (3) Five new tests cover the stored dates and critical colour, determinism, a finish-before-start refusal, a missing artifact, a digit label, and the Schedule sheet. No method, preset, input, check, computed number or frozen-contract entry changed; 1426 tests pass.
+- 1.12 (2026-10-28): **Web search priority is OpenGo, DeepSeek, Brave, Firecrawl; sources are precision-ranked.** `bp.product.sources.search_web` now runs providers in that order and stops at the first one that returns a curated result. The OpenGo slot is reserved: it runs only when `BP_OPENGO_SEARCH_URL` and `BP_OPENGO_API_KEY` are set. DeepSeek Search (`POST https://api.deepseek.com/v1/tools/search`) is the first callable provider. Queries carry up to four curated `site:` filters (kept under DeepSeek's 128-character limit) and every result is post-filtered through the vetted registry; the API costs $0.75 per 1,000 **successful searches** (Fetch is separate), and empty result sets are not billed. Brave and Firecrawl remain the free fallbacks. The project `.env` now supplies `DEEPSEEK_API_KEY`; OpenGo stays skipped without an endpoint. `bp.product.chat` adds precision ranking before placement: relevance + title cue match + specific country/company anchor + source tier (official/data > academic > other) + recency + credibility. The top three ranked items per dimension are quoted. Measured live: DeepSeek returned 9 curated Iran sources for `Iran sanctions policy` and was used ahead of Brave; an Apple/Iran PESTEL pass returned 13 evidence items with only the Legal gap in 2.26 s. The OpenCode Console key is valid for inference (42 models). OpenGo search is now implemented by running a headless `opencode run` session with its configured websearch provider: no TUI is needed and it works when OpenCode is closed. Measured at 13-21 s per query and occasionally returning no curated result, it is opt-in (`OPENGO_WEBSEARCH=1`); PESTEL/SWOT research deliberately stays on DeepSeek Search unless `OPENGO_RESEARCH=1`. The default model is `deepseek-v4.1-flash` (1017) through `opencode-go`; DeepSeek Flash is a model, not the search API. No method, preset, computed number or frozen-contract entry changed. 1419 tests pass.
+- 1.11 (2026-10-28): **The browser tab icon loses its white card.** The favicon set inlined in `web/index.html` is rebuilt from `web/assets/logo.png` with a real alpha channel. The owner's PNG is RGB (1284x1032, no alpha), flattened onto solid `#FCFCFC` paper, so the old inline icons carried that paper with them: 25% of the 16px tile, 36% of the 32px, 41% of the 64px and 78% of the 180px were opaque white, and the apple-touch-icon was alpha 255 edge to edge - a solid white square. `scripts/generate_favicons.py` now cuts the mark from the logo's book-and-bars block (the `Smart BusinessWriter` wordmark is deliberately left out, because a favicon must not carry it), keys every pixel's coverage against the paper, and seals the gaps between the book's page strokes so the paper between them reads as the book's interior. The paper *outside* the artwork becomes transparent; the book's own pages stay opaque, so the book still reads as a solid object on a dark tab. Four PNGs - 16, 32, 64 and 180 - are written to `web/assets/favicon-*.png` and inlined as data URIs, because the server still serves only `/` and `/api/*` (`web/DESIGN_NOTES.md` open request 1). The script now writes each asset file from the same encoded bytes it inlines, so the committed PNGs are byte-for-byte the icons the page serves and cannot drift by a few bytes of PNG encoding; the four files are pixel-identical to the ones already shipped in `8c686a6`. Verified in a real Chromium tab: the page loads with no console errors and no `/favicon.ico` request, which is the browser accepting the inlined icons rather than falling back, and a before/after harness renders the pre-fix and current sets over a dark tab strip in Chromium itself. No computation, route contract, frozen fixture or business number changed; 1410 tests pass.
+- 1.10 (2026-10-28): **The marketing shelf finishes its assignments: five worksheets, three computations, and no record left saying "not built"** (owner: "1-5" after asking what a marketing student still cannot do). (1) **Five T4 worksheets** on the existing canvas and declared-matrix machinery, each with its own block or grid set, a nine- or eight-check audit and no arithmetic: **customer journey map** (`MKT-04`, touchpoints against declared stages), **Kano classification** (`MKT-06`, the five categories, with the category supplied by the student rather than derived), **SERVQUAL gap grid** (`MKT-07`, expectation, perception and the gap you concluded, with no average computed), **paid media plan** (`MKT-15`, objective through conversion definition) and **web/app measurement plan** (`MKT-18`, questions, metrics, events, data quality, consent and ownership). Empty blocks and cells are named, never filled; a sourced item needs a source; no score, ranking, probability or verdict is produced. (2) **Three T1 methods.** `market_share` (share of a declared market, the change from a declared prior period, implied firm and market growth, penetration against a population and relative share against a named rival; five checks); `clv_model` (discounted and undiscounted customer value over a declared horizon at constant churn and discount rates, with the value per unit of acquisition cost and the undiscounted payback when a cost is declared; five checks, including a one-period boundary and the closed-form annuity); `customer_profitability` (revenue, direct and allocated cost, profit, margin and profit share by segment, with the profitable and unprofitable counts and the smallest leading group reaching a declared profit share; five checks). Each refuses impossible inputs and states its limits. (3) **No marketing record says "not built" any more:** `QNT-MKT-07` links to `customer_profitability`, `QNT-MKT-02` gains `market_share` and `QNT-MKT-03` gains `clv_model`; the five worksheet records move out of the read-only list. The page is **24 tiles, 6 worksheets and a 48-term glossary**; the three presets are `marketshare`, `clv` and `custprofit`. (4) Tests: `tests/test_marketing_worksheets.py` (14 tests) exercises every new worksheet's checks, verbatim listing, gap counts and refusals; `tests/test_marketing_additions.py` gains the three methods' goldens, refusals and links. Frozen fixture regenerated (127 methods, 129 presets) under B-133. **Still out, and still by decision:** platform connectors, automated bidding, incrementality beyond a designed A/B test, data-driven attribution, sequential tests and budget recommendations.
+- 1.9 (2026-10-28): **The Business Calculator arrives on this line: a display, a keypad, and a sentence.** Ported from the main builds 0.74-0.76 and harmonized with the student shelves here. `web/index.html` now has the shell from `docs/proposals/BUSINESS_CALCULATOR_DESIGN.md` P1-P3: every tool opens **in place** with a display that names the method and its declared inputs, a 16-key text pad (digits and `.` edit the focused field, the operator keys move focus, nothing is evaluated), fit badges (A keypad, B list/table, C worksheet), and one primary `= Calculate and record`. `=` runs the normal `POST /api/sessions` -> `POST /api/sessions/{id}/confirm` pair, so every number comes from a delivery; a delivered calculator run is recorded automatically as a case, and a recording failure is reported. The search is now **global** across groups, because typing "tax" under Finance used to find nothing. An **Ask instead** toggle posts a sentence to the new `bp.product.calc_router` (`POST /api/cases/calculator/plan`) and renders one of five declared outcomes - `run`, `need_inputs`, `choose`, `unsupported`, `out_of_scope` - with the figures it actually read; it never defaults a missing input, never converts a percentage and never computes a number. **Local harmonization:** the committed input slice is regenerated from all **127 frozen methods** (the first build had 36), the router carries synonyms for every local shelf (tax, RFM, media planning, line balancing, the economics models, the marketing analytics methods), schema `required: false` inputs are no longer demanded, a thousands separator is punctuation rather than a defaulted figure (`84,000` becomes `84000`, the same value), and a `records`/`rows` input is never filled from a bare number ("for 20 customers" is a count, not twenty customer records). Tax is now **routed** to `tax_declared` rather than refused as unsupported, because build 0.95 added the method. The rail, panel heading, search label, subject-page button, tool-page button and toasts say **Business Calculator**; the route, panel id and JS identifiers stay `calculator` (they are contract). No frozen method, preset, input schema, computed number or frozen-contract entry changed; free-form arithmetic (decision D1) is still refused by design. 1396 tests pass.
+- 1.8 (2026-10-28): **Project management gets its four delivery worksheets** (owner: "go"). Four T4 worksheets built on the shared canvas and declared-matrix builders: **project charter** (`PM-05`, PRINCE2 anchor; objective, scope in and out, deliverables, sponsor and governance, budget, milestones, success measures, assumptions and constraints), **WBS** (`PM-09`; deliverables, work packages, acceptance criteria and exclusions, with declared work-package-to-deliverable links), **RACI** (`PM-10`; activities against confirmed roles, every cell starts R, A, C or I, exactly one accountable role and at least one responsible role per activity, empty cells named) and **risk register** (`PM-06`, PMBOK anchor; risks against declared likelihood and impact labels, response and owner, with no probability, expected value or score). The PM page now shows 9 tools, 4 worksheets and 10 read-only records, and no longer lists PRINCE2, PMBOK, WBS or RACI as "No worksheet yet". Registry template links added; no method, preset, input, check, computed number or frozen-contract entry changed. 1366 tests pass.
+- 1.7 (2026-10-28): **Country-specific targeting: the conductor now searches the country, not the client.** The plan detects the country (Iran, Saudi Arabia, UAE, Qatar, China, US, UK, Germany, France, Israel, Turkey, Egypt) and every dimension query starts with it, so an Apple/Iran brief searches `Iran sanctions policy` rather than `apple enter iranian market`. Each dimension has a short, targeted search phrase (`Iran economy inflation currency`, `Iran water climate drought`, `Iran sanctions law compliance`, `Iran market growth digital consumers`, `Iran sanctions conflict restrictions`) instead of a long cue list, which was returning very few scholarly results. The vetted registry gains OFAC (`treasury.gov`), EU Council sanctions (`consilium.europa.eu`), the Central Bank of Iran (`cbi.ir`), the Statistical Center of Iran (`amar.org.ir`) and UN Iran (`iran.un.org`). SWOT mapping now weights negative evidence more heavily, so a conflict-and-inflation item is a threat rather than an opportunity. Measured live on the Apple/Iran brief: PESTEL went from 1-4 evidence items and multiple gaps to 15 items with no gaps; the trade-off is that some accepted items are still tangential (a medical-technology paper in Technological), which the student rejects in the evidence review. The four `.docx` samples are unchanged. No method, preset, computed number or frozen-contract entry changed. 1352 tests pass.
+- 1.6 (2026-10-28): **SWOT, then PESTEL + SWOT in one deterministic paper.** The conductor now takes a framework (`pestel`, `swot`, `pestel_swot`) or infers it from the brief, and the Chat panel offers all three. SWOT asks for the student's strengths and weaknesses as semicolon-separated items, retrieves only opportunities and threats, and drafts the matrix with the student's words intact and every external item cited. PESTEL + SWOT runs the six PESTEL dimensions, keeps the student's internal factors, and maps accepted external evidence to opportunities or threats by a transparent keyword rule, naming the origin dimension and any unclassified items. The evidence gate is stricter: a source must match the selected dimension's cues and the selected geography, and must mention a specific decision anchor (country, sector or company; `Iranian` also matches `Iran`), so generic MENA commentary no longer enters a country analysis. Group authors are no longer split into a surname and initial: `World Bank` stays `World Bank`, not `Bank, W.` New samples in `samples/`: `apple-iran-swot-apa.docx`, `apple-iran-swot-harvard.docx`, `apple-iran-pestel-swot-apa.docx`, `apple-iran-pestel-swot-harvard.docx` (501-868 words, real sources, APA 7 or Harvard, `.docx` only). No method, preset, computed number or frozen-contract entry changed. 1350 tests pass.
+- 1.5 (2026-10-28): **Research is concurrent and cached: a cold PESTEL pass fell from 7.0-9.6 s to 2.8 s, a repeat pass to 0.01 s.** `bp.product.sources` now queries the selected academic databases concurrently, under a bounded network semaphore (`BP_SOURCE_CONCURRENCY`, default 8), and caches identical academic and web searches for ten minutes (`BP_SOURCE_CACHE_TTL`). PESTEL retrieval uses OpenAlex, Semantic Scholar and DOAJ; Crossref is no longer in the retrieval path (it was enrichment, and its failures were the most common error), though it remains available to other callers with a 6 s timeout. Academic and curated-web retrieval for a dimension now run together instead of one after the other. Firecrawl is attempted only when Brave returns nothing, uses an 8 s timeout (`BP_FIRECRAWL_TIMEOUT`), and Brave uses 8 s; the old 45 s fallback wait is gone. `bp.product.chat` enforces a whole-pass deadline (`BP_RESEARCH_DEADLINE`, default 20 s): unfinished dimensions are named as timed-out gaps instead of holding the request open, and the state records `timings` (total, per dimension, cache hits) that the Chat panel shows. Measured live on the Apple/Iran brief: 7.0 s before (and 9.6 s on a slower run), **2.8 s cold**, **0.01 s warm**, same evidence and gap behaviour. The Harvard sample paper (591 words, 10 sources) is built in 0.32 s and downloads as a six-page `.docx`. No method, preset, computed number or frozen-contract entry changed. 1341 tests pass.
+- 1.4 (2026-10-28): **CORE removed; the academic finder keeps four providers that answer without a key.** CORE is deleted from the database registry, its adapter and dispatch, the `BP_CORE_API_KEY` skip branch, the credential allowlist, the launcher `academic_search` block, the database-registry credential status and both `.env` files. The enabled academic databases are now OpenAlex, Crossref, Semantic Scholar and DOAJ, all of which work without a key; Scopus and arXiv remain present but off, and PubMed/PMC remains excluded. The reason is honest and operational: CORE needs its own key, which the product does not have, and its full-text endpoint is the slow provider in a per-dimension search, so leaving it in the path risked stalling a PESTEL run for no retrievable evidence. Nothing else changed: Brave stays primary, Firecrawl stays the keyless fallback, the vetted-site registry, relevance and geography gates, drafting, APA/Harvard output and the chat conductor are untouched. No method, preset, computed number or frozen-contract entry changed. 1337 tests pass.
+- 1.3 (2026-10-28): **The product keeps its own backend `.env` and its own source credentials.** New `Backend/.env` holds the credentials this product uses, with a tracked `Backend/.env.example` as the template; the filled file is git-ignored. `bp.product.source_env` now looks first at `Backend/.env`, then `BP_SOURCE_ENV`, then the legacy `D:\AA\Backend\.env` and `D:\AA\AcademicSources\Backend\.env`, and reads only an allowlist: Brave, Firecrawl, Semantic Scholar, CORE, the OpenAlex and Crossref contact addresses, and the Firecrawl keyless switch. Values are mapped to the `BP_` names, an existing environment value is never overwritten, an empty value is skipped, and a report lists only the source file and the names loaded, never a value. The launcher config now shows `web_search` (Brave primary, Firecrawl fallback, availability, source file, loaded names) and `academic_search` (Semantic Scholar, CORE); `GET /api/cases/sources/databases` also reports the academic credential status. The project file currently supplies Brave, Semantic Scholar, the OpenAlex and Crossref contacts and keyless Firecrawl; Firecrawl and CORE keys are absent and stay reported as absent rather than invented. Verified live from the project file: Brave returned curated legal sources, Semantic Scholar and Crossref returned academic results with no database errors, and CORE was reported as skipped for its missing key. No method, preset, computed number or frozen-contract entry changed. 1337 tests pass.
+- 1.2 (2026-10-28): **Two web researchers: Brave first, Firecrawl as the fallback, on the owner's Write Smarter account.** `bp.product.sources.search_web` now tries **Brave** first and falls back to **Firecrawl** when Brave is unset, fails, or returns fewer than the requested curated results. Both providers are restricted to the same curated domain list (Firecrawl with `includeDomains`, then a post-filter), so nothing outside the vetted registry can return; the 24-hour cooldown on a Firecrawl 429 is honoured in-process. Every response carries `provider` and an `attempts` list, and the subject page names the provider that supplied the results. New `bp.product.source_env` loads only `BRAVE_API_KEY` and `FIRECRAWL_API_KEY` from `BP_SOURCE_ENV`, `D:\AA\Backend\.env` or `D:\AA\AcademicSources\Backend\.env`, maps them to `BP_BRAVE_API_KEY` and `BP_FIRECRAWL_API_KEY`, never overrides a value already set, and reports only which names were loaded, never a value. `scripts/serve.py` calls it before building the launcher config and exposes a non-secret `web_search` block (primary, fallback, availability, source file, loaded names); `GET /api/cases/sources/databases` exposes the same status. PESTEL research now appends vetted web evidence per dimension, so the legal and environmental dimensions can be filled instead of defaulting to gaps. Verified live on the running server: Brave returned 5 curated Middle East legal sources, and a fresh Saudi grocery PESTEL case used Brave and Firecrawl, produced 14 sourced evidence items with no gaps and exported a 30 KB Harvard `.docx`. No method, preset, computed number or frozen-contract entry changed. 1335 tests pass.
+- 1.1 (2026-10-28): **The first deterministic conductor: a guided PESTEL chat.** New `bp.product.chat` is the first super-agent seed. It asks one question at a time (decision, region, recency, citation style), proposes a PESTEL plan with the six dimensions, the query per dimension, the preferred source category and what PESTEL misses, and waits for confirmation. After confirmation it searches OpenAlex, Crossref and DOAJ per dimension, plus the vetted web sites when a Brave key is configured, drops sources that do not match the decision topic or the chosen geography, extracts one abstract sentence per source, and records every source in a ledger. A dimension with no evidence is a named gap. The evidence review lets the student uncheck items; the drafted section quotes only the accepted evidence, keeps the student?s implications separate, lists the gaps and limitations, and formats APA 7 or Harvard. `bp.product.chat_store` stores the brief, answers, plan, sources, evidence, gaps, notes and draft as one chat case under the case store; routes `GET/POST /api/cases/chat`, `GET/DELETE /api/cases/chat/{id}`, and `answer`, `plan`, `research`, `draft`, `export` actions. The served UI gains a **Chat** rail item and a guided PESTEL panel; the subject page?s ?Ask in the chat instead? now opens it. Deliberately out: combinations, quantitative methods, model-written prose, and every framework except PESTEL. No method, preset, computed number or frozen-contract entry changed. 1328 tests pass.
+- 1.00 (2026-10-28): **Legal, economic and social sources for recent, grounded analysis; APA and Harvard papers.** The vetted-site registry gains a **category** (legal, economic, social, company, news) and an **academic fit** (primary source, research, background only). Legal primary sources include Congress.gov, the Federal Register, eCFR, the US Supreme Court and courts, legislation.gov.uk, EUR-Lex, the Court of Justice of the EU, WIPO Lex, UNCITRAL, ICJ, ICSID, China's NPC and Supreme People's Court, Saudi Bureau of Experts and UAE Legislation. Economic sources add IMF Data, World Bank Data and OECD iLibrary to the existing central banks, statistical offices and multilaterals; social sources add ILO, UNESCO, UNDP/Human Development Reports, WHO, Pew Research, the World Values Survey, the Arab Barometer and UN Data. The news tier is labelled **background only**. The subject page now has **Browse vetted sources** with category and region filters, rendered as FAS-style cards (name, use, tier, academic fit, open-site link). The report writer supports **APA 7** and **Harvard**: author-date in the evidence lines, a styled reference list (APA `References`; Harvard `Bibliography` with ?article title?, volume(issue), pp. and doi), and an academic `.docx` with Times New Roman 12, double spacing, 1-inch margins, a title page and page numbers; Harvard and APA are selected at download. Verified live: the legal directory shows 20 primary/research sources, and a grocery-competition report downloaded in Harvard as an 18 KB `.docx` with title page, Times New Roman, hanging bibliography, `doi:` entries and a page-number footer. 1315 tests pass.
+- 0.99 (2026-10-28): **The pipeline writes a sourced report from the research and exports it as Word.** New `bp.product.writing` composes a report from the retrieved sources and the worksheet draft: purpose and method, a summary of coverage and gaps, one section per framework dimension with the source title, the relevant abstract sentence and the citation, gaps and limits, and a numbered source list. Nothing is invented: every evidence line is a source title plus a sentence from its abstract, and the citation is recorded; no financial figure is computed. `POST /api/cases/worksheets/report` returns the report object and the `.docx` bytes (base64, SHA-256). `bp.product.docx.render_bytes` gains a `mono` switch so a written report uses Word's normal face while the accounting statements keep their fixed-width alignment. The draft review now offers **Download the report (Word)**, and the results page offers the same download after a drafted worksheet is run. Verified live: a grocery-competition search drafted a SWOT, downloaded a 11 KB `research-report-...docx` with the title, purpose, summary, Strengths/Weaknesses/Opportunities/Threats sections, citations and source list, and no raw codes. No method, preset, computed number or frozen-contract entry changed. 1312 tests pass.
+- 0.98 (2026-10-28): **Research-filled worksheets: sources draft the framework, the student reviews and runs it.** Owner: the blank worksheet is the fallback; describe the case and the pipeline should do the research and fill it; use the researcher and select business databases and vetted sites. New `bp.product.drafting` turns retrieved sources into worksheet inputs. A source is placed in the block with the most keyword hits (SWOT quadrants, Five Forces, PESTEL dimensions, BMC, Lean Canvas, Value Proposition Canvas, marketing plan); its item is the source title plus the first sentence of the abstract, and its citation is recorded. Nothing is invented: every item is `provenance: sourced`, a source that matches no dimension is listed as unmatched, duplicates are removed and per-block caps apply. `POST /api/cases/worksheets/draft` returns the inputs, placements, unmatched list and block labels. The subject page's **Find sources** now offers **Draft into** for the seven supported worksheets, a **Draft review** with each placement and citation, and **Run the drafted worksheet**; the delivered report cites the sources and shows no raw codes. Verified end to end on the running page: a grocery-competition search drafted a SWOT with 8 sourced items (2 strengths, 2 opportunities, 4 threats), reviewed and delivered. No method, preset, computed number or frozen-contract entry changed. 1306 tests pass.
+- 0.97 (2026-10-28): **A business-only source finder shared by every subject, with vetted regions.** Owner: use the researcher, but select the databases for business and add vetted sites; no Philippine emphasis, primarily US, Europe, Middle East and China. Added `bp.product.sources`: **OpenAlex**, **Crossref**, **Semantic Scholar**, **DOAJ** and **CORE** (key) as the enabled academic databases; **Scopus** (subscription) and **arXiv econ** are present but off; **PubMed/PMC** is excluded from business shelves. A curated site registry covers US (SEC, Federal Reserve, FRED, BLS, BEA, Census, USTR, FTC, GAO, CBO), Europe (ECB, Eurostat/European Commission, OECD, EIB, EBRD, BIS, WTO, ONS, Destatis, INSEE), the Middle East (GCC, Arab Monetary Fund, UAE, Saudi, Qatar, Israel and Turkey statistics), China (NBS, Customs, PBOC, MOF, NDRC, State Council, SSE, SZSE, HKEX) and Global multilaterals (World Bank, IMF, UN, UNCTAD), plus vetted business press. Routes `GET /api/cases/sources/databases`, `GET /api/cases/sources/sites?region=`, `POST /api/cases/sources/search` and `POST /api/cases/sources/web`; the last searches only the curated domains and needs `BP_BRAVE_API_KEY`, otherwise it returns the directory. Every result carries its database, DOI/URL and retrieval time; a failing database is reported and never blocks the others. The subject page now offers **Find sources** on every shelf, with academic cards and a vetted-site directory by region. No method, preset, computed number or frozen-contract entry changed. 1298 tests pass.
+- 0.96 (2026-10-28): **Two student gaps close without pretending to be an ad platform: RFM segmentation and media planning** (owner decision after asking whether connectors, bidding, incrementality and budget recommendations were needed by marketing students; answer: no for four of them, and the real gaps were elsewhere). (1) **`rfm_scoring` (T1)**: quintile recency, frequency and monetary scores from a declared customer list, with recency ranked in reverse, competition ranks so ties share the better band, the eleven named segments of the declared five-by-five first-match rule set, each segment's size, and the mean scores; the scored customer rows and the rule text travel in the structured appendix. Five frozen checks: an integer band-boundary route that must agree with the Decimal route, segment sizes that must sum to the customer count, bands inside one to five, monotonic recency scoring, and a combined score that is the sum of the three means. Refuses fewer than five or more than a thousand customers, duplicate names and impossible values. **`MKT-08` is now a computed record** (`QNT-MKT-04` still points at it) rather than a read-only one. (2) **`media_plan` (T1)**: reach share, gross impressions, gross rating points, cost per rating point and cost per thousand impressions per vehicle, the plan totals, and a combined net reach under random duplication with the average frequency that follows from it. Five frozen checks: a float second route, rating points as reach share times frequency times one hundred, impressions as reach times frequency, plan points as the sum of the vehicles', and a combined reach that cannot beat the sum or fall below the largest vehicle. The report states that the random-duplication figure is an upper bound and that the method does not recommend a buy. (3) **Catalogue v0.4**: a new section-11.2 bullet, `QNT-MKT-15` (media planning), plus the RFM link; the digital lane is unchanged. (4) **Presets** `rfm` and `mediaplan` with PHP examples; the Marketing shelf grows to **21 tiles** and a **42-term** glossary (reach, reach share, frequency, gross impressions, GRP, CPP, net reach, quintile score, RFM segment); both tiles carry study notes. (5) `registry.py` now tries the link rules for **every record the catalogue types as Q**, not only `QNT-` ids, so a quantitative record that sits in a framework section can be honestly marked computed. (6) `docs/MARKETING_STUDENT_GUIDE.md` gains both worked examples, the practice set and a plain statement that ad-platform connectors, automated bidding, incrementality, multi-touch causal attribution, sequential tests and budget recommendations are **deliberately not built**. Frozen fixture regenerated (124 methods, 126 presets) under B-121. **Still out, and staying out:** platform connectors (import the export instead), automated bidding, incrementality and holdout estimation beyond a designed A/B test, data-driven attribution models, sequential tests, and any budget recommendation.
+- 0.90 (2026-10-28): **Fundamentals moved off a premium endpoint: Alpha quote, SEC XBRL fundamentals** (owner supplied a free Alpha Vantage key and the live check exposed the issue). `GLOBAL_QUOTE` works on the free key; `OVERVIEW` now answers **premium endpoint**, so the Fundamentals path was rebuilt on **SEC EDGAR XBRL company facts** (no key): Revenue, Net income, Total assets, Total liabilities, Shareholders' equity and Diluted EPS, taking the latest 10-K/FY fact for each concept with fallbacks where tags differ. The panel labels the button **Fundamentals (SEC)** and only the Quote button is gated on `BP_ALPHAVANTAGE_KEY`; fundamentals work without a key for US registrants, and non-US/private companies stay manual. Live check: AAPL FY2025 revenue 416.161B, net income 112.010B, assets 359.241B, EPS 7.46. No method or preset changed. 1191 tests pass.
+- 0.95 (2026-10-28): **Line balancing and declared-rate tax close the two remaining mainstream assignments; the rest is stated, not built** (owner instruction: close what students need, put what would only bring issues in the limitations). (1) **`line_balancing`** (T1): assign declared tasks to stations at a declared cycle time with a declared heuristic (longest task time or ranked positional weight), reporting each station's load, the theoretical lower bound, idle time and efficiency; a task longer than the cycle, an unknown predecessor or a cycle is refused. (2) **`tax_declared`** (T1): income tax on positive taxable income at a declared rate, VAT payable as output less input, deferred tax as a declared temporary difference times a declared rate, the total charge and after-tax income. It applies **no jurisdiction's law** and says so. (3) **Wiring**: Operations gains line balancing in "Process and capacity"; Accounting gains a "Tax and reporting" group; Entrepreneurship gains the tax tool in "Financial plan and return"; notes, glossary terms, guides and the curriculum map are updated. PHP presets `linebalance` and `tax`. Frozen fixture regenerated (124 methods, 126 presets) under B-119. (4) **Deliberately not built, and now stated as such in `KNOWN_LIMITATIONS.md`:** a jurisdiction tax engine, audit opinion/sampling, group consolidation, multi-echelon inventory and a shared session store — each needs a declared convention or is infrastructure, and each would mislead a student if approximated.
+- 0.94 (2026-10-28): **Project management follows the assignment lifecycle** (owner: "go", after the shelf shipped with the new schedule/control tools first). The page now reads **Appraise the business case → Compare the options → Project cost and benefit → Schedule and control**, and the student guide lists the groups in the same order, so a student meets the business case before the schedule and the earned-value status. The two newest tools keep their own group at the end. The shelf-wiring test now asserts the lifecycle order rather than "schedule first". No method, preset, input, check, number or frozen-contract entry changed; 1266 tests pass.
+- 0.93 (2026-10-28): **Scheduling, project control, quality, activity costing and sales variances close most of the named Operations/Accounting gaps** (owner instruction: "they are not that hard ... close them without breaking the pipeline"). (1) **Six T1 methods**: `cpm_schedule` (critical-path early/late dates, total float, the critical path and duration, optional PERT three-point estimates with the variance along the critical path; five checks), `earned_value` (SV, CV, SPI, CPI, two declared EAC conventions, ETC, VAC, TCPI; five checks), `oee_analysis` (availability, performance, quality, OEE; five checks), `process_control` (I-MR mean, sigma, three-sigma limits, out-of-control points, longest run, and Cp/Cpk when specification limits are declared; five checks), `abc_costing` (activity rates, product allocations and unit costs, with every pool allocated in full; five checks) and `sales_variances` (price, mix and yield per product and in total, reconciling to the revenue change; five checks). (2) **`queue_analysis` is extended to M/M/c** under an approved unfreeze: `servers` is an optional input (default one), the Erlang C identity replaces the M/M/1-only queue-length check, and a single-server limiting-case check is added; the one-server outputs are unchanged. (3) **Wiring**: Project management gains a "Schedule and control" group with the two new tools; Accounting gains activity-based costing and sales variances; Operations gains OEE and control charts; the three shelves carry notes and the new glossary terms. Registry links now state partial coverage for QNT-OPS-05, QNT-OPS-06, QNT-FIN-02 and QNT-FIN-05. PHP presets `cpm`, `evm`, `oee`, `spc`, `abc`, `salesvar`. Frozen fixture regenerated (120 methods, 122 presets) under B-118. **Not in this batch:** jurisdiction tax rules, audit sampling/opinion, group consolidation, multi-echelon inventory and the multi-instance session store; each needs a declared convention or is infrastructure, and each is named in `KNOWN_LIMITATIONS.md` and the curriculum map.
+- 0.92 (2026-10-28): **Marketing & customers gains the digital lane: nine frameworks, seven computations and a page a student can read** (owner: "go to marketing and customers, check if everything about marketing is there ... it does not include digital marketing such as analytics"; "texts should also be solid to be more readable"). (1) **Catalogue v0.3**: nine new framework rows `MKT-13..MKT-21` (owned/earned/paid channel mix, SEO and content, paid media, email/CRM lifecycle, social and influencer, web/app measurement plan, attribution and campaign measurement, conversion-rate optimisation and landing-page testing, marketing automation and lead scoring) and seven new quantitative bullets in section 11.2 that the importer numbers `QNT-MKT-08..14`; RFM is now **one** record (`MKT-08`, also listed as `QNT-MKT-04`) instead of a framework row plus a duplicate bullet. The importer tags the digital rows and bullets with a new `digital marketing` discipline, so the page can group them without guessing from the title. (2) **Seven T1 methods**, each with a float second route, five frozen checks, refusals, declared defaults, assumptions and limitations, and a token-only report: `campaign_efficiency` (click-through, cost per click and per thousand impressions, conversion rate, cost per acquisition, return on ad spend, advertising cost of sales, plus break-even return and profit after media when a contribution margin is declared), `ab_test_two_proportion` (rates, absolute and relative lift, pooled z-test, two-sided p-value, an interval for the difference and the visitors each arm needs for a declared effect), `attribution_split` (first-click, last-click and linear shares with the largest disagreement), `channel_economics` (acquisition cost, payback, lifetime value and its ratio, blended cost and spend share), `email_list_health` (list end, growth, churn, open/click/click-to-open, revenue per subscriber), `social_engagement` (engagement rate, frequency, cost per thousand impressions and per engagement, follower growth, engagement per post) and `web_analytics` (sessions, conversions, conversion rate and revenue per session by channel, channel share, organic click-through). (3) **PHP presets** `campaign`, `abtest`, `attribution`, `channelecon`, `email`, `social` and `web` carry worked examples. (4) **The page** now has 19 tiles in four ordered groups (market size and demand; customer economics and retention; campaigns, channels and web analytics; funnel, surveys and testing), a period badge on every tile, study notes for every tool, a 33-term glossary, a guidance paragraph, and a records table grouped by humanised discipline - **11 Marketing frameworks, 6 Customer and market analytics, 16 Digital marketing** - with the legend rewritten to say what "computed", "worksheet" and "no worksheet yet" actually mean. (5) **Catalogue truth:** `QNT-MKT-08..14` are linked with partial-coverage notes; `QNT-MKT-02/-03/-05/-06` now name the methods that exist, and the A/B design note no longer claims the two-proportion comparison is missing. (6) New `docs/MARKETING_STUDENT_GUIDE.md` (conventions, worked examples, practice set with answers, stated gaps). Frozen fixture regenerated (114 methods, 116 presets) under the approved unfreeze **B-117**. **Still deliberately out:** ad-platform and analytics connectors, automated bidding, incrementality and holdout estimation, multi-touch causal attribution, time-decay and data-driven attribution models, sequential or peeking-adjusted tests, sentiment and bot filtering, cross-device identity, and any budget recommendation - the engine computes what the student declares and says what it cannot tell them.
+- 0.91 (2026-10-28): **Project management becomes the eleventh subject, and the product's text goes solid** (owner: "i think you forgot project management to add as one of the business subjects ... ensure that the orientation is for business students ... all texts will be in solid not grayed ones"). (1) **The subject:** `project-management` sits in the rail after Management & strategy, with its own `project` icon (Gantt-style bars), plum card tone and fuchsia rail tone. It owns the catalogue's whole section-8 block, `PM-01..PM-14` (Balanced Scorecard through PRINCE2, PMBOK, Scrum, Kanban, WBS, RACI, COBIT, ITIL, DeLone–McLean and TOE), which Management & strategy no longer claims; Management drops the projects tag and now shows 14 worksheets, 18 read-only records and 7 theory lenses. The PM shelf launches **seven existing frozen tools** — NPV, IRR, discounted payback, project ranking metrics, scenario analysis, business-case decision and trend forecast — so no method, preset, input, check or frozen-contract entry changed. (2) **Student orientation:** a guidance paragraph frames the page as the project life cycle an assignment asks for (justify, compare, project, submit) and says plainly what the 14 read-only frameworks do and do not do; the tiles are grouped as **Appraise the business case · Compare the options · Project cost and benefit** with "project life"/"per period" badges; a **23-term glossary** covers business case, charter, WBS, RACI, risk register, earned value and the named methods, and marks critical path, Gantt, earned value and CPI/SPI as not computed yet. `DISCIPLINE_LABELS` now humanises the projects tag as **Project delivery and governance**, and the subject header uses the label rather than the internal taxonomy. (3) **Solid text:** `--text-2` and `--text-3` both resolve to the primary ink `#0C243E`, so every secondary and tertiary line is solid on every page; hierarchy comes from size and weight, grey remains only in rules, borders and fills. The health-pill dot keeps its accent (logo green) instead of a grey token. Added `docs/PROJECT_MANAGEMENT_STUDENT_GUIDE.md` (what the shelf is for, conventions, a verified PHP worked example, a practice set with answers and the explicit gaps), plus rows in `KNOWN_LIMITATIONS.md`, `PRODUCT_GAP_MAP.md` and `CURRICULUM_MAP.md`. No computation, route contract or frozen fixture changed; 1234 tests pass. (4) Deliberate gaps: PM has no worksheet yet (charter, WBS, RACI and a risk register are the next real increment) and no earned-value, PERT or critical-path method, so the page names those as not calculated rather than implying them.
+- 0.90 (2026-10-28): **Accounting and Operations become shelves a course can use** (owner instruction: "do 1-5", with no external reviewer credited anywhere). (1) **Accounting**: the page is now three ordered groups (Bookkeeping and statements · Cost and variance analysis · Working capital and financing) with nine tools — the ledger engagement, the trial-balance check, ratio analysis, **`standard_cost_variances`** (material price and usage, labour rate and efficiency, and variable/fixed overhead when declared; five checks; a positive variance is unfavourable), break-even, multi-product break-even, working capital and loan amortization, and trend analysis — plus in-app notes, a 16-term glossary and `docs/ACCOUNTING_STUDENT_GUIDE.md`. (2) **Operations and Supply chain**: **`inventory_policy`** (EOQ, orders per year, safety stock from a declared service level and demand SD, reorder point, ordering and holding cost; five checks), **`queue_analysis`** (single-server M/M/1 utilisation, queue and system lengths, waits, idle probability; five checks) and **`capacity_analysis`** (capacity per resource, the bottleneck, utilisation and the capacity gap; five checks). Both shelves get ordered groups, notes, an 18-term glossary and `docs/OPERATIONS_STUDENT_GUIDE.md`. (3) **Catalogue truth**: QNT-OPS-01, -02, -04 and -08 and QNT-FIN-05 now state partial coverage with the methods linked; QNT-OPS-03/-05/-06/-07 stay "not implemented". (4) **Syllabus map**: new `docs/CURRICULUM_MAP.md` ties every shelf to typical SHS ABM and college courses and names the gaps; it credits no reviewer and is marked provisional. (5) **Operations**: new `scripts/ci.py` (tests + shelf/fixture audit + page syntax, one exit code), `scripts/bench.py` (read-only capacity probe) and `deploy/` (Dockerfile, nginx example, systemd unit, and a README that states the single-process/session constraint and what a multi-instance fleet still needs). PHP presets `scv`, `inventory`, `queue`, `capacity`. Frozen fixture regenerated (114 methods, 116 presets) under B-114. **Still out:** tax, audit and consolidation; ABC/target/life-cycle and budget/mix variances; scheduling, CPM/PERT, SPC/OEE; multi-server queues; multi-echelon inventory; and a multi-instance session store.
+- 0.89 (2026-10-28): **Management & strategy: eight new worksheets and a catalogue page that says what it can do** (owner: "they are all valid frameworks and need to be implemented ... I just don't understand the catalogue records and their status"). (1) **Eight T4 worksheets** on three shared paths: the canvas/evidence builder now serves **PESTEL** (`STR-06`), **Porter's Value Chain** (`STR-03`), **Ansoff** (`STR-09`), **Blue Ocean four actions / ERRC** (`STR-13`) and **strategic positioning with activity-system fit** (`STR-04`, with declared links); a new **declared-matrix** builder serves **scenario planning** (`STR-14`) and **strategic group mapping** (`STR-12`); a new **VRIO** builder (`STR-08`) records the four answers and the evidence behind each resource, flags a yes/no answer with no evidence for that question, treats "unsure" as unanswered and derives **no** verdict or score. Every worksheet reproduces supplied text verbatim, names empty blocks/cells, flags assumptions and synthetic items, and computes nothing. (2) **The catalogue now says what the product can do, not whether the framework is valid:** `form` is `computed`, `worksheet`, `read_only` or `theory`; the long status reads "worksheet available", "read-only record: no worksheet yet", "partial: ..." or "supporting theory: an interpretive lens, not a worksheet by design". No framework or model says "not implemented" any more; only an unimplemented quantitative method does. (3) **The Management & strategy page** shows 14 worksheets, then the 32 read-only records grouped by discipline (strategy 4, change and organisation 14, performance/projects/technology 14), then the 7 theories as **reading lenses** in their own table. The 14 `PM` records the page's own discipline tag claimed were previously shown on **no** subject page; they now appear, and `IMP-03..07` move to Economics. Gallery cards and the rail tooltip report worksheets, read-only records and theory lenses instead of one "catalogue" count. (4) The canvas worksheets render their per-block form (the describe payload carries blocks and id prefixes), and the subject generator carries `type`, `form`, `summary`, `evidence_needs` and the short status into the committed slice. No method, preset, input schema, computed number, frozen-contract entry or sandbox policy changed. 1192 tests pass.
+- 0.88 (2026-10-28): **Reviewer policy settled and the equity-key status made visible** (owner decision). **Reviewers:** B-112 resolves B-005 - no third-party reviewer is required, and no reviewer name is printed on a student's work. Methods keep the `pending_named_reviewer` label as an honest disclosure that they have **not** been reviewed; nothing is promoted on review grounds. The optional case sign-off remains the user's own signature. **Key status:** `GET /api/market/status` reports which sources are configured without a network call; the Finance panel disables the Quote/Fundamentals buttons when `BP_ALPHAVANTAGE_KEY` is absent and shows where to set it. FX, Treasury, SEC and World Bank never needed a key. No method, preset or computed number changed. 1181 tests pass.
+- 0.87 (2026-10-28): **Local OCR and global free data sources, both provenance-first** (owner decision: install the renderer/OCR engine; use SEC EDGAR, Alpha Vantage and World Bank, with manual entry where no source exists). **OCR:** installed `pypdfium2` (PDF renderer, Apache-2.0) and Tesseract 5.4.0 locally, with `pytesseract`. A PDF with no text layer is now rendered at 144 dpi and OCR'd; an image is OCR'd directly. Results are labelled `pdf_ocr` / `image_ocr` and remain **unverified**; encrypted files, more than 50 pages (20 for OCR) and more than 200,000 characters are refused. The readers stay optional and are imported only in `documents.py`. **Global data:** the market panel now also offers an **Alpha Vantage** equity quote and fundamentals (the user's own free key in `BP_ALPHAVANTAGE_KEY`, 25 requests/day, unlimited for verified educational projects), **SEC EDGAR** recent filings (no key), and **World Bank** macro indicators (no key, CC BY 4.0). All results carry source, as-of date, URL and response SHA-256; API keys are redacted from returned URLs; nothing is written into a method input automatically. PSE prices and private-company figures stay **manual entry**. Routes added: `GET /api/market/quote`, `/api/market/fundamentals`, `/api/market/filings`, `/api/market/macro`. No method, preset, check or frozen-contract entry changed. 1160 tests pass.
+- 0.86 (2026-10-28): **the venture-planning lane: six more computations, four canvas worksheets, and a template-token fix** (owner instruction: cater to hundreds of thousands of students, be as extensive as possible without sacrificing correctness). (1) **Four T4 worksheets** built on the existing evidence-audit machinery: Business Model Canvas (`STR-15`), Lean Canvas (`STR-16`), Value Proposition Canvas (`STR-17`) and a marketing plan covering segmentation, targeting, positioning and the product/price/place/promotion mix (`MKT-02`). Every block is supplied by the student; the worksheet places each item verbatim, reports the empty blocks, flags assumptions and synthetic items, keeps declared links only when both ends exist, and produces no score, ranking or recommendation. One shared builder, renderer and nine-check set serves all four. (2) **Six T1 methods**, each with a float second route, five frozen checks, refusals, declared assumptions and a token-only report: `sales_projection` (period volume, revenue, variable cost, fixed cost and profit from a starting volume and a growth rate), `cap_table_round` (pre/post-money, price per share, new shares, investor and founder percentages and dilution for one priced round with an optional post-money pool), `sales_funnel` (stage conversion, drop-off and cost per customer), `cohort_retention` (pooled retention and churn by period with average lifetime), `demand_curve` (least-squares price-quantity line, R-squared, elasticity at the mean and the revenue-maximising price when the slope is negative) and `purchase_intent` (weighted intent rate, projected buyers and revenue). (3) **A real fix the new methods exposed:** the draft renderer's `{{ref:id:metric:period}}` token matched only space-free periods, so a declared period such as `point in time` or `per observation` left raw tokens in a delivered report. The period group now accepts the declared text. (4) PHP presets `salesprojection`, `captable`, `funnel`, `cohort`, `demandcurve`, `purchaseintent`; new tiles on the Entrepreneurship shelf (now 36 tools and 5 worksheets) and the Marketing shelf (funnel, cohort, demand and purchase intent, plus the marketing-plan worksheet); the three canvases are also worksheets on the Management shelf. The glossary grows to 34 terms and `docs/ENTREPRENEURSHIP_STUDENT_GUIDE.md` gains the new requirement rows and worked examples. Frozen fixture regenerated (103 methods, 105 presets) under B-109. **Still deliberately out:** term sheets, liquidation preferences and other negotiated clauses; conjoint analysis; Monte Carlo valuation; market-data retrieval; survival models.
+- 0.85 (2026-10-28): **Free market-data lookups and PDF reading, with provenance and no silent use** (owner decisions on the P2 list). **Market data:** a new product service (`bp.product.marketdata`) reads two fixed, free, keyless sources over HTTPS - **Frankfurter** for reference FX and the **U.S. Treasury daily par yield curve** for a risk-free rate - and returns the value with source, as-of date, response SHA-256 and a 'not independently verified' label. Hosts are allowlisted, redirects are checked, responses are capped at 1 MB, requests time out in 20 s and a 300 s in-memory cache limits traffic. The Finance page gains a **Market data (retrieved, not verified)** panel for an FX pair/date and a Treasury maturity; the app shows the value and provenance and **never fills a tool silently** - the student confirms and types it in. Routes: `GET /api/market/fx`, `GET /api/market/riskfree`. No equities, fundamentals or PSE feed: those need a source/licensing decision (and PSE has no reliable free official API). **Documents:** `bp.product.documents` reads the **text layer of a PDF** with the optional `pypdf` package, and an **image with OCR** only when Tesseract plus `pytesseract` are installed. A scanned PDF is marked `ocr_required` rather than guessed; encrypted PDFs, more than 50 pages and more than 200,000 characters are refused. Intake accepts `.pdf`, `.png`, `.jpg` and `.jpeg` as `document` files, stores them unread, and reads them only on `POST /api/intake/{id}/extract`; the extracted text is written beside the payload, labelled **unverified**, and previewed with `GET /api/intake/{id}/text`. The attachments strip gains **Extract text** and **Show text**. Both changes are recorded as B-106 (market data) and B-107 (documents). No method, input schema, check, preset or frozen-contract entry changed. 1116 tests pass.
+- 0.84 (2026-10-28): **Entrepreneurship becomes a student shelf for the business plan, not eight generic tools** (owner instruction: "check the entrepreneurship if all the computation needed by the subject is in the pipeline ... ensure that this is oriented towards a student using it for their assignment"). (1) **Five new T1 methods**, each with a float second route, five frozen checks, declared assumptions and a token-only report: `market_sizing` (top-down TAM/SAM/SOM from a declared population, annual spend and two shares, with the customer count implied), `startup_capital` (set-up costs plus working capital plus a declared contingency, less owner equity and loan, with the amount to raise and any surplus), `cash_runway` (months until the declared monthly net flow exhausts the opening cash, optional growth, lowest balance and funding gap; a flow that never burns cash blocks instead of reporting infinity), `pricing_decision` (cost-plus, target-margin, break-even and target-return prices from declared cost, volume and rate) and `return_on_investment` (ROI and the annualised return over a declared holding period). (2) **`breakeven` is extended additively** under an approved unfreeze: the quantity is unchanged and the break-even revenue, contribution margin and CM ratio always appear; the margin of safety and target-profit volume appear only when `expected_units` or `target_profit` is declared. (3) **PHP presets** `marketsize`, `startupcapital`, `cashrunway`, `pricing`, `roi` carry worked examples. (4) **The subject page is a business plan**: 30 tiles in five ordered groups (Market and customers · Costs, pricing and break-even · Financial plan and return · Funding and valuation · Impact and options), a period badge on every tile, a 20-term glossary, a subject guidance paragraph, and the existing study notes. The shelf now also surfaces the tools that were already built but unwired (`projectmetrics`, `scenario`, `loan`, `workingcapital`, `dcf`, `multiples`, `equitybridge`, `sroi`, `cba`, `elasticity`, `costcurves`, `marketpower`, `trendanalysis`, plus the survey statistics). (5) **Catalogue truth:** `QNT-MKT-01`, `QNT-MKT-02`, `QNT-MKT-03`, `QNT-FIN-06` and `QNT-FIN-07` are now linked with an explicit partial-coverage note, and the three canvases and the diffusion theory record still read "not implemented". (6) New `docs/ENTREPRENEURSHIP_STUDENT_GUIDE.md` with the assignment-requirement→tool table, conventions, six PHP worked examples, a practice set with an answer key and the stated gaps; `scripts/econ_shelf.py --check` now audits both the Economics and Entrepreneurship shelves. No existing method output, preset id or delivered number moved; the frozen fixture is regenerated (97 methods, 99 presets) under B-104. **Not in this increment:** canvas worksheets, cohort retention, funnel analysis, demand estimation, cap table/term sheet/dilution and Monte Carlo valuation.
+- 0.83 (2026-10-28): **Backend hardening for the completed economics and finance shelves** (owner instruction: "complete the backend and make it solid ... stop when you are about to create a UI"). No new method, preset, route or UI screen. (1) New `tests/test_method_contracts.py` audits every method's contract: intended use, unsupported use, assumptions, limitations, unique frozen test names, metric/unit, tier, claim ceiling, a non-empty input schema and a plain-language description for every input; it also checks that every preset points at a library method or template (the deliberate `unsupported` negative preset excepted) and that every subject tool belongs to the calculator union. (2) `scripts/econ_shelf.py --check` is now a release gate: it compares the frozen fixture with the code and exits non-zero on method or preset drift, alongside the existing method/preset/tool/level/notes/glossary audit; `--fixture` regenerates the contract after an approved unfreeze. (3) The four advanced-econometrics methods (`panel_regression`, `instrumental_variables`, `regression_discontinuity`, `probit`) were verified in the subprocess sandbox as well as in process. (4) Fixed the concurrent Finance `trend_analysis` wiring: `trendanalysis` is now in the Calculator's Finance group and `trend_analysis` is in the README method list. (5) `docs/PARKED_QUEUE.md` records VAR, cointegration and unit-root tests as the remaining time-series lane, with the critical-value reason. 1071 tests pass; no UI work was started.
+- 0.82 (2026-10-28): **Multi-year common-size and trend analysis closes the last core Finance gap** (owner instruction: "go" after the P0-3 presentation work). A new **T1** method, `trend_analysis`, takes several years of declared income-statement figures (years, revenue, cost of sales, operating expenses, net income, with optional total assets and equity) and reports common-size percentages, an index on the first period, compound revenue and net-income growth, the latest period-on-period change and endpoint margin changes. Six frozen checks: a float second route, the CAGR compounds the first period to the last, the common-size lines plus operating margin sum to one, the index is latest over base times one hundred, the latest growth is the change from the previous period, and the margin change is the endpoint difference. It refuses mismatched list lengths, fewer than two or more than ten periods, unordered years, non-positive revenue, negative cost lines and a partial balance-sheet pair. Wired as preset `trendanalysis`, a Foundations tile with its study note, an `annual` period badge and two glossary terms (common-size, CAGR); the catalogue note for financial performance now states that multi-year trend is implemented. This is an approved unfreeze under B-079, recorded as B-102; the frozen fixture is regenerated. 1068 tests pass.
+- 0.81 (2026-10-28): **Advanced econometrics: panel, IV, RDD and probit** (owner instruction: "go finish"). Four new **T1** methods, each with five frozen checks, declared assumptions and a formula-level report: `panel_regression` (balanced-panel fixed-effects within slope, within R-squared and degrees of freedom), `instrumental_variables` (just-identified 2SLS with one endogenous regressor and one excluded instrument, first-stage and OLS comparison), `regression_discontinuity` (sharp local-linear RDD with a declared cutoff and bandwidth, left/right intercepts and slopes) and `probit` (binary probit with one predictor, log likelihood, McFadden pseudo R-squared and marginal effect at the mean). Presets `panel`, `iv`, `rdd` and `probit`. The Economics subject grows to 55 tiles (21 intro, 21 intermediate, 13 advanced); every new tool carries student notes. Frozen fixture regenerated (92 methods, 94 presets) under B-100. **Still parked:** VAR, cointegration and the other time-series estimators, the economics catalogue section and the diagram renderer. 1067 tests pass.
+- 0.80 (2026-10-28): **Economics is finished through welfare, international, development, behavioural and game theory** (owner instruction: "finish them all"). Twenty-one new **T1** methods, each with a float second route, five frozen checks and declared assumptions: **welfare/public** `externality_pigouvian`, `public_good`, `social_welfare`, `gini_coefficient`, `poverty_measures`, `tax_progressivity`, `optimal_pollution`, `output_gap_okun`; **international/development/behavioural** `comparative_advantage`, `tariff_welfare`, `exchange_rate_ppp`, `interest_rate_parity`, `balance_of_payments`, `hdi`, `expected_utility`, `prospect_theory`, `labour_market`; **electives** `price_discrimination`, `cournot_duopoly`, `difference_in_differences` and `nash_equilibrium`. Presets `externality`, `publicgood`, `socialwelfare`, `gini`, `poverty`, `taxprogressivity`, `optimalpollution`, `okun`, `comparative`, `tariff`, `ppp`, `irp`, `bop`, `hdi`, `expectedutility`, `prospect`, `labour`, `pricediscrimination`, `cournot`, `did` and `nash` use PHP examples. The Economics subject grows from 30 to 51 tiles (21 intro, 21 intermediate, 9 advanced) and the glossary grows to 25 terms. Every new tool carries student notes (level, formula, steps, common mistakes, related tools, diagram key), and `docs/ECONOMICS_STUDENT_GUIDE.md` gains welfare, international and behavioural examples plus practice sets. Frozen fixture regenerated (87 methods, 89 presets) under B-099. Advanced econometrics (panel, IV, RDD, probit, VAR), the economics catalogue section and the diagram renderer remain explicitly out of scope and are labelled as such. 1063 tests pass.
+- 0.79 (2026-10-28): **Finance is presented as a student shelf, not a flat grid of 32 tiles** (owner instruction: "okay do p0-3" after the Finance audit). Three presentation changes, no new method, preset or number. (1) **Topic grouping:** the Finance page now renders six ordered groups - Foundations, Corporate finance, Valuation, Investments, Risk & derivatives, International - instead of one undifferentiated grid; the Economics page keeps its intro/intermediate/advanced grouping. (2) **In-app study notes and glossary:** 27 Finance tools carry a plain-language formula, the steps to follow and the mistakes that most often cost marks, rendered as expandable notes on the page; a 20-term Finance glossary (NPV, IRR, WACC, CAPM, beta, YTM, duration, convexity, EOQ, CCC, VaR, CVaR, delta, hedge, enterprise value, net debt, EBIT/EBITDA, EPS, ROE, Altman Z) sits beside it. The notes are presentation metadata in `bp.product.subjects`; the numbers still come only from the frozen methods. (3) **Period badges and a percent guard:** each Finance tile shows its declared period convention (`annual`, `per period`, `per observation`, `spot rate`, `point in time`), so a per-period return cannot be read as annual; and any delivery whose output contains a rate above 100% now appends a plain note explaining that rates are decimals (6% is 0.06, not 6). The guard is a warning, not a refusal, because a genuine rate above 100% can exist. Changes: `src/bp/product/subjects.py` (`FINANCE_NOTES`, `FINANCE_GROUPS`, `FINANCE_PERIODS`, `FINANCE_GLOSSARY`, `GLOSSARIES`, grouped tool descriptors), `web/index.html` (group rendering and the period badge), `src/bp/orchestrator.py` (one appended honesty note), `tests/test_finance_additions.py` (+2 tests). The frozen contract fixture, presets and every computed figure are unchanged. 1057 tests pass.
+- 0.78 (2026-10-28): **Economics gets the macro core and the firm** (owner instruction: "GO" on the Phase 2 macro plan). Ten new **T1** methods, each with a float second route, five frozen checks, declared assumptions and a formula-level report: `cost_curves` (average, average variable, average fixed and marginal cost at a declared quantity, with optional price, revenue, profit and a shutdown flag), `profit_maximization` (MR = MC output and price for linear demand and quadratic cost, with revenue, cost, profit, markup and the Lerner index), `market_power` (markup, Lerner index and implied demand elasticity), `national_income` (expenditure-approach GDP, GNP, NNP, net exports, optional real GDP and GDP per capita), `growth_rate` (total growth, CAGR and the rule-of-72 doubling time, optional per-capita growth), `inflation_cpi` (inflation from two CPI values, exact and approximate real interest, real wage growth), `unemployment_rate` (unemployment, labour-force participation and employment-population rates), `money_multiplier` (simple and currency-adjusted multipliers and the implied money supply), `fiscal_multiplier` (government-spending, tax and balanced-budget multipliers and the output change from a declared fiscal package) and `budget_debt` (overall and primary balances, debt-to-GDP and the interest-growth-primary debt-ratio identity). Presets `costcurves`, `profitmax`, `marketpower`, `nationalincome`, `growth`, `inflation`, `unemployment`, `moneymultiplier`, `fiscal` and `budgetdebt` use PHP examples. The Economics subject grows from 20 to 30 tiles (20 intro, 5 intermediate, 5 advanced) and the glossary gains GDP, GNP/NNP, CPI, CAGR, LFPR, MPC and debt-to-GDP. Every new tool carries student notes (level, formula, steps, common mistakes, related tools, diagram key). `docs/ECONOMICS_STUDENT_GUIDE.md` gains macro conventions, worked examples and a macro practice set. Frozen fixture regenerated (66 methods, 68 presets) under B-098. **Still missing:** welfare/public, international/development, behavioural, advanced econometrics and the economics catalogue section; the diagram renderer remains deferred. 1055 tests pass.
+- 0.77 (2026-10-28): **Economics is now a microeconomics shelf, not only appraisal** (owner instruction: "CHECK ECONOMICS UNDER SUBJECTS ... IT LOOKS VERY THIN"; then "GO" on the proposed micro core). Five new **T1** methods, each with a float second route, five frozen checks, declared assumptions and a formula-level report: `demand_supply_equilibrium` (linear demand and supply, P*, Q*, choke and floor prices, consumer and producer surplus), `elasticity` (arc/midpoint price elasticity, percentage changes, revenue before and after, elastic/unit-elastic/inelastic flags), `tax_incidence` (per-unit tax on sellers, consumer and producer prices, burden split, tax revenue, deadweight loss), `price_control` (ceiling or floor, binding test, quantity traded, shortage or surplus, deadweight loss) and `market_concentration` (HHI from percentage shares, CR1, CR4 and the equivalent number of equal-sized firms). Presets `equilibrium`, `elasticity`, `taxincidence`, `pricecontrol` and `concentration` use PHP worked examples. The Economics subject grows from 5 to 20 tiles - the five new tools, the existing appraisal and forecasting tools, and the existing managerial-economics and econometrics tools (`breakeven`, `multi_product_breakeven`, `unit_economics`, `descriptive_stats`, `pearson`, `ols`, `welch`, `anova`, `chi_square`, `power_analysis`) - and now separates **intro**, **intermediate** and **advanced** tools. New product-layer `STUDENT_NOTES` gives every Economics tool a level, formula, worked steps, common mistakes and related tools; `ECONOMICS_GLOSSARY` defines P*, Q*, CS, PS, DWL, E, Pc/Ps, HHI and CR4; the subject page groups by level and renders study notes and the glossary. New `docs/ECONOMICS_STUDENT_GUIDE.md` records the conventions, worked examples, a practice set with an answer key, and the remaining gaps. Frozen fixture regenerated (56 methods, 58 presets) under B-097. **Not in this increment:** macroeconomics, welfare/public, international/development, behavioural economics, advanced econometrics, the economics catalogue section, and the approved economics diagram renderer (deferred so the arithmetic release is not held up). 1025 tests pass.
+- 0.76 (2026-10-28): **Finance is now a full student shelf, not only a valuation core** (owner instruction: "check the Finance under subjects ... go until finished ... ensure that the build is appropriate for students"). Fourteen new T1/T2 methods complete the topics a finance student is examined on, each with its own second route, frozen checks, plain-language input descriptions, intermediate values, formula-level report wording and stated limits: `time_value` (lump sum plus level payments, effective annual rate), `loan_amortization` (level payment, total interest, first split), `bond_analysis` (price or solved yield, Macaulay and modified duration, convexity, DV01), `capm` (beta from returns, CAPM cost of equity, Hamada relevering), `dupont_analysis` (three- and five-step ROE), `multiples_valuation` (declared peers to an implied EV/equity/per-share value), `working_capital` (cash conversion cycle, EOQ, reorder point, cost of trade credit), `portfolio_analysis` (two-asset return and risk, correlation, Sharpe, beta, Treynor, Jensen), `project_metrics` (profitability index, MIRR, payback, equivalent annual annuity), `option_pricing` (Black-Scholes price and Greeks with a binomial cross-check and put-call parity), `risk_metrics` (parametric and historical VaR, expected shortfall, stress loss), `fx_parity` (covered interest parity, relative PPP, forward premium, Fisher real rates), `leverage_analysis` (EPS, degree of financial leverage, interest cover, tax shield, Altman Z), and `scenario_analysis` (NPV across a declared rate range with the decision-flip rate). The Finance subject grows from 11 tiles to 32 (now also carrying ratio analysis, break-even, DuPont, working capital and the OLS/Pearson tools used for beta) and from 11 to 23 catalogue rows (adding cost/profitability, management accounting and the nine risk records `RSK-01..09`, which were previously assigned to no subject). The upstream catalogue notes now state what the new methods cover and what remains absent (multi-year trend series, Monte Carlo, real options, American exercise). This is an approved unfreeze under B-079, recorded as B-090; the frozen fixture is updated in the same change. A new `docs/FINANCE_STUDENT_GUIDE.md` records the conventions, worked examples for every tool, a practice set with an answer key and the remaining gaps. 1023 tests pass.
+- 0.75 (2026-10-28): **Home accepts attached files** (owner instruction: "just provide intake capability to the pipeline"). A new `src/bp/product/intake.py` stores each attached file under `BP_INTAKE_DIR` (default `intake/`), immutable and hashed (SHA-256), with one JSON record per file; it reads nothing and computes nothing. Routes: `POST/GET /api/intake`, `GET/DELETE /api/intake/{id}`, `POST /api/intake/{id}/ingest`; a structured file (CSV/TSV/TXT/XLSX/XLSM) is read by the frozen `bp.ingest` module, every other file is stored as `reference_only` and labelled not read. Home gains an **Attach files** button, drag-and-drop on the action box, and an attachments strip with `Ingest` and `Remove` per file. The Data panel's picker no longer offers legacy `.xls`, which the ingestion module refuses. No computation, method, preset or stored case changed; 987 tests pass.
+- 0.74 (2026-10-28): **the left rail is the A1 strip: a full aqua-green bar carrying real coloured app icons, with the labels on white** (owner instruction; A1 as the reference). The strip behind the icons is one full-height bar in the logo green `#02A15E`; the label column beside it stays white, exactly as in the reference. All twelve rail icons (Home, the ten subjects, Calculator) are now solid, filled glyphs on white tiles in each subject's own colour - the Font Awesome Free 6.5.2 solid set (CC BY 4.0) - instead of monochrome line drawings; the catalogue cards keep the line set, so the rail reads from a new `RAIL_ICONS` map and `ICONS` is untouched. Also fixed a bug carried in from the start: `all:unset` on the rail controls reset `box-sizing` to `content-box`, so the toggle overflowed the rail and the collapse chevron never reached the right edge of the expanded panel. The rail toggle, the ten subjects, the Calculator, the Home page, the backend and every number are unchanged; 971 tests pass.
+- 0.73 (2026-10-27): **rail panel spacing and expand/collapse animation** (owner instruction). The expanded rail is wider (`232 -> 272px`) with more item padding and gap so the larger text is not tight; the word "Collapse" is removed and the chevron sits at the right edge of the expanded panel. Expand/collapse now animates with a 0.34s Apple-style easing (`cubic-bezier(.32,.72,0,1)`) on the rail width; the labels fade and slide 8px as the panel opens. No other page, the Home content, backend or any number changed; 753 tests pass.
+- 0.72 (2026-10-27): **all font sizes increased by 20%** (owner instruction: text looked small and hard to read). Every explicit `font-size` declaration in `web/index.html` is multiplied by 1.2 (base body 14 -> 16.8px; rail 13 -> 15.6px; headings 32 -> 38.4px, 17 -> 20.4px; captions and badges scaled the same way). Layout dimensions, colours, the clean Home, the side rail and the lower-right chat button are unchanged. No backend, API or number changed; 753 tests pass.
+- 0.71 (2026-10-27): **the floating chat button moved to the lower-right corner** (owner instruction). It was centre-bottom (`left:50%` + translate); it is now fixed at `right:24px; bottom:24px`, same size, same logo and same drawer. No other layout, page, backend or number changed; 753 tests pass.
+- 0.70 (2026-10-27): **Home reduced to the logo/wordmark, the slogan exactly as written, and the chat box** (owner instruction; the side rail was already accepted and is untouched). Removed from Home: the extra sentence under the slogan, the preset/method/currency selects, the preset chips, the Examples card, "Your cases", "Or choose a subject", the "Two ways in" note and the Enter hint. The chat box is now only the text area and the up-arrow button. Consequence stated honestly: with no method control on Home, the arrow cannot start a session; it shows a toast pointing to the subject rail or the Calculator, which still select a method. No other page, the side rail, the Calculator, the backend or any number changed; 753 tests pass.
+- 0.69 (2026-10-27): **served-build marker and cache prevention.** The page now declares `Cache-Control: no-store` / `Pragma: no-cache` and shows a small **v0.69** pill in the top bar, so an old cached or wrong-checkout page can be told apart from the current one at a glance. No behaviour, computation, API route, test or business number changed; 753 tests pass.
+- 0.68 (2026-10-27): **the subject rail no longer depends on the API to exist, the rail is explicitly expandable, and the Home chat is re-centred** (owner instruction after a served copy lost the 0.66/0.67 rail). The ten subjects and their icons are now **static markup** in `#railsubjects` (Accounting, Finance, Economics, Management, Entrepreneurship, Operations, Supply chain, Marketing, People, Research), so the rail renders before any fetch and remains if `/api/cases/subjects` is unavailable; the live call replaces them with full labels and tool counts, and a failure now appends a note instead of wiping the list. The rail toggle shows a hamburger when collapsed and a chevron + "Collapse" when open, updates `aria-expanded`/label/title, and keeps its open state. `main` is centred in the content column, which centres the Home action box **without changing its width**. The run control moved from the left of the action row to the right and is now a circular **up-arrow** button (`aria-label="Start the analysis"`, title "Start the analysis (Enter)"); Enter in the objective box starts the analysis and Shift+Enter inserts a newline, with an inline hint. Three presence guards in `tests/test_product_subjects.py` assert the static subject links, the rail toggle, the up-arrow/Enter affordance and the continued absence of the removed Catalogue/Assistant panels. No computation, frozen module, fixture, API route or business number changed; 753 tests pass.
+- 0.67 (2026-10-27): **Catalogue and Assistant removed from the served UI** (owner instruction after reviewing the 0.66 rail). The standalone `Frameworks & templates` panel (`RENDERERS.frames`: registry search, 36-method review table, template loader) and the hidden `Assistant` panel (`RENDERERS.assistant` + "Challenge my analysis") are deleted, together with their panel markup, the subject-page "Browse the full method catalogue" button, the drawer's Assistant tab, the `/api/assist/config` boot call and the client-side `loadTemplate`/`searchFrameworks` code. The floating chat button now opens a single **Help & about** drawer, the health pill still opens **Status**, and **nothing else is lost**: subject pages still show their catalogue-only records, the Calculator still lists every calculation, worksheets still launch the three templates, and the backend `/api/frameworks`, `/api/templates`, `/api/assist` and their tests are unchanged. The Assistant UI was removed rather than repaired because it posted an unsupported `task:"challenge"` without `consent` (finding F3), so it could not work even with a provider configured; the tested backend lane stays for a future release. Three core tests that asserted the deleted panels' HTML (`test_assist`, `test_framework_flow`, `test_templates`) were retargeted to assert the new surface and the panels' absence; every backend assertion remains. No computation, frozen module, fixture, route or business number changed; 750 tests pass.
+- 0.66 (2026-10-27): subject-first navigation refined into the **subject rail** (owner instruction). `bp.product.subjects` now declares **10** subjects (Accounting, Finance, Economics, Management & strategy, **Entrepreneurship**, Operations, Supply chain, Marketing, People, Research & statistics), each with a unique presentation `icon` key exposed by the gallery and detail routes; Entrepreneurship is an honest combination shelf (8 frozen compute tools - break-even, multi-product break-even, unit economics, NPV, IRR, discounted payback, forecast, case decision - the existing STR-18 SWOT worksheet, and 5 catalogue-only records: Business Model Canvas, Lean Canvas, Value Proposition Canvas, Blue Ocean/ERRC, diffusion/disruptive innovation). The rail is now Home | the ten subjects with icons | Calculator pinned at the foot; the **Case, Catalogue, Assistant and Status rail items are removed**, while their panels stay reachable where they belong (stored cases from Home/subject pages, the catalogue from a subject page, the assistant from the floating chat button, status from the health pill). Clicking a subject opens its **capability tiles** in the centre - each tile is one click into a frozen method or worksheet, with a plain description, the preset/typed-input footer and a kind icon - followed by stored cases and the catalogue-only table. Home chat is reconciled rather than duplicated: the objective box remains the free-form path, the copy states the two ways in, and the same subject cards sit below it. Guards extended: rail order, unique icon keys, icon round-trip through detail, and Entrepreneurship's tools/worksheet/canvases (2 new tests, 750 total). No frozen module, fixture, route contract or business number changed; the Calculator remains a launcher that computes nothing.
+- 0.65 (2026-10-26): subject-first product increment (DISCUSSION_NOTEBOOK section G, Increment 1, plus section N's Calculator). New `src/bp/product/subjects.py`: a committed, testable index of 9 business subjects (Accounting, Finance, Economics, Management & strategy, Operations, Supply chain, Marketing, People, Research & statistics) mapping each to the frozen presets/methods/templates it can actually launch, and to the registry records it can only read or structure; 3 existing T4 worksheets (STR-01, STR-07, STR-18) are offered as structure-only; no worksheet is invented. New additive routes `GET /api/cases/subjects`, `GET /api/cases/subjects/{id}`, `GET /api/cases/calculator` and `GET /api/cases?subject=<id>` (stored bundles filtered by the subject's recorded methods). The Calculator is a **launcher only**: seven business-function groups over the same compute tools, no client-side formula, no product-layer arithmetic, no new arithmetic path; free-form arithmetic is explicitly out of scope. The served UI now has the seven-item rail Home | Subjects | Calculator | Case | Catalogue | Assistant | Status, a case shelf with stored cases and subject cards on Home, subject pages with tools/worksheets/catalogue-only rows/stored cases, a searchable Calculator, the "Draft work plan" destination replaced by a one-button tool screen ("Apply figures and calculate" does the same create-then-confirm calls), the hero sub-line no longer "To be supplied", and `framework_suggestions` now rendered as informational rows. `scripts/generate_subjects.py` regenerates the committed registry slice; `tests/test_product_subjects.py` (14 tests) is the drift guard between the catalogue, the frozen fixture and the registry. 15 new tests (748 total). **Deliberately not implemented:** C1 multi-run `bp-case/2`, the Accounting/Finance workbenches and the remaining subject workbenches (Increments 2-4); the UI says a run is saved as a one-run case today. No frozen module, fixture or existing test was edited.
+- 0.64 (2026-10-21): website UI brief (owner instruction) - new `docs/UI_BRIEF.md` records the UI phase: A1.jpg as layout inspiration only; the owner's logo becomes the site logo; keep the left icon rail (colored icons for the real features), the centered hero/action box, the quick-action chips and the floating circular chat button restyled to the brand; delete the top-right API/Enterprise/Pricing/Login/Sign-up items and the entire "Trusted by 11 million" + university block; UI sans-serif (system stack) while generated document text is Times New Roman; and the hard boundary (display API values verbatim, no client-side computation, no invented content, no new routes, no test edits). The brief requires **plan mode first**: the design owner replies with the information architecture, screen map, wireframes, design tokens, component inventory, phased plan, test-impact statement and clarifying questions, and waits for approval before coding.
+- 0.63 (2026-10-21): product slice 2c (B-089) - deliverable graphics and spreadsheets, rendered by code from stored values only. New `src/bp/product/charts.py`: deterministic SVG charts (bar, line, stacked bar, waterfall, pie, sparkline, table) from a declarative `bp-chart/1` spec; every series names a stored artifact, missing/non-numeric artifacts are refused, spec text fields may not contain digits (so the chart cannot print a number that is not stored), and geometry scaling never changes the stored strings. New `src/bp/product/spreadsheets.py`: CSV and SpreadsheetML 2003 workbook (Case/Artifacts/Report sheets, every cell a string so `50.00` never becomes `50.0`). New `src/bp/product/diagrams.py`: structure-only SVG diagram templates (process, 2x2 matrix, pyramid, funnel, tree) from owner-supplied labels, also digit-free. HTML export embeds charts and diagrams; routes `POST /api/cases/{id}/render` (chart or diagram SVG) and `POST /api/cases/{id}/export` (csv / spreadsheetml / html). 18 new tests (733 total). No model is invoked anywhere in the rendering path.
+- 0.62 (2026-10-21): product slice 2b (B-088) - operational surface and the local launcher. New `src/bp/product/ops.py`: health report (case-store counts, state/log paths, checks), a request log recorded as JSONL with method/query-free path/status/duration only (never a body, title, input or report; off by default, enabled with `BP_REQUEST_LOG`), backup/restore of the case store's JSON documents (manifest + SHA-256; zip-slip/non-JSON refusal; restore refuses to overwrite unless asked) and backup listing. Additive core instrumentation in `server.py`: timing hook feeding the request log, `GET /api/health`, and startup lines for URL/health/log; no existing route, output or claim changed. New `scripts/serve.py` launcher (`--port`, `--host`, `--no-sandbox`, `--check`) is the single local run path. Product routes `POST /api/cases/backup`, `POST /api/cases/restore`, `GET /api/cases/backups`. 12 new tests (714 total).
+- 0.61 (2026-10-21): product slice 2a (B-086) - case versions, multi-period comparison and reviewer sign-off, implemented by the computation owner (owner instruction: do the delegated work directly). `versions.py`: immutable version chain per case (`<id>/vNNN.json`), canonical bundle hash, a legacy flat case adopted as version 1, corrupt or tampered versions refused. `compare.py`: Option-A comparison over stored versions - same-method rule, rows aligned by metric, stored values verbatim, missing metrics reported as "not computed", recorded differences listed, a disclosure naming every version's hashes, stdlib HTML rendering. `signoff.py`: append-only sign-off records with the owner-approved Option-A wording, the signed per-version hashes and a tamper-evident integrity check. Routes: `GET/POST /api/cases/{id}/versions`, `GET /api/cases/{id}/versions/{n}`, `GET /api/cases/{id}/compare`, `POST/GET /api/cases/{id}/signoff`, reachable through the existing server delegation. 22 new tests (702 total).
+- 0.60 (2026-10-21): product slice 1 reviewed, wired in, two defects fixed (B-085) - the product case routes are now served by the frozen server through an additive extension (`GET/POST /api/cases`, `GET/DELETE /api/cases/{id}` delegating to `bp.product.api.handle`; the frozen route fixture is unchanged); a tautological product boundary check was replaced with a real one (returned/exported numbers compared with the bundle actually written to the store); the four docs the slice rewrote with cp1252 mojibake were repaired to proper UTF-8; and `catalogue_import` now hashes the catalogue over LF-normalised bytes with the shipped registry regenerated, fixing a pre-existing failure in fresh worktrees (git autocrlf). New `tests/test_product_server.py` (3 HTTP tests) and an EOL-insensitivity registry test; 4 new tests (680 total).
+- 0.59 (2026-10-21): product slice 1 (B-080) - new `src/bp/product/**`, the first product-layer increment over the frozen core (B-079): a **local durable case store** (`src/bp/product/cases.py`) that keeps one JSON bundle per case under `BP_CASES_DIR` (default `cases/`), writes atomically (temp file + rename), refuses ids that are not 12 lowercase hex characters, refuses path traversal, and refuses to load a corrupt bundle with a clear message; an **additive route dispatch** (`src/bp/product/api.py`) for `GET /api/cases`, `POST /api/cases`, `GET /api/cases/{id}` and `DELETE /api/cases/{id}` (pure dispatch, no server edit - the computation owner wires it into `src/bp/server.py` after review); and a **self-contained HTML export** (`src/bp/product/export.py`, standard library only) of a stored bundle with the delivered report text and the artifact table copied exactly. The bundle is opaque: the product layer stores, lists, copies and renders what was recorded, imports nothing from the frozen core, and computes no business number. 51 new tests (676 total).
+- 0.58 (2026-10-21): Phase-0 follow-ups resolved (B-084) - owner chose **Option A** for the reviewer sign-off wording (the signature records that a named person reviewed the bundle and its disclosed limitations; it asserts neither the inputs nor the analysis; exact text in the plan) and **Option A** for multi-period comparatives / case versioning (product-layer, **no unfreeze**: one frozen session per period, immutable case versions, side-by-side comparison of stored bundles under declared comparability rules, missing periods shown as not computed, no arithmetic in the product layer). Both move into the delegated Phase 2 slice; Phase 3 now holds only PDF/OCR ingestion plus any core-lane export. The workspace-root `A1.jpg` is recorded as the owner's website reference for the UI phase (outside the repo, not committed) and the logo images are left alone. Docs only; 625 tests.
+- 0.57 (2026-10-21): Phase-0 answers and the multi-period proposal (B-083) - owner accepted **D1** (local single-user v1, improve after it works) and **D2** (cases kept until deleted, no outbound transfer, model assistance off by default), **deferred D3** (AI-use disclosure is out of slice 1 and returns as its own decided slice), and left **D4** (sign-off semantics) open with an explanation. Slice 1 is therefore reduced to the local case store, the additive route dispatch and a stdlib HTML export of the delivered report verbatim (no disclosure, no third-party dependency). New `docs/proposals/MULTI_PERIOD_VERSIONING.md` splits multi-period comparatives / case versioning into **Option A** (product layer, no unfreeze, recommended first) and **Option B** (core multi-period delivery, needs an unfreeze), with comparability rules, acceptance criteria and the owner questions. Docs only; 625 tests.
+- 0.56 (2026-10-21): REW manual inventory refresh (v0.4) and decision-register hygiene - `docs/RESEARCH_EVIDENCE_WORKFLOW.md` §13 now matches the code: durable append-only retrieval log + `reverify` (B-058), failover with recorded attempts and the drift sweep (B-064), the full verified-method library and applied methods, CSV/TSV + XLSX ingestion with sheet selection and merged-cell policy (B-065/B-071/B-076), citation formatting (B-059), and the AI-use disclosure export as a planned B-081 item. Also fixes the two register gaps reported in the decision briefs: the duplicate B-031 row is marked SUPERSEDED and the R1-R10 ratification now has the open decision row B-082 (appendix B items 1 and 7; items 2-4 were the inventory refresh itself). No behaviour change; 625 tests.
+- 0.55 (2026-10-21): product-backend plan and delegation boundary (B-081) - new `docs/PRODUCT_BACKEND_PLAN.md`: the post-freeze sequence (owner decisions, slice 1 case store/disclosure/Office export delegated to the design owner, slice 2 sign-off/ops/packaging, then computation-owner unfreeze requests, owner-gated tracks, and the UI last), with slice-1-safe defaults for the four owner questions and the exact file-level permissions that let both owners work in parallel without touching a number or claim. `BACKEND_CONTRACT.md` §4/§6 amended with the product package/test location and planned surface. No code or tests changed (625 total).
+- 0.54 (2026-10-21): decision briefs draft (MiniMax-authored, reviewed) - new `docs/proposals/DECISION_BRIEFS.md`: five briefs (B-005, B-028, B-032, B-052, REW R1-R10) with "what it blocks today" citations, state of the code, options and costs, one clearly labelled MiniMax recommendation each, an OPEN-item appendix and an appendix of contradictions found between repository documents. Reviewed by the computation owner at build 0.53: 55 cited `path:line` claims spot-verified (all cited content found; line numbers are noted as of the drafting base `c06c61f`), contradictions re-checked (#8 fixed in 0.53, stale REW inventory queued), A12 resolved. Draft status retained; it changes no decision and no test (625 total).
+- 0.53 (2026-10-21): docs-state sync guard (MiniMax-authored, reviewed) - new `tests/test_docs_sync.py` (7 tests) makes documentation drift fail the suite: documented test count vs the loaded suite, HOME/HANDOFF build vs the newest changelog entry, mentioned decision ids vs DECISIONS rows, README method list vs `LIBRARY`, every `docs/*.md` covered by the HOME documentation spine, the parked queue linked from both entry points, plus a non-tautology proof. The guard immediately found a real gap (SOURCE_INVENTORY.md had no spine row), which is now fixed. Also updated counts/version (625 tests).
+- 0.52 (2026-10-21): freeze and ownership (B-079, B-080) - the core deterministic backend is **FROZEN**, guarded by `tests/test_frozen_contract.py` + `tests/fixtures/frozen_contract.json` (36 method contracts, 38 presets, 12 API route families); new `docs/BACKEND_CONTRACT.md` states what is frozen, the unfreeze policy and the inventory; the owner delegated the **product backend** to the design owner (B-080) on additive-only terms over the frozen core. 3 new tests (618 total).
+- 0.51 (2026-10-21): valuation completion (B-078) - new T2 `equity_bridge` (enterprise value -> equity value by subtracting declared net debt, minority interest and preferred equity, with an optional per-share value; negative bridge components refused, a negative equity value reported as a real outcome) and a declared mid-year timing convention in `dcf_valuation` (`timing: end|mid`; mid discounts flows and the terminal value at t-0.5 / n-0.5, default `end` leaves every existing number and bundle unchanged). Presets `dcfmid`/`equitybridge`; 6 new tests (615 total).
+- 0.50 (2026-10-21): capital-budgeting completion (B-077) - new T1 `irr` (internal rate of return: the unique root of the NPV function, found numerically in -99.99% to 1000%; a cash flow with no sign change has no IRR, and one with several sign changes is refused rather than given one of several roots) and T1 `discounted_payback` (periods for the discounted cash flows to recover a declared initial outlay, interpolated within the recovering period; an outlay never recovered blocks). Both use the same t=0 timing convention as `npv`, have five frozen checks and declared-unit templates; presets `irr`/`dpayback`; 11 new tests (609 total).
+- 0.49 (2026-10-21): XLSX hardening (B-076) - sheet selection by exact name or 1-based number (default still the first sheet, unknown sheets refused with the available names, `sheets`/`sheet_index` reported on the table), and a declared merged-cell policy: merged ranges are refused by default, `merged="top_left"` expands each anchor value across its range and records the expansion on the table and in the provenance note; overlapping/nested merges are refused as malformed. API `sheet`/`merged` fields and CLI `--sheet`/`--merged`; 10 new tests (598 total).
+- 0.48 (2026-10-21): statistics completion (B-074) - new T1 `logistic_regression` (Newton-Raphson IRLS, no regularisation, convergence/separation blocks, Wald inference, odds ratios, McFadden pseudo R-squared; statsmodels goldens) and new T1 `reliability_alpha` (Cronbach's alpha with listwise deletion and the classic formula; five frozen checks). Presets `logit`/`alpha`; 9 new tests (588 total).
+- 0.47 (2026-10-21): appraisal methods (B-073) — new T2 `cost_benefit` (discounted costs/benefits, NPV, benefit-cost ratio), `cost_effectiveness` (ICER against the first-listed comparator with dominance flags) and `sroi` (present value of declared benefits over the investment); five frozen checks each, declared-input arithmetic only, no monetisation or threshold invented. Presets `cba`/`cea`/`sroi`; 11 new tests (579 total).
+- 0.46 (2026-10-21): ingestion mapping and two finance methods (B-071, B-072) — `ingest.to_method_inputs` maps table columns into a method's inputs with validation and a source-hash provenance note, exposed as `map` on `POST /api/ingest`; new T1 `unit_economics` (margin, payback, optional period-value LTV and LTV/CAC) and T1 `multi_product_breakeven` (mix-weighted contribution, break-even units/revenue and per-product units), each with five frozen checks. Presets `unitecon`/`multibreakeven`; 11 new tests (568 total).
+- 0.45 (2026-10-21): statistics completion (B-070) — new T1 `two_way_anova` (balanced two-way factorial ANOVA: main effects, interaction, SS/MS/F/df, partial eta-squared; unbalanced designs and empty cells refused; five frozen checks) and new T1 `posthoc_pairwise` (Welch t-test on every pair of groups with a declared Holm/Bonferroni/none correction, raw and adjusted p-values; five frozen checks). numpy/scipy goldens offline; presets `factorial`/`posthoc`; 12 new tests (557 total).
+- 0.44 (2026-10-21): multi-currency first slice (B-069) — declared ISO 4217 registry (`src/bp/currency.py`, 160+ codes with per-currency minor units: JPY 0, KWD 3, CLF 4, USD/EUR/CNY 2), currency validation at intake, per-currency money precision (artefacts and management-accounts `places` default from the currency), new T1 `currency_convert` at a declared rate with recorded provenance/source/date and five frozen checks (second route, reciprocal round trip, zero, sign symmetry, linearity), and `GET /api/currencies`. No FX rate is retrieved or verified; single-currency engagements only, no consolidation/translation. 14 new tests (545 total).
+- 0.43 (2026-10-21): valuation methods (B-068) — new T1 `wacc` (weighted average cost of capital from declared market values and declared costs of equity and after-tax debt; no tax computed; five frozen checks) and new T2 `dcf_valuation` (declared end-of-period free cash flows, optional Gordon-growth terminal value, explicit/terminal PV, enterprise value and terminal share; five frozen checks; growth-above-rate and empty-forecast refusals). Presets `wacc`/`dcf`; 11 new tests (531 total).
+- 0.42 (2026-10-21): inference completion, first pair (B-067) — new T1 methods `paired_t` (within-pair differences, CI, Cohen's dz, missing pairs dropped and counted) and `one_sample_t` (one mean against a declared reference). Five frozen checks each, scipy-generated goldens, presets `paired`/`onesample`, sandbox and session coverage. 10 new tests (520 total).
+- 0.41 (2026-10-21, docs only): model-ownership split (B-066) — computation is exclusively the computation owner's (DeepSeek) domain (`src/bp/**`, `tests/**`, factual docs, every number/rule/citation/claim/verification logic) and design/aesthetics exclusively the design owner's (MiniMax) domain (`web/**` presentation); boundary rules, cross-domain commit order and escalation recorded in `docs/CONTRIBUTORS.md` §1A and `docs/HANDOFF.md` §2.9. No code changed.
+- 0.40 (2026-10-21): ingestion, first slice (B-065) — new `src/bp/ingest.py` reads CSV/TSV (sniffed delimiter; UTF-8/CP1252/Latin-1) and XLSX (first sheet, zip+XML with no third-party library) into a typed table: column names, inferred `number`/`date`/`text`/`mixed` types, present/missing counts, rows, and a provenance pointer (file, SHA-256, data row i and column j, sheet) with "nothing is imputed or retyped". Declared conventions: header must be non-empty and unique, mixed columns are labelled not coerced, formula cells use cached values, XLSX dates use the workbook date system, and 5 MB / 1000 rows / 50 columns caps are refused rather than truncated. **PDF, scans and SPSS .sav are refused with explicit messages** (no OCR or PDF text extraction). API `POST /api/ingest`, workbench ingestion card, CLI `python -m bp.ingest`. 14 new tests (510 total).
+- 0.39 (2026-10-21): retrieval layer, third slice (B-064) — **source priority and failover**: Crossref first, OpenAlex second (`default_sources()`), API default source `auto`; every attempt recorded in the retrieval log (`resolved` / `not_found` / `error`), and if every source errors the call fails closed rather than inventing "unverified". **Drift sweep**: `drift_check` re-verifies recent logged retrievals (`hash_match` / `hash_differs` / `unresolvable_now` / `unreachable`), never rewrites the log, exposed as `GET /api/literature/drift?limit=`, workbench "Check drift" and `python -m bp.literature drift`; changed citations are flagged for human re-check. 12 new tests (496 total). Standards/filings/tax source families still need a source decision.
+- 0.38 (2026-10-21): 9B.3 upgrade, fourth item (B-063) — new T1 method `weighted_summary`: weighted mean, weighted standard deviation, total weight, effective sample size and design effect under declared weights, with an overridable weight kind (`reliability` unbiased weighted variance default, or `frequency`). One positive weight per value including missing entries; zero/negative/mismatched/blank weights refused. **No inference** is provided (no standard error, interval or test) because that needs a declared complex design; the honesty layer states this for the method. Five frozen checks (float second route, unit weights reproduce the ordinary summary, mean invariant to weight scaling, heavier weight on larger values raises the mean, design effect 1 for equal weights). New preset `weighted`; 9 new tests (484 total). This closes the 9B.3 row except imputation and complex-design inference.
+- 0.37 (2026-10-21): 9B.3 upgrade, third item (B-062) — new T1 method `missing_data_bounds`: reports the share missing and bounds the complete-data **mean** by the extreme-case convention (every missing value at the observed min or max), with observed mean, range and bound width; the missing-data mechanism (`unknown`/`mcar`/`mar`/`mnar`) is declared by the owner and recorded as unverified, changing no bound. Five frozen checks (bounds bracket the mean, extreme cases recomputed independently, bounds never narrow with more missing, share is missing/total, zero width with no missing values). No imputation or probabilistic missing-data model. The generic honesty layer no longer adds its contradictory listwise notice to this method. New preset `missing`; 10 new tests (475 total). Survey weights are the last 9B.3 item.
+- 0.36 (2026-10-21): 9B.3 upgrade, second item (B-061) — new T1 method `power_analysis`: power for a stated effect and the minimum effect reaching a declared target power, for two-sample or one-sample mean comparisons under the normal approximation, with standard error, non-centrality and z critical value; one-sample designs refuse `n2`/`sd2`. Five frozen checks (erfc-based independent second route, zero effect gives power = alpha, power rises with effect and sample size, minimum effect falls with sample size); the approximation is declared in the template, caveats and appendix. New workbench preset `power`. 8 new tests (465 total). Missing-data mechanism modelling and survey weights remain open.
+- 0.35 (2026-10-21): 9B.3 upgrade, first item (B-060) — new T1 method `multiple_comparison`: Holm step-down or Bonferroni correction over a declared family of raw p-values, with `p_adj_1..k`, `n_tests`, `n_rejected` at the declared alpha and an appendix carrying the raw and adjusted values plus the correction's definition. Five frozen checks (adjusted â‰¥ raw, bounded, matches the declared definition, independent second route to 1e-12, order-invariant); invalid p-values, alpha outside (0,1) and unknown methods are refused at intake. New `enum` input type; honesty layer now says a correction is available; new workbench preset `multicomp`. 10 new tests (457 total). Power/MDE, missing-data modelling and survey weights remain open.
+- 0.34 (2026-10-21): citations upgraded to the **ratified styles** (B-059) — APA 7 and Harvard (Cite Them Right) replace the provisional layout. Sources now map structured family/given names, volume, issue, pages, publisher and source type (Crossref: all; OpenAlex: bibliographic fields and a type mapping, display names only). APA and Harvard layouts for journal articles, books, and a declared generic layout for other types; unverified references stay prefixed `[unverified user-supplied…]` in every style; rendering limits (no italics in plain text, no title case conversion, names inverted only when the source supplies them) are declared in each citation's notice. API: `cite` accepts `apa`/`harvard`, sources endpoint exposes both notices, reference payload carries the new bibliographic fields; workbench gains a style selector and "Get citation" button. 5 new tests (447 total).
+- 0.33 (2026-10-21): retrieval layer, second slice (B-058) — **durable retrieval log**: every retrieval that reaches a source is appended to a newline-delimited JSON log (source, DOI, supplied/resolved title, status, authors, year, container, UTC time, response SHA-256), flushed to disk before the reference is returned so an unwritable log fails closed; `read_log` refuses a corrupt log; `reverify` re-checks a logged entry (`hash_match` / `hash_differs` / `unresolvable_now`). **Provisional citation layout**: one declared author-date format with an explicit PROVISIONAL notice (no institutional style ratified, REW Q9); unverified references are prefixed and never formatted as checked. API `cite` parameter, `GET /api/literature/log`, workbench citation display and retrieval-log panel; `BP_RETRIEVAL_LOG` configures the path, empty disables. `.gitignore` keeps the runtime log out of git. Live smoke: real Crossref retrieval logged with sha256 and reverified as `hash_match`. 17 new tests. 442 tests.
+- 0.32 (2026-10-21): 9B.3 honesty layer (B-057) — every delivered computation now carries a machine-readable `honesty` block in the appendix and plain sentences in the report disclosing what was NOT done: missing values are excluded listwise with no established mechanism (MCAR/MAR/MNAR), multiple hypotheses are not corrected (with the family-wise exposure named for OLS coefficients, and "no post-hoc comparisons" for omnibus tests), no power/MDE is reported (read precision from the interval), and survey weights/clustering/repeated measures are unsupported (observations treated as independent). Inputs naming an unsupported structure (`weights`, `strata`, `cluster(s)`, `repeated`, `id`, `time`, `pair(s)`) are now refused with a specific reason instead of a generic unknown-input error. No number changes — disclosure and refusal only. 10 new tests. 425 tests. The underlying statistical upgrades (Holm/Bonferroni, power, missing-data modelling, survey weights) remain unimplemented and are recorded as open.
+- 0.31 (2026-10-21): ratio analysis — the safe half of Slice 1 (B-056): new T1 method `ratio_analysis` computes 15 declared ratios (liquidity, profitability, solvency, efficiency) in Decimal from statement figures the owner supplies; each ratio's definition, inputs and unit are reported, a ratio with a missing figure or zero denominator is listed as not computed with its reason, a negative denominator is computed and flagged, and the balance-sheet identity is checked when assets, liabilities and equity are supplied. Independent second route in exact rational arithmetic (`fractions.Fraction`) plus six frozen checks (every ratio computed or explained, non-zero denominators, negative bases flagged, second route agrees, balance-sheet identity, figures parsed exactly as supplied). Golden fixture generated by an independent Fraction re-implementation; 15 new tests; workbench preset `ratios`; sandbox parity and the full pipeline delivery flow exercised. 415 tests.
+- 0.30 (2026-10-21, docs only): documentation spine (B-055) — `docs/CONTRIBUTORS.md` (ten non-negotiables, the add-a-method checklist, bug-fix rules, boundary-change rules, the testing contract, environment traps, where each fact lives, rejected changes, stop-and-ask list), `docs/HOME.md` (curated map: read-in-30-seconds, by task, by module, by capability, documentation spine, plain Markdown links) and `docs/WORKLOG.md` (append-only, newest-first increment log with a backfill pointer to CHANGELOG for the pre-log increments). README points at all three. No code changed.
+- 0.29 (2026-10-21): REW first code increment — retrieval audit (B-054, manual §9/Q10): `CrossrefSource`/`OpenAlexSource` now hash the exact response bytes (SHA-256) and stamp a UTC retrieval time, both carried on `Reference`, through `/api/literature/verify` and shown in the workbench References panel; a reference that never reached a source carries neither. Five new tests (byte-level hash pin vs parsed record, injected clock, audit survives a title mismatch, no audit without retrieval, OpenAlex parity) plus API/UI assertions; live smoke test against Crossref recorded a real sha256. 400 tests.
+- 0.28 (2026-10-21, docs only): owner ratified **R11** — the REW living manual (docs/RESEARCH_EVIDENCE_WORKFLOW.md) is the working authority for the research workflow and B-035 is closed; B-053 moves to RESOLVED. Manual bumped to v0.2 spelling out what R11 does and does not ratify (the document, not R1–R10); R1–R10 stay proposals. Decisions, limitations and gap map updated. No code changed.
+- 0.27 (2026-10-21, docs only): living manual for the research workflow, renamed **Research & Evidence Workflow (REW)** from Build Charter "Stage 7" (docs/RESEARCH_EVIDENCE_WORKFLOW.md, B-053): proposed stages R0–R8 with three mandatory checkpoints, feasibility tiers, study-type taxonomy, retrieval/citation rules, claim rules, synthetic-data and AI-use policy, an honest inventory of what exists, ratification register R1–R11 and preserved open questions Q1–Q12. Every non-established section is tagged PROPOSAL/2ND/OPEN, so nothing is presented as recovered from the missing manuals. The two Stage 7 docs are merged into it and removed; references updated across README, decisions, limitations, gap map and the literature module docstring. No code changed.
+- 0.26 (2026-10-21, docs only): product gap map (docs/PRODUCT_GAP_MAP.md) — a prioritized backlog of what the catalogue and manual call for vs what is built, with tier/verification notes per candidate; taxation recorded as deferred (B-052).
+- 0.25 (2026-10-21): Stage 8 eighth increment — accountant-facing statement exports (src/bp/report.py): deterministic plain-text trial balance (zero-net rows omitted), income statement from pre-closing figures, balance sheet per account with contra accounts parenthesised, cash flow statement with line detail and opening/closing cash, reconciliation statement and notes (framework, basis, declared policy changes). Attached to the engagement appendix and downloadable from the workbench; the cash-flow statement now carries its line detail. 395 tests.
+- 0.24 (2026-10-21): Stage 8 seventh increment — the policy-change input that closes the spike's last unknown: the engagement spec accepts declared `policy_changes` (useful-life revision, residual-value revision, or disclosure-only), applied PROSPECTIVELY by the depreciation schedule from the change period (earlier periods keep the old amount; the remaining carrying amount is spread over the revised remaining life; totals stay exact) and disclosed in the appendix. Retrospective restatement is rejected; an undeclared change remains undetectable from the journal alone and is documented. 387 tests.
+- 0.23 (2026-10-21): Stage 8 sixth increment — the manual's second mandatory checkpoint: `management_accounts` now pauses after the spec is frozen for the owner to confirm the **account mapping** (code, name, type, statement line, role, activity, contra plus three mapping checks: every account maps to a statement line, at least one cash account, exactly one retained-earnings account). New `Pause` contract: start â†’ confirm â†’ `awaiting_mapping_confirmation` â†’ confirm â†’ delivery; rejecting blocks with nothing posted. The workbench shows the mapping table and a second confirm button; `Pipeline.run` documents that it confirms both checkpoints. 378 tests.
+- 0.22 (2026-10-21): Stage 8 fifth increment — reconciliation engine (src/bp/reconcile.py): compares an external statement (for example a bank statement) with the ledger balance of one account, classifies every movement (matched / in transit / unrecorded) with a declared amount-match heuristic, flags ambiguous matches and out-of-period lines, and checks that the statement is internally consistent and the openings agree. The engagement spec accepts an optional `reconciliation` block; two frozen checks are added and report "not applicable" (counted in `checks_na`) when none is supplied. 371 tests.
+- 0.21 (2026-10-21): Stage 8 fourth increment — declarative layer (src/bp/accounts.py: a JSON engagement spec — period, currency, framework, places, chart, prior_closing, opening, entries, schedules — validated and run through the ledger kernel with closing and every check) wired into the pipeline as the T2 method `management_accounts`: nine frozen checks, structured statements/cash-flow/flags/export attached to the appendix through a new `_appendix`/`_checks` method contract, sandbox parity, workbench preset. 362 tests.
+- 0.20 (2026-10-21): Stage 8 third increment — period-end closing (income, expenses and dividends close into retained earnings; abnormal balances block for a human decision), the retained-earnings rollforward check (B-034 resolved) and multi-period chaining via closing_balances/opening_lines with the existing opening-balances invariant. Closing entries carry a flag inside the hash chain; statements omit zero-net accounts. 351 tests.
+- 0.19 (2026-10-21): Stage 8 second increment — cash flow statement computed by two routes (ledger.cash_flow): the direct route classifies each entry's cash delta by counterpart activity (explicit account tags or declared type defaults; mixed entries flagged operating-first, cash-to-cash flagged) and the indirect route derives the same total from net income and balance-sheet changes; the two must agree. New Account fields: role "cash", activity tag. 343 tests.
+- 0.18 (2026-10-21): Stage 8 first increment — schedule engines (src/bp/schedules.py): straight-line depreciation (final period absorbs the rounding remainder), loan amortization (half-even interest, a payment never exceeds the balance due, level annuity rounded up) and straight accruals. Generated lines post into the ledger kernel and pass every invariant; 333 tests.
+- 0.17 (2026-10-21): linear-trend forecasting (`trend_forecast`): prediction intervals and a disclosed out-of-sample holdout check (mean absolute error + interval coverage on the last m periods), claim ceiling "predictive", scipy golden fixtures, two independent fit/interval routes. 320 tests.
+- 0.16 (2026-10-21): one-way ANOVA (F test, eta-squared; per-group normality and Levene homogeneity screens with a pre-declared Kruskal-Wallis fallback), Kruskal-Wallis (tie-corrected H, epsilon-squared) and chi-square test of independence (Cramer's V; minimum-expected-count screen blocks fail-closed). Golden fixtures from scipy 1.18.1; two independent chi-square survival routes (incomplete gamma vs exact integer-df closed form). 307 tests.
+- 0.15 (2026-10-21): literature source wired into the API (GET /api/literature/sources, POST /api/literature/verify, call cap) and the workbench UI (References panel); live smoke test against Crossref/OpenAlex passed for one DOI.
+- 0.14 (2026-10-21): B-038 resolved (personal data only with explicit acknowledgment; owner accepts provider terms); held-out evaluation scaffold (src/bp/evaluate.py, tests/fixtures/eval_cases.json) with fact P/R/F1 scoring per B-039.
+- 0.13 (2026-10-21): provider decision B-036 resolved (DeepSeek for computation); OpenAI-compatible Chat Completions adapter (OpenAI/DeepSeek/local endpoints, BP_LLM_BASE_URL override); Stage 7 literature-source boundary first slice (Crossref/OpenAlex, verify_reference) per B-040.
+- 0.12 (2026-10-21): model-provider boundary (llm.py), validated assistance tasks (assist.py), /api/assist endpoints, workbench Assistant panel, run hashes in spec and appendix. Off unless configured.
+- 0.11 (2026-10-21): Stage 8 ledger-engine spike (custom kernel arm, 12 trap cases, invariants, 22 tests); Stage 7 blocker document.
+- 0.10 (2026-10-21): business-case slice `case_decision` (T2): alternatives compared by NPV with crossover rates across a user range, preference only under a user decision rule; template machinery generalized (artifacts, text references, tier, sensitivity).
+- 0.9 (2026-10-21): SWOT (with STR-18 audit) and Five Forces templates (tier T4, user evidence only, verified, sandboxed, re-performable); registry template links; /api/templates; control-character filter fix.
+- 0.8 (2026-10-21): Stage 6 registry (140 records from catalogue v0.2), importer, method links, contextual recommendations with explanations, user selection frozen into the spec, framework-only (T4) delivery, /api/frameworks, workbench framework section.
+- 0.7 (2026-10-21): guarded-subprocess sandbox, fail-closed; environment fingerprint with source hash; re-performance bundle and CLI; workbench bundle download; sandbox default ON in the server.
+- 0.6 (2026-10-21): Welch t-test and Mann-Whitney fallback (Hodges-Lehmann interval by test inversion); column_map min/max columns; typing hook for request units; df-bound tolerance fix.
+- 0.5 (2026-10-20): OLS and OLS-robust (HC3) regression; four pre-declared diagnostics; fail-closed blocking messages; Frisch-Waugh cross-check; minus sign for non-currency negatives.
+- 0.4 (2026-10-20): Pearson and Spearman correlation; pre-declared assumption screen with fallback as logged amendment; spec fallbacks; DataError blocking with reasons; scipy-generated offline golden fixtures.
+- 0.3 (2026-10-20, Stage 5 increment): method contract and discovery; schema validation; multi-output methods; descriptive statistics with golden, metamorphic, trap tests; spec and artifact fields aligned to v0.3 Appendix A and B; sources added under docs/sources.
+- 0.2: Stage 1-2 workbench shell, checkpoint pause/resume, stage states, Work Plan.
+- 0.1: Stage 0 audit and foundation slice.

@@ -114,6 +114,22 @@ class BalanceSheetResult:
     lines: List[Dict[str, Any]]  # rendered lines for presentation
 
 
+@dataclass
+class EPSResult:
+    """Computed EPS result."""
+    profit_from_continuing_operations: Decimal
+    loss_from_discontinued_operations: Decimal
+    profit_for_the_year: Decimal
+    preference_dividends: Decimal
+    numerator_basic: Decimal
+    weighted_average_shares: Decimal
+    basic_eps: Decimal
+    numerator_diluted: Decimal
+    diluted_shares: Decimal
+    diluted_eps: Decimal
+    lines: List[Dict[str, Any]]  # rendered lines for presentation
+
+
 #: Detectors for multi-step income statement problems.
 INCOME_STATEMENT_DETECTORS = [
     (r"multi.step\s+income\s+statement", "multi_step"),
@@ -575,5 +591,263 @@ def render_balance_sheet_analysis(result: BalanceSheetResult, period: str, curre
     out.append(f"Working Capital                                       {result.working_capital:>12,.2f}")
     out.append(f"Current Ratio                                         {result.current_ratio:>12,.2f}")
 
+    return "\n".join(out)
+
+
+# ============================================================================
+# EPS computation
+# ============================================================================
+
+#: Detectors for earnings-per-share problems.
+EPS_DETECTORS = [
+    (r"\bearnings per share\b", "eps"),
+    (r"\bbasic earnings per share\b", "eps"),
+    (r"\bdiluted earnings per share\b", "eps"),
+    (r"\bEPS\b", "eps"),
+    (r"\bbonus issue\b", "eps"),
+    (r"\bshare options?\b", "eps"),
+    (r"\bconvertible bonds?\b", "eps"),
+    (r"\bpreference dividends?\b", "eps"),
+    (r"\bprofit from continuing operations\b", "eps"),
+    (r"\bloss from discontinued operations\b", "eps"),
+]
+
+
+def detect_eps(text: str) -> bool:
+    """Return True if the problem reads as an earnings-per-share computation."""
+    low = text.lower()
+    for pattern, _ in EPS_DETECTORS:
+        if re.search(pattern, low, re.I):
+            return True
+    return False
+
+
+def parse_eps_problem(text: str) -> Tuple[List[AccountLine], Decimal]:
+    """Parse an EPS problem into account lines and tax rate.
+
+    EPS problems have specific language like:
+      "profit from continuing operations 1,000"
+      "loss from discontinued operations 200"
+      "preference dividends 50"
+      "ordinary shares opening 1,000"
+      "bonus issue 1-for-5 during the year"
+      "share options 100 with exercise price 5 and average market price 10"
+      "convertible bonds 500 at 6%, convertible into 100 ordinary shares"
+      "tax rate 25%"
+
+    Each figure is extracted with a targeted regex so no figure is guessed.
+    Returns (account_lines, tax_rate).
+    """
+    lines: List[AccountLine] = []
+    tax_rate = _extract_tax_rate(text)
+
+    # Profit from continuing operations
+    m = re.search(r"profit from continuing operations\s+([\d,]+(?:\.\d+)?)", text, re.I)
+    if m:
+        lines.append(AccountLine(
+            account="Profit from continuing operations",
+            amount=_money(m.group(1)), kind="revenue", line="Sales Revenue",
+        ))
+
+    # Loss from discontinued operations
+    m = re.search(r"loss from discontinued operations\s+([\d,]+(?:\.\d+)?)", text, re.I)
+    if m:
+        lines.append(AccountLine(
+            account="Loss from discontinued operations",
+            amount=_money(m.group(1)), kind="contra_revenue",
+            line="Loss from Discontinued Operations",
+        ))
+
+    # Preference dividends
+    m = re.search(r"preference dividends?\s+([\d,]+(?:\.\d+)?)", text, re.I)
+    if m:
+        lines.append(AccountLine(
+            account="Preference dividends",
+            amount=_money(m.group(1)), kind="contra_revenue",
+            line="Preference dividends",
+        ))
+
+    # Ordinary shares opening
+    m = re.search(r"ordinary shares opening\s+([\d,]+(?:\.\d+)?)", text, re.I)
+    if m:
+        lines.append(AccountLine(
+            account="Ordinary shares opening",
+            amount=_money(m.group(1)), kind="equity", line="Share Capital",
+        ))
+
+    # Bonus issue ratio: "bonus issue 1-for-5" means 1 new share for every 5 held
+    m = re.search(r"bonus issue\s+(\d+)\s*-?\s*for\s*-?\s*(\d+)", text, re.I)
+    if m:
+        lines.append(AccountLine(
+            account="Bonus issue ratio",
+            amount=Decimal(m.group(1)) / Decimal(m.group(2)),
+            kind="equity", line="Bonus Issue Ratio",
+        ))
+
+    # Share options: "share options 100 with exercise price $5 and average market price $10"
+    m = re.search(
+        r"share options?\s+(\d+)\s+with exercise price\s+\$?([\d,]+(?:\.\d+)?)\s+and average market price\s+\$?([\d,]+(?:\.\d+)?)",
+        text, re.I)
+    if m:
+        lines.append(AccountLine(
+            account="Share options count",
+            amount=_money(m.group(1)), kind="operating_expense",
+            line="Share options count",
+        ))
+        lines.append(AccountLine(
+            account="Share options exercise price",
+            amount=_money(m.group(2)), kind="operating_expense",
+            line="Share options exercise price",
+        ))
+        lines.append(AccountLine(
+            account="Share options market price",
+            amount=_money(m.group(3)), kind="operating_expense",
+            line="Share options market price",
+        ))
+
+    # Convertible bonds: "convertible bonds 500 at 6%, convertible into 100 ordinary shares"
+    m = re.search(
+        r"convertible bonds?\s+([\d,]+(?:\.\d+)?)\s+at\s+([\d,]+(?:\.\d+)?)%\s*,?\s*convertible into\s+(\d+)\s+ordinary shares",
+        text, re.I)
+    if m:
+        lines.append(AccountLine(
+            account="Convertible bonds face value",
+            amount=_money(m.group(1)), kind="non_current_liability",
+            line="Convertible bonds face value",
+        ))
+        lines.append(AccountLine(
+            account="Convertible bonds rate",
+            amount=_money(m.group(2)), kind="non_current_liability",
+            line="Convertible bonds rate",
+        ))
+        lines.append(AccountLine(
+            account="Convertible bonds shares",
+            amount=_money(m.group(3)), kind="equity",
+            line="Convertible bonds shares",
+        ))
+
+    if not lines:
+        raise ValueError("no parseable account lines in the problem text")
+
+    return lines, tax_rate
+
+
+def compute_eps_problem(lines: List[AccountLine], tax_rate: Decimal) -> EPSResult:
+    """Compute basic and diluted EPS from parsed account lines."""
+    profit_from_continuing_operations = Decimal("0")
+    loss_from_discontinued_operations = Decimal("0")
+    preference_dividends = Decimal("0")
+    ordinary_shares_opening = Decimal("0")
+    bonus_ratio = Decimal("0")
+    options_count = Decimal("0")
+    options_exercise_price = Decimal("0")
+    options_market_price = Decimal("0")
+    convertible_face = Decimal("0")
+    convertible_rate = Decimal("0")
+    convertible_shares = Decimal("0")
+
+    for line in lines:
+        a = line.account.lower()
+        if "profit from continuing operations" in a and line.kind == "revenue":
+            profit_from_continuing_operations = line.amount
+        elif "loss from discontinued operations" in a and line.kind == "contra_revenue":
+            loss_from_discontinued_operations = line.amount
+        elif "preference dividends" in a:
+            preference_dividends = line.amount
+        elif "ordinary shares opening" in a:
+            ordinary_shares_opening = line.amount
+        elif "bonus issue ratio" in a:
+            bonus_ratio = line.amount
+        elif "share options count" in a:
+            options_count = line.amount
+        elif "share options exercise price" in a:
+            options_exercise_price = line.amount
+        elif "share options market price" in a:
+            options_market_price = line.amount
+        elif "convertible bonds face value" in a:
+            convertible_face = line.amount
+        elif "convertible bonds rate" in a:
+            convertible_rate = line.amount
+        elif "convertible bonds shares" in a:
+            convertible_shares = line.amount
+
+    # Basic EPS = (Profit for the year − Preference dividends) / Weighted average shares
+    profit_for_the_year = profit_from_continuing_operations - loss_from_discontinued_operations
+    numerator_basic = profit_for_the_year - preference_dividends
+    weighted_average_shares = ordinary_shares_opening * (Decimal("1") + bonus_ratio)
+    basic_eps = (numerator_basic / weighted_average_shares
+                 if weighted_average_shares > 0 else Decimal("0"))
+
+    # Diluted EPS
+    numerator_diluted = numerator_basic
+    diluted_shares = weighted_average_shares
+
+    # Share options: incremental shares (treasury stock method)
+    if options_count > 0 and options_market_price > options_exercise_price:
+        proceeds = options_count * options_exercise_price
+        shares_bought_back = proceeds / options_market_price
+        incremental_shares = options_count - shares_bought_back
+        diluted_shares += incremental_shares
+
+    # Convertible bonds: interest saved net of tax, added to numerator
+    if convertible_face > 0 and convertible_rate > 0:
+        interest_expense = convertible_face * convertible_rate / Decimal(100)
+        interest_after_tax = interest_expense * (Decimal("1") - tax_rate)
+        numerator_diluted += interest_after_tax
+        diluted_shares += convertible_shares
+
+    diluted_eps = (numerator_diluted / diluted_shares
+                   if diluted_shares > 0 else Decimal("0"))
+
+    rendered = [
+        {"label": "Profit from continuing operations", "kind": "revenue",
+         "amount": profit_from_continuing_operations, "indent": 0},
+        {"label": "Less: Loss from discontinued operations", "kind": "contra_revenue",
+         "amount": loss_from_discontinued_operations, "indent": 1},
+        {"label": "Profit for the year", "kind": "subtotal",
+         "amount": profit_for_the_year, "indent": 0},
+        {"label": "Less: Preference dividends", "kind": "contra_revenue",
+         "amount": preference_dividends, "indent": 1},
+        {"label": "Profit attributable to ordinary shareholders", "kind": "subtotal",
+         "amount": numerator_basic, "indent": 0},
+        {"label": "Weighted average number of ordinary shares", "kind": "line",
+         "amount": weighted_average_shares, "indent": 0},
+        {"label": "Basic earnings per share", "kind": "total",
+         "amount": basic_eps, "indent": 0},
+    ]
+
+    return EPSResult(
+        profit_from_continuing_operations=profit_from_continuing_operations,
+        loss_from_discontinued_operations=loss_from_discontinued_operations,
+        profit_for_the_year=profit_for_the_year,
+        preference_dividends=preference_dividends,
+        numerator_basic=numerator_basic,
+        weighted_average_shares=weighted_average_shares,
+        basic_eps=basic_eps,
+        numerator_diluted=numerator_diluted,
+        diluted_shares=diluted_shares,
+        diluted_eps=diluted_eps,
+        lines=rendered,
+    )
+
+
+def render_eps_problem(result: EPSResult, period: str, currency: str = "USD") -> str:
+    """Render the EPS computation as text."""
+    out = ["EARNINGS PER SHARE", f"For the Year Ended {period}", f"   {currency}", ""]
+    out.append(f"Profit from continuing operations                         {result.profit_from_continuing_operations:>12,.2f}")
+    out.append(f"  Less: Loss from discontinued operations                     {result.loss_from_discontinued_operations:>12,.2f}")
+    out.append(f"Profit for the year                                         {result.profit_for_the_year:>12,.2f}")
+    out.append(f"  Less: Preference dividends                                  {result.preference_dividends:>12,.2f}")
+    out.append(f"Profit attributable to ordinary shareholders                {result.numerator_basic:>12,.2f}")
+    out.append(f"Weighted average number of ordinary shares                    {result.weighted_average_shares:>12,.2f}")
+    out.append(f"Basic earnings per share                                    {result.basic_eps:>12,.2f}")
+    out.append("")
+    out.append(f"Diluted earnings per share:")
+    out.append(f"  Profit attributable to ordinary shareholders                {result.numerator_basic:>12,.2f}")
+    interest_added = result.numerator_diluted - result.numerator_basic
+    out.append(f"  Add: Interest on convertible bonds (net of tax)             {interest_added:>12,.2f}")
+    out.append(f"  Adjusted profit attributable to ordinary shareholders       {result.numerator_diluted:>12,.2f}")
+    out.append(f"  Weighted average number of ordinary shares (diluted)        {result.diluted_shares:>12,.2f}")
+    out.append(f"Diluted earnings per share                                    {result.diluted_eps:>12,.2f}")
     return "\n".join(out)
 

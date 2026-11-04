@@ -1,0 +1,41 @@
+Computation: kruskal wallis
+Result
+The analysis compares 3 groups. Group a has 3 valid observations with a median of 2.000; Group b has 3 valid observations with a median of 5.000; Group c has 3 valid observations with a median of 8.000; 0 entries were excluded as missing. Kruskal-Wallis gives H = 7.200 with a p-value of 0.0273. At the declared significance level of 5.00% the rank distributions are statistically significantly different. Epsilon-squared is 0.900, a large effect by the declared thresholds. Statistical significance and practical importance are separate questions. Caution: the sample is small, so these estimates are imprecise and should be described, not generalized. Kruskal-Wallis compares rank distributions, not means; a difference does not show that group membership produces it, and no causal claim is made. The p-value uses a chi-square approximation that is less accurate for small groups. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One omnibus hypothesis is tested and no post-hoc pairwise comparisons are made, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Groups: A: 1, 2, 3; B: 4, 5, 6; C: 7, 8, 9
+What was computed
+H stat: 7.200
+Df: 2
+P value: 0.0273
+Epsilon squared: 0.900
+N groups: 3
+N total: 9
+N excluded: 0
+Alpha: 0.05
+N a: 3
+Median a: 2.000
+N b: 3
+Median b: 5.000
+N c: 3
+Median c: 8.000
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One omnibus hypothesis is tested and no post-hoc pairwise comparisons are made, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+Observations are independent within and between groups.
+The groups differ at most by location if the result is read as a shift.
+Limitations
+The p-value is a chi-square approximation, less accurate for small groups or many ties.
+No post-hoc pairwise comparisons.
+No confidence interval for the effect size.
+How the figures were checked
+Second implementation agrees.
+Monotone transform keeps ranks.
+Shift invariant.
+Group relabeling invariant.
+Within group permutation invariant.
+Missing entries excluded not valued.
+Bounded and consistent.

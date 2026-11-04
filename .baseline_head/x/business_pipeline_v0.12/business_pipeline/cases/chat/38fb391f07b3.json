@@ -1,0 +1,1898 @@
+{
+  "format": "bp-chat/1",
+  "subject": "management",
+  "framework": "pestel",
+  "brief": "A grocery chain is considering entering the Saudi market and needs to assess the political, economic, social, technological, environmental and legal context, and a break-even analysis at the declared price.",
+  "created_at": "2026-11-04T14:17:47.018942+00:00",
+  "updated_at": "2026-11-04T14:17:47.175138+00:00",
+  "stage": "research_ready",
+  "answers": {
+    "decision": "Should the chain enter?",
+    "geography": "Global",
+    "period": "10",
+    "style": "apa"
+  },
+  "questions": [
+    {
+      "id": "decision",
+      "prompt": "What decision or question should this PESTEL analysis support?",
+      "why": "The analysis should serve a decision, not sit on its own.",
+      "type": "text",
+      "allow_skip": true,
+      "default": ""
+    },
+    {
+      "id": "geography",
+      "prompt": "Which market or region should the evidence cover?",
+      "why": "Political, economic and legal evidence is country-specific.",
+      "type": "choice",
+      "choices": [
+        "Global",
+        "US",
+        "Europe",
+        "Middle East",
+        "China"
+      ],
+      "default": "Global"
+    },
+    {
+      "id": "period",
+      "prompt": "How recent should the evidence be?",
+      "why": "A current analysis needs dated evidence, not undated generalities.",
+      "type": "choice",
+      "choices": [
+        [
+          "2",
+          "Last 2 years"
+        ],
+        [
+          "5",
+          "Last 5 years"
+        ],
+        [
+          "10",
+          "Last 10 years"
+        ],
+        [
+          "0",
+          "No limit"
+        ]
+      ],
+      "default": "10"
+    },
+    {
+      "id": "style",
+      "prompt": "Which citation style should the section use?",
+      "why": "The paper has to match the style your course requires.",
+      "type": "choice",
+      "choices": [
+        [
+          "apa",
+          "APA 7"
+        ],
+        [
+          "harvard",
+          "Harvard"
+        ]
+      ],
+      "default": "apa"
+    }
+  ],
+  "question_index": 4,
+  "plan": {
+    "framework": "PESTEL",
+    "framework_id": "pestel",
+    "why": "PESTEL organizes the external political, economic, social, technological, environmental and legal evidence around the decision.",
+    "misses": "It does not assess internal capabilities, competitors, costs, financial feasibility or a recommended action; those need other frameworks or methods.",
+    "decision": "Should the chain enter?",
+    "country": "",
+    "geography": "Global",
+    "period": "10",
+    "style": "apa",
+    "dimensions": [
+      {
+        "key": "political",
+        "label": "Political",
+        "query": "Saudi Arabia government policy regulation trade sanctions",
+        "cues": "government policy sanctions regulation trade stability",
+        "category": "legal",
+        "source_note": "primary legal and policy sources"
+      },
+      {
+        "key": "economic",
+        "label": "Economic",
+        "query": "Saudi Arabia economic growth inflation exchange rate demand",
+        "cues": "economic growth inflation interest exchange demand",
+        "category": "economic",
+        "source_note": "official economic data and research"
+      },
+      {
+        "key": "social",
+        "label": "Social",
+        "query": "Saudi Arabia demographics consumer behaviour labour market",
+        "cues": "demographic population youth internet social cultural labour consumer behaviour",
+        "category": "social",
+        "source_note": "official social data and survey research"
+      },
+      {
+        "key": "technological",
+        "label": "Technological",
+        "query": "Saudi Arabia technology adoption digital infrastructure innovation",
+        "cues": "technology innovation digital automation research",
+        "category": null,
+        "source_note": "academic and official sources"
+      },
+      {
+        "key": "environmental",
+        "label": "Environmental",
+        "query": "Saudi Arabia climate emissions energy sustainability",
+        "cues": "climate environment sustainability emissions energy",
+        "category": null,
+        "source_note": "academic and official sources"
+      },
+      {
+        "key": "legal",
+        "label": "Legal",
+        "query": "Saudi Arabia legislation compliance licensing regulation law",
+        "cues": "law legislation sanctions compliance export control regulation",
+        "category": "legal",
+        "source_note": "primary legal and policy sources"
+      }
+    ],
+    "internal": false,
+    "evidence": true,
+    "inputs": [],
+    "swot": false,
+    "output": "A PESTEL paper with an introduction, six dimensions, a discussion with implications and limitations, a conclusion and one reference list. The paper also carries break-even from the figures you declare.",
+    "capabilities": [
+      {
+        "key": "breakeven",
+        "label": "Break-even",
+        "slot": [
+          "Financial Feasibility",
+          "Break-even Analysis"
+        ],
+        "because": {
+          "rule": "cue:cost_cover",
+          "quote": "A grocery chain is considering entering the Saudi market and needs to assess the political, economic, social, technological, environmental and legal context, and a break-even analysis at the declared price."
+        },
+        "inputs_required": [
+          "fixed",
+          "price",
+          "variable"
+        ],
+        "inputs": {
+          "fixed": {
+            "desc": "total fixed cost",
+            "type": "decimal",
+            "values": [],
+            "required": true,
+            "fields": {},
+            "min_items": 1
+          },
+          "price": {
+            "desc": "price per unit",
+            "type": "decimal",
+            "values": [],
+            "required": true,
+            "fields": {},
+            "min_items": 1
+          },
+          "variable": {
+            "desc": "variable cost per unit",
+            "type": "decimal",
+            "values": [],
+            "required": true,
+            "fields": {},
+            "min_items": 1
+          },
+          "expected_units": {
+            "desc": "optional expected sales volume, for the margin of safety",
+            "type": "decimal",
+            "values": [],
+            "required": false,
+            "fields": {},
+            "min_items": 1
+          },
+          "target_profit": {
+            "desc": "optional pre-tax profit target, for the required volume",
+            "type": "decimal",
+            "values": [],
+            "required": false,
+            "fields": {},
+            "min_items": 1
+          }
+        },
+        "one_of": [],
+        "min_inputs": null,
+        "row_fields": {},
+        "licenses": "Units needed to cover fixed cost at a constant unit contribution, with the break-even revenue, contribution margin, margin of safety and target-profit volume when those inputs are declared.",
+        "not": "Multi-product mix; step-fixed costs; non-linear price or cost; a demand response to the price; tax; financing cost.",
+        "figures": {},
+        "figure_quotes": {},
+        "chained": {},
+        "needs_from": [],
+        "status": "recorded"
+      }
+    ],
+    "available": [
+      {
+        "key": "ab_test_two_proportion",
+        "label": "A/B test",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Marketing Performance",
+          "A/B Test"
+        ]
+      },
+      {
+        "key": "anova",
+        "label": "Group comparison (ANOVA)",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Group Comparison (ANOVA)"
+        ]
+      },
+      {
+        "key": "attribution_split",
+        "label": "Attribution split",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Marketing Performance",
+          "Attribution Split"
+        ]
+      },
+      {
+        "key": "balance_of_payments",
+        "label": "Balance of payments",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Balance of Payments"
+        ]
+      },
+      {
+        "key": "bond_analysis",
+        "label": "Bond price and yield",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Bond Price and Yield"
+        ]
+      },
+      {
+        "key": "budget_debt",
+        "label": "Budget and debt",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Budget and Debt"
+        ]
+      },
+      {
+        "key": "calendar_schedule",
+        "label": "Calendar schedule",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Calendar Schedule"
+        ]
+      },
+      {
+        "key": "campaign_efficiency",
+        "label": "Campaign efficiency",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Marketing Performance",
+          "Campaign Efficiency"
+        ]
+      },
+      {
+        "key": "cap_table_round",
+        "label": "Cap table",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Ownership",
+          "Cap Table"
+        ]
+      },
+      {
+        "key": "capacity_analysis",
+        "label": "Capacity and bottleneck",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Operations",
+          "Capacity and Bottleneck"
+        ]
+      },
+      {
+        "key": "capm",
+        "label": "Cost of equity (CAPM)",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Cost of Equity (CAPM)"
+        ]
+      },
+      {
+        "key": "cash_runway",
+        "label": "Cash runway",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Cash Runway"
+        ]
+      },
+      {
+        "key": "channel_economics",
+        "label": "Channel economics",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Customer Economics",
+          "Channel Economics"
+        ]
+      },
+      {
+        "key": "chi_square",
+        "label": "Association between categories",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Association Between Categories"
+        ]
+      },
+      {
+        "key": "clv_model",
+        "label": "Customer lifetime value",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Customer Economics",
+          "Customer Lifetime Value"
+        ]
+      },
+      {
+        "key": "cohort_retention",
+        "label": "Cohort retention",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Customer Evidence",
+          "Cohort Retention"
+        ]
+      },
+      {
+        "key": "comparative_advantage",
+        "label": "Comparative advantage",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Comparative Advantage"
+        ]
+      },
+      {
+        "key": "cost_benefit",
+        "label": "Cost-benefit analysis",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Impact",
+          "Cost-Benefit Analysis"
+        ]
+      },
+      {
+        "key": "cost_curves",
+        "label": "Cost curves",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Cost Curves"
+        ]
+      },
+      {
+        "key": "cost_effectiveness",
+        "label": "Cost-effectiveness analysis",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Impact",
+          "Cost-Effectiveness Analysis"
+        ]
+      },
+      {
+        "key": "cournot_duopoly",
+        "label": "Cournot duopoly",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Cournot Duopoly"
+        ]
+      },
+      {
+        "key": "cpm_schedule",
+        "label": "Critical path",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Critical Path"
+        ]
+      },
+      {
+        "key": "currency_convert",
+        "label": "Currency conversion",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Currency Conversion"
+        ]
+      },
+      {
+        "key": "customer_profitability",
+        "label": "Customer profitability",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Customer Economics",
+          "Customer Profitability"
+        ]
+      },
+      {
+        "key": "dcf_valuation",
+        "label": "Discounted cash flow valuation",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Discounted Cash Flow Valuation"
+        ]
+      },
+      {
+        "key": "decision_tree",
+        "label": "Decision tree",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Decision Tree"
+        ]
+      },
+      {
+        "key": "demand_curve",
+        "label": "Demand curve",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Response",
+          "Demand Curve"
+        ]
+      },
+      {
+        "key": "demand_supply_equilibrium",
+        "label": "Market equilibrium",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Market Equilibrium"
+        ]
+      },
+      {
+        "key": "depreciation_schedule",
+        "label": "Depreciation",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Depreciation"
+        ]
+      },
+      {
+        "key": "descriptive_stats",
+        "label": "Descriptive statistics",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Descriptive Statistics"
+        ]
+      },
+      {
+        "key": "difference_in_differences",
+        "label": "Difference-in-differences",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Difference-in-Differences"
+        ]
+      },
+      {
+        "key": "discounted_payback",
+        "label": "Discounted payback",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Discounted Payback"
+        ]
+      },
+      {
+        "key": "dupont_analysis",
+        "label": "DuPont decomposition",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Analysis",
+          "DuPont Decomposition"
+        ]
+      },
+      {
+        "key": "earned_value",
+        "label": "Earned value",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Earned Value"
+        ]
+      },
+      {
+        "key": "elasticity",
+        "label": "Price elasticity of demand",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Response",
+          "Price Elasticity of Demand"
+        ]
+      },
+      {
+        "key": "email_list_health",
+        "label": "Email list health",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Marketing Performance",
+          "Email List Health"
+        ]
+      },
+      {
+        "key": "equity_bridge",
+        "label": "Equity bridge",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Equity Bridge"
+        ]
+      },
+      {
+        "key": "exchange_rate_ppp",
+        "label": "Purchasing-power parity",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Purchasing-Power Parity"
+        ]
+      },
+      {
+        "key": "expected_utility",
+        "label": "Expected utility",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Expected Utility"
+        ]
+      },
+      {
+        "key": "externality_pigouvian",
+        "label": "Externality and Pigouvian tax",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Externality and Pigouvian Tax"
+        ]
+      },
+      {
+        "key": "fiscal_multiplier",
+        "label": "Fiscal multiplier",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Fiscal Multiplier"
+        ]
+      },
+      {
+        "key": "fx_parity",
+        "label": "FX parity",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "FX Parity"
+        ]
+      },
+      {
+        "key": "gini_coefficient",
+        "label": "Gini coefficient",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Gini Coefficient"
+        ]
+      },
+      {
+        "key": "growth_rate",
+        "label": "Growth rate",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Growth Rate"
+        ]
+      },
+      {
+        "key": "hdi",
+        "label": "Human development index",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Human Development Index"
+        ]
+      },
+      {
+        "key": "inflation_cpi",
+        "label": "Inflation",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Inflation"
+        ]
+      },
+      {
+        "key": "instrumental_variables",
+        "label": "Instrumental variables",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Instrumental Variables"
+        ]
+      },
+      {
+        "key": "interest_rate_parity",
+        "label": "Interest-rate parity",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Interest-Rate Parity"
+        ]
+      },
+      {
+        "key": "inventory_policy",
+        "label": "Inventory policy",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Operations",
+          "Inventory Policy"
+        ]
+      },
+      {
+        "key": "irr",
+        "label": "Internal rate of return",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Internal Rate of Return"
+        ]
+      },
+      {
+        "key": "labour_market",
+        "label": "Real wages",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Real Wages"
+        ]
+      },
+      {
+        "key": "leverage_analysis",
+        "label": "Financial leverage",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Financial Leverage"
+        ]
+      },
+      {
+        "key": "line_balancing",
+        "label": "Line balancing",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Operations",
+          "Line Balancing"
+        ]
+      },
+      {
+        "key": "loan_amortization",
+        "label": "Loan amortization",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Loan Amortization"
+        ]
+      },
+      {
+        "key": "market_concentration",
+        "label": "Market concentration",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Market Concentration"
+        ]
+      },
+      {
+        "key": "market_power",
+        "label": "Market power",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Market Power"
+        ]
+      },
+      {
+        "key": "market_share",
+        "label": "Market share",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Assessment",
+          "Market Share"
+        ]
+      },
+      {
+        "key": "market_sizing",
+        "label": "Market size",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Assessment",
+          "Market Size"
+        ]
+      },
+      {
+        "key": "media_plan",
+        "label": "Media plan",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Marketing Performance",
+          "Media Plan"
+        ]
+      },
+      {
+        "key": "missing_data_bounds",
+        "label": "Missing data bounds",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Missing Data Bounds"
+        ]
+      },
+      {
+        "key": "money_multiplier",
+        "label": "Money multiplier",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Money Multiplier"
+        ]
+      },
+      {
+        "key": "monte_carlo",
+        "label": "Monte Carlo range",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Monte Carlo Range"
+        ]
+      },
+      {
+        "key": "multi_criteria",
+        "label": "Weighted decision matrix",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Weighted Decision Matrix"
+        ]
+      },
+      {
+        "key": "multi_product_breakeven",
+        "label": "Multi-product break-even",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Multi-product Break-even"
+        ]
+      },
+      {
+        "key": "multi_project_schedule",
+        "label": "Multi-project schedule",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Multi-Project Schedule"
+        ]
+      },
+      {
+        "key": "multiples_valuation",
+        "label": "Comparable multiples valuation",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Comparable Multiples Valuation"
+        ]
+      },
+      {
+        "key": "nash_equilibrium",
+        "label": "Nash equilibrium",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Nash Equilibrium"
+        ]
+      },
+      {
+        "key": "national_income",
+        "label": "National income",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "National Income"
+        ]
+      },
+      {
+        "key": "npv",
+        "label": "Net present value",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Net Present Value"
+        ]
+      },
+      {
+        "key": "oee_analysis",
+        "label": "Equipment effectiveness",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Operations",
+          "Equipment Effectiveness"
+        ]
+      },
+      {
+        "key": "ols",
+        "label": "Multiple regression",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Multiple Regression"
+        ]
+      },
+      {
+        "key": "ols_robust",
+        "label": "Regression with robust errors",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Regression with Robust Errors"
+        ]
+      },
+      {
+        "key": "optimal_pollution",
+        "label": "Optimal pollution",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Optimal Pollution"
+        ]
+      },
+      {
+        "key": "option_pricing",
+        "label": "Option price",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Option Price"
+        ]
+      },
+      {
+        "key": "output_gap_okun",
+        "label": "Output gap (Okun)",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Output Gap (Okun)"
+        ]
+      },
+      {
+        "key": "panel_regression",
+        "label": "Panel regression",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Panel Regression"
+        ]
+      },
+      {
+        "key": "pearson",
+        "label": "Correlation",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Correlation Analysis"
+        ]
+      },
+      {
+        "key": "portfolio_analysis",
+        "label": "Portfolio return and risk",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Portfolio Return and Risk"
+        ]
+      },
+      {
+        "key": "poverty_measures",
+        "label": "Poverty measures",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Poverty Measures"
+        ]
+      },
+      {
+        "key": "power_analysis",
+        "label": "Statistical power",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Statistical Power"
+        ]
+      },
+      {
+        "key": "price_control",
+        "label": "Price control",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Price Control"
+        ]
+      },
+      {
+        "key": "price_discrimination",
+        "label": "Price discrimination",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Price Discrimination"
+        ]
+      },
+      {
+        "key": "pricing_decision",
+        "label": "Pricing decision",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Pricing",
+          "Pricing Decision"
+        ]
+      },
+      {
+        "key": "probit",
+        "label": "Probit model",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Probit Model"
+        ]
+      },
+      {
+        "key": "process_control",
+        "label": "Process control",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Operations",
+          "Process Control"
+        ]
+      },
+      {
+        "key": "profit_maximization",
+        "label": "Profit maximisation",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Market Structure",
+          "Profit Maximisation"
+        ]
+      },
+      {
+        "key": "proforma_statements",
+        "label": "Pro-forma statements",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Pro-forma Statements"
+        ]
+      },
+      {
+        "key": "project_crashing",
+        "label": "Project crashing",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Project Crashing"
+        ]
+      },
+      {
+        "key": "project_metrics",
+        "label": "Project metrics",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Project Metrics"
+        ]
+      },
+      {
+        "key": "prospect_theory",
+        "label": "Prospect theory",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Prospect Theory"
+        ]
+      },
+      {
+        "key": "public_good",
+        "label": "Public good",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Public Good"
+        ]
+      },
+      {
+        "key": "purchase_intent",
+        "label": "Purchase intent",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Customer Evidence",
+          "Purchase Intent"
+        ]
+      },
+      {
+        "key": "queue_analysis",
+        "label": "Queue performance",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Operations",
+          "Queue Performance"
+        ]
+      },
+      {
+        "key": "ratio_analysis",
+        "label": "Ratio analysis",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Analysis",
+          "Ratio Analysis"
+        ]
+      },
+      {
+        "key": "real_option",
+        "label": "Real option value",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Real Option Value"
+        ]
+      },
+      {
+        "key": "regression_discontinuity",
+        "label": "Regression discontinuity",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Regression Discontinuity"
+        ]
+      },
+      {
+        "key": "reliability_alpha",
+        "label": "Survey reliability",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Survey Reliability"
+        ]
+      },
+      {
+        "key": "resource_leveling",
+        "label": "Resource levelling",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Resource Levelling"
+        ]
+      },
+      {
+        "key": "return_on_investment",
+        "label": "Return on investment",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Return on Investment"
+        ]
+      },
+      {
+        "key": "rfm_scoring",
+        "label": "RFM segments",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Customer Evidence",
+          "RFM Segments"
+        ]
+      },
+      {
+        "key": "risk_metrics",
+        "label": "Value at risk",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Value at Risk"
+        ]
+      },
+      {
+        "key": "sales_from_market",
+        "label": "Target sales from the market",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Target Sales from the Market"
+        ]
+      },
+      {
+        "key": "sales_funnel",
+        "label": "Sales funnel",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Marketing Performance",
+          "Sales Funnel"
+        ]
+      },
+      {
+        "key": "sales_projection",
+        "label": "Sales projection",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Sales Projection"
+        ]
+      },
+      {
+        "key": "scenario_analysis",
+        "label": "Scenario analysis",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Scenario Analysis"
+        ]
+      },
+      {
+        "key": "schedule_risk",
+        "label": "Schedule risk",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Delivery Status",
+          "Schedule Risk"
+        ]
+      },
+      {
+        "key": "sensitivity_table",
+        "label": "Sensitivity table",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Sensitivity Table"
+        ]
+      },
+      {
+        "key": "social_engagement",
+        "label": "Social engagement",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Marketing Performance",
+          "Social Engagement"
+        ]
+      },
+      {
+        "key": "social_welfare",
+        "label": "Social welfare",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Social Welfare"
+        ]
+      },
+      {
+        "key": "sroi",
+        "label": "Social return on investment",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Impact",
+          "Social Return on Investment"
+        ]
+      },
+      {
+        "key": "startup_capital",
+        "label": "Start-up capital",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Start-up Capital"
+        ]
+      },
+      {
+        "key": "tariff_welfare",
+        "label": "Tariff welfare",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Tariff Welfare"
+        ]
+      },
+      {
+        "key": "tax_declared",
+        "label": "Declared income tax",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Declared Income Tax"
+        ]
+      },
+      {
+        "key": "tax_incidence",
+        "label": "Tax incidence",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Tax Incidence"
+        ]
+      },
+      {
+        "key": "tax_progressivity",
+        "label": "Tax progressivity",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Policy Impact",
+          "Tax Progressivity"
+        ]
+      },
+      {
+        "key": "time_value",
+        "label": "Time value of money",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Time Value of Money"
+        ]
+      },
+      {
+        "key": "trend_analysis",
+        "label": "Trend analysis",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Analysis",
+          "Trend Analysis"
+        ]
+      },
+      {
+        "key": "trend_forecast",
+        "label": "Trend forecast",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Trend Forecast"
+        ]
+      },
+      {
+        "key": "unemployment_rate",
+        "label": "Unemployment",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Economic Context",
+          "Unemployment"
+        ]
+      },
+      {
+        "key": "unit_economics",
+        "label": "Unit economics",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Unit Economics"
+        ]
+      },
+      {
+        "key": "wacc",
+        "label": "Cost of capital",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Feasibility",
+          "Cost of Capital"
+        ]
+      },
+      {
+        "key": "web_analytics",
+        "label": "Web analytics",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Marketing Performance",
+          "Web Analytics"
+        ]
+      },
+      {
+        "key": "weighted_summary",
+        "label": "Weighted summary",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Weighted Summary"
+        ]
+      },
+      {
+        "key": "welch_t",
+        "label": "Difference between two means",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Data Analysis",
+          "Difference Between Two Means"
+        ]
+      },
+      {
+        "key": "working_capital",
+        "label": "Working capital cycle",
+        "because": {
+          "rule": "student:added",
+          "quote": ""
+        },
+        "slot": [
+          "Financial Analysis",
+          "Working Capital Cycle"
+        ]
+      }
+    ],
+    "not_included": [],
+    "figure_problems": [],
+    "selection_hash": "sha256:28e42244d93ee531",
+    "catalogue_version": "2",
+    "target_words": 600,
+    "length_band": "short",
+    "length_options": [
+      {
+        "key": "short",
+        "label": "Short",
+        "low": 600,
+        "high": 1200,
+        "target": 600
+      },
+      {
+        "key": "mid",
+        "label": "Mid",
+        "low": 1200,
+        "high": 2500,
+        "target": 1200
+      },
+      {
+        "key": "long",
+        "label": "Long",
+        "low": 2500,
+        "high": 5000,
+        "target": 2500
+      }
+    ],
+    "full_report": false,
+    "min_words": 600,
+    "max_words": 5000,
+    "checkpoints": [
+      "Confirm this plan",
+      "Review the retrieved evidence",
+      "Review the drafted section"
+    ]
+  },
+  "sources": [],
+  "evidence": [],
+  "gaps": [],
+  "notes": [],
+  "computation": {
+    "key": "breakeven",
+    "inputs": {
+      "fixed": "2000000",
+      "price": "40",
+      "variable": "28"
+    }
+  },
+  "draft": null,
+  "selection": {
+    "format": "bp-capabilities/1",
+    "catalogue_version": "2",
+    "frameworks": [
+      "pestel"
+    ],
+    "selected": [
+      {
+        "key": "breakeven",
+        "method": "breakeven",
+        "label": "Break-even",
+        "subject": "",
+        "slot": [
+          "Financial Feasibility",
+          "Break-even Analysis"
+        ],
+        "integration": "Framework and Financial Feasibility",
+        "inputs_required": [
+          "fixed",
+          "price",
+          "variable"
+        ],
+        "licenses": "Units needed to cover fixed cost at a constant unit contribution, with the break-even revenue, contribution margin, margin of safety and target-profit volume when those inputs are declared.",
+        "not": "Multi-product mix; step-fixed costs; non-linear price or cost; a demand response to the price; tax; financing cost.",
+        "because": {
+          "rule": "cue:cost_cover",
+          "quote": "A grocery chain is considering entering the Saudi market and needs to assess the political, economic, social, technological, environmental and legal context, and a break-even analysis at the declared price."
+        },
+        "inputs": {
+          "fixed": {
+            "desc": "total fixed cost",
+            "type": "decimal",
+            "values": [],
+            "required": true,
+            "fields": {},
+            "min_items": 1
+          },
+          "price": {
+            "desc": "price per unit",
+            "type": "decimal",
+            "values": [],
+            "required": true,
+            "fields": {},
+            "min_items": 1
+          },
+          "variable": {
+            "desc": "variable cost per unit",
+            "type": "decimal",
+            "values": [],
+            "required": true,
+            "fields": {},
+            "min_items": 1
+          },
+          "expected_units": {
+            "desc": "optional expected sales volume, for the margin of safety",
+            "type": "decimal",
+            "values": [],
+            "required": false,
+            "fields": {},
+            "min_items": 1
+          },
+          "target_profit": {
+            "desc": "optional pre-tax profit target, for the required volume",
+            "type": "decimal",
+            "values": [],
+            "required": false,
+            "fields": {},
+            "min_items": 1
+          }
+        },
+        "one_of": [],
+        "min_inputs": null,
+        "row_fields": {}
+      }
+    ],
+    "not_included": [],
+    "question": null,
+    "question_quote": "",
+    "hash": "sha256:28e42244d93ee531"
+  },
+  "computations": {
+    "breakeven": {
+      "ok": true,
+      "method": "breakeven",
+      "inputs": {
+        "fixed": "2000000",
+        "price": "40",
+        "variable": "28"
+      },
+      "result": {
+        "breakeven_units": "166666.66666666666666666666666666666666666666666667",
+        "contribution_margin": "12",
+        "contribution_margin_ratio": "0.3",
+        "breakeven_revenue": "6666666.6666666666666666666666666666666666666666668"
+      },
+      "from": {}
+    }
+  },
+  "plan_figures_applied": {},
+  "figure_filings": [],
+  "dependency_inputs": {},
+  "dependency_graph": [],
+  "council": null,
+  "id": "38fb391f07b3",
+  "plan_confirmed_at": "2026-11-04T14:17:47.123147+00:00",
+  "plan_record": {
+    "format": "bp-plan/1",
+    "brief_hash": "sha256:25969c26471a0e89",
+    "catalogue_version": "2",
+    "frameworks": [
+      "pestel"
+    ],
+    "capabilities": [
+      {
+        "key": "breakeven",
+        "because": {
+          "rule": "cue:cost_cover",
+          "quote": "A grocery chain is considering entering the Saudi market and needs to assess the political, economic, social, technological, environmental and legal context, and a break-even analysis at the declared price."
+        },
+        "from": {}
+      }
+    ],
+    "figures": [],
+    "models": [],
+    "decided_at": "2026-11-04T14:17:47.123175+00:00",
+    "plan_hash": "sha256:86aa96844d09a985"
+  }
+}

@@ -1,0 +1,45 @@
+Computation: schedule risk
+Result
+Across 1,000 seeded simulations the mean duration is 7.71, with median 7.68, eightieth percentile 8.46 and ninetieth percentile 8.86. The share of runs within the target is 0.9290. Durations are independent triangular draws between the optimistic and pessimistic values with the most likely as the mode; that distribution is a declared convention. The simulation is seeded and reproducible, but a different seed gives different percentiles; it is not a forecast or a guarantee. Resource limits, calendars and correlated durations are not modelled; the criticality index is the share of runs in which an activity had zero float.
+Inputs and results
+What you declared
+Iterations: 1000
+Seed: 42.00
+Target duration: 9.00
+Activities: Id: A; Optimistic: 2; Most likely: 3; Pessimistic: 5; Predecessors: , Id: B; Optimistic: 3; Most likely: 4; Pessimistic: 6; Predecessors: A, Id: C; Optimistic: 1; Most likely: 2; Pessimistic: 4; Predecessors: A
+What was computed
+Iterations: 1000
+Mean duration: 7.71
+P50 duration: 7.68
+P80 duration: 8.46
+P90 duration: 8.86
+Min duration: 5.65
+Max duration: 10.56
+N within target: 929
+Probability within target: 0.9290
+Criticality A: 1.0000
+Sample min A: 2.09
+Sample max A: 4.98
+Criticality B: 0.9860
+Sample min B: 3.03
+Sample max B: 5.98
+Criticality C: 0.0140
+Sample min C: 1.05
+Sample max C: 3.95
+Honesty: what was not done
+this method: Durations are independent triangular draws between the optimistic and pessimistic values with the most likely as the mode; that distribution is a declared convention. The simulation is seeded and reproducible, but a different seed gives different percentiles; it is not a forecast or a guarantee. Resource limits, calendars and correlated durations are not modelled; the criticality index is the share of runs in which an activity had zero float.
+Assumptions made
+Activity durations are independent draws from the declared triangular distributions.
+The network is acyclic and has no resource limits.
+The seed is declared and kept for the report.
+Limitations
+Monte Carlo is a sample, not a guarantee; percentiles move with the seed.
+No resource limits, calendars, correlation or distribution fitting.
+Criticality is the share of runs with zero float, not a causal importance measure.
+How the figures were checked
+Second implementation and seed agree.
+Sampled durations stay within the declared bounds.
+Percentiles are ordered.
+The mean lies between the observed extremes.
+The target probability matches the sample count.
+Criticality indices are fractions.

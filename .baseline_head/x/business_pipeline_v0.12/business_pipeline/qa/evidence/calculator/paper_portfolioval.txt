@@ -1,0 +1,37 @@
+Computation: portfolio valuation
+Result
+The portfolio's net asset value is 5,000.00, with 4,000.00 invested across 2 holdings and 1,000.00 in cash. The largest holding is 0.4000 of NAV, the top three are 0.8000, and the cash share is 0.2000. The values are computed from the declared prices and cash. Prices are the dated values the owner declared; the snapshot is only as current as its price date. One base currency only: there is no FX conversion, so a holding quoted in another currency must be converted before entry. No fees, tax or forecast; NAV is a valuation, not a sale price or a recommendation. Weights are value / NAV, so the holding weights plus cash equal one; concentration is measured over NAV.
+Inputs and results
+What you declared
+Holdings: Symbol: AAPL; Shares: 10; Price: 200, Symbol: MSFT; Shares: 5; Price: 400
+Cash: 1000.00
+What was computed
+Nav: 5000.00
+Invested value: 4000.00
+Cash: 1000.00
+Cash pct: 0.2000
+N holdings: 2
+Top weight: 0.4000
+Top3 concentration: 0.8000
+Hhi: 0.3200
+Value AAPL: 2000.00
+Weight AAPL: 0.4000
+Value MSFT: 2000.00
+Weight MSFT: 0.4000
+Honesty: what was not done
+this method: Prices are the dated values the owner declared; the snapshot is only as current as its price date. One base currency only: there is no FX conversion, so a holding quoted in another currency must be converted before entry. No fees, tax or forecast; NAV is a valuation, not a sale price or a recommendation. Weights are value / NAV, so the holding weights plus cash equal one; concentration is measured over NAV.
+Assumptions made
+The prices are the owner's dated values for the same date.
+Shares, prices and cash are in one base currency.
+The portfolio is long-only and fully paid.
+Limitations
+No FX conversion, fees, tax, dividends or corporate actions.
+No forecast or recommendation; a snapshot is a valuation, not a sale price.
+Short positions, margin and derivatives are not represented.
+How the figures were checked
+Second implementation agrees.
+Nav equals invested plus cash.
+Holding weights and cash sum to one.
+Doubling every price doubles invested value.
+Adding one unit of cash raises nav by one.
+Concentration is bounded.

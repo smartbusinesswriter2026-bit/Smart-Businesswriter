@@ -1,0 +1,68 @@
+build 1.99: the reader stops refusing what it can read - six seams closed, and the tile reads a transaction narrative with no model
+
+The reader's seams are closed, and the measurement is a script rather than a claim.
+`qa/manual/reader-seams-probe.py` runs the seven reproductions: a narrative that
+opens with a transaction date now gets 2025-01-01 to 2025-12-31 (was one day); a
+fiscal year whose start and end are both stated reads as one period (was two); a
+transaction date on a line is not a comparative; Salaries and Rent arrive on their
+own lines; a stated sales figure beside prose reads as Revenue; a partition the
+text states is proved by code and accepted; and every code a detector posts to has
+a home in the one chart (src/bp/statement_chart.py).
+
+One period model (src/bp/statement_period.py - a period is a range, a date is a
+point) now owns the period rules, so seven solvers cannot disagree about them.
+
+Six defects are fixed, each invisible from reading the code:
+
+- the deterministic reader crashed on an ordinary sentence. Four detectors read the
+  same figure from one of two wordings and the templates reached for the first
+  slot alone, so the entry carried no amount and the posting died on an uncaught
+  decimal.InvalidOperation. The slot that is filled now wins; a line with no
+  amount is a named DetectError. This crash was on HEAD.
+- "Invested 50,000 cash in the business for shares" was not read, so cash went
+  negative and the ledger refused the whole answer.
+- a trial balance did not keep its route when the student also asked for ratios.
+  The balance-sheet-analysis route reads the same figures as balances, so it
+  ignored the contra accounts - total assets 86,900 where the trial-balance route
+  prints 77,900 - and it hid the income statement. The same trial balance, two
+  answers. The more specific reading wins. The EPS route had the same problem
+  with "Preference dividends", and so did the computation engine.
+- one computation spec was labelled "Peso/Dollar Change" - a home-currency name
+  in a global product (B-177).
+- eight of the engine's input patterns captured a word instead of the number.
+- the engine's topological sort resolved nothing, because it looked dependencies
+  up by spec id while depends_on names output names; and values did not travel
+  between sections, so seventy-two specs reported a gap for something already
+  known. A route that computes nothing now hands the instruction back instead of
+  answering with a sheet of gaps.
+
+The engine (src/bp/product/financial_computations.py) carries 128 specs in 11
+sections and now has a test module - tests/test_financial_computations.py, 16
+tests - which it did not have at all. Its honest coverage is written down rather
+than implied: of 218 distinct input names, 44 can be supplied by a text, 50 by
+another spec's output, and 131 by nothing, so 43 of the 128 specs have no
+reachable input.
+
+The suite, on HEAD and on the working tree. HEAD was measured on a byte-exact
+copy (git archive into .baseline_head/, all 5775 tracked files hash-compared
+against the HEAD blob): 3784 tests, 22 failures and 39 errors. The working tree:
+3828 tests, 59 pre-existing problems, 1 new failure from the calculator lane's
+uncommitted page change, and 2 fixed - the ratio instruction that used to be
+refused, and the served build number. The separation is in
+qa/baseline/seam-suite-comparison.txt.
+
+The owner's case study is re-measured over HTTP with no model configured, and the
+manual is rewritten to the measurement: the previous version claimed "2
+pre-existing failures only" where HEAD has 61, claimed the narrative reader
+"REQUIRES a configured LLM" when the deterministic layer now reads a narrative,
+and claimed the integrated case solver was "NOT BUILT" when it is six seams, all
+closed.
+
+Measured with no model configured: a five-clause transactions narrative solves
+with 11 of 11 checks, the period taken from the text's own dates; an exam
+question with a preamble solves; a trial balance plus a ratio request gives the
+three statements and 13 ratios; the adjustments still need a model, and the tile
+says so plainly.
+
+Not in this build: web/index.html carries the calculator lane's in-flight edits
+and was left untouched.

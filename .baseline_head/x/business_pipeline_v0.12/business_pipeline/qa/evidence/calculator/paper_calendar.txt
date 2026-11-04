@@ -1,0 +1,52 @@
+Computation: calendar schedule
+Result
+With the declared working calendar, the project finishes in 7.00 calendar periods, using 9.00 working periods, with 3 of 4 activities on the critical path. The calendar is a declared list of working period numbers; no dates, weekends, holidays or shifts are inferred. Durations are counted in working periods and an activity cannot start or finish inside a non-working gap. One calendar applies to the whole project; per-activity calendars and resource limits are not modelled.
+Inputs and results
+What you declared
+Working periods: 0,1,2,5,6,7,10,11,12
+Activities: Id: A; Duration: 2; Predecessors: , Id: B; Duration: 2; Predecessors: A, Id: C; Duration: 1; Predecessors: B, Id: D; Duration: 1; Predecessors: A
+What was computed
+Project duration: 7.00
+Activity count: 4
+Working periods: 9.00
+Critical count: 3
+Es A: 0.00
+Ef A: 2.00
+Ls A: 0.00
+Lf A: 2.00
+Float A: 0.00
+Critical A: 1
+Es B: 2.00
+Ef B: 6.00
+Ls B: 2.00
+Lf B: 6.00
+Float B: 0.00
+Critical B: 1
+Es C: 6.00
+Ef C: 7.00
+Ls C: 6.00
+Lf C: 7.00
+Float C: 0.00
+Critical C: 1
+Es D: 2.00
+Ef D: 3.00
+Ls D: 6.00
+Lf D: 7.00
+Float D: 4.00
+Critical D: 0
+Honesty: what was not done
+this method: The calendar is a declared list of working period numbers; no dates, weekends, holidays or shifts are inferred. Durations are counted in working periods and an activity cannot start or finish inside a non-working gap. One calendar applies to the whole project; per-activity calendars and resource limits are not modelled.
+Assumptions made
+One calendar applies to every activity.
+Durations count working periods only.
+The graph is acyclic.
+Limitations
+No date arithmetic, weekends, holidays, shifts, per-activity calendars or resources.
+Float is measured in calendar periods, not working periods.
+The calendar must be long enough for the declared durations.
+How the figures were checked
+Second implementation agrees.
+Precedence is respected.
+Every working period is used.
+Critical activities have zero float.
+The calendar cannot shorten the work.

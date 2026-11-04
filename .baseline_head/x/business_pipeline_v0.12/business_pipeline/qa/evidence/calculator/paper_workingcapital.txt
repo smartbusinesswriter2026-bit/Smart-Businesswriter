@@ -1,0 +1,45 @@
+Computation: working capital
+Result
+The cash conversion cycle is 36.5 days (27.4 receivable days, 36.5 inventory days and 27.4 payable days). Net working capital is 1,800.00, the economic order quantity is 353.55 units and the reorder point is 195.89 units. Forgoing the declared discount costs 37.24% a year. The turnover ratios use period-end balances and a declared day count; average balances would give different numbers. EOQ assumes constant demand, a fixed order cost and a fixed holding cost per unit; quantity discounts, step costs and stock-outs are not modelled. The cost of trade credit is the annualised cost of not taking a declared discount; it is arithmetic on the terms you supplied, not a recommendation to borrow or pay late.
+Inputs and results
+What you declared
+Revenue: 20000.00
+Cost of sales: 12000.00
+Inventory: 1200.00
+Receivables: 1500.00
+Payables: 900.00
+Annual demand: 5000.00
+Order cost: 50.00
+Holding cost per unit: 4.00
+Discount percent: 0.02
+Credit terms days: 30.00
+Discount days: 10.00
+Lead time days: 7.00
+Safety stock: 100.00
+What was computed
+Dso: 27.4
+Dio: 36.5
+Dpo: 27.4
+Cash conversion cycle: 36.5
+Net working capital: 1800.00
+Eoq: 353.55
+Reorder point: 195.89
+Cost of trade credit: 0.3724
+Daily demand: 13.70
+N orders per year: 14.14
+Honesty: what was not done
+this method: The turnover ratios use period-end balances and a declared day count; average balances would give different numbers. EOQ assumes constant demand, a fixed order cost and a fixed holding cost per unit; quantity discounts, step costs and stock-outs are not modelled. The cost of trade credit is the annualised cost of not taking a declared discount; it is arithmetic on the terms you supplied, not a recommendation to borrow or pay late.
+Assumptions made
+The period-end balances and the annual demand are the owner's figures.
+Demand, order cost and holding cost are constant over the year.
+The credit terms are as declared.
+Limitations
+No seasonality, quantity discounts or stock-out cost.
+No cash budget or forecast.
+The trade-credit cost is an annualised convention, not a financing recommendation.
+How the figures were checked
+Second implementation agrees.
+The cash conversion cycle is the three periods.
+The eoq minimises order and holding cost.
+The reorder point is lead time demand plus safety stock.
+A larger discount raises the cost of trade credit.

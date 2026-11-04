@@ -1,12 +1,17 @@
 # Case study — Ashgrove Supplies Ltd: preparing a full set of financial statements
 
 **What this is.** A worked case for the **Financial statements** tile on the Accounting shelf, measured by
-running it through the live workbench on 2026-11-04. Every figure below is the string the server returned; the
-page printed them and did not compute one of them.
+running it through the live workbench. Every figure below is the string the server returned; the page printed them and
+did not compute one of them.
 
 - **Tile:** Accounting → the first tile, *Financial statements* (`#/financial-statements`).
 - **Backend:** `POST /api/cases/statements`, then `POST /api/cases/statements/{id}/export` for the download.
-- **Record:** `3221e482d95e` (frozen, hash-checked, replayable).
+- **Record:** `95fe2965d8d7` (frozen, hash-checked, replayable).
+
+> **Re-measured 2026-11-04**, on the tree that closed the reader's seams. What changed is stated at each place it
+> changed, and §5 says what a careful reader should notice *now*. The first measurement of this case (2026-11-03,
+> record `3221e482d95e`) is quoted where the two differ, so a reader can see the difference rather than take it on
+> trust.
 
 ---
 
@@ -39,9 +44,8 @@ Other income 1,500 Cr
 Accumulated depreciation 9,000 Cr
 ```
 
-The tile read it with its **deterministic parser** (`reading_source: parser`, `problem_type: trial_balance`) and
-quoted the cue it acted on: *"cue 'trial balance' in: The following trial balance was extracted at 31 December
-2026."*
+The tile read it with its **deterministic parser** (`problem_type: trial_balance`) and quoted the cue it acted on:
+*"cue 'trial balance' in: The following trial balance was extracted at 31 December 2026."*
 
 ---
 
@@ -58,11 +62,30 @@ Revenue
 Total revenue                                           141,500.00
 Expenses
   Cost of sales                                          84,000.00
-  Finance costs                                           1,200.00
-  Operating expenses                                     33,200.00
+  Depreciation                                            3,000.00
+  Interest expense                                        1,200.00
+  Rent expense                                            8,000.00
+  Salaries expense                                       19,000.00
+  Utilities expense                                       3,200.00
 Total expenses                                          118,400.00
 Net income                                               23,100.00
 ```
+
+**Re-measured after the reader's seams were closed (2026-11-04, increment 1).** The figures are
+identical to the first measurement — total expenses **118,400.00**, net income **23,100.00** — but the
+expenses now arrive on their own lines instead of inside one "Operating expenses" line. The trial balance
+named Wages, Rent, Utilities, Depreciation and Interest expense as five accounts, and the statement used to
+print two lines for five accounts; it now prints five. Nothing about the arithmetic moved.
+
+| Expense account in the trial balance | Printed as, before | Printed as, now |
+|---|---|---|
+| Wages 19,000 | Operating expenses 33,200.00 | Salaries expense 19,000.00 |
+| Rent 8,000 | (same line) | Rent expense 8,000.00 |
+| Utilities 3,200 | (same line) | Utilities expense 3,200.00 |
+| Depreciation 3,000 | (same line) | Depreciation 3,000.00 |
+| Interest expense 1,200 | Finance costs 1,200.00 | Interest expense 1,200.00 |
+
+Reproduce with `python qa/manual/ashgrove-remeasure.py`.
 
 ### 2.2 The statement of changes in equity
 
@@ -75,15 +98,22 @@ Capital
 
 Retained earnings
   Opening balance                                             0.00
-  2026-12-31  other                         8,000.00  the trial balance as given
-  2026-12-31  profit for the period       141,500.00  closing: income to retained earnin (closing)
-  2026-12-31  profit for the period     (118,400.00)  closing: expenses to retained earn (closing)
+  2026-12-31  brought forward               8,000.00  the trial balance as given
+  2026-12-31  profit for the period       141,500.00  closing: income to retained earnings (closing)
+  2026-12-31  profit for the period     (118,400.00)  closing: expenses to retained earnings (closing)
   Closing balance                                        31,100.00
 
 Total opening                                                 0.00
 Total movement                                           51,100.00
 Total closing                                            51,100.00
 ```
+
+**Two lines changed since the first measurement**, and both were defects then:
+
+| line | first measurement (2026-11-03) | now |
+|---|---|---|
+| the brought-forward movement | `2026-12-31  other  8,000.00` | `2026-12-31  brought forward  8,000.00` |
+| the closing lines | `closing: income to retained earnin (closing)` — cut mid-word | `closing: income to retained earnings (closing)` |
 
 ### 2.3 The balance sheet
 
@@ -134,7 +164,8 @@ split is the tile's own.
 [ok] opening_balances_agree
 ```
 
-Two further checks are **not applicable** and say so rather than passing silently: the cash-flow agreement
+The record carries the count as numbers: `checks_total: 11`, `checks_passed: 9`, `checks_na: 2`. Two further
+checks are **not applicable** and say so rather than passing silently: the cash-flow agreement
 checks, because a trial balance carries no flows.
 
 ### 2.5 The cash flow statement is withheld, and says why
@@ -152,26 +183,38 @@ ratios** and names **2 it cannot**, with the reason:
 
 | ratio | value | how it is computed |
 |---|---|---|
-| current_ratio | 3.844594594594594594594594595 | current assets / current liabilities |
-| quick_ratio | 2.317567567567567567567567568 | (current assets - inventory) / current liabilities |
-| cash_ratio | 1.074324324324324324324324324 | cash / current liabilities |
-| gross_margin | 0.4063604240282685512367491166 | (revenue - cost of sales) / revenue |
-| net_margin | 0.1632508833922261484098939929 | net income / revenue |
-| return_on_assets | 0.2965340179717586649550706033 | net income / total assets |
-| return_on_equity | 0.4520547945205479452054794521 | net income / equity |
-| debt_to_equity | 0.5244618395303326810176125245 | total liabilities / equity |
-| equity_multiplier | 1.524461839530332681017612524 | total assets / equity |
-| asset_turnover | 1.816431322207958921694480103 | revenue / total assets |
-| receivables_days | 47.46289752650176678445229681 | receivables / revenue x 365 |
-| inventory_days | 98.20238095238095238095238094 | inventory / cost of sales x 365 |
-| payables_days | 64.30952380952380952380952381 | payables / cost of sales x 365 |
+| current_ratio | 3.845 | current assets / current liabilities |
+| quick_ratio | 2.318 | (current assets - inventory) / current liabilities |
+| cash_ratio | 1.074 | cash / current liabilities |
+| gross_margin | 0.406 | (revenue - cost of sales) / revenue |
+| net_margin | 0.163 | net income / revenue |
+| return_on_assets | 0.297 | net income / total assets |
+| return_on_equity | 0.452 | net income / equity |
+| debt_to_equity | 0.524 | total liabilities / equity |
+| equity_multiplier | 1.524 | total assets / equity |
+| asset_turnover | 1.816 | revenue / total assets |
+| receivables_days | 47.5 | receivables / revenue x 365 |
+| inventory_days | 98.2 | inventory / cost of sales x 365 |
+| payables_days | 64.3 | payables / cost of sales x 365 |
 
 | ratio | why it is not computed |
 |---|---|
 | operating_margin | missing input: operating_profit |
-| interest_cover | missing input: operating_profit, interest_expense |
+| interest_cover | missing input: operating_profit |
 
 A ratio the figures cannot support is **named and left out**, never estimated, and never shown as a zero.
+
+**The first measurement printed these at 28 decimals** — `current_ratio: 3.844594594594594594594594595` — while
+the core's own declared precision for a ratio is 3 dp. Two things changed, and they are worth naming separately:
+
+- the ratio now prints at the precision the method declares (3 dp);
+- **the instruction now reaches the trial-balance route.** It used to reach the balance-sheet-analysis route, which
+  reads the same figures as *balances*: it printed **total assets 86,900** where the trial-balance route prints
+  **77,900** — because the analysis route does not net the accumulated depreciation — and it hid the income
+  statement and the statement of changes in equity. The same trial balance, two answers, nothing to say which was
+  right. A trial balance is a trial balance even when the student also asks for ratios, and the more specific
+  reading wins. That routing was changed on 2026-11-04; on the tree before it, the same input produced a different
+  balance sheet.
 
 ### 2.7 The working
 
@@ -181,16 +224,27 @@ closing balance, the derivations, the assumptions, and what was missing. The **S
 three statements and nothing else. **Both views come from the same record** — the toggle chooses which recorded
 text is shown and cannot change a number.
 
+The record also carries the **notes**, in its own words:
+
+```
+NOTES
+Reporting framework: US_GAAP
+Basis: management accounts prepared from the entries you declared; not GAAP or IFRS statements and not assurance.
+Net income for the period: 23,100.00
+Declared policy changes: none
+```
+
 ### 2.8 Downloading it
 
 **Download the statements** posts to the server's own export endpoint:
 
 ```
-POST /api/cases/statements/3221e482d95e/export  {"format": "statements_only"}
--> 200  {"format": "text", "view": "statements_only", "filename": "statements-3221e482d95e.txt", "text": "…2684 characters…"}
+POST /api/cases/statements/95fe2965d8d7/export  {"format": "statements_only"}
+-> 200  {"format": "text", "view": "statements_only", "filename": "statements-95fe2965d8d7.txt",
+         "text": "…2891 characters…"}
 ```
 
-The page says so: *"Download the statements: statements-3221e482d95e.txt is ready."* **Download the working**
+The page says so: *"Download the statements: statements-95fe2965d8d7.txt is ready."* **Download the working**
 does the same with `{"format": "working"}`. A third button replays the record and reports whether it reproduces
 exactly — the frozen record's own hash check.
 
@@ -227,37 +281,80 @@ Even on a solved case, the record carries one named gap:
 > **Not in the instruction:** The following trial balance was extracted at 31 December 2026. — *this line carries
 > no account I can place, so it is shown here and left out of the statements*
 
-That is the tile's own instruction line. The parser saw a line with a number in it, could not place it as an
-account, and **named it rather than dropping it silently**. It is correct behaviour and it is also the visible
-edge of the preflight defect in §5.
+That is the tile's own instruction line. It is shown and left out rather than dropped silently, which is the
+behaviour that matters.
+
+**What changed on 2026-11-04 is why it is left out.** The reader now recognises a *sentence* before it tries to
+read it as an account name. Before, that line reached the account matcher and was refused because no account could
+be placed; now it is recognised as a sentence — it opens with "The", carries no figure, and describes the
+instruction rather than an account — and it is never posted. That is the same rule that stops "The owner invested
+50,000 cash in the business" being posted as a Capital account, which would have counted the same money twice.
 
 ---
 
 ## 5. What a careful reader should notice
 
-Two things in the output above are defects, not features. Both are in `src/**` — the computation lane's — and
-both are recorded as `[computation]` requests in `docs/WORKLOG.md`:
+**The two defects this case carried on 2026-11-03 are both fixed, and they are worth reading anyway** — they are
+what the output *used* to say:
 
-1. **The ratios print at 28 decimals.** `current_ratio: 3.844594594594594594594594595`. The core's own
-   declared precision for a ratio is **3 dp** (`_ratio_typing` → `("ratio", 3)`), and every other shelf prints
-   ratios at 3 dp. The statements record stores the **raw float** from the method's output rather than the
-   formatted value, so the tile shows more decimals than the method declares. The page must not round it — the
-   browser never rounds a figure — so the fix belongs where the record is packed.
-2. **The brought-forward retained earnings is labelled "other."** In §2.2 the 8,000 movement line reads
-   `2026-12-31  other  8,000.00  the trial balance as given`. It is the retained earnings brought forward, and
-   the equity roll-forward could name it. The closing lines are also truncated mid-word (`retained earnin`).
+1. ~~**The ratios print at 28 decimals.**~~ Fixed on 2026-11-04. The ratios print at the precision the core
+   declares, 3 dp, and the instruction reaches the route that carries the statements as well (§2.6).
+2. ~~**The brought-forward retained earnings is labelled "other."**~~ Fixed on 2026-11-04. It is labelled
+   `brought forward`, and the closing lines are no longer cut mid-word (§2.2).
 
-Neither changes a number. Both change what a student reads.
+**What is still worth noticing, measured on 2026-11-04:**
+
+- **The cash flow is withheld, not guessed.** A trial balance carries no flows, so the tile says so in its own
+  words rather than showing the whole cash balance as an inflow (§2.5).
+- **One line is named as unplaceable** rather than dropped (§4).
+- **A ratio the figures cannot support is named and left out** — `operating_margin` and `interest_cover`, both for
+  the same missing input (§2.6).
+- **The tile reads one account per line.** A ratio question written as a prose list ("cash 5,000, trade
+  receivables 2,000, …") is refused; the same figures one per line are solved. This is the shape the page's own
+  copy shows, and it is a shape, not a limit.
+- **An adjustments narrative, and any narrative the deterministic reader does not recognise, still needs a model.**
+  §6 says which.
 
 ---
 
 ## 6. The limits of this case, stated plainly
 
-- **One trial balance, one period, USD.** The tile read this with its deterministic parser. A transaction
-  narrative, an adjusting-entry problem, a cash-flow problem or an exam question with a preamble in front of the
-  figures needs the model reader, and `bp/server.py` says it plainly: *"no model is configured (set
-  BP_OPENGO_API_KEY), so only a trial balance can be read."* Measured: a single-year transactions narrative is
-  refused as "more than one period", an adjustments sentence as "a comparative", and an exam question's own
-  words are read as account rows. The reproductions are in `docs/WORKLOG.md`.
+**One trial balance, one period, USD.** The tile read this with its deterministic parser, and no model was
+configured when it was measured.
+
+**What the tile can read without a model, measured on 2026-11-04** (posted to `POST /api/cases/statements`, no
+model configured):
+
+| the student pastes | what came back |
+|---|---|
+| this trial balance | **201 solved** — 11 checks, all three statements, cash flow withheld and named |
+| this trial balance + "Also compute the liquidity ratios." | **201 solved** — the same three statements and 13 ratios |
+| a five-clause transactions narrative | **201 solved** — 11 checks, the period taken from the text's own dates, rent and salaries on their own lines |
+| an exam question with a preamble before the figures | **201 solved** — the preamble is named as a line it could not place, and the figures are read |
+| a ratio question, one account per line | **201 solved** — the balance-sheet-analysis engine |
+| an adjustments narrative (depreciation + accrual) | **400** "no model is configured, so only a trial balance can be read. Set DEEPSEEK_API_KEY (or BP_LLM_PROVIDER + BP_LLM_MODEL)." |
+| a cash-flow narrative | **400** "closing with abnormal balances needs a human decision: 1500 (Property, plant and equipment)" |
+| a trial balance in EUR | **400** "this product answers in USD only" (a deliberate rule) |
+
+**What that table means.** The reader reads a **trial balance** and a **transaction narrative**, with no model at
+all. It does **not** derive the adjusting entries — depreciation, prepaid amortisation, tax — because that is the
+model's job in the plan layer, and a tile with no model configured says so rather than guessing. The cash-flow
+narrative is refused by name: the figures it states do not close, and the refusal names the account that is
+wrong.
+
+**The first measurement of this case (2026-11-03) said the opposite**, and the difference is the increment this
+case documents. Then: a single-year transactions narrative was refused as "more than one period", an adjustments
+sentence as "a comparative", a ratio question as "an account has no code", a cash-flow narrative as "the chart
+needs exactly one retained-earnings account" (after 16.9 seconds), and an exam preamble was read as account rows —
+and the tile's own copy said it read "one trial balance, and only one". None of those five refusals is a refusal
+now, and the copy no longer says it.
+
 - **No cash flow statement** from a trial balance, by design — see §2.5.
 - **The file is a `.txt`**, not a Word document. The export endpoint returns text; it is the server's contract.
+- **The numbers are only as good as the trial balance.** The tile reads balances; it does not know whether the
+  bookkeeper's figure is right. That is the check it says it cannot do (§3).
+
+---
+
+*Reproduce the whole case: `python qa/manual/ashgrove-remeasure.py` (the statements) and
+`python qa/manual/reader-seams-probe.py` (the reader's seams).*

@@ -31,6 +31,7 @@ Rules, all of them absolute:
 - "adjustments": only when you can extract the PARAMETERS for a registered function (below). Never compute the amount; never emit an adjustment whose parameters you cannot find in the text. If the text states a finished figure ("depreciation 12,000"), book it as an entry, not an adjustment.
 - "policy": only what the text states (tax rate, depreciation convention, inventory system). Omit a key rather than guess it.
 - Amounts must be numbers that appear in the text exactly as stated. Never sum, prorate, depreciate, accrue, compute tax or derive a figure. A combined total is a derived figure and will be rejected.
+- The one exception is a partition the text itself states: when a clause names a whole and one part of it ("sales of 90,000, of which 55,000 was cash"), the remaining part may be posted, because it follows from those two stated numbers. Nothing else may be derived.
 - Do not produce totals, balances or statements.
 - "date" is YYYY-MM-DD. If the text states no date, use the accounting period's end date and say so in "assumptions".
 - "source_text" is the exact sentence or clause the entry or adjustment came from.
@@ -212,6 +213,60 @@ def _grounded(amount, tokens):
         return False
 
 
+#: Words that say two numbers in a clause are parts of one whole.
+_PARTITION = re.compile(r"\b(of which|the balance|balance of|remaining|the rest|less|net of|"
+                         r"split into|part of|deducted from|after deducting)\b", re.I)
+
+
+def _clauses(text):
+    """The clauses of the text: each sentence, and each comma-part inside it."""
+    out = []
+    for sentence in re.split(r"[.;\n]", str(text or "")):
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        out.append(sentence)
+        for part in re.split(r",|;", sentence):
+            part = part.strip()
+            if part and part not in out:
+                out.append(part)
+    return out
+
+
+def _partition_grounded(amount, text, source_text):
+    """True when the text proves the amount by partition: a stated whole less a stated part.
+
+    The proof is arithmetic the code does, not a figure the model asserts.  Both operands
+    must be stated in the same clause, the clause must say the two numbers are parts of
+    one whole ("of which 55,000 was cash"), and the subtraction must come to the amount
+    exactly.  Nothing else is accepted: a sum of two unrelated figures, or a difference
+    the text never frames as a partition, stays ungrounded.
+    """
+    try:
+        target = D(str(amount))
+    except (InvalidOperation, ValueError):
+        return False
+    wanted = str(source_text or "").strip()
+    for clause in _clauses(text):
+        if wanted and wanted not in clause:
+            continue
+        if not _PARTITION.search(clause):
+            continue
+        numbers = []
+        for match in _NUMBER.finditer(clause):
+            try:
+                numbers.append(D(match.group(0).replace(",", "")))
+            except InvalidOperation:
+                continue
+        for whole in numbers:
+            for part in numbers:
+                if whole == part:
+                    continue
+                if whole - part == target:
+                    return True
+    return False
+
+
 def _account(line):
     """The chart code a line names. `account` is the schema key; `code` is accepted as its alias."""
     return line.get("account") or line.get("code")
@@ -314,7 +369,8 @@ def validate(payload, source_text, chart, places=2, default_date=None, period=No
                 errs.append(f"{ltag} {ex}")
                 continue
             amount = norm.get("debit", norm.get("credit"))
-            if not _grounded(amount, tokens):
+            if not _grounded(amount, tokens) and not _partition_grounded(
+                    amount, source_text, str(e.get("source_text") or "")):
                 errs.append(f"{ltag} amount {amount!r} does not appear in the problem text; "
                             f"a model may not introduce a figure (derived amounts belong to the adjustment stage)")
                 continue

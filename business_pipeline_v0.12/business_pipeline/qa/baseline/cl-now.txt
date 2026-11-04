@@ -1,0 +1,5 @@
+builds: ['1.83', '1.81', '1.80', '1.82', '1.79', '1.78']
+- 1.83 (2026-11-03): **the Research & statistics shelf is verified subject by subject, and five reco
+
+  - **D-RES-01 — five records said "Method not built" while the page offered a calculator for the ar
+  - **D-RES-06 — the page could group nothing.** 21 tools, 0 groups, 0 tiles and 9 null levels meant

@@ -1,0 +1,83 @@
+# Finance contract anomalies
+
+## [tvm] time_value
+  - tile declares no 'what to gather' text
+
+## [loan] loan_amortization
+  - tile declares no 'what to gather' text
+
+## [dupont] dupont_analysis
+  - tile declares no 'what to gather' text
+
+## [trendanalysis] trend_analysis
+  - tile declares no 'what to gather' text
+
+## [workingcapital] working_capital
+  - tile declares no 'what to gather' text
+
+## [ratios] ratio_analysis
+  - tile declares no 'what to gather' text
+
+## [breakeven] breakeven
+  - tile declares no 'what to gather' text
+
+## [multibreakeven] multi_product_breakeven
+  - tile declares no 'what to gather' text
+
+## [unitecon] unit_economics
+  - tile declares no 'what to gather' text
+
+## [wacc] wacc
+  - tile declares no 'what to gather' text
+
+## [capm] capm
+  - tile declares no 'what to gather' text
+
+## [leverage] leverage_analysis
+  - tile declares no 'what to gather' text
+
+## [case_decision] case_decision
+  - method 'case_decision' is not in LIBRARY
+
+## [dcf] dcf_valuation
+  - tile declares no 'what to gather' text
+
+## [dcfmid] dcf_valuation
+  - self-test failing: ['mid_year_convention_raises_the_value']
+  - tile declares no 'what to gather' text
+
+## [equitybridge] equity_bridge
+  - tile declares no 'what to gather' text
+
+## [multiples] multiples_valuation
+  - tile declares no 'what to gather' text
+
+## [portfolioval] portfolio_valuation
+  - tile declares no 'what to gather' text
+
+## [portfolioperf] portfolio_performance
+  - tile declares no 'what to gather' text
+
+## [bond] bond_analysis
+  - tile declares no 'what to gather' text
+
+## [portfolio] portfolio_analysis
+  - tile declares no 'what to gather' text
+
+## [ols_robust] ols_robust
+  - tool declares no preset
+  - tile declares no 'what to gather' text
+
+## [risk] risk_metrics
+  - tile declares no 'what to gather' text
+
+## [options] option_pricing
+  - tile declares no 'what to gather' text
+
+## [fx] fx_parity
+  - tile declares no 'what to gather' text
+
+## [currency] currency_convert
+  - tile declares no 'what to gather' text
+
+presets whose method is not in LIBRARY: ['case', 'case_decision', 'five_forces', 'swot', 'unsupported']

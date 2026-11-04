@@ -1,0 +1,30 @@
+Computation: sroi
+Result
+The present value of the declared benefits is 69,014.57 against an investment of 60,000.00, a social return of 1.150 per unit invested. The benefits are your declared valuations and the result is not assurance. The social return is the present value of the benefits you declared divided by the investment; every monetised social benefit is your valuation, not a market price. No additionality, deadweight, attribution or displacement adjustment is applied; those would need declared estimates and are the owner's judgement. The result is not audited and is not a substitute for an assurance engagement. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Investment: 60000.00
+Benefits: 20000, 25000, 30000
+Discount rate: 0.04
+What was computed
+Pv benefits: 69014.57
+Investment: 60000.00
+Sroi ratio: 1.150
+Net value: 9014.57
+N periods: 3
+Discount rate: 0.04
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Benefits are declared values on one basis.
+The investment is a declared amount and the rate is the owner's choice.
+Limitations
+No additionality/attribution adjustment and no assurance; the result is a declared-input ratio.
+One outcome aggregate only.
+Sensitivity to the valuation assumptions is not computed.
+How the figures were checked
+Second implementation agrees.
+Ratio is present value over investment.
+Net value is benefits minus investment.
+Doubling the investment halves the ratio.
+Zero discount rate gives undiscounted benefits.

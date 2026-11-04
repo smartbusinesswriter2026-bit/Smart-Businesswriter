@@ -1,0 +1,34 @@
+Computation: market sizing
+Result
+The declared market is 20,000 customers spending 3,000.00 a year, a total addressable market of 60,000,000.00. The serviceable share gives 15,000,000.00, and the obtainable share gives a serviceable obtainable market of 3,000,000.00 from 1,000 customers. Market size is built top-down from the population, spend and shares you declared; it is not a market study and the shares are not verified. TAM here is one year of spend by the declared population. A multi-year or per-period figure needs its own declared inputs. No demand curve, growth rate, competitor data or retrieved market report is used; a bottom-up count of customers can be entered as target_population instead.
+Inputs and results
+What you declared
+Target population: 20000
+Annual spend per customer: 3000.00
+Serviceable share: 0.2500
+Obtainable share: 0.2000
+What was computed
+Target population: 20000
+Annual spend per customer: 3000.00
+Serviceable share: 0.2500
+Obtainable share: 0.2000
+Total addressable market: 60000000.00
+Serviceable available market: 15000000.00
+Serviceable obtainable market: 3000000.00
+Customers in som: 1000
+Share of tam obtained: 0.0500
+Honesty: what was not done
+this method: Market size is built top-down from the population, spend and shares you declared; it is not a market study and the shares are not verified. TAM here is one year of spend by the declared population. A multi-year or per-period figure needs its own declared inputs. No demand curve, growth rate, competitor data or retrieved market report is used; a bottom-up count of customers can be entered as target_population instead.
+Assumptions made
+The population and spend are a constant annual basis.
+The shares nest: SOM is inside SAM and SAM is inside TAM.
+Limitations
+Top-down only; no bottom-up build-up beyond a declared customer count.
+No growth, seasonality, competitor or price response.
+The shares are not validated against any source.
+How the figures were checked
+Second implementation agrees.
+Tam is population times annual spend.
+Sam is the declared share of tam.
+Som is the declared share of sam.
+A higher serviceable share raises the serviceable market.

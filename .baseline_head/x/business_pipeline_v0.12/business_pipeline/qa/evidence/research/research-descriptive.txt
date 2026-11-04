@@ -1,0 +1,30 @@
+Computation: descriptive stats
+Result
+The dataset contains 6 valid observations, with 1 excluded as missing. The mean is 78.83 and the median is 79.00. Values range from 68.00 to 90.00. The sample standard deviation is 8.18. Caution: the sample is small, so these values are unstable and should be described, not generalized. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Values: 72, 85, 90, 68, 99, 77, 81
+Missing codes: 99
+What was computed
+N: 6
+N missing: 1
+Mean: 78.83
+Median: 79.00
+Minimum: 68.00
+Maximum: 90.00
+Variance: 66.97
+Sd: 8.18
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Observations are numeric and the listed codes fully identify missing values.
+Limitations
+Descriptive claims only; no inference.
+Float reference comparison tolerance is 1e-9 relative.
+How the figures were checked
+Second implementation agrees.
+Shift moves location not spread.
+Scale scales spread.
+Permutation invariant.
+Missing entries excluded not valued.
+Order statistics bounded.

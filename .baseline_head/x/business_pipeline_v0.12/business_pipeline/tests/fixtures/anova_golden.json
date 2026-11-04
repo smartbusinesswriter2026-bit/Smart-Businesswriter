@@ -1,0 +1,171 @@
+[
+ {
+  "name": "three_groups",
+  "method": "anova",
+  "groups": {
+   "lecture": [
+    "62",
+    "70",
+    "68",
+    "75",
+    "66",
+    "71",
+    "64",
+    "73"
+   ],
+   "workshop": [
+    "72",
+    "78",
+    "74",
+    "85",
+    "80",
+    "77",
+    "69",
+    "83",
+    "79"
+   ],
+   "online": [
+    "60",
+    "63",
+    "58",
+    "66",
+    "61",
+    "65",
+    "60"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "f_stat": "25.611497369866527",
+   "p_value": "2.32921684764783e-06",
+   "eta_squared": "0.7092338793804273",
+   "n_excluded": 0.0
+  },
+  "source": "scipy 1.18.1 generated offline (manual 9B.5); eta-squared computed from the sums of squares"
+ },
+ {
+  "name": "missing_code",
+  "method": "anova",
+  "groups": {
+   "a": [
+    "10",
+    "12",
+    "11",
+    "99",
+    "13",
+    "12",
+    "14"
+   ],
+   "b": [
+    "15",
+    "17",
+    "16",
+    "18",
+    "99",
+    "17",
+    "19",
+    "16"
+   ],
+   "c": [
+    "11",
+    "12",
+    "10",
+    "13",
+    "12",
+    "99",
+    "11",
+    "14"
+   ]
+  },
+  "missing_codes": [
+   "99"
+  ],
+  "expected": {
+   "f_stat": "29.705968468468445",
+   "p_value": "2.831037086993886e-06",
+   "eta_squared": "0.777521671593927",
+   "n_excluded": 3.0
+  },
+  "source": "scipy 1.18.1 generated offline (manual 9B.5); eta-squared computed from the sums of squares"
+ },
+ {
+  "name": "three_groups",
+  "method": "kruskal_wallis",
+  "groups": {
+   "lecture": [
+    "62",
+    "70",
+    "68",
+    "75",
+    "66",
+    "71",
+    "64",
+    "73"
+   ],
+   "workshop": [
+    "72",
+    "78",
+    "74",
+    "85",
+    "80",
+    "77",
+    "69",
+    "83",
+    "79"
+   ],
+   "online": [
+    "60",
+    "63",
+    "58",
+    "66",
+    "61",
+    "65",
+    "60"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "h_stat": "16.58536451641869",
+   "p_value": "0.0002503420792963889",
+   "epsilon_squared": "0.7211028050616821"
+  },
+  "source": "scipy 1.18.1 generated offline (manual 9B.5); epsilon-squared computed as H/(N-1)"
+ },
+ {
+  "name": "with_ties",
+  "method": "kruskal_wallis",
+  "groups": {
+   "a": [
+    "1",
+    "2",
+    "2",
+    "3",
+    "4",
+    "4"
+   ],
+   "b": [
+    "2",
+    "3",
+    "3",
+    "4",
+    "5",
+    "6"
+   ],
+   "c": [
+    "5",
+    "6",
+    "6",
+    "7",
+    "8",
+    "8"
+   ]
+  },
+  "missing_codes": [],
+  "expected": {
+   "h_stat": "11.050297932001397",
+   "p_value": "0.003985274977432665",
+   "epsilon_squared": "0.6500175254118469"
+  },
+  "source": "scipy 1.18.1 generated offline (manual 9B.5); epsilon-squared computed as H/(N-1)"
+ }
+]

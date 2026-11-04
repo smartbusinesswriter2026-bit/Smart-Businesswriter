@@ -1,0 +1,6 @@
+﻿  intro        30
+  intermediate 14
+  advanced     2
+missing student notes or group: none
+glossary terms: 34
+frozen fixture: in sync

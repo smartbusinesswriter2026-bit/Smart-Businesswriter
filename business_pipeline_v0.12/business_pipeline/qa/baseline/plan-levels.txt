@@ -1,0 +1,11 @@
+accounting           tools=12 null_level=0  groups=4 tiles=5
+finance              tools=35 null_level=0  groups=6 tiles=0
+economics            tools=59 null_level=0  groups=8 tiles=8
+management           tools=1  null_level=0  groups=1 tiles=5
+project-management   tools=18 null_level=0  groups=4 tiles=7
+entrepreneurship     tools=46 null_level=0  groups=6 tiles=0
+operations           tools=14 null_level=0  groups=3 tiles=3
+supply-chain         tools=8  null_level=0  groups=3 tiles=0
+marketing            tools=24 null_level=0  groups=4 tiles=4
+people               tools=10 null_level=0  groups=1 tiles=6
+research             tools=21 null_level=9  groups=4 tiles=4

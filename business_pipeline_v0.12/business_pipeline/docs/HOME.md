@@ -1,6 +1,6 @@
 # Home Ã¢â‚¬â€ map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.98**, **3784 tests**, 2026-11-04. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.99**, **3828 tests**, 2026-11-04. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -107,6 +107,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`HANDOFF_NEXT_CHAT.md`](HANDOFF_NEXT_CHAT.md) | Handoff Ã¢â‚¬â€ completing the remaining frameworks | Read before adding a framework profile; it holds the one-dict recipe and the restart rule |
 | [`STATEMENTS_TILE_PLAN.md`](STATEMENTS_TILE_PLAN.md) | Living — the approved build instruction for the accounting statements tile | Read before touching the statements tile; update this file when a decision changes |
 | [`TIPS_FINANCIAL_STATEMENTS.md`](TIPS_FINANCIAL_STATEMENTS.md) | Living — the owner's four tips on creating and solving financial statements, and the generic layer built from them | **Read first** before any statements, journal-extraction or adjustment work; it names the code, the tests and the next increment |
+| [`FINANCIAL_COMPUTATIONS_MANUAL.md`](FINANCIAL_COMPUTATIONS_MANUAL.md) | Living — the financial-statement computation lane: the 128-spec engine (Sections A–K), what is wired into the tile, what a model is and is not needed for, and what remains | Read before changing the computation engine or the tile's routing; update it on every increment in this lane |
 | [`MINIMAX_STATEMENT_RENDER.md`](MINIMAX_STATEMENT_RENDER.md) | Handoff — the Render layer brief for the Financial statements tile (record shape, metadata, the three cash-flow reconciliations, what it may not change) | Design lane: read it before changing the statements output or the Excel export; the record it reads is the computation owner's and is not to be changed |
 | [`MINIMAX_FINANCIAL_STATEMENTS_UI.md`](MINIMAX_FINANCIAL_STATEMENTS_UI.md) | Handoff — the design brief for the Financial statements tile (the card, the click path, the address) | Design lane: read it before changing the tile's UI; the backend contract in it is the computation owner's and is not to be changed |
 | [`HANDOFF_STATEMENTS_TILE.md`](HANDOFF_STATEMENTS_TILE.md) | Handoff — the statements tile: root cause, work order, traps, and §9 the record of what was done | Read before changing the tile's UI or its reading layer; it carries the evidence and the four open requests |

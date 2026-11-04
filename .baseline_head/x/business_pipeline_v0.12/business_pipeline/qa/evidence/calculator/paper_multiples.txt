@@ -1,0 +1,36 @@
+Computation: multiples valuation
+Result
+Across the declared comparables the mean multiple is 10.0000 (median 10.0000), which implies an enterprise value of 5,000,000.00 and an equity value of 4,700,000.00. With the declared share count the implied value per share is 47.00. The comparables and their multiples are your declarations, not retrieved market prices. The multiples are declared comparables, not retrieved market data: the system does not verify that the peer set, the metric definition or the period is comparable. A mean multiple is applied to the subject metric as supplied; seasonality, one-off items, growth differences and accounting-policy differences are not adjusted. The result is an implied value under one convention, not a price, a fairness opinion or a valuation range with a supported low and high.
+Inputs and results
+What you declared
+Metric: ebitda
+Subject value: 500000.00
+Comparables: Name: Peer A; Multiple: 8, Name: Peer B; Multiple: 10, Name: Peer C; Multiple: 12
+Net debt: 300000.00
+Shares outstanding: 100000.00
+What was computed
+Mean multiple: 10.0000
+Median multiple: 10.0000
+Min multiple: 8.0000
+Max multiple: 12.0000
+N comparables: 3
+Implied enterprise value: 5000000.00
+Implied equity value: 4700000.00
+Net debt: 300000.00
+Per share value: 47.00
+Honesty: what was not done
+this method: The multiples are declared comparables, not retrieved market data: the system does not verify that the peer set, the metric definition or the period is comparable. A mean multiple is applied to the subject metric as supplied; seasonality, one-off items, growth differences and accounting-policy differences are not adjusted. The result is an implied value under one convention, not a price, a fairness opinion or a valuation range with a supported low and high.
+Assumptions made
+The peer multiples and the subject metric are the owner's declared figures.
+The peers are comparable in risk, growth and accounting basis.
+Net debt is debt minus cash at the same date.
+Limitations
+No retrieved market data and no peer screening.
+No control premium, liquidity discount, synergy or growth adjustment.
+One convention gives one implied value, not a supported valuation range.
+How the figures were checked
+Second implementation agrees.
+The median is the ordered middle.
+The implied value scales with the subject metric.
+Enterprise value equals equity value plus net debt.
+A higher multiple raises the implied value.

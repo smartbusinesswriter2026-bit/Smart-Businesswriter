@@ -1,0 +1,250 @@
+{
+ "base": "http://127.0.0.1:8001",
+ "page": {
+  "status": 200,
+  "bytes": 806942,
+  "markers": {
+   "Complete a framework": true,
+   "With computation": true,
+   "Start here": true,
+   "All subjects": true
+  },
+  "templates_status": 200,
+  "shelf_templates": {
+   "template_project_charter": true,
+   "template_wbs": true,
+   "template_raci": true,
+   "template_risk_register": true,
+   "template_stakeholder_plan": true,
+   "template_lessons_learned": true
+  },
+  "presets_status": 200,
+  "presets_shape": [
+   "abc",
+   "abtest",
+   "accounts",
+   "alpha",
+   "anova",
+   "attribution",
+   "bond",
+   "bop"
+  ]
+ },
+ "tools": {
+  "npv": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "irr": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "dpayback": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "projectmetrics": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "scenario": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "case_decision": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "forecast": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "cpm": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "evm": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "leveling": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "crashing": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "calendar": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "multiproject": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "schedrisk": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "decisiontree": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "realoption": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "mcda": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  },
+  "montecarlo": {
+   "status": "delivered",
+   "checks": 0,
+   "report": true
+  }
+ },
+ "screenshots": [
+  {
+   "name": "01-shelf-1280.png",
+   "saved": true,
+   "url": "http://127.0.0.1:8001/#/subject/project-management"
+  },
+  {
+   "name": "02-shelf-390.png",
+   "saved": true,
+   "url": "http://127.0.0.1:8001/#/subject/project-management"
+  },
+  {
+   "name": "03-calculator-1280.png",
+   "saved": true,
+   "url": "http://127.0.0.1:8001/#/subject/project-management"
+  },
+  {
+   "name": "04-delivered-1280.png",
+   "saved": true,
+   "url": "http://127.0.0.1:8001/#/chat"
+  }
+ ],
+ "console": [],
+ "grid_form": {
+  "measured_at": "2026-11-03T20:58:44",
+  "url": "http://127.0.0.1:8013/#/subject/project-management",
+  "method": "Chrome over the DevTools protocol: scrollWidth against clientWidth",
+  "script": "qa/measure_pm_grid.py",
+  "widths": {
+   "1280": {
+    "template_balanced_scorecard": {
+     "scrollWidth": 1280,
+     "clientWidth": 1280,
+     "table_visible": true,
+     "cards_visible": false,
+     "cells": 32
+    },
+    "template_strategy_map": {
+     "scrollWidth": 1280,
+     "clientWidth": 1280,
+     "table_visible": true,
+     "cards_visible": false,
+     "cells": 16
+    },
+    "template_kpi_tree": {
+     "scrollWidth": 1280,
+     "clientWidth": 1280,
+     "table_visible": true,
+     "cards_visible": false,
+     "cells": 24
+    },
+    "template_okrs": {
+     "scrollWidth": 1280,
+     "clientWidth": 1280,
+     "table_visible": true,
+     "cards_visible": false,
+     "cells": 16
+    }
+   },
+   "390": {
+    "template_balanced_scorecard": {
+     "scrollWidth": 375,
+     "clientWidth": 375,
+     "table_visible": false,
+     "cards_visible": true,
+     "cells": 32
+    },
+    "template_strategy_map": {
+     "scrollWidth": 375,
+     "clientWidth": 375,
+     "table_visible": false,
+     "cards_visible": true,
+     "cells": 16
+    },
+    "template_kpi_tree": {
+     "scrollWidth": 375,
+     "clientWidth": 375,
+     "table_visible": false,
+     "cards_visible": true,
+     "cells": 24
+    },
+    "template_okrs": {
+     "scrollWidth": 375,
+     "clientWidth": 375,
+     "table_visible": false,
+     "cards_visible": true,
+     "cells": 16
+    }
+   }
+  },
+  "refusal": {
+   "1280": {
+    "returned_null": true,
+    "shown": true,
+    "banner": "This grid cannot be run yetThe grid is built but every cell is empty. Fill at least one cell, or leave a cell empty on purpose - an empty cell is named in the audit, never filled in for you.",
+    "tokens": false,
+    "scrollWidth": 1280,
+    "clientWidth": 1280
+   },
+   "390": {
+    "returned_null": true,
+    "shown": true,
+    "banner": "This grid cannot be run yetThe grid is built but every cell is empty. Fill at least one cell, or leave a cell empty on purpose - an empty cell is named in the audit, never filled in for you.",
+    "tokens": false,
+    "scrollWidth": 375,
+    "clientWidth": 375
+   }
+  },
+  "sideways": [],
+  "build_pill": {
+   "1280": "v1.83",
+   "390": "v1.83"
+  },
+  "served_build": {
+   "1280": "1.83",
+   "390": "1.83"
+  },
+  "screenshots": [
+   "05-grid-form-scorecard-1280.png",
+   "05-grid-form-okrs-1280.png",
+   "07-grid-form-refusal-1280.png",
+   "05-grid-form-scorecard-390.png",
+   "05-grid-form-okrs-390.png"
+  ]
+ }
+}

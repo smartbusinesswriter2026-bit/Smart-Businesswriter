@@ -1,0 +1,62 @@
+﻿
+> qa\baseline\s2-suite-err.txt:731:FAIL: 
+test_the_finance_page_groups_tools_and_carries_study_notes (test_finance_additions.Stude
+ntFacingContract.test_the_finance_page_groups_tools_and_carries_study_notes)
+  qa\baseline\s2-suite-err.txt:732:-----------------------------------------------------
+-----------------
+  qa\baseline\s2-suite-err.txt:733:Traceback (most recent call last):
+> qa\baseline\s2-suite-err.txt:734:  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.
+12\business_pipeline\tests\test_finance_additions.py", line 273, in 
+test_the_finance_page_groups_tools_and_carries_study_notes
+  qa\baseline\s2-suite-err.txt:735:    self.assertTrue(all(tool["group"] is None for 
+tool in economics["tools"]),
+  qa\baseline\s2-suite-err.txt:736:    
+~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  qa\baseline\s2-suite-err.txt:737:                    "the finance grouping must not 
+leak onto the economics page")
+  qa\baseline\s2-suite-err.txt:738:                    
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  qa\baseline\s2-suite-err.txt:739:AssertionError: False is not true : the finance 
+grouping must not leak onto the economics page
+  qa\baseline\s2-suite-err.txt:740:
+  qa\baseline\s2-suite-err.txt:741:=====================================================
+=================
+  qa\baseline\s2-suite-err.txt:742:FAIL: 
+test_a_framework_without_a_profile_has_no_extension (test_framework_profiles.ProfileTest
+.test_a_framework_without_a_profile_has_no_extension)
+  qa\baseline\s2-suite-err.txt:743:-----------------------------------------------------
+-----------------
+  qa\baseline\s2-suite-err.txt:744:Traceback (most recent call last):
+  qa\baseline\s2-suite-err.txt:745:  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.
+12\business_pipeline\tests\test_framework_profiles.py", line 82, in 
+test_a_framework_without_a_profile_has_no_extension
+  qa\baseline\s2-suite-err.txt:746:    
+self.assertIsNone(framework_profiles.describe_extra("template_customer_journey"))
+  qa\baseline\s2-suite-err.txt:747:    
+~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  qa\baseline\s2-suite-err.txt:748:AssertionError: {'template': 
+'template_customer_journey', 'label': 'Customer Journey', 'title_prefix': 'Customer 
+Journey Analysis', 'subject': 'marketing', 'unit': {'example': 'smartphones, grocery 
+retail, banking', 'field': 'industry', 'help': 'The customer journey is read for a firm 
+in a market. Name the industry or market.', 'label': 'Industry or market', 'refuse': 
+'The customer journey is read for a firm in a market. Name the industry or market.'}, 
+'ratings': False, 'assumption': 'probe', 'styles': ['apa', 'harvard'], 'lengths': 
+[{'key': 'short', 'label': 'Short (600-1,200 words)'}, {'key': 'mid', 'label': 'Mid 
+(1,200-2,500 words)'}, {'key': 'long', 'label': 'Long (2,500-5,000 words)'}], 'blocks': 
+[{'key': 'awareness', 'label': 'Awareness', 'prompt': 'How customers first learn about 
+the offer', 'fill': 'research'}, {'key': 'consideration', 'label': 'Consideration', 
+'prompt': 'How customers evaluate the offer', 'fill': 'research'}, {'key': 'purchase', 
+'label': 'Purchase', 'prompt': 'How customers buy the offer', 'fill': 'research'}, 
+{'key': 'retention', 'label': 'Retention', 'prompt': 'How customers are kept after 
+purchase', 'fill': 'research'}, {'key': 'advocacy', 'label': 'Advocacy', 'prompt': 'How 
+customers recommend the offer', 'fill': 'research'}], 'fills': [{'key': 'research', 
+'label': 'Research retrieves external evidence for this part.'}, {'key': 'auto', 
+'label': 'Researched where evidence exists, otherwise taken from your own words.'}, 
+{'key': 'quote', 'label': 'Taken from your own words in the instruction, verbatim.'}, 
+{'key': 'gap', 'label': 'Only you can state this part. It stays a named gap until you 
+do.'}]} is not None
+  qa\baseline\s2-suite-err.txt:749:
+  qa\baseline\s2-suite-err.txt:750:=====================================================
+=================
+
+

@@ -1,0 +1,41 @@
+Computation: market share
+Result
+On the declared market, the firm holds 20.00% of sales (2,400,000.00 of 12,000,000.00). That is a change of 1.74% from the previous period, when the share was 18.26%. Of the declared target population, 48,000 customers buy, a penetration rate of 12.00%. Against the largest declared competitor the firm's relative share is 0.67. Firm and market sales are the figures you declare, from the same definition and the same period; a retailer's and a manufacturer's sales are not the same market. The market boundary is your choice: widening or narrowing it changes the share without any sales changing. Penetration is customers divided by the declared target population, not buyer behaviour measured over time, and a customer may count in more than one category. No competitor data is retrieved and no share is estimated; the largest rival is one you name.
+Inputs and results
+What you declared
+Firm sales: 2400000.00
+Market sales: 12000000.00
+Prior firm sales: 2100000.0000
+Prior market sales: 11500000.0000
+Customers: 48000
+Target population: 400000
+Largest competitor sales: 3600000.00
+What was computed
+Firm sales: 2400000.00
+Market sales: 12000000.00
+Market share: 0.2000
+Prior share: 0.1826
+Share change: 0.0174
+Firm growth: 0.1429
+Market growth: 0.0435
+Customers: 48000
+Target population: 400000
+Penetration rate: 0.1200
+Largest competitor sales: 3600000.00
+Relative market share: 0.67
+Competitor share: 0.3000
+Honesty: what was not done
+this method: Firm and market sales are the figures you declare, from the same definition and the same period; a retailer's and a manufacturer's sales are not the same market. The market boundary is your choice: widening or narrowing it changes the share without any sales changing. Penetration is customers divided by the declared target population, not buyer behaviour measured over time, and a customer may count in more than one category. No competitor data is retrieved and no share is estimated; the largest rival is one you name.
+Assumptions made
+Firm and market sales cover the same definition, currency and period.
+The declared market contains the firm and every competitor counted in it.
+Limitations
+Declared figures only; no market data and no competitor estimate.
+The boundary is the student's and cannot be tested.
+No significance test on a share change and no trend model.
+How the figures were checked
+Second implementation agrees.
+Share is firm sales over market sales.
+Share lies between zero and one.
+Share change is the difference of shares.
+Relative share is the firm over the largest rival.

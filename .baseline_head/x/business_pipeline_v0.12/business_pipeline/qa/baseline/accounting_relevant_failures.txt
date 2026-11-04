@@ -1,0 +1,190 @@
+FAIL: test_a_bespoke_formatter_reports_the_core_numbers_as_money (test_capabilities.PaperTest.test_a_bespoke_formatter_reports_the_core_numbers_as_money)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 500, in test_a_bespoke_formatter_reports_the_core_numbers_as_money
+    self.assertIn("26,794.62", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: '26,794.62' not found in "Declared inputs: rate: 0.10; cashflows: ['-100000', '40000', '40000', '40000', '40000']. npv: 26794.617853971723242947886073355645106208592309268"
+
+======================================================================
+FAIL: test_a_cohort_paper_takes_a_retention_matrix (test_capabilities.RunnerTest.test_a_cohort_paper_takes_a_retention_matrix)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 295, in test_a_cohort_paper_takes_a_retention_matrix
+    self.assertIn("65.83", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: '65.83' not found in "Declared inputs: cohort_sizes: ['1000', '800', '600']; retained: [['1000', '600', '420'], ['800', '480', '300'], ['600', '360', '180']]. retention_1: 1 churn_1: 0 retention_2: 0.6 churn_2: 0.4 retention_3: 0.375 churn_3: 0.625 average_retention: 0.65833333333333333333333333333333333333333333333333 average_lifetime: 1.975 total_start: 2400 total_retained_1: 2400"
+
+======================================================================
+FAIL: test_a_currency_conversion_takes_codes_and_a_declared_rate (test_capabilities.RunnerTest.test_a_currency_conversion_takes_codes_and_a_declared_rate)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 500, in test_a_bespoke_formatter_reports_the_core_numbers_as_money
+    self.assertIn("26,794.62", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+AssertionError: '26,794.62' not found in "Declared inputs: rate: 0.10; cashflows: ['-100000', '40000', '40000', '40000', '40000']. npv: 26794.617853971723242947886073355645106208592309268"
+
+======================================================================
+FAIL: test_a_cohort_paper_takes_a_retention_matrix (test_capabilities.RunnerTest.test_a_cohort_paper_takes_a_retention_matrix)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 295, in test_a_cohort_paper_takes_a_retention_matrix
+    self.assertIn("65.83", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+AssertionError: '65.83' not found in "Declared inputs: cohort_sizes: ['1000', '800', '600']; retained: [['1000', '600', '420'], ['800', '480', '300'], ['600', '360', '180']]. retention_1: 1 churn_1: 0 retention_2: 0.6 churn_2: 0.4 retention_3: 0.375 churn_3: 0.625 average_retention: 0.65833333333333333333333333333333333333333333333333 average_lifetime: 1.975 total_start: 2400 total_retained_1: 2400"
+
+======================================================================
+FAIL: test_a_currency_conversion_takes_codes_and_a_declared_rate (test_capabilities.RunnerTest.test_a_currency_conversion_takes_codes_and_a_declared_rate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 317, in test_a_currency_conversion_takes_codes_and_a_declared_rate
+FAIL: test_a_finance_paper_reports_the_cash_conversion_cycle (test_capabilities.RunnerTest.test_a_finance_paper_reports_the_cash_conversion_cycle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 333, in test_a_finance_paper_reports_the_cash_conversion_cycle
+    self.assertIn("cash conversion cycle of 50.19 days", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cash conversion cycle of 50.19 days' not found in 'Declared inputs: revenue: 1200000; cost_of_sales: 800000; inventory: 100000; receivables: 150000; payables: 90000; annual_demand: 24000; order_cost: 50; holding_cost_per_unit: 2; discount_percent: 0.02; credit_terms_days: 40; discount_days: 10. dso: 45.625 dio: 45.625 dpo: 41.0625 cash_conversion_cycle: 50.1875 net_working_capital: 160000 eoq: 1095.4451150103323 reorder_point: 0E-48 cost_of_trade_credit: 0.24829931972789115646258503401360544217687074829932 daily_demand: 65.753424657534246575342465753424657534246575342466 n_orders_per_year: 21.908902300206643076557582624064268239539669462371'
+
+======================================================================
+FAIL: test_a_gini_paper_reports_inequality (test_capabilities.RunnerTest.test_a_gini_paper_reports_inequality)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 357, in test_a_gini_paper_reports_inequality
+    self.assertIn("Gini coefficient is 0.25", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Gini coefficient is 0.25' not found in "Declared inputs: incomes: ['10', '20', '30', '40']. n: 4 mean_income: 25 min_income: 10 max_income: 40 gini: 0.25 poorest_share: 0.1 richest_share: 0.4"
+
+======================================================================
+FAIL: test_a_schedule_paper_names_the_critical_path (test_capabilities.RunnerTest.test_a_schedule_paper_names_the_critical_path)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 333, in test_a_finance_paper_reports_the_cash_conversion_cycle
+    self.assertIn("cash conversion cycle of 50.19 days", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'cash conversion cycle of 50.19 days' not found in 'Declared inputs: revenue: 1200000; cost_of_sales: 800000; inventory: 100000; receivables: 150000; payables: 90000; annual_demand: 24000; order_cost: 50; holding_cost_per_unit: 2; discount_percent: 0.02; credit_terms_days: 40; discount_days: 10. dso: 45.625 dio: 45.625 dpo: 41.0625 cash_conversion_cycle: 50.1875 net_working_capital: 160000 eoq: 1095.4451150103323 reorder_point: 0E-48 cost_of_trade_credit: 0.24829931972789115646258503401360544217687074829932 daily_demand: 65.753424657534246575342465753424657534246575342466 n_orders_per_year: 21.908902300206643076557582624064268239539669462371'
+
+======================================================================
+FAIL: test_a_gini_paper_reports_inequality (test_capabilities.RunnerTest.test_a_gini_paper_reports_inequality)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 357, in test_a_gini_paper_reports_inequality
+    self.assertIn("Gini coefficient is 0.25", text)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Gini coefficient is 0.25' not found in "Declared inputs: incomes: ['10', '20', '30', '40']. n: 4 mean_income: 25 min_income: 10 max_income: 40 gini: 0.25 poorest_share: 0.1 richest_share: 0.4"
+
+======================================================================
+FAIL: test_a_schedule_paper_names_the_critical_path (test_capabilities.RunnerTest.test_a_schedule_paper_names_the_critical_path)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_capabilities.py", line 383, in test_a_schedule_paper_names_the_critical_path
+FAIL: test_break_even_can_be_attached_to_any_framework (test_conductor_frameworks.AttachedComputation.test_break_even_can_be_attached_to_any_framework)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_conductor_frameworks.py", line 227, in test_break_even_can_be_attached_to_any_framework
+    self.assertIn("166,666.67", body(state))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '166,666.67' not found in "The decision under analysis is: Should the chain enter. The paper examines Global over the last 10 years and uses PESTEL to organise the evidence and the firm's position. The paper argues that Entry is viable only above break-even.\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nDeclared inputs: fixed: 2000000; price: 40; variable: 28.\nbreakeven_units: 166666.66666666666666666666666666666666666666666667 contribution_margin: 12 contribution_margin_ratio: 0.3 breakeven_revenue: 6666666.6666666666666666666666666666666666666666668\nThe framework above organises the case; the break-even analysis tests the declared figures through the frozen method. Read together, the analysis qualifies the result: a computed figure holds only for the inputs the student declared, and it does not prove that the expected volume or price will be reached. The implications below state the resulting judgment.\nEntry is viable only above break-even.\nBreak-even: Multi-product mix; step-fixed costs; non-linear price or cost; a demand response to the price; tax; financing cost. Placement uses keyword cues; a source can be relevant to more than one dimension. The paper quotes sources; it does not verify the claims inside them. Every financial figure is the frozen method's result from the inputs the student declared. Web search is not configured.\nThe paper set out to address: Should the chain enter? The evidence and the implications above support the position that entry is viable only above break-even.\nLovelace, A. (2024). Evidence on Saudi Arabia government policy regulation trade sanctions. Journal of External Analysis. 10.1/saudi-arabia-government-policy-regulation-trade-sanctions\nLovelace, A. (2024). Evidence on Saudi Arabia economic growth inflation exchange rate demand. Journal of External Analysis. 10.1/saudi-arabia-economic-growth-inflation-exchange-rate-demand\nLovelace, A. (2024). Evidence on Saudi Arabia demographics consumer behaviour labour market. Journal of External Analysis. 10.1/saudi-arabia-demographics-consumer-behaviour-labour-market\nLovelace, A. (2024). Evidence on Saudi Arabia technology adoption digital infrastructure inno. Journal of External Analysis. 10.1/arabia-technology-adoption-digital-infrastructure-innovation\nLovelace, A. (2024). Evidence on Saudi Arabia climate emissions energy sustainability. Journal of External Analysis. 10.1/saudi-arabia-climate-emissions-energy-sustainability\nLovelace, A. (2024). Evidence on Saudi Arabia legislation compliance licensing regulation law. Journal of External Analysis. 10.1/saudi-arabia-legislation-compliance-licensing-regulation-law"
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_cro_completion.CROCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_cro_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "CRO")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Conversion Rate Optimisation' != 'CRO'
+- Conversion Rate Optimisation
++ CRO
+
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_conductor_frameworks.py", line 227, in test_break_even_can_be_attached_to_any_framework
+    self.assertIn("166,666.67", body(state))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '166,666.67' not found in "The decision under analysis is: Should the chain enter. The paper examines Global over the last 10 years and uses PESTEL to organise the evidence and the firm's position. The paper argues that Entry is viable only above break-even.\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nThe source reports a relevant change in the external environment. (Lovelace, 2024).\nDeclared inputs: fixed: 2000000; price: 40; variable: 28.\nbreakeven_units: 166666.66666666666666666666666666666666666666666667 contribution_margin: 12 contribution_margin_ratio: 0.3 breakeven_revenue: 6666666.6666666666666666666666666666666666666666668\nThe framework above organises the case; the break-even analysis tests the declared figures through the frozen method. Read together, the analysis qualifies the result: a computed figure holds only for the inputs the student declared, and it does not prove that the expected volume or price will be reached. The implications below state the resulting judgment.\nEntry is viable only above break-even.\nBreak-even: Multi-product mix; step-fixed costs; non-linear price or cost; a demand response to the price; tax; financing cost. Placement uses keyword cues; a source can be relevant to more than one dimension. The paper quotes sources; it does not verify the claims inside them. Every financial figure is the frozen method's result from the inputs the student declared. Web search is not configured.\nThe paper set out to address: Should the chain enter? The evidence and the implications above support the position that entry is viable only above break-even.\nLovelace, A. (2024). Evidence on Saudi Arabia government policy regulation trade sanctions. Journal of External Analysis. 10.1/saudi-arabia-government-policy-regulation-trade-sanctions\nLovelace, A. (2024). Evidence on Saudi Arabia economic growth inflation exchange rate demand. Journal of External Analysis. 10.1/saudi-arabia-economic-growth-inflation-exchange-rate-demand\nLovelace, A. (2024). Evidence on Saudi Arabia demographics consumer behaviour labour market. Journal of External Analysis. 10.1/saudi-arabia-demographics-consumer-behaviour-labour-market\nLovelace, A. (2024). Evidence on Saudi Arabia technology adoption digital infrastructure inno. Journal of External Analysis. 10.1/arabia-technology-adoption-digital-infrastructure-innovation\nLovelace, A. (2024). Evidence on Saudi Arabia climate emissions energy sustainability. Journal of External Analysis. 10.1/saudi-arabia-climate-emissions-energy-sustainability\nLovelace, A. (2024). Evidence on Saudi Arabia legislation compliance licensing regulation law. Journal of External Analysis. 10.1/saudi-arabia-legislation-compliance-licensing-regulation-law"
+
+======================================================================
+FAIL: test_four_cells_each_carry_a_sourced_item_or_a_named_gap (test_cro_completion.CROCompletionTest.test_four_cells_each_carry_a_sourced_item_or_a_named_gap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_cro_completion.py", line 51, in test_four_cells_each_carry_a_sourced_item_or_a_named_gap
+    self.assertEqual(result["framework"], "CRO")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'Conversion Rate Optimisation' != 'CRO'
+- Conversion Rate Optimisation
++ CRO
+
+
+======================================================================
+FAIL: test_outline_headings_are_present_and_title_cased (test_cro_completion.CROCompletionTest.test_outline_headings_are_present_and_title_cased)
+FAIL: test_open_pure_accounting_refused (test_product_home_routing.HomeRoutingTest.test_open_pure_accounting_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_home_routing.py", line 39, in test_open_pure_accounting_refused
+    self.assertEqual(st.get("stage"), "not_supported")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'clarify' != 'not_supported'
+- clarify
++ not_supported
+
+
+======================================================================
+FAIL: test_shelf_mode_control (test_product_home_routing.HomeRoutingTest.test_shelf_mode_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_home_routing.py", line 44, in test_shelf_mode_control
+    self.assertEqual(st.get("stage"), "not_supported")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'clarify' != 'not_supported'
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_home_routing.py", line 39, in test_open_pure_accounting_refused
+    self.assertEqual(st.get("stage"), "not_supported")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'clarify' != 'not_supported'
+- clarify
++ not_supported
+
+
+======================================================================
+FAIL: test_shelf_mode_control (test_product_home_routing.HomeRoutingTest.test_shelf_mode_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_home_routing.py", line 44, in test_shelf_mode_control
+    self.assertEqual(st.get("stage"), "not_supported")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'clarify' != 'not_supported'
+- clarify
++ not_supported
+
+FAIL: test_shelf_mode_control (test_product_home_routing.HomeRoutingTest.test_shelf_mode_control)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_home_routing.py", line 44, in test_shelf_mode_control
+    self.assertEqual(st.get("stage"), "not_supported")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'clarify' != 'not_supported'
+- clarify
++ not_supported
+
+
+======================================================================
+FAIL: test_counts_and_types (test_registry.Import.test_counts_and_types)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py", line 33, in test_counts_and_types
+    self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (161, 71, 24, 59, 7))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (160, 70, 24, 59, 7) != (161, 71, 24, 59, 7)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_product_home_routing.py", line 44, in test_shelf_mode_control
+    self.assertEqual(st.get("stage"), "not_supported")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'clarify' != 'not_supported'
+- clarify
++ not_supported
+
+
+======================================================================
+FAIL: test_counts_and_types (test_registry.Import.test_counts_and_types)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\tests\test_registry.py", line 33, in test_counts_and_types
+    self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (161, 71, 24, 59, 7))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: (160, 70, 24, 59, 7) != (161, 71, 24, 59, 7)
+
+First differing element 0:
+160

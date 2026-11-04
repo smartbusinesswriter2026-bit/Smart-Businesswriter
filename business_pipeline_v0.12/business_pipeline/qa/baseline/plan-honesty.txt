@@ -1,0 +1,11 @@
+accounting           tools=12 records=3  computed=3  not_built=0  denied_shipped=-
+finance              tools=35 records=23 computed=8  not_built=7  denied_shipped=-
+economics            tools=59 records=5  computed=5  not_built=0  denied_shipped=-
+management           tools=1  records=0  computed=0  not_built=0  denied_shipped=-
+project-management   tools=18 records=6  computed=0  not_built=0  denied_shipped=-
+entrepreneurship     tools=46 records=6  computed=6  not_built=0  denied_shipped=-
+operations           tools=14 records=7  computed=7  not_built=0  denied_shipped=-
+supply-chain         tools=8  records=9  computed=7  not_built=2  denied_shipped=-
+marketing            tools=24 records=15 computed=14 not_built=0  denied_shipped=-
+people               tools=10 records=0  computed=0  not_built=0  denied_shipped=-
+research             tools=21 records=10 computed=8  not_built=2  denied_shipped=-

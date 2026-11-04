@@ -1,0 +1,14 @@
+entrepreneurship — a plan block's columns through bp.ingest.to_method_inputs
+(python qa/probe_ent_mapping.py)
+
+proforma (lists from the file, drivers typed)    PROPOSED  inputs=['depreciation', 'operating_costs', 'revenue']  not_mapped=['capex', 'gross_margin_rate', 'interest', 'inventory_days', 'loan_annual_rate', 'loan_principal', 'loan_years', 'opening_cash', 'opening_equity', 'opening_fixed_assets', 'opening_inventory', 'opening_loan', 'opening_payables', 'opening_receivables', 'payable_days', 'principal_repayment', 'receivable_days', 'tax_rate']
+                                                           still to type: 18 of 21 declared inputs
+                                                           nothing computed: True
+sensitivity (changes from the file, base typed)  PROPOSED  inputs=['price_changes', 'volume_changes']  not_mapped=['base_fixed_cost', 'base_price', 'base_units', 'base_variable_cost']
+                                                           still to type: 4 of 6 declared inputs
+                                                           nothing computed: True
+breakeven (every input is a scalar)              REFUSED   'fixed' has type 'decimal', which cannot be mapped from a column; provide it directly in the request
+frommarket (every input is a scalar)             REFUSED   'market_size' has type 'decimal', which cannot be mapped from a column; provide it directly in the request
+descriptive (a single list, unmapped extras named) PROPOSED  inputs=['values']  not_mapped=['missing_codes']
+                                                           still to type: 1 of 2 declared inputs
+                                                           nothing computed: True

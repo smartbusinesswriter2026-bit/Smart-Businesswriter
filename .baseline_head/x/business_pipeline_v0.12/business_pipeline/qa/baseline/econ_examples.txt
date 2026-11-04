@@ -1,0 +1,48 @@
+guide-1-equilibrium        OK       demand_supply_equilibrium
+    outputs: {'consumer_surplus': '900', 'demand_choke_price': '50', 'equilibrium_price': '20', 'equilibrium_quantity': '60', 'producer_surplus': '900', 'supply_floor_price': '-10', 'total_surplus': '1800'}
+guide-2-elasticity         MISMATCH elasticity
+    missing output keys: ['elasticity'] (have: ['absolute_elasticity', 'elastic', 'pct_change_price', 'pct_change_quantity', 'price_elasticity', 'revenue_change', 'total_revenue_1', 'total_revenue_2', 'unit_elastic'])
+guide-3-tax                MISMATCH tax_incidence
+    missing output keys: ['quantity'] (have: ['consumer_incidence', 'consumer_price', 'consumer_share', 'deadweight_loss', 'equilibrium_price_no_tax', 'equilibrium_quantity_no_tax', 'producer_incidence', 'producer_price', 'producer_share', 'quantity_traded', 'tax_per_unit', 'tax_revenue'])
+guide-4-ceiling            MISMATCH price_control
+    missing output keys: ['quantity_demanded', 'quantity_supplied'] (have: ['binding', 'control_price', 'deadweight_loss', 'equilibrium_price', 'equilibrium_quantity', 'quantity_demanded_at_control', 'quantity_gap', 'quantity_supplied_at_control', 'quantity_traded', 'shortage', 'surplus'])
+guide-4-floor              OK       price_control
+    outputs: {'binding': '1', 'control_price': '25', 'deadweight_loss': '50', 'equilibrium_price': '20', 'equilibrium_quantity': '60', 'quantity_demanded_at_control': '50', 'quantity_gap': '-20', 'quantity_supplied_at_control': '70', 'quantity_traded': '50', 'shortage': '0', 'surplus': '20'}
+guide-5-concentration      OK       market_concentration
+    outputs: {'cr1': '40.0', 'cr4': '90.00', 'effective_n': '3.7735849056603773584905660377358490566037735849057', 'hhi': '2650.0000', 'n_firms': '5', 'total_revenue': '100'}
+guide-6-costs              MISMATCH cost_curves
+    missing output keys: ['revenue'] (have: ['average_cost', 'average_fixed_cost', 'average_variable_cost', 'fixed_cost', 'marginal_cost', 'price', 'profit', 'quantity', 'shutdown', 'total_cost', 'total_revenue', 'variable_cost'])
+guide-7-profitmax          MISMATCH profit_maximization
+    missing output keys: ['quantity', 'price'] (have: ['lerner_index', 'marginal_cost_at_optimum', 'markup', 'profit', 'profit_maximizing_price', 'profit_maximizing_quantity', 'total_cost', 'total_revenue'])
+guide-8-national-income    OK       national_income
+    outputs: {'consumption': '600', 'depreciation': '50', 'exports': '120', 'gdp': '900', 'gdp_deflator': '120', 'gdp_per_capita': '9', 'gnp': '920', 'government_spending': '200', 'imports': '170', 'investment': '150', 'net_exports': '-50', 'net_factor_income': '20', 'nnp': '870', 'population': '100', 'real_gdp': '7.5E+2'}
+guide-9-growth             MISMATCH growth_rate
+    missing output keys: ['total_growth_rate'] (have: ['cagr', 'doubling_time_years', 'end_value', 'periods', 'start_value', 'total_growth'])
+guide-9-growth-practice    MISMATCH growth_rate
+    missing output keys: ['total_growth_rate'] (have: ['cagr', 'doubling_time_years', 'end_value', 'periods', 'start_value', 'total_growth'])
+guide-10-inflation         OK       inflation_cpi
+    outputs: {'cpi_end': '126', 'cpi_start': '120', 'inflation_rate': '0.05', 'nominal_interest_rate': '0.07', 'nominal_wage_growth': '0.05', 'real_interest_approximation': '0.02', 'real_interest_rate': '0.0190476190476190476190476190476190476190476190476', 'real_wage_growth': '0'}
+guide-11-unemployment      MISMATCH unemployment_rate
+    missing output keys: ['participation_rate', 'employment_ratio'] (have: ['employed', 'employment_population_ratio', 'labour_force', 'labour_force_participation_rate', 'unemployed', 'unemployment_rate'])
+guide-12-money             MISMATCH money_multiplier
+    missing output keys: ['multiplier', 'money_supply'] (have: ['currency_drain_ratio', 'extended_money_multiplier', 'monetary_base', 'money_supply_extended', 'money_supply_simple', 'reserve_ratio', 'simple_money_multiplier'])
+guide-13-fiscal            MISMATCH fiscal_multiplier
+    missing output keys: ['multiplier'] (have: ['balanced_budget_multiplier', 'government_spending_change', 'government_spending_multiplier', 'mpc', 'output_change', 'tax_change', 'tax_multiplier', 'tax_rate'])
+guide-14-budget            MISMATCH budget_debt
+    missing output keys: ['debt_ratio'] (have: ['debt_ratio_change', 'debt_stock', 'debt_to_gdp', 'government_revenue', 'interest_payments', 'interest_rate', 'nominal_gdp', 'overall_balance', 'primary_balance', 'primary_balance_to_gdp', 'primary_spending', 'total_spending'])
+guide-15-gini              OK       gini_coefficient
+    outputs: {'gini': '0.25', 'max_income': '40', 'mean_income': '25', 'min_income': '10', 'n': '4', 'poorest_share': '0.1', 'richest_share': '0.4'}
+guide-16-poverty           MISMATCH poverty_measures
+    missing output keys: ['average_poverty_gap'] (have: ['headcount_ratio', 'n', 'poor_count', 'poverty_gap', 'squared_gap', 'total_gap'])
+guide-17-externality       OK       externality_pigouvian
+    outputs: {'deadweight_loss': '8', 'external_cost': '4', 'market_price': '20', 'market_quantity': '60', 'pigouvian_tax': '4', 'social_consumer_price': '22', 'social_producer_price': '18', 'social_quantity': '56'}
+guide-19-tariff            OK       tariff_welfare
+    outputs: {'consumption_dwloss': '25', 'domestic_price': '15', 'imports': '20', 'imports_free_trade': '40', 'production_dwloss': '25', 'quantity_demanded': '70', 'quantity_supplied': '50', 'tariff_revenue': '100', 'total_dwloss': '50'}
+guide-20-ppp               OK       exchange_rate_ppp
+    outputs: {'expected_depreciation': '0', 'expected_nominal_rate': '55', 'misalignment': '0.1', 'ppp_rate': '50', 'real_exchange_rate': '1.1'}
+guide-21-irp               MISMATCH interest_rate_parity
+    missing output keys: ['forward_rate'] (have: ['forward_premium', 'implied_forward', 'real_domestic_rate', 'real_foreign_rate'])
+guide-24-cournot           OK       cournot_duopoly
+    outputs: {'price': '43.333333333333333333333333333333333333333333333332', 'profit_1': '555.55555555555555555555555555555555555555555555554', 'profit_2': '272.22222222222222222222222222222222222222222222221', 'quantity_1': '16.666666666666666666666666666666666666666666666667', 'quantity_2': '11.666666666666666666666666666666666666666666666667', 'total_output': '28.333333333333333333333333333333333333333333333334', 'total_profit': '827.77777777777777777777777777777777777777777777775'}
+
+SUMMARY: 23 examples, 0 mismatched, 13 with missing keys

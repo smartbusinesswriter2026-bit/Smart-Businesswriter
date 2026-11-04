@@ -1,0 +1,5 @@
+compute_tools: 148
+typed (no preset): 4 -> ['kruskal_wallis', 'mann_whitney', 'ols_robust', 'spearman']
+keys that are NOT LIBRARY ids: 131 of 148
+preset/method mismatches: []
+methods with no LIBRARY entry (composites): ['case_decision']

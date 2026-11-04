@@ -1,0 +1,17 @@
+Computation: npv
+Result
+Under the stated assumptions, the npv is -5.26. The result is not positive, so the investment does not clear the hurdle under these inputs.
+Inputs and results
+What you declared
+Rate: 0.10
+Cashflows: -1000, 400, 400, 400
+What was computed
+Npv: -5.26
+Assumptions made
+Cash flows are certain given the inputs.
+Limitations
+Single constant discount rate.
+How the figures were checked
+Second implementation agrees.
+Boundary zero rate equals sum.
+T0 cash flow shifts npv one for one.

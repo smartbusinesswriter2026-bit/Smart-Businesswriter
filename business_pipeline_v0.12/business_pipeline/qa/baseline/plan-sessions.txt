@@ -1,0 +1,6 @@
+3: ## Session 10 — `people` (2026-11-03) · branch `corpus/merge-v1`, opening commit `b393743`
+100: ## Session 10 — `research` (2026-11-03) · branch `corpus/merge-v1`, opening commit `6c7073c`
+171: ## Session 9 — `supply-chain` (2026-11-03) · branch `corpus/merge-v1`, opening commit `f699579`, rebased onto `2cd3347`
+307: ## Session 8 — `operations` (2026-11-03) · branch `corpus/merge-v1`, opening commit `1660f25`
+438: ## Session 7 — `project-management` (2026-11-03) · branch `corpus/merge-v1`, opening commit `84490ec`
+529: ## Session 6 — `marketing` (started 2026-11-03, in progress)

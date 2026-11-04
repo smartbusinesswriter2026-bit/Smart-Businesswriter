@@ -1,0 +1,39 @@
+Computation: tax incidence
+Result
+With a per-unit tax of 6.00, buyers pay 23.00 and sellers keep 17.00. The burden is 3.00 on buyers and 3.00 on sellers; tax revenue is 324.00 and the deadweight loss is 18.00. The tax is a declared per-unit tax on sellers in partial equilibrium; a tax on buyers at the same rate gives the same economic incidence. Consumer price is what buyers pay, producer price is what sellers keep, and the difference is the tax. The deadweight loss is the triangle between the declared linear curves; no other market or income effect is modelled.
+Inputs and results
+What you declared
+Demand intercept: 100.00
+Demand slope: 2.00
+Supply intercept: 20.00
+Supply slope: 2.00
+Tax per unit: 6.00
+What was computed
+Equilibrium price no tax: 20.00
+Equilibrium quantity no tax: 60.00
+Tax per unit: 6.00
+Consumer price: 23.00
+Producer price: 17.00
+Quantity traded: 54.00
+Consumer incidence: 3.00
+Producer incidence: 3.00
+Consumer share: 0.5000
+Producer share: 0.5000
+Tax revenue: 324.00
+Deadweight loss: 18.00
+Honesty: what was not done
+this method: The tax is a declared per-unit tax on sellers in partial equilibrium; a tax on buyers at the same rate gives the same economic incidence. Consumer price is what buyers pay, producer price is what sellers keep, and the difference is the tax. The deadweight loss is the triangle between the declared linear curves; no other market or income effect is modelled.
+Assumptions made
+Linear demand and supply, all else equal.
+The tax is a fixed amount per unit, not a percentage of price.
+The market is competitive and partial equilibrium.
+Limitations
+Per-unit tax only; no ad valorem tax.
+No income effects, other markets, evasion or administration costs.
+The incidence split depends on the declared slopes, not on who hands the tax to the government.
+How the figures were checked
+Second implementation agrees.
+Consumer and producer incidence sum to the tax.
+Consumer share equals d over b plus d.
+Tax revenue equals tax times quantity traded.
+Deadweight loss is the triangle.

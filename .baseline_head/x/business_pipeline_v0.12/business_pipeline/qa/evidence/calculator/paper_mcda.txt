@@ -1,0 +1,36 @@
+Computation: multi criteria
+Result
+Alternative number 1 has the highest weighted total of 7.4000 across 2 criteria. The criteria, weights, scale and scores are yours; the method only multiplies and adds them. A weighted total is not a truth: weights encode your judgement, and a different weighting can reorder the alternatives. No score is inferred, no weight is optimised and no recommendation is made beyond the highest declared total.
+Inputs and results
+What you declared
+Scale max: 10.0000
+Criteria: Name: cost; Weight: 0.6, Name: speed; Weight: 0.4
+Alternatives: Name: A; Scores: Cost: 9; Speed: 5, Name: B; Scores: Cost: 6; Speed: 9, Name: C; Scores: Cost: 7; Speed: 7
+What was computed
+Best index: 1
+Best total: 7.4000
+Alternative count: 3
+Criteria count: 2
+Weight sum: 1
+Total 1: 7.4000
+Rank 1: 1
+Total 2: 7.2000
+Rank 2: 2
+Total 3: 7.0000
+Rank 3: 3
+Honesty: what was not done
+this method: The criteria, weights, scale and scores are yours; the method only multiplies and adds them. A weighted total is not a truth: weights encode your judgement, and a different weighting can reorder the alternatives. No score is inferred, no weight is optimised and no recommendation is made beyond the highest declared total.
+Assumptions made
+Scores are on one declared scale and higher is better.
+Weights sum to one and encode the student's judgement.
+Alternatives and criteria are independent.
+Limitations
+No objective weights, score inference or sensitivity analysis.
+A weighted total is a declared judgement, not a fact.
+Cost criteria must be converted to desirability by the student.
+How the figures were checked
+Second implementation agrees.
+Weights sum to one.
+Every score is within the scale.
+Each total is the weighted sum.
+Ranks are a permutation and the best has the highest total.

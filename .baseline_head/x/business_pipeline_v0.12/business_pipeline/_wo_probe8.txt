@@ -1,0 +1,136 @@
+template_5s                          5S                                       subject=operations  blocks(5): sort, set_in_order, shine, standardize, sustain
+                                       outline.lead: 5S organises one workplace through five steps - sort, set in order, shine, standardize and sustain. Each is treated in turn, first through the evidence accepted for the c
+template_a3                          A3 problem solving                       subject=operations  blocks(7): problem, current_condition, target, causes, countermeasures, plan, follow_up
+                                       outline.lead: An A3 works one problem in one process: the problem as a gap, the current condition, the target, the causes that can be evidenced, the countermeasures proposed, the plan 
+template_activity_system_fit         Strategic positioning and activity-system fit subject=management  blocks(4): strategic_position, activities, reinforcing_choices, boundaries
+                                       outline.lead: Activity-system fit examines the position a firm chooses and the activities that deliver it, including the choices that reinforce one another and the ones deliberately ex
+template_adkar                       ADKAR                                    subject=change      blocks(5): awareness, desire, knowledge, ability, reinforcement
+                                       outline.lead: ADKAR is a five-step change model: awareness, desire, knowledge, ability and reinforcement. Each step is examined in turn, first through the evidence and then through wha
+template_aida                        AIDA                                     subject=marketing   blocks(4): attention, interest, desire, action
+                                       outline.lead: AIDA examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_amo                         AMO Framework                            subject=people      blocks(3): ability, motivation, opportunity
+                                       outline.lead: An ability, motivation and opportunity diagnosis explains a performance problem by asking what is present and what is missing: whether the person has the skill, whether t
+template_ansoff                      Ansoff Growth Matrix                     subject=management  blocks(4): market_penetration, market_development, product_development, diversification
+                                       outline.lead: Ansoff classifies growth options by whether they use existing or new products and existing or new markets. Each cell is treated in turn, first through the evidence and th
+template_attribution                 Attribution and Campaign Measurement     subject=marketing   blocks(4): touchpoints, model, credit, reporting
+                                       outline.lead: Attribution and Campaign Measurement examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_bcg                         BCG Growth-Share Matrix                  subject=strategy    blocks(4): stars, cash_cows, question_marks, dogs
+                                       outline.lead: The BCG matrix classifies a firm"s portfolio into four types: stars, cash cows, question marks and dogs. Each is examined in turn, first through the evidence and then thr
+template_blue_ocean_errc             Blue Ocean four actions (ERRC)           subject=management  blocks(4): eliminate, reduce, raise, create
+                                       outline.lead: The four actions - eliminate, reduce, raise, create - reshape the value curve of an offer against an industry. Each action is treated in turn, first through the evidence 
+template_brand_equity                Brand Equity                             subject=marketing   blocks(4): awareness, associations, perceived_quality, loyalty
+                                       outline.lead: Brand Equity examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_burke_litwin                Burke-Litwin                             subject=change      blocks(12): external_environment, mission_strategy, leadership, culture, structure, management_practices, systems, work_unit_climate, task_requirements, motivation, individual_values, performance
+                                       outline.lead: The Burke-Litwin model links twelve organisational elements from the external environment down to individual performance. Each is examined in turn, first through the evid
+template_change_organization         Change and Organization                  subject=change      blocks(4): change_type, readiness, resistance, support
+                                       outline.lead: Change and organization describes four elements: change type, readiness, resistance and support. Each is examined in turn, first through the evidence and then through wha
+template_competing_values            Competing Values Framework               subject=people      blocks(4): clan, adhocracy, market, hierarchy
+                                       outline.lead: A competing values review describes an organisation against four orientations: the one that puts people and development first, the one that puts experimentation first, th
+template_cro                         Conversion Rate Optimisation             subject=marketing   blocks(4): hypothesis, variants, metrics, results
+                                       outline.lead: Conversion Rate Optimisation examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_customer_journey            Customer Journey                         subject=marketing   blocks(5): awareness, consideration, purchase, retention, advocacy
+                                       outline.lead: Customer Journey examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_digital_mix                 Digital Marketing Mix                    subject=marketing   blocks(3): owned, earned, paid
+                                       outline.lead: Digital Marketing Mix examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_dmaic                       DMAIC                                    subject=quality     blocks(5): define, measure, analyze, improve, control
+                                       outline.lead: DMAIC is a five-step improvement method: define, measure, analyze, improve and control. Each step is examined in turn, first through the evidence and then through what it
+template_email_crm                   Email CRM and Lifecycle                  subject=marketing   blocks(4): list, segments, campaigns, automation
+                                       outline.lead: Email CRM and Lifecycle examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_five_forces                 Porter's Five Forces                     subject=None        blocks(5): rivalry, entrants, substitutes, buyers, suppliers
+                                       outline.lead: Porter's Five Forces assesses the attractiveness of an industry through five sources of competitive pressure. Each force is treated in turn, first through the evidence ac
+template_fmea                        FMEA                                     subject=operations  blocks(6): failure_modes, effects, causes, controls, actions, owners
+                                       outline.lead: An FMEA lists the ways a process or product can fail, what each failure does, why it happens and what already controls it, then records the actions proposed and who owns 
+template_funnel                      Funnel                                   subject=marketing   blocks(6): awareness, interest, consideration, intent, evaluation, purchase
+                                       outline.lead: Funnel examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_galbraith_star              Galbraith Star                           subject=management  blocks(5): strategy, structure, processes, rewards, people
+                                       outline.lead: The Galbraith star model links five elements: strategy, structure, processes, rewards and people. Each is examined in turn, first through the evidence and then through wh
+template_ge_mckinsey                 GE-McKinsey Matrix                       subject=strategy    blocks(9): high_high, high_medium, high_low, medium_high, medium_medium, medium_low, low_high, low_medium, low_low
+                                       outline.lead: The GE-McKinsey matrix classifies a firm"s portfolio into nine cells across industry attractiveness and business strength. Each cell is examined in turn, first through th
+template_generic_strategies          Generic Strategies                       subject=strategy    blocks(4): low_cost, differentiation, focus_low_cost, focus_differentiation
+                                       outline.lead: Porter"s generic strategies classify a firm"s competitive range into four types. Each is examined in turn, first through the evidence and then through what it implies.
+template_job_characteristics         Job Characteristics Model                subject=people      blocks(5): skill_variety, task_identity, task_significance, autonomy, feedback
+                                       outline.lead: A job characteristics analysis examines one role through five characteristics: the skill variety it draws on, the task identity it offers, the significance of its contrib
+template_kano                        Kano Model                               subject=marketing   blocks(5): must_be, performance, attractive, indifferent, reverse
+                                       outline.lead: The Kano model classifies customer requirements into five categories: must-be, performance, attractive, indifferent and reverse. Each is examined in turn, first through t
+template_kirkpatrick                 Kirkpatrick Training Evaluation Model    subject=people      blocks(4): reaction, learning, behavior, results
+                                       outline.lead: A training evaluation reads a programme at four levels: what participants thought, what they learned, what they did differently at work, and what the organisation gained.
+template_kotter                      Kotter's Eight-Step Change Model         subject=people      blocks(8): urgency, coalition, vision, communicate, empower, wins, consolidate, institutionalize
+                                       outline.lead: A change review reads a programme against the steps of a change sequence: making the case urgent, forming a coalition, setting a vision, communicating it, removing the ba
+template_kraljic                     Kraljic purchasing portfolio             subject=operations  blocks(5): criteria, strategic, leverage, bottleneck, non_critical
+                                       outline.lead: The Kraljic portfolio classifies purchases by their profit impact and their supply risk, then records how each class is managed. The criteria are declared first, then eac
+template_lewin                       Lewin                                    subject=change      blocks(3): unfreeze, change, refreeze
+                                       outline.lead: Lewin"s three-step change model: unfreeze, change and refreeze. Each step is examined in turn, first through the evidence and then through what it implies.
+template_logic_model                 Logic Model                              subject=management  blocks(4): inputs, activities, outputs, outcomes
+                                       outline.lead: A logic model links inputs, activities, outputs and outcomes into a chain of expected results. Each link is examined in turn, first through the evidence and then through 
+template_marketing_automation        Marketing Automation                     subject=marketing   blocks(4): triggers, flows, scoring, nurture
+                                       outline.lead: Marketing Automation examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_marketing_plan              Marketing Plan                           subject=marketing   blocks(10): segmentation, targeting, positioning, product, price, place, promotion, people, process, physical_evidence
+                                       outline.lead: A marketing plan covers segmentation, targeting, positioning and the marketing mix. Each element is examined in turn, first through the evidence and then through what it 
+template_mckinsey_7s                 McKinsey 7S                              subject=management  blocks(7): strategy, structure, systems, shared_values, style, staff, skills
+                                       outline.lead: The McKinsey 7S framework examines seven elements: strategy, structure, systems, shared values, style, staff and skills. Each is examined in turn, first through the evide
+template_measurement_plan            Measurement Plan                         subject=marketing   blocks(5): questions, metrics, events_dimensions, data_quality, governance
+                                       outline.lead: A measurement plan covers questions, metrics, events, data quality and governance. Each is examined in turn, first through the evidence and then through what it implies.
+template_mintzberg                   Mintzberg                                subject=management  blocks(5): strategic_apex, middle_line, operating_core, technostructure, support_staff
+                                       outline.lead: Mintzberg"s organisational configuration describes five parts: strategic apex, middle line, operating core, technostructure and support staff. Each is examined in turn, f
+template_nine_box                    Nine-Box Talent Grid                     subject=people      blocks(4): performance_criteria, potential_criteria, placements, development_actions
+                                       outline.lead: A talent grid review sets out four things: the criteria by which performance is judged, the criteria by which potential is judged, where each person named is placed, and 
+template_org_design                  Organisational Design Review             subject=people      blocks(6): strategy, decision_rights, structure, processes, people_capability, incentives
+                                       outline.lead: A design review checks an organisation against six parts: the strategy the design must serve, the decision rights that carry it, the structure that groups the work, the p
+template_paid_media_plan             Paid Media Plan                          subject=marketing   blocks(7): objective, audience, channels_placements, budget_bid, creative_variants, conversion_definition, measurement
+                                       outline.lead: A paid media plan covers objective, audience, channels, budget, creative, conversion and measurement. Each is examined in turn, first through the evidence and then throug
+template_pdca                        PDCA                                     subject=operations  blocks(4): plan, do, check, act
+                                       outline.lead: PDCA tests one change: the plan states the problem, target and change; the do records what was actually tried; the check compares the measure with the target; the act sta
+template_pdsa                        PDSA                                     subject=quality     blocks(4): plan, do, study, act
+                                       outline.lead: PDSA is a four-step improvement cycle: plan, do, study and act. Each step is examined in turn, first through the evidence and then through what it implies.
+template_pestel                      PESTEL                                   subject=None        blocks(6): political, economic, social, technological, environmental, legal
+                                       outline.lead: PESTEL organises the external environment of a decision into political, economic, social, technological, environmental and legal evidence. Each dimension is treated in tu
+template_porters_diamond             Porters Diamond                          subject=strategy    blocks(6): factor_conditions, demand_conditions, related_industries, firm_strategy, government, chance
+                                       outline.lead: Porters diamond describes four determinants of national competitive advantage: factor conditions, demand conditions, related industries and firm strategy. Each is examine
+template_raci                        RACI                                     subject=management  blocks(4): responsible, accountable, consulted, informed
+                                       outline.lead: RACI assigns four roles to each task: responsible, accountable, consulted and informed. Each role is examined in turn, first through the evidence and then through what it
+template_rfm                         RFM                                      subject=marketing   blocks(3): recency, frequency, monetary
+                                       outline.lead: RFM examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_root_cause                  Root cause analysis                      subject=operations  blocks(8): problem, people, process, equipment, materials, measurement, environment, root_cause
+                                       outline.lead: Root cause analysis separates the effect from its causes and tests the candidates until one is supported. The problem is stated first, the candidate causes are gathered u
+template_scenario_planning           Scenario planning                        subject=management  blocks(4): drivers, scenarios, implications, signposts
+                                       outline.lead: Scenario planning builds a small number of futures from the drivers that could move a market, then records what each means for the decision and the signposts that say whi
+template_scor                        SCOR                                     subject=operations  blocks(6): plan, source, make, deliver, return, enable
+                                       outline.lead: SCOR describes a supply chain through six processes - plan, source, make, deliver, return and enable. Each is treated in turn, first through the evidence accepted for the
+template_seo_content                 SEO and Content                          subject=marketing   blocks(4): keywords, content, technical, links
+                                       outline.lead: SEO and Content examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_servqual                    SERVQUAL                                 subject=marketing   blocks(5): tangibles, reliability, responsiveness, assurance, empathy
+                                       outline.lead: SERVQUAL examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_sipoc                       SIPOC                                    subject=operations  blocks(5): suppliers, inputs, process, outputs, customers
+                                       outline.lead: A SIPOC bounds one process: the suppliers that feed it, the inputs it consumes, the steps in the order they happen, the output it hands on and the customer that receives 
+template_social_media                Social Media and Influencer              subject=marketing   blocks(4): platforms, content, engagement, influencers
+                                       outline.lead: Social Media and Influencer examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_sop                         Sales and operations planning            subject=operations  blocks(6): demand_plan, supply_plan, inventory_plan, capacity_plan, financial_plan, decisions
+                                       outline.lead: Sales and operations planning reconciles five plans - demand, supply, inventory, capacity and financial - into one set of decisions. Each is treated in turn, then the dis
+template_stp                         STP                                      subject=marketing   blocks(3): segmentation, targeting, positioning
+                                       outline.lead: STP examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_stp_evidence                STP Evidence Check                       subject=marketing   blocks(3): segmentation_evidence, targeting_evidence, positioning_evidence
+                                       outline.lead: STP Evidence Check examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_strategic_group_map         Strategic group mapping                  subject=management  blocks(4): axes, competitors, groups, mobility
+                                       outline.lead: Strategic group mapping places competitors on two declared axes, assigns them to groups, and records the mobility barriers between the groups.
+template_strategic_positioning       Strategic Positioning                    subject=strategy    blocks(4): position, differentiation, value_proposition, target_segment
+                                       outline.lead: Strategic positioning describes where a firm sits relative to competitors and customers. Each element is examined in turn, first through the evidence and then through wha
+template_strategy_4                  Strategy 4                               subject=strategy    blocks(4): perspective, position, plan, pattern
+                                       outline.lead: Strategy as perspective, position, plan and pattern describes how an organisation sees itself and behaves. Each is examined in turn, first through the evidence and then t
+template_swot                        SWOT / TOWS                              subject=management  blocks(4): S, W, O, T
+                                       outline.lead: SWOT organises the internal strengths and weaknesses and the external opportunities and threats of a case. Each quadrant is treated in turn, first through the evidence ac
+template_tam                         Technology Acceptance Model              subject=marketing   blocks(4): perceived_usefulness, perceived_ease_of_use, attitude, behavioral_intention
+                                       outline.lead: Technology Acceptance Model examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_theory_of_change            Theory of Change                         subject=change      blocks(4): inputs, activities, outputs, outcomes
+                                       outline.lead: A theory of change links inputs, activities, outputs and outcomes into a chain of expected results. Each link is examined in turn, first through the evidence and then thr
+template_toc                         Theory of Constraints                    subject=operations  blocks(5): identify, exploit, subordinate, elevate, reassess
+                                       outline.lead: The theory of constraints treats one system at a time: the step that limits output is identified, exploited, protected by the pacing of everything else, elevated if it st
+template_tuckman                     Tuckman's Team Development Stages        subject=people      blocks(5): forming, storming, norming, performing, adjourning
+                                       outline.lead: A team development review reads one team against the stages a group passes through: orienting itself, contesting its arrangements, settling them, working together on the 
+template_utaut                       UTAUT                                    subject=marketing   blocks(4): performance_expectancy, effort_expectancy, social_influence, facilitating_conditions
+                                       outline.lead: UTAUT examines its elements. Each is examined in turn, first through the evidence and then through what it implies.
+template_value_chain                 Porter's Value Chain                     subject=management  blocks(9): firm_infrastructure, human_resource_management, technology_development, procurement, inbound_logistics, operations, outbound_logistics, marketing_and_sales, service
+                                       outline.lead: Porter's Value Chain examines the primary and support activities through which an industry creates value. Each activity is treated in turn, first through the evidence acc
+template_value_stream_map            Value stream mapping                     subject=operations  blocks(6): process_steps, cycle_and_lead_times, inventory_wip, waits_delays, value_added, improvements
+                                       outline.lead: A value stream map follows one flow from request to delivery: the steps in order, the time each takes, what waits between them, which steps the customer would pay for, an
+template_vrio                        VRIO                                     subject=management  blocks(4): valuable, rare, costly_to_imitate, organized
+                                       outline.lead: VRIO evaluates a firm's resources against four tests - valuable, rare, costly to imitate and organized to capture value. Each test is treated in turn, first through the e

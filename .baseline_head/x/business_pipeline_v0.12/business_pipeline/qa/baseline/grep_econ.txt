@@ -1,0 +1,30 @@
+﻿chat.py:2573: def _unit_economics_lines(row, inputs, result):
+chat.py:3974: "unit_economics": _unit_economics_lines,
+chat.py:4015: "channel_economics": _channel_lines,
+subjects.py:8: * it maps a **subject** (Accounting, Finance, Economics, Management, ...) to
+subjects.py:68: "unitecon": {"preset": "unitecon", "method": "unit_economics", "label": "Unit economics",
+subjects.py:334: "channelecon": {"preset": "channelecon", "method": "channel_economics", "label": "Channel economics",
+subjects.py:356: #: Student-facing notes for the Economics shelf.  These are presentation
+subjects.py:1110: #: Terms a student meets on the Economics page, in plain language.
+subjects.py:1111: ECONOMICS_GLOSSARY = [
+subjects.py:2166: #: these; the Economics page keeps its intro/intermediate/advanced grouping.
+subjects.py:2250: #: Presentation groups for the Economics page, in the order a student meets them.
+subjects.py:2251: #: Intro (market_basics), intermediate (firm_behaviour, macroeconomics, welfare_policy, international),
+subjects.py:2253: ECONOMICS_GROUPS = {
+subjects.py:2258: "nationalincome": "macroeconomics", "growth": "macroeconomics", "inflation": "macroeconomics",
+subjects.py:2259: "unemployment": "macroeconomics", "moneymultiplier": "macroeconomics", "fiscal": "macroeconomics",
+subjects.py:2260: "budgetdebt": "macroeconomics", "okun": "macroeconomics",
+subjects.py:2280: #: Period convention for the Economics tiles.
+subjects.py:2281: ECONOMICS_PERIODS = {
+subjects.py:2307: #: The grouping and period maps a subject page uses.  Economics keeps its
+subjects.py:2310: #: student builds the plan: size and demand, customer economics, the funnel,
+subjects.py:2316: "unitecon": "Customer economics and retention", "multibreakeven": "Customer economics and retention",
+subjects.py:2317: "cohort": "Customer economics and retention", "rfm": "Customer economics and retention",
+subjects.py:2318: "clv": "Customer economics and retention", "custprofit": "Customer economics and retention",
+subjects.py:2631: "people": PEOPLE_GROUPS, "economics": ECONOMICS_GROUPS}
+subjects.py:2636: "people": PEOPLE_PERIODS, "economics": ECONOMICS_PERIODS}
+subjects.py:2665: # ---- Economics subject tiles -----------------------------------------------
+subjects.py:2666: #: The tiles the Economics page shows, in the order a student meets them.
+subjects.py:2670: ECONOMICS_TILES = [
+subjects.py:2677: {"key": "macroeconomics", "label": "Macroeconomics",
+subjects.py:2683: {"key": "international", "label": "International economics",

@@ -1,0 +1,47 @@
+Computation: option pricing
+Result
+Under the declared volatility and rates the option is worth 12.3360, of which 0.0000 is intrinsic value and 12.3360 is time value. The two Black-Scholes intermediate terms are 0.3250 and 0.0750; delta is 0.6274, gamma is 0.0151 and vega is 37.8420. The binomial cross-check at the declared steps gives 12.3236, and the put-call parity gap is 0.0000. Black-Scholes assumes a constant volatility, a constant risk-free rate, no jumps and continuous hedging; the binomial tree is a discrete cross-check of the same model, not independent evidence. The volatility is declared. Implied volatility, a volatility surface and calibration to market prices are not computed, and the system does not retrieve an option price. The Greeks are local sensitivities under the model's assumptions; they are not a prediction of the option's future price.
+Inputs and results
+What you declared
+Option type: call
+Spot price: 100.0000
+Strike price: 100.0000
+Volatility: 0.2500
+Risk free rate: 0.0500
+Time to maturity: 1.0000
+Steps: 200.0000
+What was computed
+Option price: 12.3360
+Binomial price: 12.3236
+Delta: 0.6274
+Gamma: 0.0151
+Vega: 37.8420
+Theta: -7.2505
+Rho: 50.4049
+Intrinsic value: 0.0000
+Time value: 12.3360
+Put call parity gap: 0.0000
+D1: 0.3250
+D2: 0.0750
+Spot price: 100.0000
+Strike price: 100.0000
+Volatility: 0.2500
+Time to maturity: 1.0000
+Honesty: what was not done
+this method: Black-Scholes assumes a constant volatility, a constant risk-free rate, no jumps and continuous hedging; the binomial tree is a discrete cross-check of the same model, not independent evidence. The volatility is declared. Implied volatility, a volatility surface and calibration to market prices are not computed, and the system does not retrieve an option price. The Greeks are local sensitivities under the model's assumptions; they are not a prediction of the option's future price.
+Assumptions made
+The underlying follows geometric Brownian motion with constant volatility and rate.
+No dividends beyond the declared continuous yield.
+Markets allow continuous hedging with no transaction costs.
+Limitations
+Model prices, not market quotes; implied volatility is not computed.
+No American exercise, jumps or stochastic volatility.
+The Greeks are local sensitivities under the model.
+How the figures were checked
+Second implementation agrees.
+Put call parity holds.
+The price is at least the intrinsic value.
+A higher volatility raises the price.
+Delta lies in the option direction.
+The binomial tree converges towards the continuous price.
+Gamma and vega are positive.

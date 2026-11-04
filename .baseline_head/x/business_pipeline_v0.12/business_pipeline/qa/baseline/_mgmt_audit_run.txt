@@ -1,0 +1,39 @@
+﻿SHELF management: tools=1 worksheets=31 records=0 tiles=5
+
+WORKSHEETS ON THIS SHELF
+  STR-01    template=template_five_forces         profile=yes   blocks=5  draftable=True form=None
+  STR-02    template=template_generic_strategies  profile=yes   blocks=4  draftable=True form=None
+  STR-03    template=template_value_chain         profile=yes   blocks=9  draftable=True form=None
+  STR-04    template=template_activity_system_fit profile=yes   blocks=4  draftable=False form=None
+  STR-05    template=template_porters_diamond     profile=yes   blocks=6  draftable=True form=None
+  STR-06    template=template_pestel              profile=yes   blocks=6  draftable=True form=None
+  STR-07    template=template_swot                profile=yes   blocks=4  draftable=True form=None
+  STR-08    template=template_vrio                profile=yes   blocks=4  draftable=False form=None
+  STR-09    template=template_ansoff              profile=yes   blocks=4  draftable=False form=None
+  STR-10    template=template_bcg                 profile=yes   blocks=4  draftable=True form=None
+  STR-11    template=template_ge_mckinsey         profile=yes   blocks=9  draftable=True form=None
+  STR-12    template=template_strategic_group_map profile=yes   blocks=4  draftable=False form=None
+  STR-13    template=template_blue_ocean_errc     profile=yes   blocks=4  draftable=False form=None
+  STR-14    template=template_scenario_planning   profile=yes   blocks=4  draftable=False form=None
+  STR-15    template=template_business_model_canvas profile=yes   blocks=9  draftable=True form=None
+  STR-16    template=template_lean_canvas         profile=yes   blocks=9  draftable=True form=None
+  STR-17    template=template_value_proposition_canvas profile=yes   blocks=6  draftable=True form=None
+  STR-18    template=template_swot                profile=yes   blocks=4  draftable=True form=None
+  CHG-01    template=template_kotter              profile=yes   blocks=8  draftable=True form=None
+  CHG-11    template=template_org_design          profile=yes   blocks=6  draftable=True form=None
+  CHG-12    template=template_competing_values    profile=yes   blocks=4  draftable=True form=None
+  CHG-02    template=template_adkar               profile=yes   blocks=5  draftable=True form=None
+  CHG-03    template=template_lewin               profile=yes   blocks=3  draftable=True form=None
+  CHG-04    template=template_mckinsey_7s         profile=yes   blocks=7  draftable=True form=None
+  CHG-05    template=template_burke_litwin        profile=yes   blocks=12 draftable=True form=None
+  CHG-06    template=template_galbraith_star      profile=yes   blocks=5  draftable=True form=None
+  CHG-07    template=template_theory_of_change    profile=yes   blocks=6  draftable=True form=None
+  CHG-08    template=template_logic_model         profile=yes   blocks=5  draftable=True form=None
+  CHG-09    template=template_pdsa                profile=yes   blocks=4  draftable=True form=None
+  CHG-10    template=template_dmaic               profile=yes   blocks=5  draftable=True form=None
+  CHG-13    template=template_mintzberg           profile=yes   blocks=5  draftable=True form=None
+
+DEAD WORKSHEET LINKS (no profile): none
+NOT DRAFTABLE: ['STR-04', 'STR-08', 'STR-09', 'STR-12', 'STR-13', 'STR-14']
+PROFILES REACHABLE FROM NO PAGE: 17 ['template_aida', 'template_attribution', 'template_brand_equity', 'template_change_organization', 'template_cro', 'template_digital_mix', 'template_email_crm', 'template_funnel', 'template_marketing_automation', 'template_rfm', 'template_seo_content', 'template_social_media']
+TEMPLATES DECLARED IN BOTH CANVAS AND MATRIX: ['template_customer_journey', 'template_servqual']

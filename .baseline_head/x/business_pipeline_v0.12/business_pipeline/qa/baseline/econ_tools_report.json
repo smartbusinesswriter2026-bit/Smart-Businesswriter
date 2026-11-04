@@ -1,0 +1,2413 @@
+{
+ "tools": [
+  {
+   "tool": "equilibrium",
+   "method": "demand_supply_equilibrium",
+   "preset": "equilibrium",
+   "status": "delivered",
+   "report_chars": 527,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "quantity_demanded_equals_quantity_supplied": true,
+    "consumer_surplus_is_the_triangle": true,
+    "producer_surplus_is_the_triangle": true,
+    "total_surplus_is_consumer_plus_producer": true
+   },
+   "deterministic": true,
+   "units": {
+    "equilibrium_price": "currency/2",
+    "equilibrium_quantity": "units/2",
+    "demand_choke_price": "currency/2",
+    "supply_floor_price": "currency/2",
+    "consumer_surplus": "currency/2",
+    "producer_surplus": "currency/2",
+    "total_surplus": "currency/2"
+   },
+   "outputs": {
+    "equilibrium_price": "20",
+    "equilibrium_quantity": "60",
+    "demand_choke_price": "50",
+    "supply_floor_price": "-10",
+    "consumer_surplus": "900",
+    "producer_surplus": "900",
+    "total_surplus": "1800"
+   }
+  },
+  {
+   "tool": "elasticity",
+   "method": "elasticity",
+   "preset": "elasticity",
+   "status": "delivered",
+   "report_chars": 550,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "arc_elasticity_equals_percentage_changes": true,
+    "swapping_the_observations_leaves_the_arc_elasticity_unchanged": true,
+    "revenue_change_equals_new_revenue_minus_old": true,
+    "elastic_flag_matches_the_magnitude": true
+   },
+   "deterministic": true,
+   "units": {
+    "price_elasticity": "ratio/4",
+    "absolute_elasticity": "ratio/4",
+    "pct_change_quantity": "rate/4",
+    "pct_change_price": "rate/4",
+    "total_revenue_1": "currency/2",
+    "total_revenue_2": "currency/2",
+    "revenue_change": "currency/2",
+    "elastic": "count/0",
+    "unit_elastic": "count/0"
+   },
+   "outputs": {
+    "price_elasticity": "-1.5",
+    "absolute_elasticity": "1.5",
+    "pct_change_quantity": "0.33333333333333333333333333333333333333333333333333",
+    "pct_change_price": "-0.22222222222222222222222222222222222222222222222222",
+    "total_revenue_1": "1000",
+    "total_revenue_2": "1120",
+    "revenue_change": "120",
+    "elastic": "1",
+    "unit_elastic": "0"
+   }
+  },
+  {
+   "tool": "taxincidence",
+   "method": "tax_incidence",
+   "preset": "taxincidence",
+   "status": "delivered",
+   "report_chars": 562,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "consumer_and_producer_incidence_sum_to_the_tax": true,
+    "consumer_share_equals_d_over_b_plus_d": true,
+    "tax_revenue_equals_tax_times_quantity_traded": true,
+    "deadweight_loss_is_the_triangle": true
+   },
+   "deterministic": true,
+   "units": {
+    "equilibrium_price_no_tax": "currency/2",
+    "equilibrium_quantity_no_tax": "units/2",
+    "tax_per_unit": "currency/2",
+    "consumer_price": "currency/2",
+    "producer_price": "currency/2",
+    "quantity_traded": "units/2",
+    "consumer_incidence": "currency/2",
+    "producer_incidence": "currency/2",
+    "consumer_share": "ratio/4",
+    "producer_share": "ratio/4",
+    "tax_revenue": "currency/2",
+    "deadweight_loss": "currency/2"
+   },
+   "outputs": {
+    "equilibrium_price_no_tax": "20",
+    "equilibrium_quantity_no_tax": "60",
+    "tax_per_unit": "6",
+    "consumer_price": "23",
+    "producer_price": "17",
+    "quantity_traded": "54",
+    "consumer_incidence": "3",
+    "producer_incidence": "3",
+    "consumer_share": "0.5",
+    "producer_share": "0.5",
+    "tax_revenue": "324",
+    "deadweight_loss": "18"
+   }
+  },
+  {
+   "tool": "pricecontrol",
+   "method": "price_control",
+   "preset": "pricecontrol",
+   "status": "delivered",
+   "report_chars": 491,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "a_non_binding_control_leaves_the_market_unchanged": true,
+    "a_binding_ceiling_creates_a_shortage": true,
+    "a_binding_floor_creates_a_surplus": true,
+    "deadweight_loss_is_the_triangle": true
+   },
+   "deterministic": true,
+   "units": {
+    "equilibrium_price": "currency/2",
+    "equilibrium_quantity": "units/2",
+    "control_price": "currency/2",
+    "binding": "count/0",
+    "quantity_demanded_at_control": "units/2",
+    "quantity_supplied_at_control": "units/2",
+    "quantity_traded": "units/2",
+    "quantity_gap": "units/2",
+    "shortage": "units/2",
+    "surplus": "units/2",
+    "deadweight_loss": "currency/2"
+   },
+   "outputs": {
+    "equilibrium_price": "20",
+    "equilibrium_quantity": "60",
+    "control_price": "15",
+    "binding": "1",
+    "quantity_demanded_at_control": "70",
+    "quantity_supplied_at_control": "50",
+    "quantity_traded": "50",
+    "quantity_gap": "20",
+    "shortage": "20",
+    "surplus": "0",
+    "deadweight_loss": "50"
+   }
+  },
+  {
+   "tool": "concentration",
+   "method": "market_concentration",
+   "preset": "concentration",
+   "status": "delivered",
+   "report_chars": 451,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "hhi_equals_the_sum_of_squared_shares": true,
+    "cr4_is_the_sum_of_the_four_largest_shares": true,
+    "shares_sum_to_one_hundred": true,
+    "effective_n_times_hhi_equals_ten_thousand": true
+   },
+   "deterministic": true,
+   "units": {
+    "n_firms": "count/0",
+    "total_revenue": "currency/2",
+    "hhi": "ratio/0",
+    "cr1": "ratio/2",
+    "cr4": "ratio/2",
+    "effective_n": "ratio/2"
+   },
+   "outputs": {
+    "n_firms": "5",
+    "total_revenue": "100",
+    "hhi": "2650.0000",
+    "cr1": "40.0",
+    "cr4": "90.00",
+    "effective_n": "3.7735849056603773584905660377358490566037735849057"
+   }
+  },
+  {
+   "tool": "costcurves",
+   "method": "cost_curves",
+   "preset": "costcurves",
+   "status": "delivered",
+   "report_chars": 540,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "marginal_cost_is_the_derivative_of_total_cost": true,
+    "average_cost_equals_total_cost_over_quantity": true,
+    "average_cost_equals_average_fixed_plus_average_variable": true,
+    "average_variable_cost_excludes_fixed_cost": true
+   },
+   "deterministic": true,
+   "units": {
+    "total_cost": "currency/2",
+    "fixed_cost": "currency/2",
+    "variable_cost": "currency/2",
+    "average_cost": "currency/2",
+    "average_variable_cost": "currency/2",
+    "average_fixed_cost": "currency/2",
+    "marginal_cost": "currency/2",
+    "quantity": "units/2",
+    "price": "currency/2",
+    "total_revenue": "currency/2",
+    "profit": "currency/2",
+    "shutdown": "count/0"
+   },
+   "outputs": {
+    "total_cost": "1400.0",
+    "fixed_cost": "1000",
+    "variable_cost": "400.0",
+    "average_cost": "70.0",
+    "average_variable_cost": "20.0",
+    "average_fixed_cost": "50",
+    "marginal_cost": "30.0",
+    "quantity": "20",
+    "price": "40",
+    "total_revenue": "800",
+    "profit": "-600.0",
+    "shutdown": "0"
+   }
+  },
+  {
+   "tool": "profitmax",
+   "method": "profit_maximization",
+   "preset": "profitmax",
+   "status": "delivered",
+   "report_chars": 491,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "marginal_revenue_equals_marginal_cost": true,
+    "profit_equals_revenue_minus_cost": true,
+    "lerner_index_equals_markup_over_price": true,
+    "profit_falls_away_from_the_optimum": true
+   },
+   "deterministic": true,
+   "units": {
+    "profit_maximizing_quantity": "units/2",
+    "profit_maximizing_price": "currency/2",
+    "total_revenue": "currency/2",
+    "total_cost": "currency/2",
+    "profit": "currency/2",
+    "marginal_cost_at_optimum": "currency/2",
+    "markup": "currency/2",
+    "lerner_index": "ratio/4"
+   },
+   "outputs": {
+    "profit_maximizing_quantity": "18",
+    "profit_maximizing_price": "64",
+    "total_revenue": "1152",
+    "total_cost": "442.0",
+    "profit": "710.0",
+    "marginal_cost_at_optimum": "28.0",
+    "markup": "36.0",
+    "lerner_index": "0.5625"
+   }
+  },
+  {
+   "tool": "marketpower",
+   "method": "market_power",
+   "preset": "marketpower",
+   "status": "delivered",
+   "report_chars": 444,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "lerner_index_equals_markup_over_price": true,
+    "markup_equals_price_minus_marginal_cost": true,
+    "price_equals_marginal_cost_gives_zero_lerner": true,
+    "a_higher_price_raises_the_lerner_index": true
+   },
+   "deterministic": true,
+   "units": {
+    "price": "currency/2",
+    "marginal_cost": "currency/2",
+    "markup": "currency/2",
+    "lerner_index": "ratio/4",
+    "implied_demand_elasticity": "ratio/4"
+   },
+   "outputs": {
+    "price": "50",
+    "marginal_cost": "20",
+    "markup": "30",
+    "lerner_index": "0.6",
+    "implied_demand_elasticity": "1.6666666666666666666666666666666666666666666666667"
+   }
+  },
+  {
+   "tool": "pricediscrimination",
+   "method": "price_discrimination",
+   "preset": "pricediscrimination",
+   "status": "delivered",
+   "report_chars": 408,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "marginal_revenue_equals_marginal_cost_in_market_one": true,
+    "marginal_revenue_equals_marginal_cost_in_market_two": true,
+    "total_revenue_is_the_sum_of_market_revenues": true,
+    "a_higher_marginal_cost_lowers_both_quantities": true
+   },
+   "deterministic": true,
+   "units": {
+    "quantity_1": "units/2",
+    "price_1": "currency/2",
+    "quantity_2": "units/2",
+    "price_2": "currency/2",
+    "revenue_1": "currency/2",
+    "revenue_2": "currency/2",
+    "total_revenue": "currency/2",
+    "total_profit": "currency/2"
+   },
+   "outputs": {
+    "quantity_1": "22.5",
+    "price_1": "55.0",
+    "quantity_2": "35",
+    "price_2": "45",
+    "revenue_1": "1237.50",
+    "revenue_2": "1575",
+    "total_revenue": "2812.50",
+    "total_profit": "2237.50"
+   }
+  },
+  {
+   "tool": "cournot",
+   "method": "cournot_duopoly",
+   "preset": "cournot",
+   "status": "delivered",
+   "report_chars": 370,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "firm_one_is_on_its_best_response": true,
+    "firm_two_is_on_its_best_response": true,
+    "symmetric_costs_give_equal_quantities": true,
+    "a_higher_own_cost_lowers_own_quantity": true
+   },
+   "deterministic": true,
+   "units": {
+    "quantity_1": "units/2",
+    "quantity_2": "units/2",
+    "total_output": "units/2",
+    "price": "currency/2",
+    "profit_1": "currency/2",
+    "profit_2": "currency/2",
+    "total_profit": "currency/2"
+   },
+   "outputs": {
+    "quantity_1": "16.666666666666666666666666666666666666666666666667",
+    "quantity_2": "11.666666666666666666666666666666666666666666666667",
+    "total_output": "28.333333333333333333333333333333333333333333333334",
+    "price": "43.333333333333333333333333333333333333333333333332",
+    "profit_1": "555.55555555555555555555555555555555555555555555554",
+    "profit_2": "272.22222222222222222222222222222222222222222222221",
+    "total_profit": "827.77777777777777777777777777777777777777777777775"
+   }
+  },
+  {
+   "tool": "nash",
+   "method": "nash_equilibrium",
+   "preset": "nash",
+   "status": "delivered",
+   "report_chars": 635,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "nash_count_equals_the_number_of_flags": true,
+    "prisoners_dilemma_has_one_nash": true,
+    "coordination_game_has_two_nash": true,
+    "matching_pennies_has_no_pure_nash": true
+   },
+   "deterministic": true,
+   "units": {
+    "nash_11": "count/0",
+    "nash_12": "count/0",
+    "nash_21": "count/0",
+    "nash_22": "count/0",
+    "nash_count": "count/0"
+   },
+   "outputs": {
+    "nash_11": "0",
+    "nash_12": "0",
+    "nash_21": "0",
+    "nash_22": "1",
+    "nash_count": "1"
+   }
+  },
+  {
+   "tool": "panel",
+   "method": "panel_regression",
+   "preset": "panel",
+   "status": "delivered",
+   "report_chars": 762,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "slope_equals_within_covariance_over_variance": true,
+    "adding_a_constant_to_y_leaves_the_slope_unchanged": true,
+    "adding_a_constant_to_x_leaves_the_slope_unchanged": true,
+    "within_residuals_sum_to_zero": true
+   },
+   "deterministic": true,
+   "units": {
+    "slope": "ratio/4",
+    "intercept": "ratio/4",
+    "within_r2": "ratio/4",
+    "n_obs": "count/0",
+    "n_entities": "count/0",
+    "n_periods": "count/0",
+    "df": "count/0"
+   },
+   "outputs": {
+    "slope": "2",
+    "intercept": "-1E-49",
+    "within_r2": "1",
+    "n_obs": "9",
+    "n_entities": "3",
+    "n_periods": "3",
+    "df": "5"
+   }
+  },
+  {
+   "tool": "iv",
+   "method": "instrumental_variables",
+   "preset": "iv",
+   "status": "delivered",
+   "report_chars": 1053,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "iv_slope_is_the_covariance_ratio": true,
+    "first_stage_slope_is_the_instrument_on_the_regressor": true,
+    "scaling_the_instrument_leaves_the_iv_slope_unchanged": true,
+    "adding_a_constant_to_y_shifts_the_intercept_not_the_slope": true
+   },
+   "deterministic": true,
+   "units": {
+    "iv_slope": "ratio/4",
+    "iv_intercept": "ratio/4",
+    "first_stage_slope": "ratio/4",
+    "ols_slope": "ratio/4",
+    "n": "count/0"
+   },
+   "outputs": {
+    "iv_slope": "1.4605263157894736842105263157894736842105263157895",
+    "iv_intercept": "-0.1578947368421052631578947368421052631578947368422",
+    "first_stage_slope": "0.9047619047619047619047619047619047619047619047619",
+    "ols_slope": "1.4078947368421052631578947368421052631578947368421",
+    "n": "8"
+   }
+  },
+  {
+   "tool": "rdd",
+   "method": "regression_discontinuity",
+   "preset": "rdd",
+   "status": "delivered",
+   "report_chars": 781,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "estimate_is_the_right_intercept_minus_the_left_intercept": true,
+    "shifting_the_outcome_leaves_the_estimate_unchanged": true,
+    "the_bandwidth_excludes_observations_outside_it": true,
+    "a_positive_jump_at_the_cutoff_gives_a_positive_estimate": true
+   },
+   "deterministic": true,
+   "units": {
+    "estimate": "ratio/4",
+    "left_intercept": "ratio/4",
+    "right_intercept": "ratio/4",
+    "left_slope": "ratio/4",
+    "right_slope": "ratio/4",
+    "n_left": "count/0",
+    "n_right": "count/0"
+   },
+   "outputs": {
+    "estimate": "6.0",
+    "left_intercept": "3.0",
+    "right_intercept": "9.0",
+    "left_slope": "1",
+    "right_slope": "1",
+    "n_left": "2",
+    "n_right": "2"
+   }
+  },
+  {
+   "tool": "probit",
+   "method": "probit",
+   "preset": "probit",
+   "status": "delivered",
+   "report_chars": 960,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "score_equations_are_near_zero": true,
+    "predicted_probabilities_are_between_zero_and_one": true,
+    "scaling_the_predictor_rescales_the_slope": true,
+    "shifting_the_predictor_moves_the_intercept_not_the_slope": true
+   },
+   "deterministic": true,
+   "units": {
+    "intercept": "ratio/4",
+    "slope": "ratio/4",
+    "log_likelihood": "ratio/4",
+    "pseudo_r2": "ratio/4",
+    "marginal_effect_at_mean": "ratio/4"
+   },
+   "outputs": {
+    "intercept": "-0.02290425026345394",
+    "slope": "0.0916170010538158",
+    "log_likelihood": "-6.876815927602634",
+    "pseudo_r2": "0.007885176414144213",
+    "marginal_effect_at_mean": "0.03654989532394974"
+   }
+  },
+  {
+   "tool": "nationalincome",
+   "method": "national_income",
+   "preset": "nationalincome",
+   "status": "delivered",
+   "report_chars": 569,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "gdp_equals_expenditure_components": true,
+    "gnp_equals_gdp_plus_net_factor_income": true,
+    "nnp_equals_gnp_minus_depreciation": true,
+    "net_exports_equals_exports_minus_imports": true
+   },
+   "deterministic": true,
+   "units": {
+    "gdp": "currency/2",
+    "gnp": "currency/2",
+    "nnp": "currency/2",
+    "net_exports": "currency/2",
+    "consumption": "currency/2",
+    "investment": "currency/2",
+    "government_spending": "currency/2",
+    "exports": "currency/2",
+    "imports": "currency/2",
+    "net_factor_income": "currency/2",
+    "depreciation": "currency/2",
+    "population": "count/0",
+    "gdp_per_capita": "currency/2",
+    "gdp_deflator": "ratio/2",
+    "real_gdp": "currency/2"
+   },
+   "outputs": {
+    "gdp": "900",
+    "gnp": "920",
+    "nnp": "870",
+    "net_exports": "-50",
+    "consumption": "600",
+    "investment": "150",
+    "government_spending": "200",
+    "exports": "120",
+    "imports": "170",
+    "net_factor_income": "20",
+    "depreciation": "50",
+    "population": "100",
+    "gdp_per_capita": "9",
+    "gdp_deflator": "120",
+    "real_gdp": "7.5E+2"
+   }
+  },
+  {
+   "tool": "growth",
+   "method": "growth_rate",
+   "preset": "growth",
+   "status": "delivered",
+   "report_chars": 447,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "cagr_compounds_to_the_end_value": true,
+    "total_growth_is_end_over_start_minus_one": true,
+    "doubling_time_times_cagr_is_approximately_72_percent": true,
+    "a_higher_end_value_raises_cagr": true
+   },
+   "deterministic": true,
+   "units": {
+    "start_value": "currency/2",
+    "end_value": "currency/2",
+    "periods": "count/0",
+    "total_growth": "rate/4",
+    "cagr": "rate/4",
+    "doubling_time_years": "periods/2"
+   },
+   "outputs": {
+    "start_value": "100",
+    "end_value": "200",
+    "periods": "10",
+    "total_growth": "1",
+    "cagr": "0.0717734625362931642130063250233420229063846049776",
+    "doubling_time_years": "10.031562844497335521071807962777809925107621257345"
+   }
+  },
+  {
+   "tool": "inflation",
+   "method": "inflation_cpi",
+   "preset": "inflation",
+   "status": "delivered",
+   "report_chars": 506,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "inflation_is_the_cpi_percentage_change": true,
+    "fisher_identity_holds": true,
+    "approximation_gap_is_the_declared_identity": true,
+    "a_higher_cpi_end_raises_inflation": true
+   },
+   "deterministic": true,
+   "units": {
+    "cpi_start": "ratio/2",
+    "cpi_end": "ratio/2",
+    "inflation_rate": "rate/4",
+    "nominal_interest_rate": "rate/4",
+    "real_interest_rate": "rate/4",
+    "real_interest_approximation": "rate/4",
+    "nominal_wage_growth": "rate/4",
+    "real_wage_growth": "rate/4"
+   },
+   "outputs": {
+    "cpi_start": "100",
+    "cpi_end": "105",
+    "inflation_rate": "0.05",
+    "nominal_interest_rate": "0.08",
+    "real_interest_rate": "0.0285714285714285714285714285714285714285714285714",
+    "real_interest_approximation": "0.03",
+    "nominal_wage_growth": "0.04",
+    "real_wage_growth": "-0.00952380952380952380952380952380952380952380952381"
+   }
+  },
+  {
+   "tool": "unemployment",
+   "method": "unemployment_rate",
+   "preset": "unemployment",
+   "status": "delivered",
+   "report_chars": 510,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "unemployed_equals_labour_force_minus_employed": true,
+    "unemployment_rate_equals_unemployed_over_labour_force": true,
+    "participation_rate_equals_labour_force_over_working_age_population": true,
+    "employment_population_ratio_equals_employed_over_working_age_population": true
+   },
+   "deterministic": true,
+   "units": {
+    "labour_force": "count/0",
+    "employed": "count/0",
+    "unemployed": "count/0",
+    "unemployment_rate": "rate/4",
+    "labour_force_participation_rate": "rate/4",
+    "employment_population_ratio": "rate/4"
+   },
+   "outputs": {
+    "labour_force": "1000",
+    "employed": "920",
+    "unemployed": "80",
+    "unemployment_rate": "0.08",
+    "labour_force_participation_rate": "0.66666666666666666666666666666666666666666666666667",
+    "employment_population_ratio": "0.61333333333333333333333333333333333333333333333333"
+   }
+  },
+  {
+   "tool": "moneymultiplier",
+   "method": "money_multiplier",
+   "preset": "moneymultiplier",
+   "status": "delivered",
+   "report_chars": 575,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "simple_multiplier_is_one_over_the_reserve_ratio": true,
+    "extended_multiplier_is_the_currency_adjusted_formula": true,
+    "money_supply_is_the_base_times_the_multiplier": true,
+    "a_higher_reserve_ratio_lowers_the_simple_multiplier": true
+   },
+   "deterministic": true,
+   "units": {
+    "monetary_base": "currency/2",
+    "reserve_ratio": "ratio/4",
+    "currency_drain_ratio": "ratio/4",
+    "simple_money_multiplier": "ratio/4",
+    "extended_money_multiplier": "ratio/4",
+    "money_supply_simple": "currency/2",
+    "money_supply_extended": "currency/2"
+   },
+   "outputs": {
+    "monetary_base": "100",
+    "reserve_ratio": "0.10",
+    "currency_drain_ratio": "0.05",
+    "simple_money_multiplier": "1E+1",
+    "extended_money_multiplier": "7",
+    "money_supply_simple": "1.00E+3",
+    "money_supply_extended": "700"
+   }
+  },
+  {
+   "tool": "fiscal",
+   "method": "fiscal_multiplier",
+   "preset": "fiscal",
+   "status": "delivered",
+   "report_chars": 601,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "government_multiplier_is_one_over_one_minus_mpc_times_one_minus_tax": true,
+    "tax_multiplier_is_negative_mpc_times_the_government_multiplier": true,
+    "balanced_budget_multiplier_is_one_minus_mpc_times_the_government_multiplier": true,
+    "a_higher_mpc_raises_the_government_multiplier": true
+   },
+   "deterministic": true,
+   "units": {
+    "mpc": "ratio/4",
+    "tax_rate": "ratio/4",
+    "government_spending_multiplier": "ratio/4",
+    "tax_multiplier": "ratio/4",
+    "balanced_budget_multiplier": "ratio/4",
+    "government_spending_change": "currency/2",
+    "tax_change": "currency/2",
+    "output_change": "currency/2"
+   },
+   "outputs": {
+    "mpc": "0.8",
+    "tax_rate": "0.25",
+    "government_spending_multiplier": "2.5",
+    "tax_multiplier": "-2",
+    "balanced_budget_multiplier": "0.5",
+    "government_spending_change": "100",
+    "tax_change": "0",
+    "output_change": "250.0"
+   }
+  },
+  {
+   "tool": "budgetdebt",
+   "method": "budget_debt",
+   "preset": "budgetdebt",
+   "status": "delivered",
+   "report_chars": 572,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "overall_balance_equals_revenue_minus_total_spending": true,
+    "primary_balance_equals_overall_balance_plus_interest": true,
+    "debt_ratio_equals_debt_over_gdp": true,
+    "debt_ratio_change_follows_the_interest_growth_primary_identity": true
+   },
+   "deterministic": true,
+   "units": {
+    "government_revenue": "currency/2",
+    "primary_spending": "currency/2",
+    "interest_payments": "currency/2",
+    "total_spending": "currency/2",
+    "overall_balance": "currency/2",
+    "primary_balance": "currency/2",
+    "debt_stock": "currency/2",
+    "nominal_gdp": "currency/2",
+    "debt_to_gdp": "rate/4",
+    "interest_rate": "rate/4",
+    "primary_balance_to_gdp": "rate/4",
+    "debt_ratio_change": "rate/4",
+    "real_interest_rate": "rate/4"
+   },
+   "outputs": {
+    "government_revenue": "500",
+    "primary_spending": "520",
+    "interest_payments": "30",
+    "total_spending": "550",
+    "overall_balance": "-50",
+    "primary_balance": "-20",
+    "debt_stock": "1000",
+    "nominal_gdp": "2000",
+    "debt_to_gdp": "0.5",
+    "interest_rate": "0.03",
+    "primary_balance_to_gdp": "-0.01",
+    "debt_ratio_change": "0.000",
+    "real_interest_rate": "0.0098039215686274509803921568627450980392156862745"
+   }
+  },
+  {
+   "tool": "okun",
+   "method": "output_gap_okun",
+   "preset": "okun",
+   "status": "delivered",
+   "report_chars": 468,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "output_gap_is_actual_over_potential_minus_one": true,
+    "zero_gap_gives_zero_unemployment_change": true,
+    "a_positive_gap_lowers_the_predicted_unemployment_rate": true,
+    "a_higher_okun_coefficient_raises_the_magnitude": true
+   },
+   "deterministic": true,
+   "units": {
+    "output_gap": "rate/4",
+    "predicted_unemployment_change_pp": "rate/4",
+    "predicted_unemployment_rate": "rate/4",
+    "okun_coefficient": "ratio/4"
+   },
+   "outputs": {
+    "output_gap": "0.05",
+    "predicted_unemployment_change_pp": "-2.500",
+    "predicted_unemployment_rate": "0.035",
+    "okun_coefficient": "0.5"
+   }
+  },
+  {
+   "tool": "externality",
+   "method": "externality_pigouvian",
+   "preset": "externality",
+   "status": "delivered",
+   "report_chars": 496,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "market_quantity_uses_the_private_curves": true,
+    "social_quantity_equates_demand_to_private_supply_plus_external_cost": true,
+    "pigouvian_tax_equals_the_marginal_external_cost": true,
+    "a_higher_external_cost_lowers_the_social_quantity": true
+   },
+   "deterministic": true,
+   "units": {
+    "market_price": "currency/2",
+    "market_quantity": "units/2",
+    "social_consumer_price": "currency/2",
+    "social_producer_price": "currency/2",
+    "social_quantity": "units/2",
+    "external_cost": "currency/2",
+    "pigouvian_tax": "currency/2",
+    "deadweight_loss": "currency/2"
+   },
+   "outputs": {
+    "market_price": "20",
+    "market_quantity": "60",
+    "social_consumer_price": "22",
+    "social_producer_price": "18",
+    "social_quantity": "56",
+    "external_cost": "4",
+    "pigouvian_tax": "4",
+    "deadweight_loss": "8"
+   }
+  },
+  {
+   "tool": "publicgood",
+   "method": "public_good",
+   "preset": "publicgood",
+   "status": "delivered",
+   "report_chars": 525,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "samuelson_condition_holds": true,
+    "total_benefit_is_the_area_under_social_marginal_benefit": true,
+    "total_cost_is_the_area_under_marginal_cost": true,
+    "a_higher_marginal_cost_lowers_the_efficient_quantity": true
+   },
+   "deterministic": true,
+   "units": {
+    "efficient_quantity": "units/2",
+    "social_marginal_benefit": "currency/2",
+    "marginal_cost": "currency/2",
+    "total_benefit": "currency/2",
+    "total_cost": "currency/2",
+    "net_benefit": "currency/2"
+   },
+   "outputs": {
+    "efficient_quantity": "26.666666666666666666666666666666666666666666666667",
+    "social_marginal_benefit": "46.66666666666666666666666666666666666666666666666",
+    "marginal_cost": "46.666666666666666666666666666666666666666666666667",
+    "total_benefit": "3022.2222222222222222222222222222222222222222222222",
+    "total_cost": "888.88888888888888888888888888888888888888888888890",
+    "net_benefit": "2133.3333333333333333333333333333333333333333333333"
+   }
+  },
+  {
+   "tool": "socialwelfare",
+   "method": "social_welfare",
+   "preset": "socialwelfare",
+   "status": "delivered",
+   "report_chars": 738,
+   "appendix_tests": {
+    "welfare_measures_agree_with_their_definitions": true,
+    "utilitarian_is_the_sum_of_incomes": true,
+    "rawlsian_is_the_minimum_income": true,
+    "nash_is_the_geometric_mean": true,
+    "a_transfer_from_the_richest_to_the_poorest_does_not_lower_nash_welfare": true
+   },
+   "deterministic": true,
+   "units": {
+    "n": "count/0",
+    "mean_income": "currency/2",
+    "min_income": "currency/2",
+    "max_income": "currency/2",
+    "utilitarian_welfare": "currency/2",
+    "rawlsian_welfare": "currency/2",
+    "nash_welfare": "currency/2",
+    "social_welfare": "currency/2"
+   },
+   "outputs": {
+    "n": "4",
+    "mean_income": "25",
+    "min_income": "10",
+    "max_income": "40",
+    "utilitarian_welfare": "100",
+    "rawlsian_welfare": "10",
+    "nash_welfare": "22.133638394006431848175805468806632971078363650601",
+    "social_welfare": "100"
+   }
+  },
+  {
+   "tool": "gini",
+   "method": "gini_coefficient",
+   "preset": "gini",
+   "status": "delivered",
+   "report_chars": 668,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "equal_incomes_give_zero_gini": true,
+    "gini_is_bounded_between_zero_and_one": true,
+    "scaling_all_incomes_leaves_gini_unchanged": true,
+    "reordering_the_incomes_leaves_gini_unchanged": true
+   },
+   "deterministic": true,
+   "units": {
+    "n": "count/0",
+    "mean_income": "currency/2",
+    "min_income": "currency/2",
+    "max_income": "currency/2",
+    "gini": "ratio/4",
+    "poorest_share": "ratio/4",
+    "richest_share": "ratio/4"
+   },
+   "outputs": {
+    "n": "4",
+    "mean_income": "25",
+    "min_income": "10",
+    "max_income": "40",
+    "gini": "0.25",
+    "poorest_share": "0.1",
+    "richest_share": "0.4"
+   }
+  },
+  {
+   "tool": "poverty",
+   "method": "poverty_measures",
+   "preset": "poverty",
+   "status": "delivered",
+   "report_chars": 671,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "headcount_is_the_share_below_the_line": true,
+    "poverty_gap_is_the_average_normalised_shortfall": true,
+    "squared_gap_is_the_average_squared_shortfall": true,
+    "a_higher_poverty_line_raises_the_headcount": true
+   },
+   "deterministic": true,
+   "units": {
+    "n": "count/0",
+    "poor_count": "count/0",
+    "headcount_ratio": "rate/4",
+    "poverty_gap": "rate/4",
+    "squared_gap": "rate/4",
+    "total_gap": "currency/2"
+   },
+   "outputs": {
+    "n": "4",
+    "poor_count": "2",
+    "headcount_ratio": "0.5",
+    "poverty_gap": "0.2",
+    "squared_gap": "0.10",
+    "total_gap": "20"
+   }
+  },
+  {
+   "tool": "taxprogressivity",
+   "method": "tax_progressivity",
+   "preset": "taxprogressivity",
+   "status": "delivered",
+   "report_chars": 725,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "average_tax_rate_equals_total_tax_over_total_income": true,
+    "top_income_share_equals_top_income_over_total_income": true,
+    "top_tax_share_equals_top_tax_over_total_tax": true,
+    "a_proportional_tax_gives_zero_progressivity_gap": true
+   },
+   "deterministic": true,
+   "units": {
+    "average_tax_rate": "rate/4",
+    "top_income_share": "rate/4",
+    "top_tax_share": "rate/4",
+    "progressivity_gap": "rate/4",
+    "n": "count/0"
+   },
+   "outputs": {
+    "average_tax_rate": "0.2",
+    "top_income_share": "0.4",
+    "top_tax_share": "0.5",
+    "progressivity_gap": "0.1",
+    "n": "4"
+   }
+  },
+  {
+   "tool": "optimalpollution",
+   "method": "optimal_pollution",
+   "preset": "optimalpollution",
+   "status": "delivered",
+   "report_chars": 459,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "marginal_damage_equals_marginal_abatement_cost": true,
+    "pollution_tax_equals_marginal_damage": true,
+    "total_damage_is_the_area_under_marginal_damage": true,
+    "a_higher_damage_intercept_lowers_optimal_emissions": true
+   },
+   "deterministic": true,
+   "units": {
+    "optimal_emissions": "units/2",
+    "marginal_damage": "currency/2",
+    "marginal_abatement_cost": "currency/2",
+    "pollution_tax": "currency/2",
+    "total_damage": "currency/2",
+    "total_abatement_cost": "currency/2"
+   },
+   "outputs": {
+    "optimal_emissions": "18",
+    "marginal_damage": "46",
+    "marginal_abatement_cost": "46",
+    "pollution_tax": "46",
+    "total_damage": "504",
+    "total_abatement_cost": "1314"
+   }
+  },
+  {
+   "tool": "comparative",
+   "method": "comparative_advantage",
+   "preset": "comparative",
+   "status": "delivered",
+   "report_chars": 474,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "opportunity_costs_are_reciprocals": true,
+    "exactly_one_country_has_advantage_in_each_good": true,
+    "scaling_a_countrys_hours_leaves_its_opportunity_cost_unchanged": true,
+    "absolute_advantage_does_not_determine_comparative_advantage": true
+   },
+   "deterministic": true,
+   "units": {
+    "oc_a_good1": "ratio/4",
+    "oc_a_good2": "ratio/4",
+    "oc_b_good1": "ratio/4",
+    "oc_b_good2": "ratio/4",
+    "a_has_advantage_good1": "count/0",
+    "b_has_advantage_good1": "count/0",
+    "a_has_advantage_good2": "count/0",
+    "b_has_advantage_good2": "count/0"
+   },
+   "outputs": {
+    "oc_a_good1": "2",
+    "oc_a_good2": "0.5",
+    "oc_b_good1": "1.6666666666666666666666666666666666666666666666667",
+    "oc_b_good2": "0.6",
+    "a_has_advantage_good1": "0",
+    "b_has_advantage_good1": "1",
+    "a_has_advantage_good2": "1",
+    "b_has_advantage_good2": "0"
+   }
+  },
+  {
+   "tool": "tariff",
+   "method": "tariff_welfare",
+   "preset": "tariff",
+   "status": "delivered",
+   "report_chars": 468,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "domestic_price_is_world_price_plus_tariff": true,
+    "imports_equal_domestic_demand_minus_supply": true,
+    "tariff_revenue_equals_tariff_times_imports": true,
+    "a_higher_tariff_lowers_imports": true
+   },
+   "deterministic": true,
+   "units": {
+    "domestic_price": "currency/2",
+    "quantity_demanded": "units/2",
+    "quantity_supplied": "units/2",
+    "imports": "units/2",
+    "imports_free_trade": "units/2",
+    "tariff_revenue": "currency/2",
+    "production_dwloss": "currency/2",
+    "consumption_dwloss": "currency/2",
+    "total_dwloss": "currency/2"
+   },
+   "outputs": {
+    "domestic_price": "15",
+    "quantity_demanded": "70",
+    "quantity_supplied": "50",
+    "imports": "20",
+    "imports_free_trade": "40",
+    "tariff_revenue": "100",
+    "production_dwloss": "25",
+    "consumption_dwloss": "25",
+    "total_dwloss": "50"
+   }
+  },
+  {
+   "tool": "ppp",
+   "method": "exchange_rate_ppp",
+   "preset": "ppp",
+   "status": "delivered",
+   "report_chars": 480,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "ppp_rate_is_the_domestic_price_over_the_foreign_price": true,
+    "real_exchange_rate_is_nominal_over_ppp": true,
+    "nominal_rate_equal_to_ppp_gives_zero_misalignment": true,
+    "a_higher_domestic_price_raises_the_ppp_rate": true
+   },
+   "deterministic": true,
+   "units": {
+    "ppp_rate": "ratio/4",
+    "real_exchange_rate": "ratio/4",
+    "misalignment": "rate/4",
+    "expected_nominal_rate": "ratio/4",
+    "expected_depreciation": "rate/4"
+   },
+   "outputs": {
+    "ppp_rate": "50",
+    "real_exchange_rate": "1.1",
+    "misalignment": "0.1",
+    "expected_nominal_rate": "56.078431372549019607843137254901960784313725490196",
+    "expected_depreciation": "0.0196078431372549019607843137254901960784313725490"
+   }
+  },
+  {
+   "tool": "irp",
+   "method": "interest_rate_parity",
+   "preset": "irp",
+   "status": "delivered",
+   "report_chars": 468,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "covered_interest_parity_holds": true,
+    "forward_premium_is_the_interest_differential": true,
+    "a_higher_domestic_rate_raises_the_implied_forward": true,
+    "a_higher_foreign_rate_lowers_the_implied_forward": true
+   },
+   "deterministic": true,
+   "units": {
+    "implied_forward": "currency/4",
+    "forward_premium": "rate/4",
+    "forward_rate": "currency/4",
+    "cip_gap": "rate/4",
+    "real_domestic_rate": "rate/4",
+    "real_foreign_rate": "rate/4"
+   },
+   "outputs": {
+    "implied_forward": "50.961538461538461538461538461538461538461538461540",
+    "forward_premium": "0.0192307692307692307692307692307692307692307692308",
+    "forward_rate": "51",
+    "cip_gap": "0.0007547169811320754716981132075471698113207547170",
+    "real_domestic_rate": "0.0192307692307692307692307692307692307692307692308",
+    "real_foreign_rate": "0.0196078431372549019607843137254901960784313725490"
+   }
+  },
+  {
+   "tool": "bop",
+   "method": "balance_of_payments",
+   "preset": "bop",
+   "status": "delivered",
+   "report_chars": 434,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "net_balance_is_the_sum_of_the_accounts": true,
+    "a_balanced_position_is_flagged": true,
+    "a_current_account_deficit_needs_an_offsetting_surplus": true,
+    "the_current_account_ratio_uses_gdp": true
+   },
+   "deterministic": true,
+   "units": {
+    "current_account": "currency/2",
+    "capital_account": "currency/2",
+    "financial_account": "currency/2",
+    "errors_and_omissions": "currency/2",
+    "net_balance": "currency/2",
+    "balanced": "count/0",
+    "current_account_to_gdp": "rate/4"
+   },
+   "outputs": {
+    "current_account": "-50",
+    "capital_account": "0",
+    "financial_account": "50",
+    "errors_and_omissions": "0",
+    "net_balance": "0",
+    "balanced": "1",
+    "current_account_to_gdp": "-0.05"
+   }
+  },
+  {
+   "tool": "hdi",
+   "method": "hdi",
+   "preset": "hdi",
+   "status": "delivered",
+   "report_chars": 422,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "dimension_indices_are_bounded": true,
+    "hdi_is_the_geometric_mean_of_the_indices": true,
+    "a_higher_life_expectancy_raises_the_life_index": true,
+    "the_goalposts_give_an_hdi_of_one": true
+   },
+   "deterministic": true,
+   "units": {
+    "life_index": "ratio/4",
+    "education_index": "ratio/4",
+    "income_index": "ratio/4",
+    "hdi": "ratio/4"
+   },
+   "outputs": {
+    "life_index": "0.76923076923076923076923076923076923076923076923077",
+    "education_index": "0.6000000000000000000000000000000000000000000000000",
+    "income_index": "0.59093349625939783899688321941556929192643657637871",
+    "hdi": "0.64850824509348362514369222491055130605414842547244"
+   }
+  },
+  {
+   "tool": "expectedutility",
+   "method": "expected_utility",
+   "preset": "expectedutility",
+   "status": "delivered",
+   "report_chars": 665,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "expected_value_is_the_probability_weighted_outcome": true,
+    "risk_neutral_certainty_equivalent_equals_expected_value": true,
+    "a_risky_gamble_has_a_positive_risk_premium_under_crra": true,
+    "a_higher_risk_aversion_lowers_the_certainty_equivalent": true
+   },
+   "deterministic": true,
+   "units": {
+    "expected_value": "currency/2",
+    "expected_utility": "currency/2",
+    "certainty_equivalent": "currency/2",
+    "risk_premium": "currency/2",
+    "risk_aversion": "ratio/4"
+   },
+   "outputs": {
+    "expected_value": "100.0",
+    "expected_utility": "-0.013333333333333333333333333333333333333333333333333",
+    "certainty_equivalent": "75.000000000000000000000000000000000000000000000001",
+    "risk_premium": "24.999999999999999999999999999999999999999999999999",
+    "risk_aversion": "2"
+   }
+  },
+  {
+   "tool": "prospect",
+   "method": "prospect_theory",
+   "preset": "prospect",
+   "status": "delivered",
+   "report_chars": 736,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "a_reference_outcome_has_zero_prospect_value": true,
+    "a_loss_hurts_more_than_an_equal_gain": true,
+    "a_higher_loss_aversion_lowers_a_mixed_prospect": true,
+    "gains_and_losses_are_curved_separately": true
+   },
+   "deterministic": true,
+   "units": {
+    "prospect_value": "currency/2",
+    "expected_value": "currency/2",
+    "loss_aversion": "ratio/4",
+    "gain_curvature": "ratio/4",
+    "loss_curvature": "ratio/4",
+    "probability_weighting": "ratio/4"
+   },
+   "outputs": {
+    "prospect_value": "-19.542207537315585139222999624737794396670528193870",
+    "expected_value": "0.0",
+    "loss_aversion": "2.25",
+    "gain_curvature": "0.88",
+    "loss_curvature": "0.88",
+    "probability_weighting": "0.61"
+   }
+  },
+  {
+   "tool": "labour",
+   "method": "labour_market",
+   "preset": "labour",
+   "status": "delivered",
+   "report_chars": 369,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "real_wage_is_nominal_wage_over_the_price_index": true,
+    "wage_share_is_real_wage_over_productivity": true,
+    "a_higher_cpi_lowers_the_real_wage": true,
+    "a_higher_productivity_lowers_the_wage_share": true
+   },
+   "deterministic": true,
+   "units": {
+    "nominal_wage": "currency/2",
+    "cpi": "ratio/2",
+    "labour_productivity": "ratio/2",
+    "real_wage": "currency/2",
+    "wage_share_of_productivity": "currency/2",
+    "vacancies": "currency/2",
+    "unemployment_rate": "rate/4",
+    "labour_market_tightness": "currency/2"
+   },
+   "outputs": {
+    "nominal_wage": "100",
+    "cpi": "105",
+    "labour_productivity": "120",
+    "real_wage": "95.238095238095238095238095238095238095238095238095",
+    "wage_share_of_productivity": "0.79365079365079365079365079365079365079365079365079",
+    "vacancies": "10",
+    "unemployment_rate": "0.05",
+    "labour_market_tightness": "2E+2"
+   }
+  },
+  {
+   "tool": "did",
+   "method": "difference_in_differences",
+   "preset": "did",
+   "status": "delivered",
+   "report_chars": 746,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "treated_change_is_post_minus_pre": true,
+    "control_change_is_post_minus_pre": true,
+    "did_is_the_difference_of_the_two_changes": true,
+    "parallel_trends_give_a_zero_estimate": true
+   },
+   "deterministic": true,
+   "units": {
+    "treated_change": "currency/2",
+    "control_change": "currency/2",
+    "did_estimate": "currency/2"
+   },
+   "outputs": {
+    "treated_change": "20",
+    "control_change": "5",
+    "did_estimate": "15"
+   }
+  },
+  {
+   "tool": "forecast",
+   "method": "trend_forecast",
+   "preset": "forecast",
+   "status": "delivered",
+   "report_chars": 1623,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "out_of_sample_check_agrees": true,
+    "shift_moves_intercept_and_forecasts_not_slope": true,
+    "positive_scale_equivariance": true,
+    "bounded_and_consistent": true
+   },
+   "deterministic": true,
+   "units": {
+    "intercept": "@unit/3",
+    "slope": "@unit/3",
+    "r_squared": "ratio/3",
+    "residual_se": "@unit/3",
+    "p_slope": "probability/4",
+    "n_fitted": "count/0",
+    "n_excluded": "count/0",
+    "horizon": "count/0",
+    "confidence_level": "rate/2",
+    "forecast_1": "@unit/3",
+    "ci_lower_1": "@unit/3",
+    "ci_upper_1": "@unit/3",
+    "forecast_2": "@unit/3",
+    "ci_lower_2": "@unit/3",
+    "ci_upper_2": "@unit/3",
+    "forecast_3": "@unit/3",
+    "ci_lower_3": "@unit/3",
+    "ci_upper_3": "@unit/3",
+    "mae_holdout": "@unit/3",
+    "coverage_holdout": "rate/2",
+    "n_holdout": "count/0"
+   },
+   "outputs": {
+    "intercept": "9.060606060606060606060606060606060606060606060601",
+    "slope": "1.0034965034965034965034965034965034965034965034970",
+    "r_squared": "0.92954329156588435770791876224904734856321730985529",
+    "residual_se": "1.0447448690909381498159921062985788479066656801316",
+    "p_slope": "4.4042244085004275E-7",
+    "n_fitted": "12",
+    "n_excluded": "0",
+    "horizon": "3",
+    "confidence_level": "0.95",
+    "forecast_1": "22.106060606060606060606060606060606060606060606062",
+    "ci_lower_1": "19.372672962705842548260795604304183535695642594980",
+    "ci_upper_1": "24.839448249415369572951325607817028585516478617144",
+    "forecast_2": "23.109557109557109557109557109557109557109557109559",
+    "ci_lower_2": "20.280790207356203017739728113920179574819555871592",
+    "ci_upper_2": "25.938324011758016096479386105194039539399558347526",
+    "forecast_3": "24.113053613053613053613053613053613053613053613056",
+    "ci_lower_3": "21.179076090156614971820292095272749391742077318870",
+    "ci_upper_3": "27.047031135950611135405815130834476715484029907242",
+    "mae_holdout": "1.1333333333333333333333333333333333333333333333333",
+    "coverage_holdout": "1",
+    "n_holdout": "3"
+   }
+  },
+  {
+   "tool": "currency",
+   "method": "currency_convert",
+   "preset": "currency",
+   "status": "delivered",
+   "report_chars": 814,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "round_trip_at_the_inverse_rate_returns_the_original": true,
+    "zero_amount_converts_to_zero": true,
+    "negative_amount_converts_with_the_same_magnitude": true,
+    "scaling_the_amount_scales_the_result": true
+   },
+   "deterministic": true,
+   "units": {
+    "amount": "currency/2",
+    "amount_from": "currency/2",
+    "rate": "ratio/6",
+    "_appendix": "currency/2"
+   },
+   "outputs": {
+    "amount": "920.00",
+    "amount_from": "1000",
+    "rate": "0.92",
+    "_appendix": "{'from_currency': 'USD', 'to_currency': 'EUR', 'rate': '0.92', 'rate_date': '2026-10-20', 'rate_source': None, 'rate_provenance': 'user', 'converted': '920.00', 'note': \"The exchange rate is the owner's declaration and is not retrieved or verified by the system.\"}"
+   }
+  },
+  {
+   "tool": "pricing",
+   "method": "pricing_decision",
+   "preset": "pricing",
+   "status": "delivered",
+   "report_chars": 683,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "cost_plus_price_is_unit_cost_times_one_plus_markup": true,
+    "break_even_price_covers_the_total_cost": true,
+    "margin_price_recovers_the_declared_margin": true,
+    "target_return_price_covers_cost_and_declared_profit": true
+   },
+   "deterministic": true,
+   "units": {
+    "unit_cost": "currency/2",
+    "fixed_cost": "currency/2",
+    "expected_units": "units/2",
+    "markup_rate": "rate/4",
+    "total_cost": "currency/2",
+    "cost_plus_price": "currency/2",
+    "gross_margin_at_cost_plus": "ratio/4",
+    "break_even_price": "currency/2",
+    "target_margin_rate": "rate/4",
+    "margin_price": "currency/2",
+    "target_profit": "currency/2",
+    "target_return_price": "currency/2"
+   },
+   "outputs": {
+    "unit_cost": "15",
+    "fixed_cost": "45000",
+    "expected_units": "6000",
+    "markup_rate": "0.60",
+    "total_cost": "135000",
+    "cost_plus_price": "24.00",
+    "gross_margin_at_cost_plus": "0.375",
+    "break_even_price": "22.5",
+    "target_margin_rate": "0.375",
+    "margin_price": "24",
+    "target_profit": "20000",
+    "target_return_price": "25.833333333333333333333333333333333333333333333333"
+   }
+  },
+  {
+   "tool": "demandcurve",
+   "method": "demand_curve",
+   "preset": "demandcurve",
+   "status": "delivered",
+   "report_chars": 1203,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "slope_is_the_covariance_over_the_variance": true,
+    "fitted_line_passes_through_the_means": true,
+    "r_squared_is_bounded_and_matches_the_residuals": true,
+    "revenue_maximising_price_sets_marginal_revenue_to_zero": true
+   },
+   "deterministic": true,
+   "units": {
+    "intercept": "ratio/4",
+    "slope": "ratio/4",
+    "r_squared": "ratio/4",
+    "mean_price": "currency/2",
+    "mean_quantity": "units/2",
+    "elasticity_at_mean": "ratio/4",
+    "revenue_max_price": "currency/2",
+    "revenue_max_quantity": "units/2",
+    "revenue_max_revenue": "currency/2"
+   },
+   "outputs": {
+    "intercept": "640",
+    "slope": "-12",
+    "r_squared": "1",
+    "mean_price": "30",
+    "mean_quantity": "280",
+    "elasticity_at_mean": "-1.2857142857142857142857142857142857142857142857143",
+    "revenue_max_price": "26.666666666666666666666666666666666666666666666667",
+    "revenue_max_quantity": "320.00000000000000000000000000000000000000000000000",
+    "revenue_max_revenue": "8533.3333333333333333333333333333333333333333333334"
+   }
+  },
+  {
+   "tool": "cba",
+   "method": "cost_benefit",
+   "preset": "cba",
+   "status": "delivered",
+   "report_chars": 807,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "net_value_is_present_value_of_benefits_minus_costs": true,
+    "zero_discount_rate_gives_undiscounted_sums": true,
+    "scaling_the_benefits_scales_the_benefit_side": true,
+    "a_higher_discount_rate_lowers_the_present_value": true
+   },
+   "deterministic": true,
+   "units": {
+    "pv_costs": "currency/2",
+    "pv_benefits": "currency/2",
+    "net_present_value": "currency/2",
+    "n_periods": "count/0",
+    "discount_rate": "rate/2",
+    "benefit_cost_ratio": "ratio/3"
+   },
+   "outputs": {
+    "pv_costs": "65327.718388942878738797106144044919555123636756290",
+    "pv_benefits": "80812.007342619587517546701220170607925709966526293",
+    "net_present_value": "15484.288953676708778749595076125688370586329770003",
+    "n_periods": "3",
+    "discount_rate": "0.05",
+    "benefit_cost_ratio": "1.2370247933884297520661157024793388429752066115702"
+   }
+  },
+  {
+   "tool": "cea",
+   "method": "cost_effectiveness",
+   "preset": "cea",
+   "status": "delivered",
+   "report_chars": 694,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "icer_is_incremental_cost_over_incremental_effect": true,
+    "comparator_is_the_first_option": true,
+    "cheaper_and_more_effective_is_flagged_dominant": true,
+    "adding_a_third_option_adds_one_ratio_per_option": true
+   },
+   "deterministic": true,
+   "units": {
+    "comparator_cost": "@unit/2",
+    "comparator_effect": "@unit/2",
+    "n_options": "count/0",
+    "icer_intensive": "currency/2",
+    "delta_cost_intensive": "currency/2",
+    "delta_effect_intensive": "@unit/3",
+    "dominant_intensive": "count/0"
+   },
+   "outputs": {
+    "comparator_cost": "10000",
+    "comparator_effect": "40",
+    "n_options": "2",
+    "icer_intensive": "400",
+    "delta_cost_intensive": "8000",
+    "delta_effect_intensive": "20",
+    "dominant_intensive": "0"
+   }
+  },
+  {
+   "tool": "sroi",
+   "method": "sroi",
+   "preset": "sroi",
+   "status": "delivered",
+   "report_chars": 858,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "ratio_is_present_value_over_investment": true,
+    "net_value_is_benefits_minus_investment": true,
+    "doubling_the_investment_halves_the_ratio": true,
+    "zero_discount_rate_gives_undiscounted_benefits": true
+   },
+   "deterministic": true,
+   "units": {
+    "pv_benefits": "currency/2",
+    "investment": "currency/2",
+    "sroi_ratio": "ratio/3",
+    "net_value": "currency/2",
+    "n_periods": "count/0",
+    "discount_rate": "rate/2"
+   },
+   "outputs": {
+    "pv_benefits": "69014.565316340464269458352298588984979517523896222",
+    "investment": "60000",
+    "sroi_ratio": "1.1502427552723410711576392049764830829919587316037",
+    "net_value": "9014.565316340464269458352298588984979517523896222",
+    "n_periods": "3",
+    "discount_rate": "0.04"
+   }
+  },
+  {
+   "tool": "npv",
+   "method": "npv",
+   "preset": "npv",
+   "status": "delivered",
+   "report_chars": 236,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "boundary_zero_rate_equals_sum": true,
+    "t0_cash_flow_shifts_npv_one_for_one": true
+   },
+   "deterministic": true,
+   "outputs": {
+    "value": "-5.25920360631104432757325319308790383170548459805"
+   }
+  },
+  {
+   "tool": "dcf",
+   "method": "dcf_valuation",
+   "preset": "dcf",
+   "status": "delivered",
+   "report_chars": 1137,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "value_scales_with_the_cash_flows": true,
+    "a_higher_discount_rate_lowers_the_value": true,
+    "terminal_value_is_gordon_growth_on_the_last_flow": true,
+    "without_terminal_growth_there_is_no_terminal_value": true,
+    "mid_year_convention_raises_the_value": true
+   },
+   "deterministic": true,
+   "units": {
+    "pv_explicit": "currency/2",
+    "pv_terminal": "currency/2",
+    "terminal_value": "currency/2",
+    "enterprise_value": "currency/2",
+    "terminal_share": "ratio/3",
+    "n_periods": "count/0",
+    "discount_rate": "rate/2",
+    "terminal_growth": "rate/2"
+   },
+   "outputs": {
+    "pv_explicit": "401133.80233590601734854176627279557407280923434192",
+    "pv_terminal": "1349805.3411652209548528106003688272658971381736220",
+    "terminal_value": "1976250",
+    "enterprise_value": "1750939.1435011269722013523666416228399699474079639",
+    "terminal_share": "0.77090362973220729067113963059039222952546273721988",
+    "n_periods": "4",
+    "discount_rate": "0.10",
+    "terminal_growth": "0.02"
+   }
+  },
+  {
+   "tool": "breakeven",
+   "method": "breakeven",
+   "preset": "breakeven",
+   "status": "delivered",
+   "report_chars": 437,
+   "appendix_tests": {
+    "profit_at_breakeven_is_zero": true,
+    "contribution_margin_is_price_minus_variable": true,
+    "breakeven_revenue_is_units_times_price": true,
+    "margin_of_safety_is_expected_units_minus_breakeven": true,
+    "target_profit_raises_the_required_units": true
+   },
+   "deterministic": true,
+   "units": {
+    "breakeven_units": "units/2",
+    "contribution_margin": "currency/2",
+    "contribution_margin_ratio": "ratio/4",
+    "breakeven_revenue": "currency/2"
+   },
+   "outputs": {
+    "breakeven_units": "100",
+    "contribution_margin": "10",
+    "contribution_margin_ratio": "0.5",
+    "breakeven_revenue": "2000"
+   }
+  },
+  {
+   "tool": "multibreakeven",
+   "method": "multi_product_breakeven",
+   "preset": "multibreakeven",
+   "status": "delivered",
+   "report_chars": 476,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "weighted_contribution_is_the_mix_weighted_margin": true,
+    "profit_at_break_even_is_zero": true,
+    "scaling_fixed_costs_scales_break_even_units": true,
+    "per_product_units_sum_to_the_total": true
+   },
+   "deterministic": true,
+   "units": {
+    "weighted_contribution": "ratio/4",
+    "breakeven_total_units": "units/2",
+    "breakeven_revenue": "currency/2",
+    "fixed_costs": "currency/2",
+    "total_mix_units": "units/2",
+    "units_coffee": "units/2",
+    "units_cake": "units/2"
+   },
+   "outputs": {
+    "weighted_contribution": "3",
+    "breakeven_total_units": "2000",
+    "breakeven_revenue": "10500",
+    "fixed_costs": "6000",
+    "total_mix_units": "4",
+    "units_coffee": "1500",
+    "units_cake": "500"
+   }
+  },
+  {
+   "tool": "unitecon",
+   "method": "unit_economics",
+   "preset": "unitecon",
+   "status": "delivered",
+   "report_chars": 516,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "margin_is_price_minus_variable_cost": true,
+    "payback_is_acquisition_cost_over_margin": true,
+    "raising_price_raises_margin_by_the_same_amount": true,
+    "lower_churn_raises_ltv": true
+   },
+   "deterministic": true,
+   "units": {
+    "unit_margin": "currency/2",
+    "margin_pct": "rate/4",
+    "payback_periods": "ratio/3",
+    "price": "currency/2",
+    "variable_cost": "currency/2",
+    "acquisition_cost": "currency/2",
+    "churn_rate": "rate/4",
+    "ltv": "currency/2",
+    "ltv_cac": "ratio/3"
+   },
+   "outputs": {
+    "unit_margin": "37",
+    "margin_pct": "0.75510204081632653061224489795918367346938775510204",
+    "payback_periods": "2.1621621621621621621621621621621621621621621621622",
+    "price": "49",
+    "variable_cost": "12",
+    "acquisition_cost": "80",
+    "churn_rate": "0.04",
+    "ltv": "925",
+    "ltv_cac": "11.5625"
+   }
+  },
+  {
+   "tool": "descriptive",
+   "method": "descriptive_stats",
+   "preset": "descriptive",
+   "status": "delivered",
+   "report_chars": 535,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "shift_moves_location_not_spread": true,
+    "scale_scales_spread": true,
+    "permutation_invariant": true,
+    "missing_entries_excluded_not_valued": true,
+    "order_statistics_bounded": true
+   },
+   "deterministic": true,
+   "units": {},
+   "outputs": {
+    "n": "6",
+    "n_missing": "1",
+    "mean": "78.833333333333333333333333333333333333333333333333",
+    "median": "79",
+    "minimum": "68",
+    "maximum": "90",
+    "variance": "66.966666666666666666666666666666666666666666666666",
+    "sd": "8.1833163611500848945148181587639064619578696002790"
+   }
+  },
+  {
+   "tool": "pearson",
+   "method": "pearson",
+   "preset": "pearson",
+   "status": "delivered",
+   "report_chars": 1267,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "invariant_to_positive_linear_transform": true,
+    "negating_y_flips_sign_keeps_p": true,
+    "symmetric_in_x_and_y": true,
+    "bounded_and_consistent": true,
+    "missing_pairs_excluded_not_valued": true
+   },
+   "deterministic": true,
+   "units": {},
+   "outputs": {
+    "r": "0.94267097924121413677005603165208643980377737182510",
+    "r_squared": "0.88862857510358957397352149426237792049098242422576",
+    "ci_lower": "0.7089071470763322",
+    "ci_upper": "0.9898269128179266",
+    "p_value": "0.0004510250370052371",
+    "n_pairs": "8",
+    "n_excluded": "0",
+    "confidence_level": "0.95",
+    "alpha": "0.05"
+   }
+  },
+  {
+   "tool": "ols",
+   "method": "ols",
+   "preset": "ols",
+   "status": "delivered",
+   "report_chars": 2150,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "shift_changes_intercept_only": true,
+    "scaling_rescales_coefficients_not_significance": true,
+    "row_order_invariant": true,
+    "incomplete_rows_excluded_not_valued": true,
+    "bounded_and_consistent": true,
+    "cross_check_partial_regression_and_pearson": true
+   },
+   "deterministic": true,
+   "units": {
+    "r_squared": "ratio/3",
+    "adj_r_squared": "ratio/3",
+    "f_squared": "ratio/3",
+    "f_stat": "ratio/3",
+    "p_f": "probability/4",
+    "residual_se": "coefficient/3",
+    "n": "count/0",
+    "n_excluded": "count/0",
+    "k": "count/0",
+    "df_residual": "count/0",
+    "confidence_level": "rate/2",
+    "alpha": "rate/2",
+    "coef_intercept": "coefficient/3",
+    "se_intercept": "coefficient/3",
+    "p_intercept": "probability/4",
+    "ci_lower_intercept": "coefficient/3",
+    "ci_upper_intercept": "coefficient/3",
+    "coef_study_hours": "coefficient/3",
+    "se_study_hours": "coefficient/3",
+    "p_study_hours": "probability/4",
+    "ci_lower_study_hours": "coefficient/3",
+    "ci_upper_study_hours": "coefficient/3",
+    "std_beta_study_hours": "ratio/3",
+    "coef_sleep_hours": "coefficient/3",
+    "se_sleep_hours": "coefficient/3",
+    "p_sleep_hours": "probability/4",
+    "ci_lower_sleep_hours": "coefficient/3",
+    "ci_upper_sleep_hours": "coefficient/3",
+    "std_beta_sleep_hours": "ratio/3"
+   },
+   "outputs": {
+    "r_squared": "0.93250759005759532343943825104255121186835340614191",
+    "adj_r_squared": "0.91322404435976541585070632276899441525931152218246",
+    "f_squared": "13.816480858415931617713921978721469491679548967900",
+    "f_stat": "48.357683004455760661998726925525143220878421387649",
+    "p_f": "0.00007987157988429207",
+    "residual_se": "2.6459197390694125040283976021238077878767113869985",
+    "n": "10",
+    "n_excluded": "0",
+    "k": "2",
+    "df_residual": "7",
+    "confidence_level": "0.95",
+    "alpha": "0.05",
+    "coef_intercept": "63.0757575757575757575757575757575757575757575758",
+    "se_intercept": "6.2901226587112247222488764696885732338375817288872",
+    "p_intercept": "0.00002100689337480653",
+    "ci_lower_intercept": "48.201980991475727013191191671050408833169577140058",
+    "ci_upper_intercept": "77.949534160039424501960323480464742681981938011542",
+    "coef_study_hours": "4.036541889483065953654188948306595365418894830659",
+    "se_study_hours": "0.41045175773628789898000988772657171975962561913869",
+    "p_study_hours": "0.000023881505038231535",
+    "ci_lower_study_hours": "3.0659777090309530797985139813716914584885123840650",
+    "ci_upper_study_hours": "5.0071060699351788275098639152414992723492772772530",
+    "std_beta_study_hours": "0.99816590301484998178007301046281431496166957999620",
+    "coef_sleep_hours": "-2.37967914438502673796791443850267379679144385027",
+    "se_sleep_hours": "0.96097280039096106414606947254141488105975468270661",
+    "p_sleep_hours": "0.04243804707298909",
+    "ci_lower_sleep_hours": "-4.6520187333105258129242327740147098186780829733779",
+    "ci_upper_sleep_hours": "-0.1073395554595276630115961029906377749048047271621",
+    "std_beta_sleep_hours": "-0.25134062778599493292749846777679607927988352925352"
+   }
+  },
+  {
+   "tool": "welch",
+   "method": "welch_t",
+   "preset": "welch",
+   "status": "delivered",
+   "report_chars": 1560,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "shift_leaves_difference_inference_unchanged": true,
+    "positive_scale_equivariance": true,
+    "swapping_groups_negates_difference_keeps_p": true,
+    "row_order_invariant": true,
+    "missing_entries_excluded_not_valued": true,
+    "bounded_and_consistent": true
+   },
+   "deterministic": true,
+   "units": {
+    "diff": "@unit/3",
+    "se_diff": "@unit/3",
+    "ci_lower": "@unit/3",
+    "ci_upper": "@unit/3",
+    "t_stat": "ratio/3",
+    "df": "ratio/3",
+    "p_value": "probability/4",
+    "hedges_g": "ratio/3",
+    "g_ci_lower": "ratio/3",
+    "g_ci_upper": "ratio/3",
+    "n_lecture": "count/0",
+    "mean_lecture": "@unit/3",
+    "sd_lecture": "@unit/3",
+    "n_workshop": "count/0",
+    "mean_workshop": "@unit/3",
+    "sd_workshop": "@unit/3",
+    "n_excluded": "count/0",
+    "confidence_level": "rate/2",
+    "alpha": "rate/2"
+   },
+   "outputs": {
+    "diff": "-8.819444444444444444444444444444444444444444444444",
+    "se_diff": "2.3275568615100706555878902478659467809102622276515",
+    "ci_lower": "-13.780569156837887369131540685484848921050481350776",
+    "ci_upper": "-3.8583197320510015197573482034040399678384075381120",
+    "t_stat": "-3.7891424223778454385722052124818410189811350638510",
+    "df": "14.998101450382642270337649745942933867443770547367",
+    "p_value": "0.0017827234983478464",
+    "hedges_g": "-1.7327206103784526650092822849310842375380249287574",
+    "g_ci_lower": "-2.8691422560302436895510992170151279764788039574636",
+    "g_ci_upper": "-0.5962989647266616404674653528470404985972459000512",
+    "n_lecture": "8",
+    "mean_lecture": "68.625",
+    "sd_lecture": "4.4701390198899695006403890483873062852555538342394",
+    "n_workshop": "9",
+    "mean_workshop": "77.444444444444444444444444444444444444444444444444",
+    "sd_workshop": "5.1261854997432328363567655132117620616471325021680",
+    "n_excluded": "0",
+    "confidence_level": "0.95",
+    "alpha": "0.05"
+   }
+  },
+  {
+   "tool": "anova",
+   "method": "anova",
+   "preset": "anova",
+   "status": "delivered",
+   "report_chars": 1595,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "within_group_permutation_invariant": true,
+    "group_relabeling_invariant": true,
+    "equal_shift_leaves_F_and_effect_unchanged": true,
+    "positive_scale_equivariance": true,
+    "missing_entries_excluded_not_valued": true,
+    "bounded_and_consistent": true
+   },
+   "deterministic": true,
+   "units": {
+    "f_stat": "ratio/3",
+    "df_between": "count/0",
+    "df_within": "count/0",
+    "p_value": "probability/4",
+    "eta_squared": "ratio/3",
+    "n_groups": "count/0",
+    "n_total": "count/0",
+    "n_excluded": "count/0",
+    "grand_mean": "@unit/3",
+    "alpha": "rate/2",
+    "n_lecture": "count/0",
+    "mean_lecture": "@unit/3",
+    "sd_lecture": "@unit/3",
+    "n_workshop": "count/0",
+    "mean_workshop": "@unit/3",
+    "sd_workshop": "@unit/3",
+    "n_online": "count/0",
+    "mean_online": "@unit/3",
+    "sd_online": "@unit/3"
+   },
+   "outputs": {
+    "f_stat": "25.611497369866538665188711457286929498567406139121",
+    "df_between": "2",
+    "df_within": "21",
+    "p_value": "0.0000023292168476478213",
+    "eta_squared": "0.70923387938042719731796631630443384484780466046515",
+    "n_groups": "3",
+    "n_total": "24",
+    "n_excluded": "0",
+    "grand_mean": "69.958333333333333333333333333333333333333333333333",
+    "alpha": "0.05",
+    "n_lecture": "8",
+    "mean_lecture": "68.625",
+    "sd_lecture": "4.4701390198899695006403890483873062852555538342394",
+    "n_workshop": "9",
+    "mean_workshop": "77.444444444444444444444444444444444444444444444444",
+    "sd_workshop": "5.1261854997432328363567655132117620616471325021680",
+    "n_online": "7",
+    "mean_online": "61.857142857142857142857142857142857142857142857143",
+    "sd_online": "2.9113897843110043087208048670111652916724241415183"
+   }
+  },
+  {
+   "tool": "chi_square",
+   "method": "chi_square",
+   "preset": "chi_square",
+   "status": "delivered",
+   "report_chars": 1227,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "row_order_invariant": true,
+    "transpose_invariant": true,
+    "uniform_scaling_scales_chi2_keeps_V": true,
+    "independence_gives_zero_chi2": true,
+    "bounded_and_consistent": true
+   },
+   "deterministic": true,
+   "units": {
+    "chi_squared": "ratio/3",
+    "df": "count/0",
+    "p_value": "probability/4",
+    "cramers_v": "ratio/3",
+    "n_total": "count/0",
+    "n_cells": "count/0",
+    "min_expected_count": "count/0",
+    "alpha": "rate/2"
+   },
+   "outputs": {
+    "chi_squared": "56.000000000000000000000000000000000000000000000000",
+    "df": "4",
+    "p_value": "2.00517603101266E-11",
+    "cramers_v": "0.30550504633038933377253647958186723259896377178453",
+    "n_total": "300",
+    "n_cells": "9",
+    "min_expected_count": "25",
+    "alpha": "0.05"
+   }
+  },
+  {
+   "tool": "power",
+   "method": "power_analysis",
+   "preset": "power",
+   "status": "delivered",
+   "report_chars": 925,
+   "appendix_tests": {
+    "second_implementation_agrees": true,
+    "power_at_zero_effect_equals_alpha": true,
+    "power_increases_with_effect_size": true,
+    "power_increases_with_sample_size": true,
+    "mde_decreases_with_sample_size": true
+   },
+   "deterministic": true,
+   "units": {
+    "power": "probability/4",
+    "mde": "@unit/2",
+    "se": "@unit/2",
+    "ncp": "ratio/3",
+    "z_alpha": "ratio/3",
+    "alpha": "probability/4",
+    "target_power": "probability/4",
+    "n1": "count/0",
+    "n2": "count/0",
+    "_appendix": "ratio/3",
+    "_checks": "ratio/3"
+   },
+   "outputs": {
+    "power": "0.47570563669489524",
+    "mde": "7.376916665618976",
+    "se": "2.6331223544175333",
+    "ncp": "1.8988863132818747",
+    "z_alpha": "1.9599639845400536",
+    "alpha": "0.05",
+    "target_power": "0.8",
+    "n1": "30",
+    "n2": "40",
+    "_appendix": "{'design': 'two_sample', 'tails': 'two_sided', 'effect': '5.0', 'standard_deviations': ['10.0', '12.0'], 'model': 'normal approximation: power = Phi(ncp - z_alpha) + (Phi(-ncp - z_alpha) if two-sided else 0); mde = (z_alpha + z_target) * se', 'approx_limits': 'exact when the standard deviations are known/planned; with estimated sds an exact calculation would use the noncentral t distribution (not implemented).'}",
+    "_checks": "[('second_implementation_agrees', True, 'erfc-based route agrees with the NormalDist route'), ('power_at_zero_effect_equals_alpha', True, 'with no effect the rejection rate is the declared alpha'), ('power_increases_with_effect_size', True, 'a larger effect is easier to detect'), ('power_increases_with_sample_size', True, 'more observations do not reduce power'), ('mde_decreases_with_sample_size', True, 'more observations detect a smaller effect at the same power')]"
+   }
+  }
+ ],
+ "findings": [
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "a forward_rate is typed as currency",
+   "tool": "irp"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "a wage_share_of_productivity is typed as currency",
+   "tool": "labour"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "forecast"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "cea"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "cea"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "cea"
+  },
+  {
+   "kind": "OUTPUT_NOT_A_ROW",
+   "detail": "impl returned Decimal, not a row",
+   "tool": "npv"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "n: 'NoneType' object is not callable",
+   "tool": "descriptive"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "n_missing: 'NoneType' object is not callable",
+   "tool": "descriptive"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "mean: 'NoneType' object is not callable",
+   "tool": "descriptive"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "median: 'NoneType' object is not callable",
+   "tool": "descriptive"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "minimum: 'NoneType' object is not callable",
+   "tool": "descriptive"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "maximum: 'NoneType' object is not callable",
+   "tool": "descriptive"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "variance: 'NoneType' object is not callable",
+   "tool": "descriptive"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "sd: 'NoneType' object is not callable",
+   "tool": "descriptive"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "r: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "r_squared: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "ci_lower: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "ci_upper: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "p_value: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "n_pairs: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "n_excluded: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "confidence_level: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "TYPING_RAISED",
+   "detail": "alpha: 'NoneType' object is not callable",
+   "tool": "pearson"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit 'coefficient' is not a known unit",
+   "tool": "ols"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "welch"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "welch"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "welch"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "welch"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "welch"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "welch"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "welch"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "welch"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "anova"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "anova"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "anova"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "anova"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "anova"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "anova"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "anova"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "power"
+  },
+  {
+   "kind": "UNIT_MISLABEL",
+   "detail": "unit '@unit' is not a known unit",
+   "tool": "power"
+  }
+ ]
+}

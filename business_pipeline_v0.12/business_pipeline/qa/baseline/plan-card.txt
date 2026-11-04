@@ -1,0 +1,16 @@
+4925: }
+4926: const noted = tools.filter((t) => t.formula);
+4927: if (noted.length) {
+4928: html += '<h3>Study notes</h3><p class="muted">Formula, steps and the mistakes students most often make. ' +
+4929: 'The numbers still come from the frozen method, not from this text.</p>';
+4930: noted.forEach((t) => {
+4931: html += '<details class="studynote"><summary>' + esc(t.label) +
+4932: (t.level ? ' <span class="lvl">' + esc(t.level) + "</span>" : "") + "</summary>" +
+4933: "<p><strong>Formula.</strong> " + esc(t.formula) + "</p>" +
+4934: ((t.steps || []).length ? "<p><strong>Steps.</strong></p><ol>" +
+4935: t.steps.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ol>" : "") +
+4936: ((t.common_mistakes || []).length ? "<p><strong>Common mistakes.</strong></p><ul>" +
+4937: t.common_mistakes.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul>" : "") +
+4938: 
+4939: ((t.related || []).length ? '<p class="muted">Related: ' + t.related.map(esc).join(", ") + "</p>" : "") +
+4940: "</details>";

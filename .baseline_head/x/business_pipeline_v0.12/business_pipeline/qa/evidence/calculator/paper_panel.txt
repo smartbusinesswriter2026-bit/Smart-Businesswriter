@@ -1,0 +1,32 @@
+Computation: panel regression
+Result
+The within-entity slope is 2.0000 across 3 entities and 3 periods, with a within R-squared of 1.0000. The fixed-effects estimator uses only within-entity variation; time-invariant regressors are absorbed. The panel must be balanced; an unbalanced panel is refused rather than handled with a different estimator. No clustered or robust standard errors, lagged dependent variables or dynamic panel bias correction are included. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Data: Entity: A; Period: 1; Y: 2; X: 1, Entity: A; Period: 2; Y: 4; X: 2, Entity: A; Period: 3; Y: 6; X: 3, Entity: B; Period: 1; Y: 5; X: 2, Entity: B; Period: 2; Y: 7; X: 3, Entity: B; Period: 3; Y: 9; X: 4, Entity: C; Period: 1; Y: 1; X: 1, Entity: C; Period: 2; Y: 5; X: 3, Entity: C; Period: 3; Y: 9; X: 5
+What was computed
+Slope: 2.0000
+Intercept: -0.0000
+Within r2: 1.0000
+N obs: 9
+N entities: 3
+N periods: 3
+Df: 5
+Honesty: what was not done
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+The panel is balanced and the entity effect is additive.
+The slope is common across entities.
+No time-varying omitted variable is correlated with x.
+Limitations
+Time-invariant regressors are absorbed and cannot be estimated.
+No standard errors, clustering or robust inference.
+Dynamic panel bias is not addressed.
+How the figures were checked
+Second implementation agrees.
+Slope equals within covariance over variance.
+Adding a constant to y leaves the slope unchanged.
+Adding a constant to x leaves the slope unchanged.
+Within residuals sum to zero.

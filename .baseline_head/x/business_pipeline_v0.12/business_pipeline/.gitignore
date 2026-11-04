@@ -1,0 +1,4 @@
+# runtime artefacts (never committed)
+__pycache__/
+*.pyc
+retrieval_log.jsonl

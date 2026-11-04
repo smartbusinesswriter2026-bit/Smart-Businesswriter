@@ -1,0 +1,25 @@
+[
+  {
+    "id": "bakery-competition",
+    "case_text": "A regional bakery is losing weekday customers since a supermarket chain opened a bakery counter nearby.\nThe owner has savings and a lease on the shop for three more years.",
+    "objective": "How should the bakery respond to the new competitor?",
+    "gold_facts": [
+      "A regional bakery is losing weekday customers since a supermarket chain opened a bakery counter nearby.",
+      "The owner has savings and a lease on the shop for three more years."
+    ],
+    "gold_alternatives": ["expand", "cater"],
+    "gold_critique": [{"category": "missing_information", "target": "case"}]
+  },
+  {
+    "id": "software-pricing",
+    "case_text": "A software company sells a project tool to small firms.\nChurn has risen since a cheaper rival launched a free tier.\nThe company has one year of cash reserve.",
+    "objective": "Should the company cut prices or add premium features?",
+    "gold_facts": [
+      "A software company sells a project tool to small firms.",
+      "Churn has risen since a cheaper rival launched a free tier.",
+      "The company has one year of cash reserve."
+    ],
+    "gold_alternatives": ["premium", "price"],
+    "gold_critique": [{"category": "unsupported_assumption", "target": "case"}]
+  }
+]

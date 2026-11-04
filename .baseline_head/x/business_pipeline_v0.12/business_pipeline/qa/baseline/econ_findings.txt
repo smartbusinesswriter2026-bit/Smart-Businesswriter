@@ -1,0 +1,26 @@
+﻿DUPS:
+  src\bp\methods.py {'_risk_typing': [4616, 12616], '_tax_typing': [5164, 13953], '_social_typing': [6441, 10066]}
+
+RELATED_UNRESOLVED:
+  tool forecast related id 'scenario' is not an economics tool
+  tool forecast related id 'risk' is not an economics tool
+  tool currency related id 'fx' is not an economics tool
+  tool currency related id 'case_decision' is not an economics tool
+  tool demandcurve related id 'purchaseintent' is not an economics tool
+  tool npv related id 'irr' is not an economics tool
+  tool npv related id 'dpayback' is not an economics tool
+  tool npv related id 'projectmetrics' is not an economics tool
+  tool npv related id 'scenario' is not an economics tool
+  tool dcf related id 'wacc' is not an economics tool
+  tool dcf related id 'dcfmid' is not an economics tool
+  tool dcf related id 'equitybridge' is not an economics tool
+  tool dcf related id 'multiples' is not an economics tool
+  tool unitecon related id 'portfolio' is not an economics tool
+  tool pearson related id 'spearman' is not an economics tool
+  tool ols related id 'ols_robust' is not an economics tool
+  tool ols related id 'logit' is not an economics tool
+  tool welch related id 'paired' is not an economics tool
+  tool anova related id 'kruskal_wallis' is not an economics tool
+  tool anova related id 'posthoc' is not an economics tool
+
+NO_NEED tools: equilibrium,elasticity,taxincidence,pricecontrol,concentration,costcurves,profitmax,marketpower,pricediscrimination,cournot,nash,panel,iv,rdd,probit,nationalincome,growth,inflation,unemployment,moneymultiplier,fiscal,budgetdebt,okun,externality,publicgood,socialwelfare,gini,poverty,taxprogressivity,optimalpollution,comparative,tariff,ppp,irp,bop,hdi,expectedutility,prospect,labour,did,currency,pricing,demandcurve,cba,cea,sroi,dcf,breakeven,multibreakeven,unitecon,welch,anova

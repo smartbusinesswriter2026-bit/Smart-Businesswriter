@@ -1,0 +1,1045 @@
+{
+  "format": "bp-chat/1",
+  "subject": "entrepreneurship",
+  "framework": null,
+  "profile": "business_plan",
+  "brief": "A coffee shop selling specialty coffee to university students in a mid-sized city. It needs start-up funding for equipment, a kiosk lease and two staff.",
+  "created_at": "2026-11-04T16:16:36.498772+00:00",
+  "updated_at": "2026-11-04T16:16:36.536548+00:00",
+  "stage": "draft",
+  "level": "shs",
+  "mode": "strict",
+  "answers": {
+    "decision": "A coffee shop selling specialty coffee to university students in a mid-sized city. It needs start-up funding for equipment, a kiosk lease and two staff.",
+    "geography": "Global",
+    "period": "10",
+    "style": "apa",
+    "inputs": {
+      "business_name": "Bean There",
+      "product": "specialty coffee and pastries",
+      "customers": "university students",
+      "location": "a mid-sized city",
+      "positioning": "affordable specialty coffee",
+      "channels": "a campus kiosk and social media",
+      "pricing_note": "mid-market pricing",
+      "operations": "a single kiosk with two staff",
+      "suppliers": "a local roaster",
+      "capacity_note": "120 cups a day",
+      "team": "the owner and one barista",
+      "roles": "the owner buys and manages; the barista serves",
+      "risks": [
+        "a rent increase",
+        "low student footfall"
+      ]
+    }
+  },
+  "questions": [],
+  "question_index": 0,
+  "sources": [],
+  "evidence": [],
+  "gaps": [],
+  "notes": [],
+  "computations": {
+    "frommarket": {
+      "ok": true,
+      "method": "sales_from_market",
+      "inputs": {
+        "market_size": "60000000",
+        "target_share": "0.03",
+        "price": "120"
+      },
+      "result": {
+        "market_size": "60000000",
+        "target_share": "0.03",
+        "price": "120",
+        "target_revenue": "1800000.00",
+        "target_units": "15000.00"
+      }
+    },
+    "breakeven": {
+      "ok": true,
+      "method": "breakeven",
+      "inputs": {
+        "fixed": "300000",
+        "price": "120",
+        "variable": "55"
+      },
+      "result": {
+        "breakeven_units": "4615.3846153846153846153846153846153846153846153846",
+        "contribution_margin": "65",
+        "contribution_margin_ratio": "0.54166666666666666666666666666666666666666666666667",
+        "breakeven_revenue": "553846.15384615384615384615384615384615384615384615"
+      }
+    },
+    "depreciation": {
+      "ok": true,
+      "method": "depreciation_schedule",
+      "inputs": {
+        "cost": "500000",
+        "salvage": "50000",
+        "life": "5",
+        "method": "straight_line"
+      },
+      "result": {
+        "depreciation_1": "90000",
+        "accumulated_1": "90000",
+        "carrying_1": "410000",
+        "depreciation_2": "90000",
+        "accumulated_2": "180000",
+        "carrying_2": "320000",
+        "depreciation_3": "90000",
+        "accumulated_3": "270000",
+        "carrying_3": "230000",
+        "depreciation_4": "90000",
+        "accumulated_4": "360000",
+        "carrying_4": "140000",
+        "depreciation_5": "90000",
+        "accumulated_5": "450000",
+        "carrying_5": "50000",
+        "cost": "500000",
+        "salvage": "50000",
+        "life": "5",
+        "rate": "0.4",
+        "total_depreciation": "450000",
+        "final_carrying": "50000"
+      }
+    },
+    "proforma": {
+      "ok": true,
+      "method": "proforma_statements",
+      "inputs": {
+        "revenue": [
+          "1200000",
+          "1500000",
+          "1800000"
+        ],
+        "gross_margin_rate": "0.40",
+        "operating_costs": [
+          "300000",
+          "320000",
+          "340000"
+        ],
+        "depreciation": [
+          "90000",
+          "90000",
+          "90000"
+        ],
+        "interest": [
+          "40000",
+          "30000",
+          "20000"
+        ],
+        "principal_repayment": [
+          "100000",
+          "100000",
+          "100000"
+        ],
+        "capex": [
+          "0",
+          "0",
+          "0"
+        ],
+        "tax_rate": "0.25",
+        "receivable_days": "30",
+        "inventory_days": "45",
+        "payable_days": "30",
+        "opening_cash": "200000",
+        "opening_fixed_assets": "450000",
+        "opening_receivables": "0",
+        "opening_inventory": "0",
+        "opening_payables": "0",
+        "opening_loan": "400000",
+        "opening_equity": "250000"
+      },
+      "result": {
+        "total_revenue": "4500000",
+        "total_net_income": "360000.0000",
+        "revenue_1": "1200000",
+        "gross_profit_1": "480000.00",
+        "operating_profit_1": "90000.00",
+        "interest_1": "40000",
+        "principal_repayment_1": "100000",
+        "pre_tax_profit_1": "50000.00",
+        "tax_1": "12500.0000",
+        "net_income_1": "37500.0000",
+        "cash_from_operations_1": "-719.178082191780821917808219178082191780821917809",
+        "cash_from_investing_1": "0",
+        "cash_from_financing_1": "-100000",
+        "net_cash_flow_1": "-100719.17808219178082191780821917808219178082191781",
+        "closing_cash_1": "99280.82191780821917808219178082191780821917808219",
+        "receivables_1": "98630.136986301369863013698630136986301369863013699",
+        "inventory_1": "88767.123287671232876712328767123287671232876712329",
+        "fixed_assets_1": "360000",
+        "total_assets_1": "646678.08219178082191780821917808219178082191780822",
+        "payables_1": "59178.082191780821917808219178082191780821917808219",
+        "loan_1": "300000",
+        "total_liabilities_1": "359178.08219178082191780821917808219178082191780822",
+        "equity_1": "287500.0000",
+        "revenue_2": "1500000",
+        "gross_profit_2": "600000.00",
+        "operating_profit_2": "190000.00",
+        "interest_2": "30000",
+        "principal_repayment_2": "100000",
+        "pre_tax_profit_2": "160000.00",
+        "tax_2": "40000.0000",
+        "net_income_2": "120000.0000",
+        "cash_from_operations_2": "177945.20547945205479452054794520547945205479452056",
+        "cash_from_investing_2": "0",
+        "cash_from_financing_2": "-100000",
+        "net_cash_flow_2": "77945.20547945205479452054794520547945205479452056",
+        "closing_cash_2": "177226.02739726027397260273972602739726027397260275",
+        "receivables_2": "123287.67123287671232876712328767123287671232876712",
+        "inventory_2": "110958.90410958904109589041095890410958904109589041",
+        "fixed_assets_2": "270000",
+        "total_assets_2": "681472.60273972602739726027397260273972602739726028",
+        "payables_2": "73972.602739726027397260273972602739726027397260274",
+        "loan_2": "200000",
+        "total_liabilities_2": "273972.60273972602739726027397260273972602739726027",
+        "equity_2": "407500.0000",
+        "revenue_3": "1800000",
+        "gross_profit_3": "720000.00",
+        "operating_profit_3": "290000.00",
+        "interest_3": "20000",
+        "principal_repayment_3": "100000",
+        "pre_tax_profit_3": "270000.00",
+        "tax_3": "67500.0000",
+        "net_income_3": "202500.0000",
+        "cash_from_operations_3": "260445.20547945205479452054794520547945205479452054",
+        "cash_from_investing_3": "0",
+        "cash_from_financing_3": "-100000",
+        "net_cash_flow_3": "160445.20547945205479452054794520547945205479452054",
+        "closing_cash_3": "337671.23287671232876712328767123287671232876712329",
+        "receivables_3": "147945.20547945205479452054794520547945205479452055",
+        "inventory_3": "133150.68493150684931506849315068493150684931506849",
+        "fixed_assets_3": "180000",
+        "total_assets_3": "798767.12328767123287671232876712328767123287671233",
+        "payables_3": "88767.123287671232876712328767123287671232876712329",
+        "loan_3": "100000",
+        "total_liabilities_3": "188767.12328767123287671232876712328767123287671233",
+        "equity_3": "610000.0000",
+        "closing_cash_final": "337671.23287671232876712328767123287671232876712329",
+        "closing_equity_final": "610000.0000"
+      }
+    },
+    "sensitivity": {
+      "ok": true,
+      "method": "sensitivity_table",
+      "inputs": {
+        "base_price": "120",
+        "base_units": "10000",
+        "base_variable_cost": "55",
+        "base_fixed_cost": "300000",
+        "price_changes": [
+          "-0.1",
+          "0",
+          "0.1"
+        ],
+        "volume_changes": [
+          "-0.2",
+          "0",
+          "0.2"
+        ]
+      },
+      "result": {
+        "base_profit": "350000",
+        "base_price": "120",
+        "base_units": "10000",
+        "profit_1_1": "124000.00",
+        "profit_1_2": "230000.0",
+        "profit_1_3": "336000.00",
+        "profit_2_1": "220000.0",
+        "profit_2_2": "350000",
+        "profit_2_3": "480000.0",
+        "profit_3_1": "316000.00",
+        "profit_3_2": "470000.0",
+        "profit_3_3": "624000.00"
+      }
+    }
+  },
+  "draft": {
+    "title": "Business plan: Bean There",
+    "sections": [
+      [
+        "Executive Summary",
+        [
+          "This plan sets out Bean There. It sells specialty coffee and pastries. Its customers are university students. It operates in a mid-sized city. From the declared market and share, target revenue is 1,800,000 and target volume is 15,000 units. Across the projected periods, revenue totals 4,500,000 and net income totals 360,000."
+        ]
+      ],
+      [
+        "Business Description",
+        [
+          "The business is Bean There. It sells specialty coffee and pastries. Its customers are university students. It operates in a mid-sized city."
+        ]
+      ],
+      [
+        "Market Analysis",
+        []
+      ],
+      [
+        "Market Size and Growth",
+        [
+          "The retrieved evidence did not cover this dimension; this is a gap, not a finding."
+        ]
+      ],
+      [
+        "Customers and Segments",
+        [
+          "The retrieved evidence did not cover this dimension; this is a gap, not a finding."
+        ]
+      ],
+      [
+        "Competition",
+        [
+          "The retrieved evidence did not cover this dimension; this is a gap, not a finding."
+        ]
+      ],
+      [
+        "Regulation and Policy",
+        [
+          "The retrieved evidence did not cover this dimension; this is a gap, not a finding."
+        ]
+      ],
+      [
+        "Marketing Plan",
+        [
+          "The business is positioned as affordable specialty coffee. It will reach customers through a campus kiosk and social media. Its pricing approach is mid-market pricing."
+        ]
+      ],
+      [
+        "Operations Plan",
+        [
+          "The business will operate as follows: a single kiosk with two staff. It depends on a local roaster. Its capacity requirement is 120 cups a day."
+        ]
+      ],
+      [
+        "Management and Organisation",
+        [
+          "The business will be run by the owner and one barista. Responsibilities are: the owner buys and manages; the barista serves."
+        ]
+      ],
+      [
+        "Financial Plan",
+        []
+      ],
+      [
+        "Market Size and Target Sales",
+        [
+          "A declared target share of 3.0% of a market of 60,000,000 at a price of 120 gives target revenue of 1,800,000 and 15,000 units."
+        ]
+      ],
+      [
+        "Break-even",
+        [
+          "At a declared fixed cost of 300,000, a price of 120 per unit and a variable cost of 55 per unit, the break-even quantity is 4,615.38 units and the break-even revenue is 553,846.15. The contribution margin is 65 per unit (54.2% of the price)."
+        ]
+      ],
+      [
+        "Depreciation",
+        [
+          "Depreciation on a cost of 500,000 to a salvage value of 50,000 over 5 periods totals 450,000, leaving a carrying amount of 50,000."
+        ]
+      ],
+      [
+        "Projected Financial Statements",
+        [
+          "In period 1, revenue is 1,200,000, net income is 37,500 and closing cash is 99,280.82. In period 2, revenue is 1,500,000, net income is 120,000 and closing cash is 177,226.03. In period 3, revenue is 1,800,000, net income is 202,500 and closing cash is 337,671.23. Over the declared periods, revenue totals 4,500,000 and net income totals 360,000, closing with cash of 337,671.23 and equity of 610,000. The declared period-1 revenue is 1,200,000, against target revenue of 1,800,000 from the declared market share. The projected balance sheet balances at the opening date and at the end of every period, as the method checks."
+        ]
+      ],
+      [
+        "Sensitivity",
+        [
+          "At the declared base case, profit is 350,000. Across the declared changes, profit ranges from 124,000 at a price change of -10.0% and a volume change of -20.0%, to 624,000 at a price change of 10.0% and a volume change of 20.0%. Each cell is the profit identity at the changed price and volume; the unit cost and the fixed cost stay at the base case."
+        ]
+      ],
+      [
+        "Risk Analysis",
+        []
+      ],
+      [
+        "Sensitivity of Profit",
+        [
+          "At the declared base case, profit is 350,000. Across the declared changes, profit ranges from 124,000 at a price change of -10.0% and a volume change of -20.0%, to 624,000 at a price change of 10.0% and a volume change of 20.0%. Each cell is the profit identity at the changed price and volume; the unit cost and the fixed cost stay at the base case."
+        ]
+      ],
+      [
+        "Risks Named by the Owner",
+        [
+          "The owner names the following risks: a rent increase; low student footfall."
+        ]
+      ],
+      [
+        "Limitations",
+        [
+          "The business description, marketing, operations, management and risks are the student's input; the system did not verify them. The financial figures are arithmetic on the declared drivers, not a demand forecast. The market size, share, price, costs and opening balances are declarations, not retrieved facts. The sensitivity table changes price and volume only; unit cost and fixed cost stay at the base case."
+        ]
+      ],
+      [
+        "Conclusion",
+        [
+          "The plan proposes Bean There. The declared market share supports target revenue of 1,800,000. The projected statements report net income of 360,000 over the declared periods from the declared drivers. The named risks and the limitations qualify the plan; every figure in it is a declared input or a core computation, not a forecast."
+        ]
+      ],
+      [
+        "References",
+        [
+          "No sources were used."
+        ]
+      ]
+    ],
+    "outline": [
+      {
+        "heading": "Executive Summary",
+        "level": 1,
+        "lines": [
+          "This plan sets out Bean There. It sells specialty coffee and pastries. Its customers are university students. It operates in a mid-sized city. From the declared market and share, target revenue is 1,800,000 and target volume is 15,000 units. Across the projected periods, revenue totals 4,500,000 and net income totals 360,000."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Business Description",
+        "level": 1,
+        "lines": [
+          "The business is Bean There. It sells specialty coffee and pastries. Its customers are university students. It operates in a mid-sized city."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Market Analysis",
+        "level": 1,
+        "lines": [],
+        "figure": null
+      },
+      {
+        "heading": "Market Size and Growth",
+        "level": 2,
+        "lines": [
+          "The retrieved evidence did not cover this dimension; this is a gap, not a finding."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Customers and Segments",
+        "level": 2,
+        "lines": [
+          "The retrieved evidence did not cover this dimension; this is a gap, not a finding."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Competition",
+        "level": 2,
+        "lines": [
+          "The retrieved evidence did not cover this dimension; this is a gap, not a finding."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Regulation and Policy",
+        "level": 2,
+        "lines": [
+          "The retrieved evidence did not cover this dimension; this is a gap, not a finding."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Marketing Plan",
+        "level": 1,
+        "lines": [
+          "The business is positioned as affordable specialty coffee. It will reach customers through a campus kiosk and social media. Its pricing approach is mid-market pricing."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Operations Plan",
+        "level": 1,
+        "lines": [
+          "The business will operate as follows: a single kiosk with two staff. It depends on a local roaster. Its capacity requirement is 120 cups a day."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Management and Organisation",
+        "level": 1,
+        "lines": [
+          "The business will be run by the owner and one barista. Responsibilities are: the owner buys and manages; the barista serves."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Financial Plan",
+        "level": 1,
+        "lines": [],
+        "figure": null
+      },
+      {
+        "heading": "Market Size and Target Sales",
+        "level": 2,
+        "lines": [
+          "A declared target share of 3.0% of a market of 60,000,000 at a price of 120 gives target revenue of 1,800,000 and 15,000 units."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Break-even",
+        "level": 2,
+        "lines": [
+          "At a declared fixed cost of 300,000, a price of 120 per unit and a variable cost of 55 per unit, the break-even quantity is 4,615.38 units and the break-even revenue is 553,846.15. The contribution margin is 65 per unit (54.2% of the price)."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Depreciation",
+        "level": 2,
+        "lines": [
+          "Depreciation on a cost of 500,000 to a salvage value of 50,000 over 5 periods totals 450,000, leaving a carrying amount of 50,000."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Projected Financial Statements",
+        "level": 2,
+        "lines": [
+          "In period 1, revenue is 1,200,000, net income is 37,500 and closing cash is 99,280.82. In period 2, revenue is 1,500,000, net income is 120,000 and closing cash is 177,226.03. In period 3, revenue is 1,800,000, net income is 202,500 and closing cash is 337,671.23. Over the declared periods, revenue totals 4,500,000 and net income totals 360,000, closing with cash of 337,671.23 and equity of 610,000. The declared period-1 revenue is 1,200,000, against target revenue of 1,800,000 from the declared market share. The projected balance sheet balances at the opening date and at the end of every period, as the method checks."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Sensitivity",
+        "level": 2,
+        "lines": [
+          "At the declared base case, profit is 350,000. Across the declared changes, profit ranges from 124,000 at a price change of -10.0% and a volume change of -20.0%, to 624,000 at a price change of 10.0% and a volume change of 20.0%. Each cell is the profit identity at the changed price and volume; the unit cost and the fixed cost stay at the base case."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Risk Analysis",
+        "level": 1,
+        "lines": [],
+        "figure": null
+      },
+      {
+        "heading": "Sensitivity of Profit",
+        "level": 2,
+        "lines": [
+          "At the declared base case, profit is 350,000. Across the declared changes, profit ranges from 124,000 at a price change of -10.0% and a volume change of -20.0%, to 624,000 at a price change of 10.0% and a volume change of 20.0%. Each cell is the profit identity at the changed price and volume; the unit cost and the fixed cost stay at the base case."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Risks Named by the Owner",
+        "level": 2,
+        "lines": [
+          "The owner names the following risks: a rent increase; low student footfall."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Limitations",
+        "level": 2,
+        "lines": [
+          "The business description, marketing, operations, management and risks are the student's input; the system did not verify them. The financial figures are arithmetic on the declared drivers, not a demand forecast. The market size, share, price, costs and opening balances are declarations, not retrieved facts. The sensitivity table changes price and volume only; unit cost and fixed cost stay at the base case."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "Conclusion",
+        "level": 1,
+        "lines": [
+          "The plan proposes Bean There. The declared market share supports target revenue of 1,800,000. The projected statements report net income of 360,000 over the declared periods from the declared drivers. The named risks and the limitations qualify the plan; every figure in it is a declared input or a core computation, not a forecast."
+        ],
+        "figure": null
+      },
+      {
+        "heading": "References",
+        "level": 1,
+        "lines": [
+          "No sources were used."
+        ],
+        "figure": null
+      }
+    ],
+    "style": "apa",
+    "profile": "business_plan",
+    "level": "shs",
+    "accepted": [],
+    "missing": [],
+    "created_at": "2026-11-04T16:16:36.536538+00:00"
+  },
+  "plan": {
+    "profile": "business_plan",
+    "label": "Business plan",
+    "mode": "strict",
+    "mode_label": "Business-plan convention",
+    "level": "shs",
+    "level_label": "Senior high school",
+    "decision": "A coffee shop selling specialty coffee to university students in a mid-sized city. It needs start-up funding for equipment, a kiosk lease and two staff.",
+    "geography": "Global",
+    "period": "10",
+    "style": "apa",
+    "sections": [
+      {
+        "key": "executive_summary",
+        "heading": "Executive Summary",
+        "kind": "integration",
+        "level": 1
+      },
+      {
+        "key": "business_description",
+        "heading": "Business Description",
+        "kind": "input",
+        "level": 1
+      },
+      {
+        "key": "market_analysis",
+        "heading": "Market Analysis",
+        "kind": "evidence",
+        "level": 1
+      },
+      {
+        "key": "marketing_plan",
+        "heading": "Marketing Plan",
+        "kind": "input",
+        "level": 1
+      },
+      {
+        "key": "operations_plan",
+        "heading": "Operations Plan",
+        "kind": "input",
+        "level": 1
+      },
+      {
+        "key": "management",
+        "heading": "Management and Organisation",
+        "kind": "input",
+        "level": 1
+      },
+      {
+        "key": "financial_plan",
+        "heading": "Financial Plan",
+        "kind": "computation",
+        "level": 1
+      },
+      {
+        "key": "risk",
+        "heading": "Risk Analysis",
+        "kind": "integration",
+        "level": 1
+      },
+      {
+        "key": "conclusion",
+        "heading": "Conclusion",
+        "kind": "integration",
+        "level": 1
+      },
+      {
+        "key": "references",
+        "heading": "References",
+        "kind": "references",
+        "level": 1
+      }
+    ],
+    "blocks": [
+      {
+        "key": "frommarket",
+        "label": "Market Size and Target Sales",
+        "method": "sales_from_market",
+        "section": "financial_plan",
+        "level": "shs",
+        "required": true,
+        "what": "Target revenue and units from your declared market size, share and price.",
+        "input_schema": {
+          "market_size": {
+            "type": "decimal",
+            "desc": "the annual market size in your currency"
+          },
+          "target_share": {
+            "type": "decimal",
+            "desc": "the share of the market you plan to win, a fraction above zero and at most one"
+          },
+          "price": {
+            "type": "decimal",
+            "desc": "price per unit"
+          }
+        }
+      },
+      {
+        "key": "breakeven",
+        "label": "Break-even",
+        "method": "breakeven",
+        "section": "financial_plan",
+        "level": "shs",
+        "required": true,
+        "what": "The quantity and revenue at which the declared price covers the declared costs.",
+        "input_schema": {
+          "fixed": {
+            "type": "decimal",
+            "desc": "total fixed cost"
+          },
+          "price": {
+            "type": "decimal",
+            "desc": "price per unit"
+          },
+          "variable": {
+            "type": "decimal",
+            "desc": "variable cost per unit"
+          },
+          "expected_units": {
+            "type": "decimal",
+            "required": false,
+            "desc": "optional expected sales volume, for the margin of safety"
+          },
+          "target_profit": {
+            "type": "decimal",
+            "required": false,
+            "desc": "optional pre-tax profit target, for the required volume"
+          }
+        }
+      },
+      {
+        "key": "depreciation",
+        "label": "Depreciation",
+        "method": "depreciation_schedule",
+        "section": "financial_plan",
+        "level": "shs",
+        "required": true,
+        "what": "The period depreciation charge and the carrying amount of an asset.",
+        "input_schema": {
+          "cost": {
+            "type": "decimal",
+            "desc": "the asset's cost"
+          },
+          "salvage": {
+            "type": "decimal",
+            "required": false,
+            "desc": "expected salvage value at the end of the life, default 0"
+          },
+          "life": {
+            "type": "decimal",
+            "desc": "useful life in whole periods, 1 to 40"
+          },
+          "method": {
+            "type": "enum",
+            "values": [
+              "straight_line",
+              "declining_balance"
+            ],
+            "required": false,
+            "desc": "straight line (default) or declining balance"
+          },
+          "declining_rate": {
+            "type": "decimal",
+            "required": false,
+            "desc": "declining-balance rate, default 2 / life"
+          }
+        }
+      },
+      {
+        "key": "proforma",
+        "label": "Projected Financial Statements",
+        "method": "proforma_statements",
+        "section": "financial_plan",
+        "level": "shs",
+        "required": true,
+        "what": "Projected income statement, cash flow and balance sheet from your declared drivers.",
+        "input_schema": {
+          "revenue": {
+            "type": "value_list",
+            "min_items": 1,
+            "desc": "declared revenue for each period, one to ten periods"
+          },
+          "gross_margin_rate": {
+            "type": "decimal",
+            "desc": "gross margin as a fraction of revenue, e.g. 0.40"
+          },
+          "operating_costs": {
+            "type": "value_list",
+            "min_items": 1,
+            "desc": "fixed operating costs each period, excluding depreciation and interest"
+          },
+          "depreciation": {
+            "type": "value_list",
+            "min_items": 1,
+            "desc": "depreciation each period"
+          },
+          "interest": {
+            "type": "value_list",
+            "required": false,
+            "min_items": 1,
+            "desc": "interest expense each period; omit when loan terms are declared"
+          },
+          "principal_repayment": {
+            "type": "value_list",
+            "required": false,
+            "min_items": 1,
+            "desc": "loan principal repaid each period; omit when loan terms are declared"
+          },
+          "loan_principal": {
+            "type": "decimal",
+            "required": false,
+            "desc": "optional opening loan principal; with the rate and years, the interest and principal are derived"
+          },
+          "loan_annual_rate": {
+            "type": "decimal",
+            "required": false,
+            "desc": "optional annual interest rate on the opening loan, e.g. 0.09"
+          },
+          "loan_years": {
+            "type": "decimal",
+            "required": false,
+            "desc": "optional number of level annual payments; must equal the number of periods"
+          },
+          "capex": {
+            "type": "value_list",
+            "required": false,
+            "min_items": 1,
+            "desc": "optional capital expenditure each period, default zero"
+          },
+          "tax_rate": {
+            "type": "decimal",
+            "required": false,
+            "desc": "tax rate on positive pre-tax profit, default 0"
+          },
+          "receivable_days": {
+            "type": "decimal",
+            "required": false,
+            "desc": "receivable days of revenue, default 0"
+          },
+          "inventory_days": {
+            "type": "decimal",
+            "required": false,
+            "desc": "inventory days of cost of sales, default 0"
+          },
+          "payable_days": {
+            "type": "decimal",
+            "required": false,
+            "desc": "payable days of cost of sales, default 0"
+          },
+          "opening_cash": {
+            "type": "decimal",
+            "required": false,
+            "desc": "opening cash, default 0"
+          },
+          "opening_fixed_assets": {
+            "type": "decimal",
+            "required": false,
+            "desc": "opening net fixed assets, default 0"
+          },
+          "opening_receivables": {
+            "type": "decimal",
+            "required": false,
+            "desc": "opening receivables, default 0"
+          },
+          "opening_inventory": {
+            "type": "decimal",
+            "required": false,
+            "desc": "opening inventory, default 0"
+          },
+          "opening_payables": {
+            "type": "decimal",
+            "required": false,
+            "desc": "opening payables, default 0"
+          },
+          "opening_loan": {
+            "type": "decimal",
+            "required": false,
+            "desc": "opening loan balance, default 0"
+          },
+          "opening_equity": {
+            "type": "decimal",
+            "required": false,
+            "desc": "opening equity; the opening balance sheet must balance"
+          }
+        }
+      },
+      {
+        "key": "sensitivity",
+        "label": "Sensitivity",
+        "method": "sensitivity_table",
+        "section": "financial_plan",
+        "level": "shs",
+        "required": true,
+        "what": "Profit across declared price and volume changes.",
+        "input_schema": {
+          "base_price": {
+            "type": "decimal",
+            "desc": "base-case price per unit"
+          },
+          "base_units": {
+            "type": "decimal",
+            "desc": "base-case units sold"
+          },
+          "base_variable_cost": {
+            "type": "decimal",
+            "desc": "variable cost per unit"
+          },
+          "base_fixed_cost": {
+            "type": "decimal",
+            "desc": "fixed cost for the period"
+          },
+          "price_changes": {
+            "type": "value_list",
+            "min_items": 1,
+            "max_items": 5,
+            "desc": "price changes as fractions, e.g. -0.1 for -10%"
+          },
+          "volume_changes": {
+            "type": "value_list",
+            "min_items": 1,
+            "max_items": 5,
+            "desc": "volume changes as fractions, one to five"
+          }
+        }
+      }
+    ],
+    "fields": [
+      {
+        "key": "business_name",
+        "label": "the business name",
+        "section": "business_description",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "product",
+        "label": "what the business sells",
+        "section": "business_description",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "customers",
+        "label": "who the customers are",
+        "section": "business_description",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "location",
+        "label": "where the business operates",
+        "section": "business_description",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "positioning",
+        "label": "how the business is positioned",
+        "section": "marketing_plan",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "channels",
+        "label": "how it will reach customers",
+        "section": "marketing_plan",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "pricing_note",
+        "label": "the pricing approach",
+        "section": "marketing_plan",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "operations",
+        "label": "how the business will operate",
+        "section": "operations_plan",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "suppliers",
+        "label": "the suppliers or inputs it depends on",
+        "section": "operations_plan",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "capacity_note",
+        "label": "the capacity it needs",
+        "section": "operations_plan",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "team",
+        "label": "who will run the business",
+        "section": "management",
+        "type": "text",
+        "required": true
+      },
+      {
+        "key": "roles",
+        "label": "what each person is responsible for",
+        "section": "management",
+        "type": "text",
+        "required": false
+      },
+      {
+        "key": "risks",
+        "label": "at least one named risk",
+        "section": "risk",
+        "type": "items",
+        "required": true
+      }
+    ],
+    "dimensions": [
+      {
+        "key": "market",
+        "label": "Market Size and Growth",
+        "query": "coffee shop selling specialty coffee university students mid-sized city needs market culture achievement competition and external comparison",
+        "cues": "market size growth demand industry spending",
+        "category": "economic",
+        "source_note": "official economic data and research"
+      },
+      {
+        "key": "customers",
+        "label": "Customers and Segments",
+        "query": "coffee shop selling specialty coffee university students mid-sized city needs consumer behaviour demand",
+        "cues": "consumer behaviour demand survey customers",
+        "category": "social",
+        "source_note": "official social data and survey research"
+      },
+      {
+        "key": "competition",
+        "label": "Competition",
+        "query": "coffee shop selling specialty coffee university students mid-sized city needs competition market share",
+        "cues": "competition market share rival entrant",
+        "category": null,
+        "source_note": "academic and official sources"
+      },
+      {
+        "key": "regulation",
+        "label": "Regulation and Policy",
+        "query": "coffee shop selling specialty coffee university students mid-sized city needs regulation policy licence",
+        "cues": "regulation policy licence compliance permits",
+        "category": "legal",
+        "source_note": "primary legal and policy sources"
+      }
+    ],
+    "why": "The plan composes your own description, the retrieved market evidence and the plan-level computations in the order a reader expects: the business, the market, how it operates, the numbers, the risks and the conclusion.",
+    "misses": "It does not invent a market, a customer, a cost or a forecast. Every number comes from the declared inputs through the frozen core, and every gap is named.",
+    "output": "A business plan with an executive summary, business description, market analysis, marketing and operations plans, management, a Financial Plan with its computation blocks, a risk analysis, a conclusion and one reference list.",
+    "checkpoints": [
+      "Confirm this plan",
+      "Supply your inputs and the declared figures",
+      "Review the retrieved evidence",
+      "Review the drafted plan"
+    ]
+  },
+  "plan_confirmed_at": "2026-11-04T16:16:36.532848+00:00",
+  "plan_record": {
+    "format": "bp-plan/1",
+    "brief_hash": "sha256:34193e44af21ef01",
+    "catalogue_version": null,
+    "frameworks": [],
+    "capabilities": [],
+    "figures": [],
+    "models": [],
+    "decided_at": "2026-11-04T16:16:36.532901+00:00",
+    "plan_hash": "sha256:55a24461a4675438"
+  },
+  "claim_problems": [],
+  "id": "56e0b9d44e78"
+}

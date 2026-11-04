@@ -1,0 +1,7 @@
+tile strategy_design      sheets=9  tools=0  records=0  note=''
+tile resourcing           sheets=3  tools=0  records=0  note=''
+tile development          sheets=5  tools=0  records=0  note=''
+tile reward               sheets=0  tools=0  records=0  note='The catalogue holds no reward or job-evaluation framework, so this tile is empty by design'
+tile engagement_culture   sheets=2  tools=0  records=0  note=''
+tile analytics            sheets=0  tools=10 records=0  note=''
+templates shared with other shelves: {'template_kotter': ['management'], 'template_org_design': ['management'], 'template_competing_values': ['management'], 'template_adkar': ['management'], 'template_lewin': ['management'], 'template_mckinsey_7s': ['management'], 'template_burke_litwin': ['management'], 'template_galbraith_star': ['management'], 'template_theory_of_change': ['management'], 'template_logic_model': ['management'], 'template_pdsa': ['management'], 'template_dmaic': ['management'], 'template_mintzberg': ['management'], 'template_raci': ['project-management'], 'template_job_characteristics': [], 'template_kirkpatrick': [], 'template_amo': [], 'template_tuckman': [], 'template_nine_box': []}

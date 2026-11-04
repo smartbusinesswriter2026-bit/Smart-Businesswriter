@@ -1,0 +1,563 @@
+tool_count: 35
+presets whose method is not in LIBRARY: ['case', 'case_decision', 'five_forces', 'swot', 'unsupported']
+
+[tvm] time_value
+  group=Foundations level=intro period=annual preset=tvm preset_matches=True
+  RADIO in_library=True tier=T1 metric=future_value unit=currency ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Find the future value of a lump sum plus a level payment, the present value of those payments, and the effective annual rate, showing the periodic rate and number of periods used.
+  unsupported_use: Solving for the rate or the number of periods; uneven payments; growing annuities; taxes, fees or inflation.
+  schema required=['present_value', 'rate', 'periods']
+  schema optional=['payment', 'compounding', 'timing']
+  schema detail: [('present_value', 'decimal', None, None), ('payment', 'decimal', None, None), ('rate', 'decimal', None, None), ('periods', 'decimal', None, None), ('compounding', 'enum', None, None), ('timing', 'enum', None, None)]
+  preset_used=tvm input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['annuity_factor', 'effective_annual_rate', 'future_value', 'future_value_payments', 'n_periods', 'periodic_rate', 'present_value_input', 'present_value_payments', 'total_payments']
+  values: {'future_value': '412169.50589505043384053371598616910344392272576332', 'present_value_input': '100000', 'present_value_payments': '206023.66542098316188539904687695437449708020464249', 'future_value_payments': '277484.00524004483008047441420992809195015353401184', 'total_payments': '240000', 'periodic_rate': '0.015', 'effective_annual_rate': '0.061363550625', 'n_periods': '20', 'annuity_factor': '17.168638785081930157116587239746197874756683720208'}
+  checks: [['second_implementation_agrees', True], ['zero_rate_is_simple_addition', True], ['present_value_scales_one_for_one', True], ['annuity_due_is_one_period_ahead', True], ['effective_annual_rate_follows_compounding', True]]
+  tile formula: FV = PV(1 + r)^n + PMT[((1 + r)^n - 1) / r]; the effective annual rate is (1 + r)^m - 1.
+  steps=4 mistakes=4 related=['loan', 'npv', 'bond'] diagram=None
+
+[loan] loan_amortization
+  group=Foundations level=intro period=annual preset=loan preset_matches=True
+  RADIO in_library=True tier=T1 metric=payment unit=currency ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Compute the level payment on an amortizing loan, the total interest over its life, the first payment's interest and principal split, and the effective annual rate.
+  unsupported_use: Variable or teaser rates; interest-only or balloon structures; fees, insurance or prepayment penalties; a full period-by-period schedule export.
+  schema required=['principal', 'annual_rate', 'years']
+  schema optional=['payments_per_year']
+  schema detail: [('principal', 'decimal', None, None), ('annual_rate', 'decimal', None, None), ('years', 'decimal', None, None), ('payments_per_year', 'decimal', None, None)]
+  preset_used=loan input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['effective_annual_rate', 'first_interest', 'first_principal', 'n_payments', 'payment', 'periodic_rate', 'principal', 'total_interest', 'total_paid']
+  values: {'payment': '4151.6710452708019636401401930057889326743235830633', 'total_paid': '249100.26271624811781840841158034733596045941498380', 'total_interest': '49100.26271624811781840841158034733596045941498380', 'principal': '200000', 'periodic_rate': '0.0075', 'effective_annual_rate': '0.093806897670983062965455548586905002593994140625', 'n_payments': '60', 'first_interest': '1500.0000', 'first_principal': '2651.6710452708019636401401930057889326743235830633'}
+  checks: [['second_implementation_agrees', True], ['zero_rate_payment_is_principal_over_periods', True], ['doubling_the_principal_doubles_the_payment', True], ['total_interest_is_payments_minus_principal', True], ['the_final_balance_is_repaid', True], ['effective_annual_rate_follows_the_payment_frequency', True]]
+  tile formula: PMT = P x r / (1 - (1 + r)^-n), where r is the annual rate divided by payments per year and n is years x payments per year.
+  steps=4 mistakes=4 related=['tvm', 'bond', 'leverage'] diagram=None
+
+[dupont] dupont_analysis
+  group=Foundations level=intro period=annual preset=dupont preset_matches=True
+  RADIO in_library=True tier=T1 metric=return_on_equity unit=ratio ceiling=descriptive
+  tests=7 typing=True mapping=False assumption_checks=0
+  intended_use: Decompose return on equity into net margin, asset turnover and the equity multiplier (and, when EBIT, pre-tax income and tax are declared, the five-step tax- and interest-burden form), with common-size ratios and growth against one declared comparison period.
+  unsupported_use: Average balances; more than one comparison period; index or trend series; industry benchmarks or verdicts; restating or adjusting the reported figures.
+  schema required=['revenue', 'net_income', 'total_assets', 'equity']
+  schema optional=['cost_of_sales', 'ebit', 'pretax_income', 'tax_expense', 'prior_revenue', 'prior_net_income', 'prior_total_assets', 'prior_equity']
+  schema detail: [('revenue', 'decimal', None, None), ('net_income', 'decimal', None, None), ('total_assets', 'decimal', None, None), ('equity', 'decimal', None, None), ('cost_of_sales', 'decimal', None, None), ('ebit', 'decimal', None, None), ('pretax_income', 'decimal', None, None), ('tax_expense', 'decimal', None, None), ('prior_revenue', 'decimal', None, None), ('prior_net_income', 'decimal', None, None), ('prior_total_assets', 'decimal', None, None), ('prior_equity', 'decimal', None, None)]
+  preset_used=dupont input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['asset_growth', 'asset_turnover', 'cost_to_revenue', 'equity_growth', 'equity_multiplier', 'equity_to_assets', 'gross_margin', 'interest_burden', 'net_income', 'net_income_growth', 'net_margin', 'operating_margin', 'return_on_assets', 'return_on_equity', 'return_on_equity_prior', 'revenue', 'revenue_growth', 'roe_change', 'roe_five_step', 'roe_three_step', 'tax_burden']
+  values: {'net_margin': '0.09', 'asset_turnover': '1.6666666666666666666666666666666666666666666666667', 'equity_multiplier': '2.4', 'return_on_assets': '0.15', 'return_on_equity': '0.36', 'roe_three_step': '0.36000000000000000000000000000000000000000000000000', 'revenue': '20000', 'net_income': '1800', 'equity_to_assets': '0.41666666666666666666666666666666666666666666666667', 'gross_margin': '0.4', 'cost_to_revenue': '0.6', 'revenue_growth': '0.1111111111111111111111111111111111111111111111111', 'net_income_growth': '0.2', 'asset_growth': '0.0909090909090909090909090909090909090909090909091', 'equity_growth': '0.0638297872340425531914893617021276595744680851064', 'return_on_equity_prior': '0.31914893617021276595744680851063829787234042553191', 'roe_change': '0.04085106382978723404255319148936170212765957446809', 'tax_burden': '0.75', 'interest_burden': '0.8', 'operating_margin': '0.15', 'roe_five_step': '0.36000000000000000000000000000000000000000000000000'}
+  checks: [['second_implementation_agrees', True], ['return_on_equity_is_net_income_over_equity', True], ['the_three_step_product_reproduces_roe', True], ['return_on_assets_is_margin_times_turnover', True], ['a_higher_net_margin_raises_roe', True], ['the_five_step_product_reproduces_roe', True], ['prior_period_growth_rates_are_relative_changes', True]]
+  tile formula: ROE = net margin x asset turnover x equity multiplier; the five-step form adds tax and interest burdens.
+  steps=4 mistakes=4 related=['ratios', 'workingcapital', 'leverage'] diagram=None
+
+[trendanalysis] trend_analysis
+  group=Foundations level=intro period=annual preset=trendanalysis preset_matches=True
+  RADIO in_library=True tier=T1 metric=revenue_cagr unit=rate ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Turn several years of income-statement figures into common-size percentages, an index on the first period, compound growth rates and margin changes.
+  unsupported_use: Forecasting; adjusting or restating the figures; industry benchmarks; segment or consolidated analysis; balance-sheet common-size beyond the equity-to-assets ratio; more than ten periods.
+  schema required=['years', 'revenue', 'cost_of_sales', 'operating_expenses', 'net_income']
+  schema optional=['total_assets', 'equity']
+  schema detail: [('years', 'value_list', None, None), ('revenue', 'value_list', None, None), ('cost_of_sales', 'value_list', None, None), ('operating_expenses', 'value_list', None, None), ('net_income', 'value_list', None, None), ('total_assets', 'value_list', None, None), ('equity', 'value_list', None, None)]
+  preset_used=trendanalysis input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['asset_growth_latest', 'common_size_cost_of_sales', 'common_size_operating_expenses', 'equity_to_assets_latest', 'gross_margin_change', 'gross_margin_latest', 'n_periods', 'net_income_cagr', 'net_income_growth_total', 'net_income_index_latest', 'net_margin_change', 'net_margin_latest', 'operating_margin_latest', 'revenue_cagr', 'revenue_growth_latest', 'revenue_index_latest']
+  values: {'n_periods': '4', 'revenue_cagr': '0.1000000000000000000000000000000000000000000000000', 'revenue_growth_latest': '0.1', 'revenue_index_latest': '133.100', 'gross_margin_latest': '0.42900075131480090157776108189331329827197595792637', 'operating_margin_latest': '0.23365890308039068369646882043576258452291510142750', 'net_margin_latest': '0.14274981217129977460555972952667167543200601051841', 'common_size_cost_of_sales': '0.57099924868519909842223891810668670172802404207363', 'common_size_operating_expenses': '0.19534184823441021788129226145755071374906085649887', 'gross_margin_change': '0.02900075131480090157776108189331329827197595792637', 'net_margin_change': '0.02274981217129977460555972952667167543200601051841', 'net_income_cagr': '0.1655317761968113601553382456298647241030490193958', 'net_income_index_latest': '158.33333333333333333333333333333333333333333333333', 'net_income_growth_total': '0.58333333333333333333333333333333333333333333333333', 'equity_to_assets_latest': '0.5', 'asset_growth_latest': '0.0666666666666666666666666666666666666666666666667'}
+  checks: [['second_implementation_agrees', True], ['the_cagr_compounds_the_first_period_to_the_last', True], ['the_common_size_lines_and_the_operating_margin_sum_to_one', True], ['the_index_is_the_latest_value_over_the_base_times_one_hundred', True], ['the_latest_growth_is_the_change_from_the_previous_period', True], ['the_margin_change_is_the_difference_between_the_endpoints', True]]
+  tile formula: Common-size % = line / revenue; index = period value / base value x 100; CAGR = (end / start)^(1 / periods) - 1.
+  steps=4 mistakes=4 related=['dupont', 'ratios', 'forecast'] diagram=None
+
+[workingcapital] working_capital
+  group=Foundations level=intro period=annual preset=workingcapital preset_matches=True
+  RADIO in_library=True tier=T1 metric=cash_conversion_cycle unit=days ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Measure the cash conversion cycle from receivable, inventory and payable days, and compute the economic order quantity, reorder point and the annualised cost of forgoing a trade discount.
+  unsupported_use: Forecasting working capital; seasonal or step demand; quantity discounts; bad-debt and credit-scoring models; a full cash budget.
+  schema required=['revenue', 'cost_of_sales', 'inventory', 'receivables', 'payables', 'annual_demand', 'order_cost', 'holding_cost_per_unit', 'discount_percent', 'credit_terms_days', 'discount_days']
+  schema optional=['days', 'daily_demand', 'lead_time_days', 'safety_stock']
+  schema detail: [('revenue', 'decimal', None, None), ('cost_of_sales', 'decimal', None, None), ('inventory', 'decimal', None, None), ('receivables', 'decimal', None, None), ('payables', 'decimal', None, None), ('annual_demand', 'decimal', None, None), ('order_cost', 'decimal', None, None), ('holding_cost_per_unit', 'decimal', None, None), ('discount_percent', 'decimal', None, None), ('credit_terms_days', 'decimal', None, None), ('discount_days', 'decimal', None, None), ('days', 'decimal', None, None), ('daily_demand', 'decimal', None, None), ('lead_time_days', 'decimal', None, None), ('safety_stock', 'decimal', None, None)]
+  preset_used=workingcapital input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['cash_conversion_cycle', 'cost_of_trade_credit', 'daily_demand', 'dio', 'dpo', 'dso', 'eoq', 'n_orders_per_year', 'net_working_capital', 'reorder_point']
+  values: {'dso': '27.375', 'dio': '36.5', 'dpo': '27.375', 'cash_conversion_cycle': '36.500', 'net_working_capital': '1800', 'eoq': '353.5533905932738', 'reorder_point': '195.89041095890410958904109589041095890410958904110', 'cost_of_trade_credit': '0.37244897959183673469387755102040816326530612244897', 'daily_demand': '13.698630136986301369863013698630136986301369863014', 'n_orders_per_year': '14.142135623730948976033774484194123222574990945709'}
+  checks: [['second_implementation_agrees', True], ['the_cash_conversion_cycle_is_the_three_periods', True], ['the_eoq_minimises_order_and_holding_cost', True], ['the_reorder_point_is_lead_time_demand_plus_safety_stock', True], ['a_larger_discount_raises_the_cost_of_trade_credit', True]]
+  tile formula: CCC = DSO + DIO - DPO; EOQ = square root of (2 x annual demand x order cost / holding cost per unit).
+  steps=4 mistakes=4 related=['dupont', 'ratios', 'loan'] diagram=None
+
+[ratios] ratio_analysis
+  group=Foundations level=intro period=annual preset=ratios preset_matches=True
+  RADIO in_library=True tier=T1 metric=n_computed unit=count ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Compute liquidity, profitability, solvency and efficiency ratios from figures on your own financial statements, showing each ratio's declared formula and the figures it used.
+  unsupported_use: Benchmarks, industry averages or pass/fail judgements; GAAP or IFRS presentation; restating or adjusting figures; multi-period comparatives; segment, consolidated or multi-currency analysis; forecasting.
+  schema required=[]
+  schema optional=['current_assets', 'current_liabilities', 'cash', 'inventory', 'receivables', 'payables', 'total_assets', 'total_liabilities', 'equity', 'revenue', 'cost_of_sales', 'operating_profit', 'net_income', 'interest_expense']
+  schema detail: [('current_assets', 'decimal', None, None), ('current_liabilities', 'decimal', None, None), ('cash', 'decimal', None, None), ('inventory', 'decimal', None, None), ('receivables', 'decimal', None, None), ('payables', 'decimal', None, None), ('total_assets', 'decimal', None, None), ('total_liabilities', 'decimal', None, None), ('equity', 'decimal', None, None), ('revenue', 'decimal', None, None), ('cost_of_sales', 'decimal', None, None), ('operating_profit', 'decimal', None, None), ('net_income', 'decimal', None, None), ('interest_expense', 'decimal', None, None)]
+  preset_used=ratios input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['_appendix', '_checks', 'asset_turnover', 'cash_ratio', 'current_ratio', 'debt_to_equity', 'equity_multiplier', 'gross_margin', 'interest_cover', 'inventory_days', 'n_computed', 'net_margin', 'operating_margin', 'payables_days', 'quick_ratio', 'receivables_days', 'return_on_assets', 'return_on_equity']
+  values: {'current_ratio': '2.5', 'quick_ratio': '1.9', 'cash_ratio': '0.4', 'gross_margin': '0.4', 'operating_margin': '0.15', 'net_margin': '0.09', 'return_on_assets': '0.15', 'return_on_equity': '0.36', 'debt_to_equity': '1.4', 'equity_multiplier': '2.4', 'interest_cover': '7.5', 'asset_turnover': '1.6666666666666666666666666666666666666666666666667', 'receivables_days': '27.375', 'inventory_days': '36.5', 'payables_days': '27.375', 'n_computed': '15', '_appendix': "{'ratios': [{'ratio': 'current_ratio', 'group': 'liquidity', 'definition': 'current assets / current liabilities', 'value': '2.5', 'unit': 'ratio', 'inputs': {'current_assets': '5000', 'current_liabilities': '2000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'quick_ratio', 'group': 'liquidity', 'definition': '(current assets - inventory) / current liabilities', 'value': '1.9', 'unit': 'ratio', 'inputs': {'current_assets': '5000', 'inventory': '1200', 'current_liabilities': '2000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'cash_ratio', 'group': 'liquidity', 'definition': 'cash / current liabilities', 'value': '0.4', 'unit': 'ratio', 'inputs': {'cash': '800', 'current_liabilities': '2000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'gross_margin', 'group': 'profitability', 'definition': '(revenue - cost of sales) / revenue', 'value': '0.4', 'unit': 'ratio', 'inputs': {'revenue': '20000', 'cost_of_sales': '12000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'operating_margin', 'group': 'profitability', 'definition': 'operating profit / revenue', 'value': '0.15', 'unit': 'ratio', 'inputs': {'operating_profit': '3000', 'revenue': '20000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'net_margin', 'group': 'profitability', 'definition': 'net income / revenue', 'value': '0.09', 'unit': 'ratio', 'inputs': {'net_income': '1800', 'revenue': '20000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'return_on_assets', 'group': 'profitability', 'definition': 'net income / total assets', 'value': '0.15', 'unit': 'ratio', 'inputs': {'net_income': '1800', 'total_assets': '12000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'return_on_equity', 'group': 'profitability', 'definition': 'net income / equity', 'value': '0.36', 'unit': 'ratio', 'inputs': {'net_income': '1800', 'equity': '5000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'debt_to_equity', 'group': 'solvency', 'definition': 'total liabilities / equity', 'value': '1.4', 'unit': 'ratio', 'inputs': {'total_liabilities': '7000', 'equity': '5000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'equity_multiplier', 'group': 'solvency', 'definition': 'total assets / equity', 'value': '2.4', 'unit': 'ratio', 'inputs': {'total_assets': '12000', 'equity': '5000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'interest_cover', 'group': 'solvency', 'definition': 'operating profit / interest expense', 'value': '7.5', 'unit': 'ratio', 'inputs': {'operating_profit': '3000', 'interest_expense': '400'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'asset_turnover', 'group': 'efficiency', 'definition': 'revenue / total assets', 'value': '1.6666666666666666666666666666666666666666666666667', 'unit': 'ratio', 'inputs': {'revenue': '20000', 'total_assets': '12000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'receivables_days', 'group': 'efficiency', 'definition': 'receivables / revenue x 365', 'value': '27.375', 'unit': 'days', 'inputs': {'receivables': '1500', 'revenue': '20000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'inventory_days', 'group': 'efficiency', 'definition': 'inventory / cost of sales x 365', 'value': '36.5', 'unit': 'days', 'inputs': {'inventory': '1200', 'cost_of_sales': '12000'}, 'status': 'computed', 'negative_base': []}, {'ratio': 'payables_days', 'group': 'efficiency', 'definition': 'payables / cost of sales x 365', 'value': '27.375', 'unit': 'days', 'inputs': {'payables': '900', 'cost_of_sales': '12000'}, 'status': 'computed', 'negative_base': []}], 'not_computed': [], 'figures_supplied': {'current_assets': '5000', 'current_liabilities': '2000', 'cash': '800', 'inventory': '1200', 'receivables': '1500', 'payables': '900', 'total_assets': '12000', 'total_liabilities': '7000', 'equity': '5000', 'revenue': '20000', 'cost_of_sales': '12000', 'operating_profit': '3000', 'net_income': '1800', 'interest_expense': '400'}, 'conventions': 'Period-end balances; a 365-day year for the efficiency ratios; a zero denominator is not computed; a negative base is computed and flagged; no benchmark, cut-off or verdict is applied.'}", '_checks': "[('every_ratio_is_either_computed_or_explained', True, 'each declared ratio appears exactly once as computed or as not computed with a reason'), ('denominators_are_nonzero', True, 'a zero denominator is never divided by'), ('negative_denominators_are_flagged_not_dropped', True, 'a negative base is computed and flagged, not hidden'), ('second_route_agrees_on_every_ratio', True, 'exact rational route agrees with the Decimal route to 1e-9 relative'), ('balance_sheet_identity_holds_when_checkable', True, 'holds'), ('figures_parsed_exactly_as_supplied', True, 'every figure used is exactly the value supplied, with nothing rounded or silently altered')]"}
+  checks: [['every_ratio_is_either_computed_or_explained', True], ['denominators_are_nonzero', True], ['negative_denominators_are_flagged_not_dropped', True], ['second_route_agrees_on_every_ratio', True], ['balance_sheet_identity_holds_when_checkable', True], ['figures_parsed_exactly_as_supplied', True]]
+  tile formula: Current ratio = current assets / current liabilities; margins divide profit by revenue; turnover divides revenue by the balance.
+  steps=4 mistakes=4 related=['dupont', 'workingcapital', 'leverage'] diagram=None
+
+[breakeven] breakeven
+  group=Foundations level=intro period=per period preset=breakeven preset_matches=True
+  RADIO in_library=True tier=T1 metric=breakeven_units unit=units ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Units needed to cover fixed cost at a constant unit contribution, with the break-even revenue, contribution margin, margin of safety and target-profit volume when those inputs are declared.
+  unsupported_use: Multi-product mix; step-fixed costs; non-linear price or cost; a demand response to the price; tax; financing cost.
+  schema required=['fixed', 'price', 'variable']
+  schema optional=['expected_units', 'target_profit']
+  schema detail: [('fixed', 'decimal', None, None), ('price', 'decimal', None, None), ('variable', 'decimal', None, None), ('expected_units', 'decimal', None, None), ('target_profit', 'decimal', None, None)]
+  preset_used=breakeven input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['breakeven_revenue', 'breakeven_units', 'contribution_margin', 'contribution_margin_ratio']
+  values: {'breakeven_units': '100', 'contribution_margin': '10', 'contribution_margin_ratio': '0.5', 'breakeven_revenue': '2000'}
+  checks: [['profit_at_breakeven_is_zero', True], ['contribution_margin_is_price_minus_variable', True], ['breakeven_revenue_is_units_times_price', True], ['margin_of_safety_is_expected_units_minus_breakeven', True], ['target_profit_raises_the_required_units', True]]
+  tile formula: Break-even quantity = fixed cost / (price - variable cost per unit); break-even revenue = quantity x price; margin of safety = expected units - break-even units.
+  steps=4 mistakes=4 related=['multibreakeven', 'unitecon', 'pricing'] diagram=breakeven
+
+[multibreakeven] multi_product_breakeven
+  group=Foundations level=intro period=per period preset=multibreakeven preset_matches=True
+  RADIO in_library=True tier=T1 metric=breakeven_total_units unit=units ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Break-even in units and revenue for a fixed product mix: the mix-weighted contribution margin and the per-product break-even quantities.
+  unsupported_use: A changing mix, step costs, capacity limits, price-volume relationships or tax; forecasting which mix will actually occur.
+  schema required=['fixed_costs', 'products']
+  schema optional=[]
+  schema detail: [('fixed_costs', 'decimal', None, None), ('products', 'records', None, None)]
+  preset_used=multibreakeven input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['breakeven_revenue', 'breakeven_total_units', 'fixed_costs', 'total_mix_units', 'units_cake', 'units_coffee', 'weighted_contribution']
+  values: {'weighted_contribution': '3', 'breakeven_total_units': '2000', 'breakeven_revenue': '10500', 'fixed_costs': '6000', 'total_mix_units': '4', 'units_coffee': '1500', 'units_cake': '500'}
+  checks: [['second_implementation_agrees', True], ['weighted_contribution_is_the_mix_weighted_margin', True], ['profit_at_break_even_is_zero', True], ['scaling_fixed_costs_scales_break_even_units', True], ['per_product_units_sum_to_the_total', True]]
+  tile formula: Weighted contribution = sum(mix weight x unit contribution); break-even units = fixed cost / weighted contribution.
+  steps=4 mistakes=3 related=['breakeven', 'unitecon'] diagram=breakeven
+
+[unitecon] unit_economics
+  group=Foundations level=intro period=per period preset=unitecon preset_matches=True
+  RADIO in_library=True tier=T1 metric=unit_margin unit=currency ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Unit contribution margin, payback of the acquisition cost and (when a churn rate is declared) a period-value LTV and LTV/CAC.
+  unsupported_use: Estimating churn, retention curves or customer lifetime modelling; discounting LTV to present value; tax, financing or cross-sell; segment-level CAC.
+  schema required=['price', 'variable_cost', 'acquisition_cost']
+  schema optional=['churn_rate']
+  schema detail: [('price', 'decimal', None, None), ('variable_cost', 'decimal', None, None), ('acquisition_cost', 'decimal', None, None), ('churn_rate', 'decimal', None, None)]
+  preset_used=unitecon input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['acquisition_cost', 'churn_rate', 'ltv', 'ltv_cac', 'margin_pct', 'payback_periods', 'price', 'unit_margin', 'variable_cost']
+  values: {'unit_margin': '37', 'margin_pct': '0.75510204081632653061224489795918367346938775510204', 'payback_periods': '2.1621621621621621621621621621621621621621621621622', 'price': '49', 'variable_cost': '12', 'acquisition_cost': '80', 'churn_rate': '0.04', 'ltv': '925', 'ltv_cac': '11.5625'}
+  checks: [['second_implementation_agrees', True], ['margin_is_price_minus_variable_cost', True], ['payback_is_acquisition_cost_over_margin', True], ['raising_price_raises_margin_by_the_same_amount', True], ['lower_churn_raises_ltv', True]]
+  tile formula: Contribution margin = price - variable cost; LTV = margin / churn; CAC payback = acquisition cost / margin.
+  steps=4 mistakes=4 related=['breakeven', 'portfolio', 'forecast'] diagram=None
+
+[forecast] trend_forecast
+  group=Foundations level=intro period=per period preset=forecast preset_matches=True
+  RADIO in_library=True tier=T1 metric=forecast_1 unit=from_request ceiling=predictive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Project a linear trend in a single time series forward for a user-chosen horizon, with prediction intervals and a disclosed out-of-sample error on the recent past.
+  unsupported_use: Seasonal, cyclical or structural-break series; causal claims; multi-series or driver-based models; long horizons; policy simulations.
+  schema required=['values']
+  schema optional=['horizon', 'missing_codes', 'confidence_level']
+  schema detail: [('values', 'value_list', None, None), ('horizon', 'decimal', None, None), ('missing_codes', 'code_list', None, None), ('confidence_level', 'decimal', None, None)]
+  preset_used=forecast input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['ci_lower_1', 'ci_lower_2', 'ci_lower_3', 'ci_upper_1', 'ci_upper_2', 'ci_upper_3', 'confidence_level', 'coverage_holdout', 'forecast_1', 'forecast_2', 'forecast_3', 'horizon', 'intercept', 'mae_holdout', 'n_excluded', 'n_fitted', 'n_holdout', 'p_slope', 'r_squared', 'residual_se', 'slope']
+  values: {'intercept': '9.060606060606060606060606060606060606060606060601', 'slope': '1.0034965034965034965034965034965034965034965034970', 'r_squared': '0.92954329156588435770791876224904734856321730985529', 'residual_se': '1.0447448690909381498159921062985788479066656801316', 'p_slope': '4.4042244085004275E-7', 'n_fitted': '12', 'n_excluded': '0', 'horizon': '3', 'confidence_level': '0.95', 'forecast_1': '22.106060606060606060606060606060606060606060606062', 'ci_lower_1': '19.372672962705842548260795604304183535695642594980', 'ci_upper_1': '24.839448249415369572951325607817028585516478617144', 'forecast_2': '23.109557109557109557109557109557109557109557109559', 'ci_lower_2': '20.280790207356203017739728113920179574819555871592', 'ci_upper_2': '25.938324011758016096479386105194039539399558347526', 'forecast_3': '24.113053613053613053613053613053613053613053613056', 'ci_lower_3': '21.179076090156614971820292095272749391742077318870', 'ci_upper_3': '27.047031135950611135405815130834476715484029907242', 'mae_holdout': '1.1333333333333333333333333333333333333333333333333', 'coverage_holdout': '1', 'n_holdout': '3'}
+  checks: [['second_implementation_agrees', True], ['out_of_sample_check_agrees', True], ['shift_moves_intercept_and_forecasts_not_slope', True], ['positive_scale_equivariance', True], ['bounded_and_consistent', True]]
+  tile formula: Fit y = a + bt to the series; the forecast extends the line and carries a prediction interval.
+  steps=4 mistakes=4 related=['scenario', 'risk', 'unitecon'] diagram=None
+
+[descriptive] descriptive_stats
+  group=Foundations level=intro period=per observation preset=descriptive preset_matches=True
+  RADIO in_library=True tier=T1 metric=mean unit=from_request ceiling=descriptive
+  tests=6 typing=False mapping=False assumption_checks=0
+  intended_use: Summarize one numeric variable in a dataset (n, missing, mean, median, range, sample SD).
+  unsupported_use: Inference (intervals, tests, effect sizes), weighted or clustered survey data, grouped summaries, quartiles.
+  schema required=['values']
+  schema optional=['missing_codes']
+  schema detail: [('values', 'value_list', None, None), ('missing_codes', 'code_list', None, None)]
+  preset_used=descriptive input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['maximum', 'mean', 'median', 'minimum', 'n', 'n_missing', 'sd', 'variance']
+  values: {'n': '6', 'n_missing': '1', 'mean': '78.833333333333333333333333333333333333333333333333', 'median': '79', 'minimum': '68', 'maximum': '90', 'variance': '66.966666666666666666666666666666666666666666666666', 'sd': '8.1833163611500848945148181587639064619578696002790'}
+  checks: [['second_implementation_agrees', True], ['shift_moves_location_not_spread', True], ['scale_scales_spread', True], ['permutation_invariant', True], ['missing_entries_excluded_not_valued', True], ['order_statistics_bounded', True]]
+  tile formula: Mean = sum of values / count; standard deviation measures typical distance from the mean.
+  steps=3 mistakes=3 related=['pearson', 'ols'] diagram=None
+
+[npv] npv
+  group=Corporate finance level=intro period=per period preset=npv preset_matches=True
+  RADIO in_library=True tier=T1 metric=npv unit=currency ceiling=descriptive
+  tests=3 typing=False mapping=False assumption_checks=0
+  intended_use: Value a stream of cash flows at a user-supplied discount rate.
+  unsupported_use: Choosing the discount rate; ranking mutually exclusive projects of unequal scale or life; unequal period lengths.
+  schema required=['rate', 'cashflows']
+  schema optional=[]
+  schema detail: [('rate', 'decimal', None, None), ('cashflows', 'decimal_list', None, None)]
+  preset_used=npv input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: []
+  values: -5.25920360631104432757325319308790383170548459805
+  checks: [['second_implementation_agrees', True], ['boundary_zero_rate_equals_sum', True], ['t0_cash_flow_shifts_npv_one_for_one', True]]
+  tile formula: NPV = sum of CF_t / (1 + r)^t, with the first cash flow at t = 0 and undiscounted.
+  steps=4 mistakes=4 related=['irr', 'dpayback', 'projectmetrics', 'scenario'] diagram=None
+
+[irr] irr
+  group=Corporate finance level=intro period=per period preset=irr preset_matches=True
+  RADIO in_library=True tier=T1 metric=irr unit=rate ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: The discount rate at which a declared stream of cash flows has a net present value of zero (the IRR, for conventional cash flows).
+  unsupported_use: Ranking or choosing between projects; non-conventional cash flows (more than one sign change) where several IRRs can exist; comparing IRRs of projects of unequal scale or life; choosing or assuming a reinvestment rate.
+  schema required=['cashflows']
+  schema optional=[]
+  schema detail: [('cashflows', 'decimal_list', None, None)]
+  preset_used=irr input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['irr', 'n_periods', 'n_roots', 'npv_at_irr']
+  values: {'irr': '0.21862269609834228', 'npv_at_irr': '-2.5579538487363607E-13', 'n_roots': '1', 'n_periods': '5'}
+  checks: [['second_implementation_agrees', True], ['net_present_value_at_the_irr_is_zero', True], ['npv_is_positive_below_and_negative_above_the_irr', True], ['scaling_the_cash_flows_leaves_the_irr_unchanged', True], ['unconventional_or_signless_cash_flows_are_refused', True]]
+  tile formula: The IRR is the rate r at which NPV = 0: sum of CF_t / (1 + r)^t = 0.
+  steps=4 mistakes=4 related=['npv', 'projectmetrics', 'dpayback'] diagram=None
+
+[dpayback] discounted_payback
+  group=Corporate finance level=intro period=per period preset=dpayback preset_matches=True
+  RADIO in_library=True tier=T1 metric=discounted_payback unit=periods ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: How many periods the discounted cash flows need to recover a declared initial outlay, interpolated within the recovery period.
+  unsupported_use: Outlays the cash flows never recover; a positive first cash flow; comparing liquidity across projects of different scale; choosing the discount rate; timing inside a period.
+  schema required=['cashflows']
+  schema optional=['rate']
+  schema detail: [('cashflows', 'decimal_list', None, None), ('rate', 'decimal', None, None)]
+  preset_used=dpayback input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['discounted_payback', 'n_periods', 'net_present_value', 'recovered_in_period']
+  values: {'discounted_payback': '3.0192500000000000000000000000000000000000000000000', 'recovered_in_period': '4', 'net_present_value': '267.94617853971723242947886073355645106208592309268', 'n_periods': '5'}
+  checks: [['second_implementation_agrees', True], ['zero_rate_equals_undiscounted_payback', True], ['a_higher_rate_cannot_shorten_payback', True], ['scaling_the_cash_flows_leaves_payback_unchanged', True], ['unrecovered_outlays_are_refused', True]]
+  tile formula: Cumulate the discounted cash flows until they turn positive; interpolate inside the recovering period.
+  steps=4 mistakes=4 related=['npv', 'irr', 'projectmetrics'] diagram=None
+
+[projectmetrics] project_metrics
+  group=Corporate finance level=intermediate period=per period preset=projectmetrics preset_matches=True
+  RADIO in_library=True tier=T1 metric=npv unit=currency ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Report the profitability index, modified internal rate of return, simple payback and equivalent annual annuity of one declared project alongside its NPV and IRR, so the ranking measures can be compared.
+  unsupported_use: Choosing the cash flows, the discount rate or the reinvestment rate; unequal-risk projects; capital rationing; real options; tax and depreciation shields; mid-year timing.
+  schema required=['cashflows', 'rate']
+  schema optional=['finance_rate']
+  schema detail: [('cashflows', 'decimal_list', None, None), ('rate', 'decimal', None, None), ('finance_rate', 'decimal', None, None)]
+  preset_used=projectmetrics input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['equivalent_annual_annuity', 'irr', 'mirr', 'n_periods', 'npv', 'payback_period', 'profitability_index', 'pv_inflows', 'pv_outflows']
+  values: {'npv': '267.9461785397172324294788607335564510620859230927', 'profitability_index': '1.2679461785397172324294788607335564510620859230927', 'mirr': '0.1586852896701918133999078580775923860210519070887', 'equivalent_annual_annuity': '84.529196293902176255117431588019823313940960999790', 'pv_inflows': '1267.9461785397172324294788607335564510620859230927', 'pv_outflows': '-1000', 'n_periods': '4', 'payback_period': '2.5', 'irr': '0.21862269609834228'}
+  checks: [['second_implementation_agrees', True], ['the_profitability_index_agrees_with_the_npv_sign', True], ['the_mirr_exceeds_the_cost_of_capital_only_when_npv_is_positive', True], ['the_equivalent_annual_annuity_is_the_npv_spread_over_the_life', True], ['the_payback_period_is_the_interpolated_recovery', True], ['the_irr_sets_the_npv_to_zero', True]]
+  tile formula: PI = PV(inflows) / |PV(outflows)|; MIRR reinvests positive flows at the finance rate; EAA = NPV x r / (1 - (1 + r)^-n).
+  steps=4 mistakes=4 related=['npv', 'irr', 'dpayback'] diagram=None
+
+[wacc] wacc
+  group=Corporate finance level=intermediate period=annual preset=wacc preset_matches=True
+  RADIO in_library=True tier=T1 metric=wacc unit=rate ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Compute the weighted average cost of capital from declared market values of equity and debt and declared costs of equity and AFTER-TAX debt.
+  unsupported_use: Estimating the cost of equity (CAPM is not implemented); computing tax; using one WACC for cash flows of materially different risk; leverage-dependent WACC recalculations.
+  schema required=['equity_value', 'debt_value', 'cost_of_equity', 'cost_of_debt_after_tax']
+  schema optional=[]
+  schema detail: [('equity_value', 'decimal', None, None), ('debt_value', 'decimal', None, None), ('cost_of_equity', 'decimal', None, None), ('cost_of_debt_after_tax', 'decimal', None, None)]
+  preset_used=wacc input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['cost_of_debt_after_tax', 'cost_of_equity', 'wacc', 'weight_debt', 'weight_equity']
+  values: {'wacc': '0.106', 'weight_equity': '0.8', 'weight_debt': '0.2', 'cost_of_equity': '0.12', 'cost_of_debt_after_tax': '0.05'}
+  checks: [['second_implementation_agrees', True], ['weights_sum_to_one', True], ['wacc_is_between_the_two_costs', True], ['scaling_both_market_values_changes_nothing', True], ['rising_cost_of_equity_raises_wacc', True]]
+  tile formula: WACC = (E / V) x ke + (D / V) x kd(after tax), where V = E + D.
+  steps=4 mistakes=4 related=['capm', 'dcf', 'leverage'] diagram=None
+
+[capm] capm
+  group=Corporate finance level=intermediate period=annual preset=capm preset_matches=True
+  RADIO in_library=True tier=T1 metric=cost_of_equity unit=rate ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Compute the CAPM cost of equity from a declared risk-free rate, market return and beta, estimating beta from two return series when it is not declared, and relever or unlever it with Hamada when a debt-to-equity ratio is supplied.
+  unsupported_use: Choosing the market index, the risk-free proxy or the return interval; multi-factor models; testing whether beta is stable; a market risk premium that is retrieved rather than declared.
+  schema required=['risk_free_rate', 'market_return']
+  schema optional=['beta', 'returns_asset', 'returns_market', 'debt_to_equity', 'tax_rate']
+  schema detail: [('risk_free_rate', 'decimal', None, None), ('market_return', 'decimal', None, None), ('beta', 'decimal', None, None), ('returns_asset', 'value_list', None, None), ('returns_market', 'value_list', None, None), ('debt_to_equity', 'decimal', None, None), ('tax_rate', 'decimal', None, None)]
+  preset_used=capm input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['beta', 'cost_of_equity', 'debt_to_equity', 'market_return', 'market_risk_premium', 'relevered_beta', 'risk_free_rate', 'tax_rate', 'unlevered_beta']
+  values: {'beta': '1.2', 'cost_of_equity': '0.112', 'market_risk_premium': '0.06', 'risk_free_rate': '0.04', 'market_return': '0.10', 'unlevered_beta': '0.84507042253521126760563380281690140845070422535211', 'relevered_beta': '1.2000000000000000000000000000000000000000000000000', 'debt_to_equity': '0.6', 'tax_rate': '0.30'}
+  checks: [['second_implementation_agrees', True], ['a_zero_beta_earns_the_risk_free_rate', True], ['the_cost_of_equity_rises_with_beta', True], ['capm_is_the_risk_free_rate_plus_beta_times_the_premium', True], ['hamada_relevering_round_trips', True]]
+  tile formula: ke = rf + beta x (rm - rf); beta = covariance(asset, market) / variance(market).
+  steps=4 mistakes=4 related=['wacc', 'portfolio', 'dcf'] diagram=None
+
+[leverage] leverage_analysis
+  group=Corporate finance level=intermediate period=annual preset=leverage preset_matches=True
+  RADIO in_library=True tier=T1 metric=eps unit=currency ceiling=descriptive
+  tests=7 typing=True mapping=False assumption_checks=0
+  intended_use: Report earnings per share, the degree of financial leverage, interest cover and the interest tax shield from declared EBIT, interest, tax and shares, add the five-term Altman Z-score when its six figures are declared, and find the EBIT-EPS indifference point against one alternative financing plan.
+  unsupported_use: Choosing the capital structure; evaluating more than two financing plans; predicting default; applying Altman zone cut-offs; dilution, buybacks or preference dividends.
+  schema required=['ebit', 'interest_expense', 'tax_rate', 'debt', 'equity', 'shares_outstanding']
+  schema optional=['working_capital', 'retained_earnings', 'total_assets', 'total_liabilities', 'sales', 'market_value_equity', 'alternative_interest_expense', 'alternative_shares_outstanding']
+  schema detail: [('ebit', 'decimal', None, None), ('interest_expense', 'decimal', None, None), ('tax_rate', 'decimal', None, None), ('debt', 'decimal', None, None), ('equity', 'decimal', None, None), ('shares_outstanding', 'decimal', None, None), ('working_capital', 'decimal', None, None), ('retained_earnings', 'decimal', None, None), ('total_assets', 'decimal', None, None), ('total_liabilities', 'decimal', None, None), ('sales', 'decimal', None, None), ('market_value_equity', 'decimal', None, None), ('alternative_interest_expense', 'decimal', None, None), ('alternative_shares_outstanding', 'decimal', None, None)]
+  preset_used=leverage input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['alternative_eps', 'altman_term_ebit', 'altman_term_market_equity', 'altman_term_retained_earnings', 'altman_term_sales', 'altman_term_working_capital', 'altman_z', 'debt_to_equity', 'degree_of_financial_leverage', 'earnings_before_tax', 'ebit', 'eps', 'eps_at_indifference', 'indifference_ebit', 'interest_cover', 'interest_expense', 'interest_tax_shield', 'shares_outstanding', 'tax_rate']
+  values: {'eps': '2.80', 'earnings_before_tax': '400000', 'interest_tax_shield': '30000.00', 'debt_to_equity': '0.66666666666666666666666666666666666666666666666667', 'ebit': '500000', 'interest_expense': '100000', 'tax_rate': '0.30', 'shares_outstanding': '100000', 'degree_of_financial_leverage': '1.25', 'interest_cover': '5', 'altman_z': '4.135', 'altman_term_working_capital': '0.18', 'altman_term_retained_earnings': '0.28', 'altman_term_ebit': '0.825', 'altman_term_market_equity': '1.35', 'altman_term_sales': '1.5', 'indifference_ebit': '350000', 'eps_at_indifference': '1.75', 'alternative_eps': '3.50'}
+  checks: [['second_implementation_agrees', True], ['eps_is_earnings_after_tax_over_the_shares', True], ['more_interest_lowers_eps', True], ['the_interest_tax_shield_is_interest_times_the_tax_rate', True], ['the_degree_of_financial_leverage_matches_the_identity', True], ['the_altman_terms_sum_to_the_z_score', True], ['the_indifference_ebit_equalises_eps_across_the_plans', True]]
+  tile formula: EPS = (EBIT - interest)(1 - tax) / shares; DFL = EBIT / (EBIT - interest); Z = 1.2WC/TA + 1.4RE/TA + 3.3EBIT/TA + 0.6MVE/TL + Sales/TA.
+  steps=4 mistakes=4 related=['wacc', 'dupont', 'ratios'] diagram=None
+
+[scenario] scenario_analysis
+  group=Corporate finance level=intro period=per period preset=scenario preset_matches=True
+  RADIO in_library=True tier=T1 metric=npv_base unit=currency ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Recompute a project's NPV at a low and a high discount rate, report the swing, and find the single discount rate at which the decision flips.
+  unsupported_use: Changing several inputs at once; probability-weighted scenarios; Monte Carlo simulation; a full sensitivity table across every input.
+  schema required=['cashflows', 'discount_rate', 'rate_low', 'rate_high']
+  schema optional=[]
+  schema detail: [('cashflows', 'decimal_list', None, None), ('discount_rate', 'decimal', None, None), ('rate_low', 'decimal', None, None), ('rate_high', 'decimal', None, None)]
+  preset_used=scenario input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['breakeven_rate', 'discount_rate', 'npv_at_high_rate', 'npv_at_low_rate', 'npv_base', 'rate_high', 'rate_low', 'swing']
+  values: {'npv_base': '267.94617853971723242947886073355645106208592309268', 'npv_at_low_rate': '418.38020166494413336007116376406949779155804423054', 'npv_at_high_rate': '35.49382716049382716049382716049382716049382716049', 'swing': '382.88637450445030619957733660357567063106421707005', 'discount_rate': '0.10', 'rate_low': '0.05', 'rate_high': '0.20', 'breakeven_rate': '0.21862269609834228'}
+  checks: [['second_implementation_agrees', True], ['the_base_case_matches_the_npv_function', True], ['a_higher_discount_rate_lowers_the_value', True], ['the_swing_is_the_difference_between_the_scenarios', True], ['the_breakeven_rate_sets_the_npv_to_zero', True]]
+  tile formula: Recompute NPV at the low and high discount rates; the break-even rate is the IRR of the same cash flows.
+  steps=4 mistakes=4 related=['npv', 'risk', 'case_decision'] diagram=None
+
+[case_decision] case_decision
+  group=Corporate finance level=intermediate period=per period preset=case_decision preset_matches=True
+  RADIO in_library=False tier=None metric=None unit=None ceiling=None
+  tests=0 typing=None mapping=None assumption_checks=0
+  intended_use: None
+  unsupported_use: None
+  schema required=[]
+  schema optional=[]
+  schema detail: []
+  preset_used=None input_errors=None checks_all_ok=None profile_issues=None error=None
+  outputs: None
+  values: None
+  checks: None
+  tile formula: Compare each alternative's NPV at the declared rate; the crossover rate is where two alternatives' NPVs are equal.
+  steps=4 mistakes=4 related=['npv', 'scenario', 'projectmetrics'] diagram=None
+
+[dcf] dcf_valuation
+  group=Valuation level=intermediate period=annual preset=dcf preset_matches=True
+  RADIO in_library=True tier=T2 metric=enterprise_value unit=currency ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Discount a declared stream of free cash flows at a declared rate and declared timing (end-of-period, or an explicit mid-year convention), with an optional Gordon-growth terminal value, to an enterprise value.
+  unsupported_use: Forecasting the cash flows; choosing the discount rate or growth (declare them, or use wacc and your own inputs); tax computation; real-option or scenario valuation; equity value claims beyond the separate equity_bridge method.
+  schema required=['cashflows', 'discount_rate']
+  schema optional=['terminal_growth', 'timing']
+  schema detail: [('cashflows', 'value_list', None, None), ('discount_rate', 'decimal', None, None), ('terminal_growth', 'decimal', None, None), ('timing', 'enum', None, None)]
+  preset_used=dcf input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['discount_rate', 'enterprise_value', 'n_periods', 'pv_explicit', 'pv_terminal', 'terminal_growth', 'terminal_share', 'terminal_value']
+  values: {'pv_explicit': '401133.80233590601734854176627279557407280923434192', 'pv_terminal': '1349805.3411652209548528106003688272658971381736220', 'terminal_value': '1976250', 'enterprise_value': '1750939.1435011269722013523666416228399699474079639', 'terminal_share': '0.77090362973220729067113963059039222952546273721988', 'n_periods': '4', 'discount_rate': '0.10', 'terminal_growth': '0.02'}
+  checks: [['second_implementation_agrees', True], ['value_scales_with_the_cash_flows', True], ['a_higher_discount_rate_lowers_the_value', True], ['terminal_value_is_gordon_growth_on_the_last_flow', True], ['without_terminal_growth_there_is_no_terminal_value', True], ['mid_year_convention_raises_the_value', True]]
+  tile formula: EV = sum of FCF_t / (1 + r)^t + TV / (1 + r)^n; TV = FCF_n(1 + g) / (r - g).
+  steps=4 mistakes=4 related=['wacc', 'dcfmid', 'equitybridge', 'multiples'] diagram=None
+
+[dcfmid] dcf_valuation
+  group=Valuation level=intermediate period=annual preset=dcfmid preset_matches=True
+  RADIO in_library=True tier=T2 metric=enterprise_value unit=currency ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Discount a declared stream of free cash flows at a declared rate and declared timing (end-of-period, or an explicit mid-year convention), with an optional Gordon-growth terminal value, to an enterprise value.
+  unsupported_use: Forecasting the cash flows; choosing the discount rate or growth (declare them, or use wacc and your own inputs); tax computation; real-option or scenario valuation; equity value claims beyond the separate equity_bridge method.
+  schema required=['cashflows', 'discount_rate']
+  schema optional=['terminal_growth', 'timing']
+  schema detail: [('cashflows', 'value_list', None, None), ('discount_rate', 'decimal', None, None), ('terminal_growth', 'decimal', None, None), ('timing', 'enum', None, None)]
+  preset_used=dcfmid input_errors=[] checks_all_ok=False profile_issues=[] error=None
+  outputs: ['discount_rate', 'enterprise_value', 'n_periods', 'pv_explicit', 'pv_terminal', 'terminal_growth', 'terminal_share', 'terminal_value']
+  values: {'pv_explicit': '420712.68119003483610961044230874076332526955946749', 'pv_terminal': '1415687.7851214138342612253305170252571455201207179', 'terminal_value': '1976250', 'enterprise_value': '1836400.4663114486703708357728257660204707896801854', 'terminal_share': '0.77090362973220729067113963059039222952546273721987', 'n_periods': '4', 'discount_rate': '0.10', 'terminal_growth': '0.02'}
+  checks: [['second_implementation_agrees', True], ['value_scales_with_the_cash_flows', True], ['a_higher_discount_rate_lowers_the_value', True], ['terminal_value_is_gordon_growth_on_the_last_flow', True], ['without_terminal_growth_there_is_no_terminal_value', True], ['mid_year_convention_raises_the_value', False]]
+  tile formula: The same DCF, with every flow discounted at exponent t - 0.5 instead of t.
+  steps=4 mistakes=3 related=['dcf', 'wacc', 'equitybridge'] diagram=None
+
+[equitybridge] equity_bridge
+  group=Valuation level=intermediate period=point in time preset=equitybridge preset_matches=True
+  RADIO in_library=True tier=T2 metric=equity_value unit=currency ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Bridge a declared enterprise value to an equity value by subtracting net debt (debt minus cash) and the declared minority and preferred claims, with an optional per-share value.
+  unsupported_use: Supplying or estimating the enterprise value; discovering claims the owner did not declare (pensions, leases, options, contingent liabilities); choosing a control premium, liquidity discount or tax rate; stating a market price.
+  schema required=['enterprise_value']
+  schema optional=['debt', 'cash', 'minority_interest', 'preferred_equity', 'shares_outstanding']
+  schema detail: [('enterprise_value', 'decimal', None, None), ('debt', 'decimal', None, None), ('cash', 'decimal', None, None), ('minority_interest', 'decimal', None, None), ('preferred_equity', 'decimal', None, None), ('shares_outstanding', 'decimal', None, None)]
+  preset_used=equitybridge input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['cash', 'debt', 'enterprise_value', 'equity_value', 'minority_interest', 'net_debt', 'per_share_value', 'preferred_equity', 'shares_outstanding']
+  values: {'enterprise_value': '1750939.14', 'net_debt': '150000', 'equity_value': '1570939.14', 'debt': '300000', 'cash': '150000', 'minority_interest': '20000', 'preferred_equity': '10000', 'per_share_value': '15.7093914', 'shares_outstanding': '100000'}
+  checks: [['second_implementation_agrees', True], ['equity_value_is_enterprise_value_minus_net_debt_and_claims', True], ['adding_cash_raises_equity_value_one_for_one', True], ['per_share_value_is_equity_value_over_shares', True], ['negative_bridge_components_are_refused', True]]
+  tile formula: Equity value = enterprise value - net debt - minority interest - preferred equity; per share = equity value / shares.
+  steps=4 mistakes=4 related=['dcf', 'multiples', 'leverage'] diagram=None
+
+[multiples] multiples_valuation
+  group=Valuation level=intermediate period=annual preset=multiples preset_matches=True
+  RADIO in_library=True tier=T2 metric=implied_equity_value unit=currency ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Apply the mean (or median) of declared comparable multiples to the subject's own earnings, EBITDA, sales or book value, and bridge the result to an equity value and a per-share value.
+  unsupported_use: Retrieving peer multiples or market prices; selecting or screening the peer set; adjusting for growth, risk, one-off items or accounting differences; a fairness opinion.
+  schema required=['metric', 'subject_value']
+  schema optional=['comparables', 'peer_multiple', 'net_debt', 'shares_outstanding']
+  schema detail: [('metric', 'enum', None, None), ('subject_value', 'decimal', None, None), ('comparables', 'records', None, None), ('peer_multiple', 'decimal', None, None), ('net_debt', 'decimal', None, None), ('shares_outstanding', 'decimal', None, None)]
+  preset_used=multiples input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['implied_enterprise_value', 'implied_equity_value', 'max_multiple', 'mean_multiple', 'median_multiple', 'min_multiple', 'n_comparables', 'net_debt', 'per_share_value']
+  values: {'mean_multiple': '10', 'median_multiple': '10', 'min_multiple': '8', 'max_multiple': '12', 'n_comparables': '3', 'implied_enterprise_value': '5000000', 'implied_equity_value': '4700000', 'net_debt': '300000', 'per_share_value': '47'}
+  checks: [['second_implementation_agrees', True], ['the_median_is_the_ordered_middle', True], ['the_implied_value_scales_with_the_subject_metric', True], ['enterprise_value_equals_equity_value_plus_net_debt', True], ['a_higher_multiple_raises_the_implied_value', True]]
+  tile formula: Implied value = subject metric x peer multiple; EV multiples bridge to equity through net debt.
+  steps=4 mistakes=4 related=['dcf', 'equitybridge', 'dupont'] diagram=None
+
+[portfolioval] portfolio_valuation
+  group=Investments level=intro period=point in time preset=portfolioval preset_matches=True
+  RADIO in_library=True tier=T1 metric=nav unit=currency ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Value a dated portfolio snapshot from declared holdings, prices and cash: NAV, invested value, cash share, holding weights and concentration.
+  unsupported_use: Retrieving prices or FX; converting currencies; fees, tax or dividends; forecasting returns; short positions, margin or derivatives; a recommendation.
+  schema required=['holdings']
+  schema optional=['cash']
+  schema detail: [('holdings', 'records', None, None), ('cash', 'decimal', None, None)]
+  preset_used=portfolioval input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['_appendix', '_checks', 'cash', 'cash_pct', 'hhi', 'invested_value', 'n_holdings', 'nav', 'top3_concentration', 'top_weight', 'value_AAPL', 'value_MSFT', 'weight_AAPL', 'weight_MSFT']
+  values: {'nav': '5000', 'invested_value': '4000', 'cash': '1000', 'cash_pct': '0.2', 'n_holdings': '2', 'top_weight': '0.4', 'top3_concentration': '0.8', 'hhi': '0.32', 'value_AAPL': '2000', 'weight_AAPL': '0.4', 'value_MSFT': '2000', 'weight_MSFT': '0.4', '_appendix': '{\'positions\': [{\'symbol\': \'AAPL\', \'shares\': \'10\', \'price\': \'200\', \'value\': \'2000\', \'weight\': \'0.4\', \'weight_of_invested\': \'0.5\'}, {\'symbol\': \'MSFT\', \'shares\': \'5\', \'price\': \'400\', \'value\': \'2000\', \'weight\': \'0.4\', \'weight_of_invested\': \'0.5\'}], \'conventions\': "Prices are declared in the portfolio\'s base currency; there is no FX conversion, fee, tax or forecast. Weights are value / NAV, so the holding weights plus cash equal one. Concentration is measured over NAV; a single holding is the top weight.", \'inputs\': {\'holdings\': [{\'symbol\': \'AAPL\', \'shares\': \'10\', \'price\': \'200\'}, {\'symbol\': \'MSFT\', \'shares\': \'5\', \'price\': \'400\'}], \'cash\': \'1000\'}}', '_checks': "[('second_implementation_agrees', True, 'float route agrees with the Decimal route'), ('nav_equals_invested_plus_cash', True, 'NAV is the market value of holdings plus cash'), ('holding_weights_and_cash_sum_to_one', True, 'every weight is value / NAV, and cash is part of NAV'), ('doubling_every_price_doubles_invested_value', True, 'the invested value is linear in the declared prices'), ('adding_one_unit_of_cash_raises_nav_by_one', True, 'cash enters NAV one for one'), ('concentration_is_bounded', True, 'the top holding is inside the top three, both inside one, and HHI is positive')]"}
+  checks: [['second_implementation_agrees', True], ['nav_equals_invested_plus_cash', True], ['holding_weights_and_cash_sum_to_one', True], ['doubling_every_price_doubles_invested_value', True], ['adding_one_unit_of_cash_raises_nav_by_one', True], ['concentration_is_bounded', True]]
+  tile formula: NAV = sum(shares x price) + cash; weight = value / NAV; top-three concentration = sum of the three largest weights.
+  steps=4 mistakes=4 related=['portfolio', 'ratios', 'risk'] diagram=None
+
+[portfolioperf] portfolio_performance
+  group=Investments level=intro period=period preset=portfolioperf preset_matches=True
+  RADIO in_library=True tier=T1 metric=twr unit=ratio ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Measure the time-weighted return of a portfolio across dated periods from each period's start and end NAV, its external flow and, optionally, a declared benchmark level.
+  unsupported_use: Fetching NAVs, prices or benchmark levels; fees, tax, dividends or corporate actions; money-weighted return (IRR); forecasting; short positions or derivatives; a recommendation.
+  schema required=['periods']
+  schema optional=['benchmark_start', 'benchmark_end']
+  schema detail: [('periods', 'records', None, None), ('benchmark_start', 'value_list', None, None), ('benchmark_end', 'value_list', None, None)]
+  preset_used=portfolioperf input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['_appendix', '_checks', 'best_period', 'final_nav', 'n_periods', 'start_nav', 'total_flow', 'twr', 'worst_period']
+  values: {'n_periods': '2', 'twr': '0.0100000000000000000000000000000000000000000000000', 'total_flow': '0', 'start_nav': '10000', 'final_nav': '10100', 'best_period': '0.025', 'worst_period': '-0.014634146341463414634146341463414634146341463414634', '_appendix': "{'periods': [{'label': 'week 1', 'start_nav': '10000', 'end_nav': '10250', 'flow': '0', 'period_return': '0.025', 'benchmark_return': ''}, {'label': 'week 2', 'start_nav': '10250', 'end_nav': '10100', 'flow': '0', 'period_return': '-0.014634146341463414634146341463414634146341463414634', 'benchmark_return': ''}], 'conventions': 'The external flow is treated as occurring at the start of its period, so the period return is (end_nav - start_nav - flow) / (start_nav + flow). The time-weighted return chains (1 + period return) across the declared periods. A benchmark is chained the same way. No fees, tax or dividends are applied and no future return is forecast.', 'inputs': {'periods': [{'label': 'week 1', 'start_nav': '10000', 'end_nav': '10250', 'flow': '0'}, {'label': 'week 2', 'start_nav': '10250', 'end_nav': '10100', 'flow': '0'}]}}", '_checks': "[('second_implementation_agrees', True, 'float route agrees with the Decimal route'), ('twr_equals_the_product_of_end_over_base', True, 'chaining end_nav / (start_nav + flow) gives the same time-weighted return'), ('a_period_with_no_flow_returns_the_nav_ratio', True, 'with no flow, the period return is end_nav / start_nav - 1'), ('geometric_mean_lies_between_best_and_worst', True, 'the geometric mean period return sits between the best and the worst period'), ('benchmark_chains_the_same_way', True, 'a float route agrees with the chained benchmark return'), ('final_nav_matches_the_last_period', True, 'the reported final NAV is the last declared end_nav')]"}
+  checks: [['second_implementation_agrees', True], ['twr_equals_the_product_of_end_over_base', True], ['a_period_with_no_flow_returns_the_nav_ratio', True], ['geometric_mean_lies_between_best_and_worst', True], ['benchmark_chains_the_same_way', True], ['final_nav_matches_the_last_period', True]]
+  tile formula: period return = (end NAV - start NAV - flow) / (start NAV + flow); TWR = product(1 + period return) - 1.
+  steps=4 mistakes=4 related=['portfolioval', 'irr', 'npv'] diagram=None
+
+[bond] bond_analysis
+  group=Investments level=intermediate period=annual preset=bond preset_matches=True
+  RADIO in_library=True tier=T1 metric=price unit=currency ceiling=descriptive
+  tests=7 typing=True mapping=False assumption_checks=0
+  intended_use: Price a plain fixed-coupon bond from its yield, or solve its yield from a declared price, and report Macaulay and modified duration, convexity, DV01 and current yield.
+  unsupported_use: Accrued interest between coupon dates; day-count conventions; callable, convertible, floating or amortizing bonds; a spot/forward curve; credit spreads; a traded quote.
+  schema required=['face_value', 'coupon_rate', 'years_to_maturity']
+  schema optional=['yield_to_maturity', 'price', 'payments_per_year']
+  schema detail: [('face_value', 'decimal', None, None), ('coupon_rate', 'decimal', None, None), ('years_to_maturity', 'decimal', None, None), ('yield_to_maturity', 'decimal', None, None), ('price', 'decimal', None, None), ('payments_per_year', 'decimal', None, None)]
+  preset_used=bond input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['convexity', 'coupon_payment', 'current_yield', 'dv01', 'face_value', 'macaulay_duration', 'modified_duration', 'n_payments', 'price', 'yield_to_maturity']
+  values: {'price': '1148.7747486045550682635824847012329886832263873117', 'yield_to_maturity': '0.06', 'macaulay_duration': '7.2862675939960529442801982335001604681635621671875', 'modified_duration': '7.07404620776315819833028954708753443511025453125', 'convexity': '63.923345912643877562753466697498048416114526308872', 'dv01': '0.81264856539401281910050053040423900741881642089215', 'current_yield': '0.069639413729434745095011188715284396291222540975103', 'coupon_payment': '40.00', 'n_payments': '20', 'face_value': '1000'}
+  checks: [['second_implementation_agrees', True], ['a_par_bond_prices_at_face_value', True], ['a_higher_yield_lowers_the_price', True], ['modified_duration_is_macaulay_over_one_plus_the_periodic_yield', True], ['duration_is_below_the_maturity_in_years', True], ['convexity_is_positive', True], ['the_solved_yield_reproduces_the_price', True]]
+  tile formula: Price = sum of coupon / (1 + y)^t + face / (1 + y)^n; Macaulay duration is the present-value-weighted time to each cash flow.
+  steps=4 mistakes=4 related=['tvm', 'capm', 'risk'] diagram=None
+
+[portfolio] portfolio_analysis
+  group=Investments level=intermediate period=per period preset=portfolio preset_matches=True
+  RADIO in_library=True tier=T1 metric=portfolio_return unit=rate ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Combine two assets at a declared weight and report each asset's mean and standard deviation, their covariance and correlation, the portfolio's return and risk, and the Sharpe, beta, Treynor and Jensen performance measures.
+  unsupported_use: Choosing the assets, the weights or the benchmark; multi-asset optimisation; the efficient frontier; risk-free lending and borrowing; forecasting returns.
+  schema required=['returns_a', 'returns_b', 'weight_a', 'risk_free_rate', 'returns_market']
+  schema optional=[]
+  schema detail: [('returns_a', 'value_list', None, None), ('returns_b', 'value_list', None, None), ('weight_a', 'decimal', None, None), ('risk_free_rate', 'decimal', None, None), ('returns_market', 'value_list', None, None)]
+  preset_used=portfolio input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['beta', 'correlation', 'covariance', 'jensen_alpha', 'market_return', 'mean_a', 'mean_b', 'n_periods', 'portfolio_return', 'portfolio_sd', 'sd_a', 'sd_b', 'sharpe_ratio', 'treynor_ratio']
+  values: {'mean_a': '0.018333333333333333333333333333333333333333333333333', 'mean_b': '0.015', 'sd_a': '0.017224014243685085', 'sd_b': '0.010488088481701515', 'covariance': '0.00015000000000000000000000000000000000000000000000000', 'correlation': '0.83034875821282296030170293438297799619132141509321', 'portfolio_return': '0.017000000000000000000000000000000000000000000000000', 'portfolio_sd': '0.014014278433083881', 'sharpe_ratio': '-0.21406738950739125887186735001945917844552487668223', 'beta': '0.93750000000000000000000000000000000000000000000', 'market_return': '0.01', 'jensen_alpha': '0.006375000000000000000000000000000000000000000000000', 'n_periods': '6', 'treynor_ratio': '-0.0032'}
+  checks: [['second_implementation_agrees', True], ['the_correlation_lies_between_minus_one_and_one', True], ['a_full_weight_reproduces_the_first_asset', True], ['the_portfolio_variance_identity_holds', True], ['beta_is_the_covariance_over_the_market_variance', True], ['a_higher_return_raises_the_sharpe_ratio', True]]
+  tile formula: Rp = wRa + (1 - w)Rb; sigma_p^2 = w^2 sa^2 + (1 - w)^2 sb^2 + 2w(1 - w)cov; Sharpe = (Rp - rf) / sigma_p.
+  steps=4 mistakes=4 related=['capm', 'risk', 'bond'] diagram=None
+
+[pearson] pearson
+  group=Investments level=intermediate period=per observation preset=pearson preset_matches=True
+  RADIO in_library=True tier=T1 metric=r unit=correlation ceiling=associational
+  tests=6 typing=False mapping=False assumption_checks=1
+  intended_use: Linear association between two numeric variables in a sample, with interval, p-value and effect size.
+  unsupported_use: Causal claims; non-linear relationships; clustered, weighted or repeated-measures data; more than two variables.
+  schema required=['x', 'y']
+  schema optional=['missing_codes', 'confidence_level', 'alpha']
+  schema detail: [('x', 'value_list', None, None), ('y', 'value_list', None, None), ('missing_codes', 'code_list', None, None), ('confidence_level', 'decimal', None, None), ('alpha', 'decimal', None, None)]
+  preset_used=pearson input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['alpha', 'ci_lower', 'ci_upper', 'confidence_level', 'n_excluded', 'n_pairs', 'p_value', 'r', 'r_squared']
+  values: {'r': '0.94267097924121413677005603165208643980377737182510', 'r_squared': '0.88862857510358957397352149426237792049098242422576', 'ci_lower': '0.7089071470763322', 'ci_upper': '0.9898269128179266', 'p_value': '0.0004510250370052371', 'n_pairs': '8', 'n_excluded': '0', 'confidence_level': '0.95', 'alpha': '0.05'}
+  checks: [['second_implementation_agrees', True], ['invariant_to_positive_linear_transform', True], ['negating_y_flips_sign_keeps_p', True], ['symmetric_in_x_and_y', True], ['bounded_and_consistent', True], ['missing_pairs_excluded_not_valued', True]]
+  tile formula: r = covariance(x, y) / (standard deviation of x x standard deviation of y).
+  steps=3 mistakes=3 related=['spearman', 'ols'] diagram=None
+
+[ols] ols
+  group=Investments level=advanced period=per observation preset=ols preset_matches=True
+  RADIO in_library=True tier=T1 metric=r_squared unit=ratio ceiling=associational
+  tests=7 typing=True mapping=False assumption_checks=4
+  intended_use: Linear association of one numeric outcome with up to five numeric predictors, with intervals, p-values and effect sizes.
+  unsupported_use: Causal claims; categorical predictors; interactions; non-linear fits; clustered, weighted or time-series data; prediction beyond the observed range.
+  schema required=['y', 'predictors']
+  schema optional=['missing_codes', 'confidence_level', 'alpha']
+  schema detail: [('y', 'value_list', None, None), ('predictors', 'column_map', None, None), ('missing_codes', 'code_list', None, None), ('confidence_level', 'decimal', None, None), ('alpha', 'decimal', None, None)]
+  preset_used=ols input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['adj_r_squared', 'alpha', 'ci_lower_intercept', 'ci_lower_sleep_hours', 'ci_lower_study_hours', 'ci_upper_intercept', 'ci_upper_sleep_hours', 'ci_upper_study_hours', 'coef_intercept', 'coef_sleep_hours', 'coef_study_hours', 'confidence_level', 'df_residual', 'f_squared', 'f_stat', 'k', 'n', 'n_excluded', 'p_f', 'p_intercept', 'p_sleep_hours', 'p_study_hours', 'r_squared', 'residual_se', 'se_intercept', 'se_sleep_hours', 'se_study_hours', 'std_beta_sleep_hours', 'std_beta_study_hours']
+  values: {'r_squared': '0.93250759005759532343943825104255121186835340614191', 'adj_r_squared': '0.91322404435976541585070632276899441525931152218246', 'f_squared': '13.816480858415931617713921978721469491679548967900', 'f_stat': '48.357683004455760661998726925525143220878421387649', 'p_f': '0.00007987157988429207', 'residual_se': '2.6459197390694125040283976021238077878767113869985', 'n': '10', 'n_excluded': '0', 'k': '2', 'df_residual': '7', 'confidence_level': '0.95', 'alpha': '0.05', 'coef_intercept': '63.0757575757575757575757575757575757575757575758', 'se_intercept': '6.2901226587112247222488764696885732338375817288872', 'p_intercept': '0.00002100689337480653', 'ci_lower_intercept': '48.201980991475727013191191671050408833169577140058', 'ci_upper_intercept': '77.949534160039424501960323480464742681981938011542', 'coef_study_hours': '4.036541889483065953654188948306595365418894830659', 'se_study_hours': '0.41045175773628789898000988772657171975962561913869', 'p_study_hours': '0.000023881505038231535', 'ci_lower_study_hours': '3.0659777090309530797985139813716914584885123840650', 'ci_upper_study_hours': '5.0071060699351788275098639152414992723492772772530', 'std_beta_study_hours': '0.99816590301484998178007301046281431496166957999620', 'coef_sleep_hours': '-2.37967914438502673796791443850267379679144385027', 'se_sleep_hours': '0.96097280039096106414606947254141488105975468270661', 'p_sleep_hours': '0.04243804707298909', 'ci_lower_sleep_hours': '-4.6520187333105258129242327740147098186780829733779', 'ci_upper_sleep_hours': '-0.1073395554595276630115961029906377749048047271621', 'std_beta_sleep_hours': '-0.25134062778599493292749846777679607927988352925352'}
+  checks: [['second_implementation_agrees', True], ['shift_changes_intercept_only', True], ['scaling_rescales_coefficients_not_significance', True], ['row_order_invariant', True], ['incomplete_rows_excluded_not_valued', True], ['bounded_and_consistent', True], ['cross_check_partial_regression_and_pearson', True]]
+  tile formula: y = intercept + coefficient x x + error; the coefficients minimise the sum of squared errors.
+  steps=4 mistakes=3 related=['ols_robust', 'pearson', 'logit'] diagram=None
+
+[ols_robust] ols_robust
+  group=Investments level=advanced period=per observation preset=None preset_matches=None
+  RADIO in_library=True tier=T1 metric=r_squared unit=ratio ceiling=associational
+  tests=7 typing=True mapping=False assumption_checks=3
+  intended_use: Linear regression with HC3 heteroskedasticity-robust standard errors; fallback for OLS.
+  unsupported_use: As OLS: causal claims, categorical predictors, clustered or time-series data. No overall F test is reported.
+  schema required=['y', 'predictors']
+  schema optional=['missing_codes', 'confidence_level', 'alpha']
+  schema detail: [('y', 'value_list', None, None), ('predictors', 'column_map', None, None), ('missing_codes', 'code_list', None, None), ('confidence_level', 'decimal', None, None), ('alpha', 'decimal', None, None)]
+  preset_used=None input_errors=None checks_all_ok=None profile_issues=None error=None
+  outputs: None
+  values: None
+  checks: None
+  tile formula: The same OLS coefficients with HC3 heteroskedasticity-robust standard errors.
+  steps=4 mistakes=4 related=['ols', 'pearson', 'portfolio'] diagram=None
+
+[risk] risk_metrics
+  group=Risk & derivatives level=intermediate period=per period preset=risk preset_matches=True
+  RADIO in_library=True tier=T1 metric=historical_var unit=rate ceiling=descriptive
+  tests=6 typing=True mapping=False assumption_checks=0
+  intended_use: Report parametric and historical value at risk and expected shortfall from a declared return series, with the loss in currency on a declared portfolio value and an optional stress loss.
+  unsupported_use: Forecasting volatility; a full Monte Carlo simulation; credit, liquidity or operational risk; backtesting; regulatory capital.
+  schema required=['returns']
+  schema optional=['confidence', 'portfolio_value', 'horizon_days', 'stress_return']
+  schema detail: [('returns', 'value_list', None, None), ('confidence', 'decimal', None, None), ('portfolio_value', 'decimal', None, None), ('horizon_days', 'decimal', None, None), ('stress_return', 'decimal', None, None)]
+  preset_used=risk input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['confidence', 'cvar_amount', 'historical_cvar', 'historical_var', 'horizon_days', 'mean_return', 'n_observations', 'parametric_cvar', 'parametric_var', 'portfolio_value', 'sd_return', 'stress_loss', 'var_amount', 'z_score']
+  values: {'mean_return': '0.0015', 'sd_return': '0.017802933590968777', 'z_score': '1.6448536269514715', 'parametric_var': '0', 'historical_var': '0.025499999999999996', 'parametric_cvar': '0.0352223391292955206441587345443330', 'historical_cvar': '0.03', 'var_amount': '0', 'cvar_amount': '35222.3391292955206441587345443330000000', 'confidence': '0.95', 'horizon_days': '1', 'portfolio_value': '1000000', 'n_observations': '10', 'stress_loss': '50000.00'}
+  checks: [['second_implementation_agrees', True], ['expected_shortfall_is_at_least_value_at_risk', True], ['a_higher_confidence_raises_value_at_risk', True], ['value_at_risk_scales_with_the_portfolio_value', True], ['the_historical_var_is_the_declared_tail_quantile', True], ['a_constant_return_series_has_only_the_mean_loss', True]]
+  tile formula: Parametric VaR = -(mu + z x sigma) at the declared confidence; historical VaR is the matching return quantile; CVaR is the average loss beyond it.
+  steps=4 mistakes=4 related=['portfolio', 'options', 'scenario'] diagram=None
+
+[options] option_pricing
+  group=Risk & derivatives level=advanced period=annual preset=options preset_matches=True
+  RADIO in_library=True tier=T2 metric=option_price unit=currency ceiling=descriptive
+  tests=7 typing=True mapping=False assumption_checks=0
+  intended_use: Price a European call or put with Black-Scholes, cross-check it with a binomial tree, and report delta, gamma, vega, theta, rho, intrinsic and time value.
+  unsupported_use: American early exercise (beyond the tree's European cross-check); implied volatility; a volatility surface; jumps, stochastic volatility or credit risk; retrieving a market option price.
+  schema required=['option_type', 'spot_price', 'strike_price', 'volatility', 'risk_free_rate', 'time_to_maturity']
+  schema optional=['dividend_yield', 'steps']
+  schema detail: [('option_type', 'enum', None, None), ('spot_price', 'decimal', None, None), ('strike_price', 'decimal', None, None), ('volatility', 'decimal', None, None), ('risk_free_rate', 'decimal', None, None), ('time_to_maturity', 'decimal', None, None), ('dividend_yield', 'decimal', None, None), ('steps', 'decimal', None, None)]
+  preset_used=options input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['binomial_price', 'd1', 'd2', 'delta', 'gamma', 'intrinsic_value', 'option_price', 'put_call_parity_gap', 'rho', 'spot_price', 'strike_price', 'theta', 'time_to_maturity', 'time_value', 'vega', 'volatility']
+  values: {'option_price': '12.335998930368717', 'binomial_price': '12.32364646070717', 'delta': '0.627409464153284', 'gamma': '0.015136793277352779', 'vega': '37.84198319338194', 'theta': '-7.250495273420727', 'rho': '50.404947484959685', 'intrinsic_value': '0.0', 'time_value': '12.335998930368717', 'put_call_parity_gap': '0.0', 'd1': '0.325', 'd2': '0.07500000000000001', 'spot_price': '100', 'strike_price': '100', 'volatility': '0.25', 'time_to_maturity': '1'}
+  checks: [['second_implementation_agrees', True], ['put_call_parity_holds', True], ['the_price_is_at_least_the_intrinsic_value', True], ['a_higher_volatility_raises_the_price', True], ['delta_lies_in_the_option_direction', True], ['the_binomial_tree_converges_towards_the_continuous_price', True], ['gamma_and_vega_are_positive', True]]
+  tile formula: Black-Scholes: C = S e^(-qT) N(d1) - K e^(-rT) N(d2); put-call parity: C - P = S e^(-qT) - K e^(-rT).
+  steps=4 mistakes=4 related=['risk', 'bond', 'portfolio'] diagram=None
+
+[fx] fx_parity
+  group=International level=intermediate period=annual preset=fx preset_matches=True
+  RADIO in_library=True tier=T1 metric=ppp_expected_spot unit=value ceiling=descriptive
+  tests=7 typing=True mapping=False assumption_checks=0
+  intended_use: Apply covered interest parity and relative purchasing power parity to declared spot, interest and inflation rates, report the implied forward, forward premium and real rates, and compare a declared foreign-currency exposure hedged with one forward against the unhedged outcome.
+  unsupported_use: Retrieving exchange rates, inflation or forward quotes; forecasting the spot rate; transaction costs, capital controls, risk premia or carry trades; options, swaps or a rolling hedge programme.
+  schema required=['spot_rate', 'domestic_rate', 'foreign_rate', 'domestic_inflation', 'foreign_inflation', 'time_to_maturity']
+  schema optional=['forward_rate', 'exposure_amount', 'hedge_forward', 'expected_spot']
+  schema detail: [('spot_rate', 'decimal', None, None), ('domestic_rate', 'decimal', None, None), ('foreign_rate', 'decimal', None, None), ('domestic_inflation', 'decimal', None, None), ('foreign_inflation', 'decimal', None, None), ('time_to_maturity', 'decimal', None, None), ('forward_rate', 'decimal', None, None), ('exposure_amount', 'decimal', None, None), ('hedge_forward', 'decimal', None, None), ('expected_spot', 'decimal', None, None)]
+  preset_used=fx input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['expected_spot', 'exposure_amount', 'forward_premium', 'forward_rate', 'hedge_forward', 'hedge_gain_loss', 'hedged_domestic', 'interest_rate_parity_forward', 'ppp_expected_spot', 'real_rate_domestic', 'real_rate_foreign', 'spot_rate', 'time_to_maturity', 'unhedged_domestic']
+  values: {'ppp_expected_spot': '57.098039215686274509803921568627450980392156862745', 'interest_rate_parity_forward': '57.087378640776699029126213592233009708737864077670', 'forward_rate': '57', 'forward_premium': '0.0178571428571428571428571428571428571428571428571', 'real_rate_domestic': '0.0096153846153846153846153846153846153846153846154', 'real_rate_foreign': '0.0098039215686274509803921568627450980392156862745', 'spot_rate': '56', 'time_to_maturity': '1', 'exposure_amount': '100000', 'hedge_forward': '57', 'expected_spot': '57.5', 'unhedged_domestic': '5750000.0', 'hedged_domestic': '5700000', 'hedge_gain_loss': '-50000.0'}
+  checks: [['second_implementation_agrees', True], ['interest_rate_parity_reproduces_the_forward', True], ['purchasing_power_parity_reproduces_the_expected_spot', True], ['the_forward_premium_is_the_annualised_forward_change', True], ['zero_differentials_leave_the_spot_rate_unchanged', True], ['the_fisher_relation_links_nominal_and_real_rates', True], ['the_hedged_outcome_is_exposure_times_the_forward', True]]
+  tile formula: Covered parity: F = S(1 + rd)^T / (1 + rf)^T; relative PPP: E[S_T] = S(1 + inflation_d)^T / (1 + inflation_f)^T.
+  steps=4 mistakes=4 related=['currency', 'capm', 'scenario'] diagram=None
+
+[currency] currency_convert
+  group=International level=intro period=spot rate preset=currency preset_matches=True
+  RADIO in_library=True tier=T1 metric=amount unit=currency ceiling=descriptive
+  tests=5 typing=True mapping=False assumption_checks=0
+  intended_use: Convert an amount from one ISO 4217 currency to another at a rate the owner declares, recording the rate, its provenance, any source and date.
+  unsupported_use: Retrieving or verifying exchange rates; interpolation, forward rates or triangulation; translating a set of statements; multi-currency consolidation; tax or fee conversion.
+  schema required=['amount', 'from_currency', 'to_currency', 'rate']
+  schema optional=['rate_provenance', 'rate_source', 'rate_date']
+  schema detail: [('amount', 'decimal', None, None), ('from_currency', 'currency', None, None), ('to_currency', 'currency', None, None), ('rate', 'decimal', None, None), ('rate_provenance', 'enum', None, None), ('rate_source', 'text', None, None), ('rate_date', 'text', None, None)]
+  preset_used=currency input_errors=[] checks_all_ok=True profile_issues=[] error=None
+  outputs: ['_appendix', 'amount', 'amount_from', 'rate']
+  values: {'amount': '920.00', 'amount_from': '1000', 'rate': '0.92', '_appendix': '{\'from_currency\': \'USD\', \'to_currency\': \'EUR\', \'rate\': \'0.92\', \'rate_date\': \'2026-10-20\', \'rate_source\': None, \'rate_provenance\': \'user\', \'converted\': \'920.00\', \'note\': "The exchange rate is the owner\'s declaration and is not retrieved or verified by the system."}'}
+  checks: [['second_implementation_agrees', True], ['round_trip_at_the_inverse_rate_returns_the_original', True], ['zero_amount_converts_to_zero', True], ['negative_amount_converts_with_the_same_magnitude', True], ['scaling_the_amount_scales_the_result', True]]
+  tile formula: Converted amount = amount x rate, with the rate's provenance recorded.
+  steps=4 mistakes=4 related=['fx', 'case_decision', 'forecast'] diagram=None
+

@@ -1,0 +1,39 @@
+Computation: purchase intent
+Result
+Across 400 respondents, the declared weights give an intent rate of 33.75%. Applied to the declared population, that is 6,750 projected buyers and 1,687,500.00 of projected revenue. The conversion weights are declared conventions, not estimates; a different set of weights gives a different intent rate. Stated intent is not a purchase. The projection assumes the respondents are representative of the population you declared. No survey design, sampling error, non-response or seasonality is modelled; the counts and the population are yours.
+Inputs and results
+What you declared
+Definitely: 120
+Probably: 80
+Maybe: 150
+Never: 50
+Target population: 20000
+Price: 250.00
+What was computed
+Respondents: 400
+Definitely: 120
+Probably: 80
+Maybe: 150
+Never: 50
+Intent rate: 0.3375
+Weighted intenders: 135.00
+Target population: 20000
+Projected buyers: 6750
+Price: 250.00
+Projected revenue: 1687500.00
+Honesty: what was not done
+this method: The conversion weights are declared conventions, not estimates; a different set of weights gives a different intent rate. Stated intent is not a purchase. The projection assumes the respondents are representative of the population you declared. No survey design, sampling error, non-response or seasonality is modelled; the counts and the population are yours.
+Assumptions made
+The intent counts are from one declared sample.
+The weights are the owner's declared convention.
+The population is the market the sample is meant to represent.
+Limitations
+Stated intent overstates purchase; no calibration against actual sales.
+No sampling error, non-response, seasonality or price response.
+The weights are conventions, not estimates.
+How the figures were checked
+Second implementation agrees.
+Intent rate is the weighted share.
+All definitely respondents give the definitely weight.
+Projected buyers is the rate times the population.
+Zero weights give a zero intent rate.

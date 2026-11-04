@@ -1,0 +1,37 @@
+Computation: email list health
+Result
+The list moved from its starting size to 8,470, a growth rate of 5.88% and a churn rate of 1.62%. Sends produced an open rate of 30.00% and a click rate of 6.00%. The click-to-open rate is 20.00%. Revenue per subscriber is 4.49. The list counts and the send counts are declared; the method does not read an email platform or deduplicate the list. An open is counted as declared: a machine-opened message still counts, so open rates are an upper bound on reading. No deliverability, consent, segmentation or revenue-attribution model is applied; revenue is the amount you supplied.
+Inputs and results
+What you declared
+List start: 8000.0000
+New subscribers: 600.0000
+Unsubscribes: 90.0000
+Bounces: 40.0000
+Sends: 7500.0000
+Opens: 2250.0000
+Clicks: 450.0000
+Revenue: 38000.0000
+What was computed
+List end: 8470
+Growth rate: 0.0588
+Churn rate: 0.0162
+Open rate: 0.3000
+Click rate: 0.0600
+Click to open: 0.2000
+Revenue per subscriber: 4.49
+Revenue per send: 5.07
+Honesty: what was not done
+this method: The list counts and the send counts are declared; the method does not read an email platform or deduplicate the list. An open is counted as declared: a machine-opened message still counts, so open rates are an upper bound on reading. No deliverability, consent, segmentation or revenue-attribution model is applied; revenue is the amount you supplied.
+Assumptions made
+The list counts and send counts cover one period and one list.
+Unsubscribes and bounces are removed once and are not also counted as inactive.
+Limitations
+Declared-count arithmetic; no platform read or deduplication.
+Open rates are inflated by machine opens; no deliverability or consent check.
+Revenue is the declared amount, not an attributed causal effect.
+How the figures were checked
+Second implementation agrees.
+List end is start plus new minus losses.
+Open rate is opens over sends.
+Click to open is clicks over opens.
+Revenue per subscriber is revenue over list end.

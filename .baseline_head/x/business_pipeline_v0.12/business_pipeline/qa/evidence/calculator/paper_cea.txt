@@ -1,0 +1,29 @@
+Computation: cost effectiveness
+Result
+Compared with the first-listed option, the analysis reports 2 options with an incremental cost per unit of effect for each non-comparator. The ratios are in the appendix; an option that costs less and is more effective is flagged as dominant rather than given a ratio. An incremental cost-effectiveness ratio compares each option with the first-listed comparator only; it says nothing about options against each other unless one is the baseline. The ratio is undefined when the effect does not change; a dominant option (cheaper and more effective) needs no ratio, and the flag reports it. Effects must be on one declared outcome scale; the system does not convert or weight different outcomes.
+Inputs and results
+What you declared
+Options: Name: basic; Cost: 10000; Effect: 40, Name: intensive; Cost: 18000; Effect: 60
+What was computed
+Comparator cost: 10000.00
+Comparator effect: 40.00
+N options: 2
+Icer intensive: 400.00
+Delta cost intensive: 8000.00
+Delta effect intensive: 20.000
+Dominant intensive: 0
+Honesty: what was not done
+this method: An incremental cost-effectiveness ratio compares each option with the first-listed comparator only; it says nothing about options against each other unless one is the baseline. The ratio is undefined when the effect does not change; a dominant option (cheaper and more effective) needs no ratio, and the flag reports it. Effects must be on one declared outcome scale; the system does not convert or weight different outcomes.
+Assumptions made
+Costs and effects are declared on one basis and one outcome scale.
+The first option is the intended comparator.
+Limitations
+One outcome scale only; no willingness-to-pay threshold and no sensitivity analysis.
+An option with the same effect as the comparator has an undefined ratio and blocks.
+Dominance is flagged, not ranked.
+How the figures were checked
+Second implementation agrees.
+Icer is incremental cost over incremental effect.
+Comparator is the first option.
+Cheaper and more effective is flagged dominant.
+Adding a third option adds one ratio per option.

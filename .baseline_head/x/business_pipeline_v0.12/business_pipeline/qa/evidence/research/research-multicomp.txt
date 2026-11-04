@@ -1,0 +1,31 @@
+Computation: multiple comparison
+Result
+The declared family has 4 tests. After the declared correction at level 0.0500, 2 adjusted p-values are at or below that level. The correction changes only the p-values, not the design or the assumption checks behind each test; the family must have been declared before the results were seen. The family of hypotheses must be declared before looking at the p-values; a correction cannot undo a family chosen afterwards. Holm and Bonferroni control the family-wise error rate under arbitrary dependence; they do not model dependence and are therefore less powerful than methods that do (not implemented). A correction fixes the reported evidence, not the design: a biased sample or a violated test assumption is still biased or violated. The declared correction is applied to the family you supplied; the method does not decide whether that family is the right one, and it does not model dependence between the tests.
+Inputs and results
+What you declared
+P values: 0.01, 0.04, 0.03, 0.005
+Method: holm
+Alpha: 0.0500
+What was computed
+P adj 1: 0.0300
+P adj 2: 0.0600
+P adj 3: 0.0600
+P adj 4: 0.0200
+N tests: 4
+N rejected: 2
+Alpha: 0.0500
+Honesty: what was not done
+multiple comparisons: The declared correction is applied to the family you supplied; the method does not decide whether that family is the right one, and it does not model dependence between the tests.
+Assumptions made
+Each test is individually valid (its own assumptions hold).
+The family was declared before the results were seen.
+The p-values are the raw p-values of that family, not already adjusted.
+Limitations
+Holm and Bonferroni only; no false-discovery-rate control and no dependence modelling.
+The correction does not fix a biased sample, a violated assumption or a family chosen after the fact.
+How the figures were checked
+Adjusted p values are at least the raw ones.
+Adjusted p values are bounded in zero one.
+Declared correction matches its definition.
+Second implementation agrees.
+Correction is order invariant.

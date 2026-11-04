@@ -1,0 +1,5 @@
+logit declares ratio,4 : True
+logit ratio,6 gone     : True
+honesty this_method    : True
+own_caveats kept       : True
+LIBRARY / PRESETS      : 142 / 144

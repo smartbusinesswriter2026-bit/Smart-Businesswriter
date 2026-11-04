@@ -1,0 +1,15 @@
+﻿{
+ "objective": "Convert a USD amount to EUR at a declared rate",
+ "method": "currency_convert",
+ "currency": "EUR",
+ "period": "cross_section",
+ "inputs": {
+  "amount": "1000",
+  "from_currency": "USD",
+  "to_currency": "EUR",
+  "rate": "0.92",
+  "rate_provenance": "user",
+  "rate_date": "2026-10-20"
+ }
+}
+{'amount': '920.00', 'amount_from': '1000', 'rate': '0.92', '_appendix': '{\'from_currency\': \'USD\', \'to_currency\': \'EUR\', \'rate\': \'0.92\', \'rate_date\': \'2026-10-20\', \'rate_source\': None, \'rate_provenance\': \'user\', \'converted\': \'920.00\', \'note\': "The exchange rate is the owner\'s declaration and is not retrieved or verified by the system."}'}

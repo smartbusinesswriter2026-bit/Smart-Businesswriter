@@ -1,0 +1,46 @@
+Computation: national income
+Result
+GDP is 900.00, GNP is 920.00 and NNP is 870.00; net exports are -50.00. At the declared deflator, real GDP is 750.00. GDP per person is 9.00. GDP is the expenditure approach from the components you declared: C + I + G + X - M. It is not an income-approach estimate and no double-counting check is possible from these aggregates. Net factor income and depreciation are declared amounts; GNP and NNP are arithmetic on them. Real GDP uses the declared deflator as an index with a base of 100. No base-year conversion or chain-linking is performed.
+Inputs and results
+What you declared
+Consumption: 600.00
+Investment: 150.00
+Government spending: 200.00
+Exports: 120.00
+Imports: 170.00
+Net factor income: 20.00
+Depreciation: 50.00
+Population: 100
+Gdp deflator: 120.00
+What was computed
+Gdp: 900.00
+Gnp: 920.00
+Nnp: 870.00
+Net exports: -50.00
+Consumption: 600.00
+Investment: 150.00
+Government spending: 200.00
+Exports: 120.00
+Imports: 170.00
+Net factor income: 20.00
+Depreciation: 50.00
+Population: 100
+Gdp per capita: 9.00
+Gdp deflator: 120.00
+Real gdp: 750.00
+Honesty: what was not done
+this method: GDP is the expenditure approach from the components you declared: C + I + G + X - M. It is not an income-approach estimate and no double-counting check is possible from these aggregates. Net factor income and depreciation are declared amounts; GNP and NNP are arithmetic on them. Real GDP uses the declared deflator as an index with a base of 100. No base-year conversion or chain-linking is performed.
+Assumptions made
+The components are one period's declared values in one currency.
+Imports are already included in the other components and are subtracted once.
+The deflator, if used, is an index with a base of 100.
+Limitations
+No income-approach or production-approach cross-check.
+No base-year conversion, chain-linking or seasonal adjustment.
+No informal-sector, underground or home-production adjustment.
+How the figures were checked
+Second implementation agrees.
+Gdp equals expenditure components.
+Gnp equals gdp plus net factor income.
+Nnp equals gnp minus depreciation.
+Net exports equals exports minus imports.

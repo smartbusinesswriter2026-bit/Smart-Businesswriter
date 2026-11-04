@@ -1,0 +1,121 @@
+
+PROVE (operations) -- 14 tools, gates read on each paper
+  breakeven              ok
+  multibreakeven         ok
+  unitecon               ok
+  forecast               ok
+  inventory              ok
+  queue                  ok
+  capacity               ok
+  linebalance            ok
+  oee                    ok
+  spc                    ok
+  chi_square             ok
+  power                  ok
+  missing                ok
+  descriptive            ok
+
+  tools: 14 | pass: 14 | fail: 0
+
+PROVE (research) -- 21 tools, gates read on each paper
+  descriptive            ok
+  pearson                ok
+  spearman               ok
+  ols                    ok
+  ols_robust             ok
+  welch                  ok
+  mann_whitney           ok
+  anova                  ok
+  kruskal_wallis         ok
+  chi_square             ok
+  factorial              ok
+  posthoc                ok
+  multicomp              ok
+  power                  ok
+  missing                ok
+  paired                 ok
+  onesample              ok
+  logit                  ok
+  alpha                  ok
+  weighted               ok
+  forecast               ok
+
+  tools: 21 | pass: 21 | fail: 0
+
+SHARED KEYS -- 31 keys in more than one group
+  alpha                  in 3 groups  ['statistics', 'marketing', 'people']
+  anova                  in 2 groups  ['statistics', 'economics']
+  breakeven              in 5 groups  ['finance', 'accounting', 'economics', 'entrepreneurship', 'operations']
+  case_decision          in 2 groups  ['finance', 'entrepreneurship']
+  cba                    in 2 groups  ['economics', 'entrepreneurship']
+  chi_square             in 5 groups  ['statistics', 'economics', 'operations', 'marketing', 'people']
+  cohort                 in 2 groups  ['entrepreneurship', 'marketing']
+  currency               in 2 groups  ['finance', 'economics']
+  dcf                    in 2 groups  ['finance', 'economics']
+  demandcurve            in 3 groups  ['economics', 'entrepreneurship', 'marketing']
+  descriptive            in 4 groups  ['statistics', 'economics', 'operations', 'people']
+  dpayback               in 2 groups  ['finance', 'entrepreneurship']
+  forecast               in 6 groups  ['finance', 'statistics', 'economics', 'entrepreneurship', 'operations', 'marketing']
+  funnel                 in 2 groups  ['entrepreneurship', 'marketing']
+  irr                    in 2 groups  ['finance', 'entrepreneurship']
+  loan                   in 2 groups  ['finance', 'accounting']
+  missing                in 2 groups  ['statistics', 'operations']
+  multibreakeven         in 6 groups  ['finance', 'accounting', 'economics', 'entrepreneurship', 'operations', 'marketing']
+  npv                    in 3 groups  ['finance', 'economics', 'entrepreneurship']
+  ols                    in 3 groups  ['statistics', 'economics', 'people']
+  pearson                in 3 groups  ['statistics', 'economics', 'people']
+  power                  in 5 groups  ['statistics', 'economics', 'operations', 'marketing', 'people']
+  pricing                in 2 groups  ['economics', 'entrepreneurship']
+  purchaseintent         in 2 groups  ['entrepreneurship', 'marketing']
+  ratios                 in 2 groups  ['finance', 'accounting']
+  sroi                   in 2 groups  ['economics', 'entrepreneurship']
+  trendanalysis          in 2 groups  ['finance', 'accounting']
+  unitecon               in 5 groups  ['finance', 'economics', 'entrepreneurship', 'operations', 'marketing']
+  weighted               in 2 groups  ['statistics', 'people']
+  welch                  in 2 groups  ['statistics', 'economics']
+  workingcapital         in 2 groups  ['finance', 'accounting']
+  disagreements: 0 []
+
+tool           method                      checks  words
+breakeven      breakeven                        5    243
+multibreakeven multi_product_breakeven          5    284
+unitecon       unit_economics                   5    280
+forecast       trend_forecast                   5    523
+inventory      inventory_policy                 5    388
+queue          queue_analysis                   6    319
+capacity       capacity_analysis                5    318
+linebalance    line_balancing                   5    355
+oee            oee_analysis                     5    285
+spc            process_control                  5    338
+chi_square     chi_square                       6    385
+power          power_analysis                   5    378
+missing        missing_data_bounds              5    352
+descriptive    descriptive_stats                6    218
+
+VERIFY (independent re-derivation vs the printed paper)
+  descriptive    descriptive_stats      compared=7  AGREES
+  pearson        pearson                compared=3  AGREES
+  spearman       spearman               compared=1  AGREES
+  ols            ols                    compared=3  AGREES
+  ols_robust     ols_robust             compared=3  AGREES
+  welch          welch_t                compared=7  AGREES
+  mann_whitney   mann_whitney           compared=1  AGREES
+  anova          anova                  compared=4  AGREES
+  kruskal_wallis kruskal_wallis         compared=2  AGREES
+  chi_square     chi_square             compared=3  AGREES
+  factorial      two_way_anova          compared=0  AGREES
+  posthoc        posthoc_pairwise       compared=0  AGREES
+  multicomp      multiple_comparison    compared=0  AGREES
+  power          power_analysis         compared=6  AGREES
+  missing        missing_data_bounds    compared=5  AGREES
+  paired         paired_t               compared=5  AGREES
+  onesample      one_sample_t           compared=3  AGREES
+  logit          logistic_regression    compared=0  AGREES
+  alpha          reliability_alpha      compared=2  AGREES
+  weighted       weighted_summary       compared=3  AGREES
+  forecast       trend_forecast         compared=3  AGREES
+
+  61 figures compared, 0 disagreements
+
+PROVE THE HARNESS ON 'operations'
+  tools=14  problems=0

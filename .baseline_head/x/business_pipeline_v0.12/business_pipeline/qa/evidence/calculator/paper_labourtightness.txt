@@ -1,0 +1,37 @@
+Computation: labour market
+Result
+The real wage is 95.24 and the wage share of productivity is 0.7937. The labour market is tight at 0.2000 vacancies for each unemployed person: 10 vacancies against 50 unemployed. The real wage deflates the declared nominal wage by the declared CPI; the CPI and productivity figures are the owner's. The wage share is a simple comparison with labour productivity, not a full labour-share decomposition. No taxes, benefits, hours, composition or bargaining model is included. Tightness is the vacancies you declare divided by the unemployed you declare: a ratio of two counts, not a rate divided by anything, and not a measure of your own headcount gap.
+Inputs and results
+What you declared
+Nominal wage: 100.00
+Cpi: 105.0000
+Labour productivity: 120.0000
+Vacancies: 10
+Unemployed: 50
+What was computed
+Nominal wage: 100.00
+Cpi: 105.0000
+Labour productivity: 120.0000
+Real wage: 95.24
+Wage share of productivity: 0.7937
+Vacancies: 10
+Unemployed: 50
+Labour market tightness: 0.2000
+Honesty: what was not done
+this method: The real wage deflates the declared nominal wage by the declared CPI; the CPI and productivity figures are the owner's. The wage share is a simple comparison with labour productivity, not a full labour-share decomposition. No taxes, benefits, hours, composition or bargaining model is included. Tightness is the vacancies you declare divided by the unemployed you declare: a ratio of two counts, not a rate divided by anything, and not a measure of your own headcount gap.
+Assumptions made
+The nominal wage, CPI and productivity cover the same period and population.
+The CPI is an index with a base of 100.
+Productivity is output per worker.
+Limitations
+No hours, composition, taxes, benefits or bargaining.
+The wage share is a simple ratio, not a full decomposition.
+No regional or sectoral breakdown.
+Tightness needs an unemployment COUNT; an unemployment rate is not an input, because a count divided by a rate has no reading.
+How the figures were checked
+Second implementation agrees.
+Real wage is nominal wage over the price index.
+Wage share is real wage over productivity.
+Tightness is vacancies over unemployed.
+A higher cpi lowers the real wage.
+A higher productivity lowers the wage share.

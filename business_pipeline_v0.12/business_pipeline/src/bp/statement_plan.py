@@ -17,6 +17,7 @@ specs; the same code builds a different engagement by being given different data
 from decimal import Decimal as D, ROUND_HALF_UP, ROUND_HALF_EVEN, InvalidOperation
 
 from . import accounts, ledger
+from . import statement_chart
 
 
 class PlanError(ValueError):
@@ -537,24 +538,10 @@ def resolve_adjustments(adjustments, policy, period_end, pretax_income=None, pla
     return entries, skipped
 
 
-DEFAULT_CHART = [
-    {"code": "1000", "name": "Cash", "type": "asset", "line": "Cash", "section": "current", "role": "cash"},
-    {"code": "1100", "name": "Trade receivables", "type": "asset", "line": "Trade receivables", "section": "current"},
-    {"code": "1200", "name": "Inventory", "type": "asset", "line": "Inventory", "section": "current"},
-    {"code": "1300", "name": "Prepayments", "type": "asset", "line": "Prepayments", "section": "current"},
-    {"code": "1500", "name": "Property, plant and equipment", "type": "asset", "line": "Property, plant and equipment", "section": "non_current"},
-    {"code": "1510", "name": "Accumulated depreciation", "type": "asset", "line": "Property, plant and equipment", "section": "non_current", "contra": True},
-    {"code": "2000", "name": "Trade payables", "type": "liability", "line": "Trade payables", "section": "current"},
-    {"code": "2100", "name": "Borrowings", "type": "liability", "line": "Borrowings", "section": "non_current"},
-    {"code": "2200", "name": "Accruals", "type": "liability", "line": "Accruals", "section": "current"},
-    {"code": "3000", "name": "Capital", "type": "equity", "line": "Capital", "role": "capital"},
-    {"code": "3100", "name": "Retained earnings", "type": "equity", "line": "Retained earnings", "role": "retained_earnings"},
-    {"code": "4000", "name": "Revenue", "type": "income", "line": "Revenue"},
-    {"code": "5000", "name": "Cost of sales", "type": "expense", "line": "Cost of sales"},
-    {"code": "6000", "name": "Operating expenses", "type": "expense", "line": "Operating expenses"},
-    {"code": "7000", "name": "Finance costs", "type": "expense", "line": "Finance costs"},
-    {"code": "8000", "name": "Tax", "type": "expense", "line": "Tax"},
-]
+#: The chart the plan layer compiles into.  It is the **one** chart of the statements
+#: tile: `bp.statement_chart` owns it, because the deterministic detector layer posts to
+#: account codes that a chart living here alone did not carry.
+DEFAULT_CHART = list(statement_chart.CHART)
 
 _PLAN_KEYS = ("period", "currency", "framework", "chart")
 

@@ -1,0 +1,48 @@
+Computation: fx parity
+Result
+Under relative purchasing power parity the expected spot rate is 57.0980, while covered interest parity implies a forward rate of 57.0874. The declared forward is 57.0000, an annualised forward premium of 1.79%. The implied real rates are 0.96% at home and 0.98% abroad. A foreign-currency exposure of 100,000.00 hedged at 57.0000 is worth 5,700,000.00 against 5,750,000.00 unhedged, a hedge result of -50,000.00. The spot rate is quoted as domestic currency per unit of foreign currency; every other figure follows that convention. Covered interest parity and relative purchasing power parity are identities under their assumptions, not forecasts; real-world capital controls, transaction costs and risk premia are not modelled. No exchange rate, inflation rate or forward quote is retrieved or verified; all of them are declared inputs. The hedge comparison uses one declared forward and one expected spot; it is not a hedging programme, and it ignores margin, credit lines, taxes and hedge accounting.
+Inputs and results
+What you declared
+Spot rate: 56.0000
+Domestic rate: 0.0500
+Foreign rate: 0.0300
+Domestic inflation: 0.0400
+Foreign inflation: 0.0200
+Time to maturity: 1.00
+Forward rate: 57.0000
+Exposure amount: 100000.00
+Hedge forward: 57.0000
+Expected spot: 57.5000
+What was computed
+Ppp expected spot: 57.0980
+Interest rate parity forward: 57.0874
+Forward rate: 57.0000
+Forward premium: 0.0179
+Real rate domestic: 0.0096
+Real rate foreign: 0.0098
+Spot rate: 56.0000
+Time to maturity: 1.00
+Exposure amount: 100000.00
+Hedge forward: 57.0000
+Expected spot: 57.5000
+Unhedged domestic: 5750000.00
+Hedged domestic: 5700000.00
+Hedge gain loss: -50000.00
+Honesty: what was not done
+this method: The spot rate is quoted as domestic currency per unit of foreign currency; every other figure follows that convention. Covered interest parity and relative purchasing power parity are identities under their assumptions, not forecasts; real-world capital controls, transaction costs and risk premia are not modelled. No exchange rate, inflation rate or forward quote is retrieved or verified; all of them are declared inputs. The hedge comparison uses one declared forward and one expected spot; it is not a hedging programme, and it ignores margin, credit lines, taxes and hedge accounting.
+Assumptions made
+The declared rates and inflation are annual and compound over the horizon.
+Capital moves freely and the two countries' assets are comparable.
+The spot quote is domestic per foreign and the exposure is in foreign currency.
+Limitations
+Identities under assumptions, not forecasts.
+No retrieved data and no transaction costs or risk premium.
+One forward hedge, not an option, swap or rolling programme; no hedge accounting.
+How the figures were checked
+Second implementation agrees.
+Interest rate parity reproduces the forward.
+Purchasing power parity reproduces the expected spot.
+The forward premium is the annualised forward change.
+Zero differentials leave the spot rate unchanged.
+The fisher relation links nominal and real rates.
+The hedged outcome is exposure times the forward.

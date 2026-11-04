@@ -1,0 +1,1601 @@
+{
+ "subject": "finance",
+ "counts": {
+  "tools": 35,
+  "worksheets": 0,
+  "records": 23,
+  "tiles": 0
+ },
+ "tools": [
+  {
+   "kind": "compute",
+   "key": "tvm",
+   "preset": "tvm",
+   "method": "time_value",
+   "label": "Time value of money",
+   "what": "Grow a lump sum and a level payment to a future value, and show the effective annual rate behind them.",
+   "need": null,
+   "level": "intro",
+   "formula": "FV = PV(1 + r)^n + PMT[((1 + r)^n - 1) / r]; the effective annual rate is (1 + r)^m - 1.",
+   "steps": [
+    "Enter today's amount, the level payment and the nominal annual rate.",
+    "Divide the annual rate by the compounding frequency to get the periodic rate.",
+    "Multiply the years by the frequency to get the number of periods.",
+    "Read the future value, the present value of the payments and the effective annual rate together."
+   ],
+   "common_mistakes": [
+    "Entering 6 for 6%; rates are decimals, so use 0.06.",
+    "Treating an annual rate as the periodic rate when compounding is quarterly or monthly.",
+    "Using the ordinary-annuity formula for payments made at the start of each period.",
+    "Adding the lump sum and the payments without compounding the lump sum."
+   ],
+   "diagram": null,
+   "related": [
+    "loan",
+    "npv",
+    "bond"
+   ],
+   "group": "Foundations",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "loan",
+   "preset": "loan",
+   "method": "loan_amortization",
+   "label": "Loan amortization",
+   "what": "Find the level payment, total interest and first-payment split on a fixed-rate loan.",
+   "need": null,
+   "level": "intro",
+   "formula": "PMT = P x r / (1 - (1 + r)^-n), where r is the annual rate divided by payments per year and n is years x payments per year.",
+   "steps": [
+    "Enter the principal, the nominal annual rate, the term and the payment frequency.",
+    "Convert the annual rate and the term to the payment period.",
+    "Read the level payment, then total paid and total interest.",
+    "Check the first payment's interest and principal split."
+   ],
+   "common_mistakes": [
+    "Using the annual rate as the monthly rate on a monthly loan.",
+    "Multiplying the payment by the number of payments and calling the difference 'interest this year'.",
+    "Forgetting fees, insurance or a balloon payment the question mentions.",
+    "Rounding the payment before computing total interest."
+   ],
+   "diagram": null,
+   "related": [
+    "tvm",
+    "bond",
+    "leverage"
+   ],
+   "group": "Foundations",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "dupont",
+   "preset": "dupont",
+   "method": "dupont_analysis",
+   "label": "DuPont analysis",
+   "what": "Break return on equity into margin, turnover and leverage, with five-step, common-size and prior-period growth.",
+   "need": null,
+   "level": "intro",
+   "formula": "ROE = net margin x asset turnover x equity multiplier; the five-step form adds tax and interest burdens.",
+   "steps": [
+    "Enter revenue, net income, total assets and equity.",
+    "Read the three components and their product.",
+    "If you have EBIT, pre-tax income and tax, read the five-step decomposition.",
+    "Declare the prior period to see common-size ratios and growth."
+   ],
+   "common_mistakes": [
+    "Using average balances in one ratio and ending balances in another.",
+    "Concluding that a high ROE means good operations when leverage is doing the work.",
+    "Comparing a 12-month period with a shorter prior period.",
+    "Forgetting that a negative equity makes ROE uninterpretable."
+   ],
+   "diagram": null,
+   "related": [
+    "ratios",
+    "workingcapital",
+    "leverage"
+   ],
+   "group": "Foundations",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "trendanalysis",
+   "preset": "trendanalysis",
+   "method": "trend_analysis",
+   "label": "Common-size and trend",
+   "what": "Several years of income-statement figures as common-size percentages, an index and compound growth.",
+   "need": null,
+   "level": "intro",
+   "formula": "Common-size % = line / revenue; index = period value / base value x 100; CAGR = (end / start)^(1 / periods) - 1.",
+   "steps": [
+    "Enter the periods in order, starting with the base year.",
+    "Enter revenue, cost of sales, operating expenses and net income for every period.",
+    "Read each line as a share of revenue in the latest period.",
+    "Read the index against the base year and the compound growth across the whole span."
+   ],
+   "common_mistakes": [
+    "Comparing a 12-month period with a shorter prior period.",
+    "Confusing the latest period-on-period growth with the compound rate.",
+    "Using cost of sales as the common-size base instead of revenue.",
+    "Reading a CAGR as the path of growth; it uses only the first and last values."
+   ],
+   "diagram": null,
+   "related": [
+    "dupont",
+    "ratios",
+    "forecast"
+   ],
+   "group": "Foundations",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "workingcapital",
+   "preset": "workingcapital",
+   "method": "working_capital",
+   "label": "Working capital and EOQ",
+   "what": "Cash conversion cycle, order quantity, reorder point and the cost of forgoing a discount.",
+   "need": null,
+   "level": "intro",
+   "formula": "CCC = DSO + DIO - DPO; EOQ = square root of (2 x annual demand x order cost / holding cost per unit).",
+   "steps": [
+    "Enter revenue, cost of sales and the three working-capital balances.",
+    "Read DSO, DIO, DPO and the cash conversion cycle.",
+    "Enter annual demand, order cost and holding cost for the order quantity.",
+    "Read the reorder point and the annualised cost of forgoing the trade discount."
+   ],
+   "common_mistakes": [
+    "Using revenue for inventory days and payable days; those use cost of sales.",
+    "Treating the cash conversion cycle as a profitability measure.",
+    "Thinking the EOQ minimises purchase cost; it minimises order plus holding cost.",
+    "Comparing a discount cost with a borrowing rate without annualising both."
+   ],
+   "diagram": null,
+   "related": [
+    "dupont",
+    "ratios",
+    "loan"
+   ],
+   "group": "Foundations",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "ratios",
+   "preset": "ratios",
+   "method": "ratio_analysis",
+   "label": "Financial statement ratios",
+   "what": "Compute the declared liquidity, profitability, solvency and efficiency ratios from supplied statements.",
+   "need": null,
+   "level": "intro",
+   "formula": "Current ratio = current assets / current liabilities; margins divide profit by revenue; turnover divides revenue by the balance.",
+   "steps": [
+    "Enter the statement figures you have; missing figures leave ratios uncomputed.",
+    "Read each ratio with its declared formula and the figures it used.",
+    "Compare only with a stated benchmark or prior period.",
+    "Check the balance-sheet identity where the figures allow it."
+   ],
+   "common_mistakes": [
+    "Mixing flow figures (revenue) with stock figures (assets) without saying so.",
+    "Using average balances in one ratio and ending balances in another.",
+    "Applying a rule of thumb without an industry benchmark.",
+    "Treating an uncomputed ratio as zero."
+   ],
+   "diagram": null,
+   "related": [
+    "dupont",
+    "workingcapital",
+    "leverage"
+   ],
+   "group": "Foundations",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "breakeven",
+   "preset": "breakeven",
+   "method": "breakeven",
+   "label": "Break-even point",
+   "what": "Solve the break-even quantity from fixed cost, price and variable cost.",
+   "need": null,
+   "level": "intro",
+   "formula": "Break-even quantity = fixed cost / (price - variable cost per unit); break-even revenue = quantity x price; margin of safety = expected units - break-even units.",
+   "steps": [
+    "Subtract variable cost from price to get the unit contribution and the contribution-margin ratio.",
+    "Divide fixed cost by the unit contribution for the break-even quantity.",
+    "Multiply by the price for the break-even revenue.",
+    "If you declare an expected volume, read the margin of safety; if you declare a profit target, read the sales volume it needs."
+   ],
+   "common_mistakes": [
+    "Using total cost instead of fixed cost.",
+    "Forgetting that a price below variable cost has no break-even.",
+    "Mixing per-unit and total figures.",
+    "Reporting a margin of safety against a budget you did not declare."
+   ],
+   "diagram": "breakeven",
+   "related": [
+    "multibreakeven",
+    "unitecon",
+    "pricing"
+   ],
+   "group": "Foundations",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "multibreakeven",
+   "preset": "multibreakeven",
+   "method": "multi_product_breakeven",
+   "label": "Multi-product break-even",
+   "what": "Find the sales mix at which several products together cover their fixed costs.",
+   "need": null,
+   "level": "intro",
+   "formula": "Weighted contribution = sum(mix weight x unit contribution); break-even units = fixed cost / weighted contribution.",
+   "steps": [
+    "Compute each product's unit contribution.",
+    "Weight the contributions by the declared sales mix.",
+    "Divide fixed cost by the weighted contribution.",
+    "Split the break-even units back across the mix."
+   ],
+   "common_mistakes": [
+    "Using a simple average instead of the mix-weighted contribution.",
+    "Letting the mix change while claiming one break-even point.",
+    "Ignoring capacity limits."
+   ],
+   "diagram": "breakeven",
+   "related": [
+    "breakeven",
+    "unitecon"
+   ],
+   "group": "Foundations",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "unitecon",
+   "preset": "unitecon",
+   "method": "unit_economics",
+   "label": "Unit economics",
+   "what": "Work out the margin each customer leaves, what it costs to win one, how long that takes to repay, and the value the customer brings over their life.",
+   "need": null,
+   "level": "intro",
+   "formula": "Contribution margin = price - variable cost; LTV = margin / churn; CAC payback = acquisition cost / margin.",
+   "steps": [
+    "Enter the price and the variable cost per unit or customer.",
+    "Enter the acquisition cost and, if you know it, the churn rate.",
+    "Read the margin, the payback period and the LTV/CAC ratio.",
+    "Check that price and cost are for the same period."
+   ],
+   "common_mistakes": [
+    "Using gross profit instead of contribution margin.",
+    "Entering churn as a percentage (5) instead of a decimal (0.05).",
+    "Comparing an undiscounted LTV with a discounted cost.",
+    "Treating a single churn rate as a retention curve."
+   ],
+   "diagram": null,
+   "related": [
+    "breakeven",
+    "portfolio",
+    "forecast"
+   ],
+   "group": "Foundations",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "forecast",
+   "preset": "forecast",
+   "method": "trend_forecast",
+   "label": "Trend forecast",
+   "what": "Fit a trend to your own series and record the forecast periods and the range the result could fall in.",
+   "need": "a series in period order and the horizon",
+   "level": "intro",
+   "formula": "Fit y = a + bt to the series; the forecast extends the line and carries a prediction interval.",
+   "steps": [
+    "Enter the series in order, one value per period.",
+    "Declare the horizon you want to forecast.",
+    "Read the trend, the forecast values and the interval.",
+    "Check the holdout error before trusting the extrapolation."
+   ],
+   "common_mistakes": [
+    "Extrapolating far beyond the data without widening the interval.",
+    "Ignoring seasonality that a straight line cannot capture.",
+    "Reading a high R-squared as proof that the forecast is right.",
+    "Forecasting a series that changed regime."
+   ],
+   "diagram": null,
+   "related": [
+    "scenario",
+    "risk",
+    "unitecon"
+   ],
+   "group": "Foundations",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "descriptive",
+   "preset": "descriptive",
+   "method": "descriptive_stats",
+   "label": "Descriptive statistics",
+   "what": "Record the count, centre, spread and declared missing-value handling for one variable.",
+   "need": "the numbers you hold and the group they describe",
+   "level": "intro",
+   "formula": "Mean = sum of values / count; standard deviation measures typical distance from the mean.",
+   "steps": [
+    "Check the sample size and missing values.",
+    "Read the centre and spread together.",
+    "Look at the shape before using the mean alone."
+   ],
+   "common_mistakes": [
+    "Reporting a mean for a heavily skewed variable without the median.",
+    "Ignoring missing values.",
+    "Confusing standard deviation with standard error."
+   ],
+   "diagram": null,
+   "related": [
+    "pearson",
+    "ols"
+   ],
+   "group": "Foundations",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "npv",
+   "preset": "npv",
+   "method": "npv",
+   "label": "Net present value",
+   "what": "Discount a project's cash flows at a declared rate and record the NPV with its checks.",
+   "need": "the outlay, the later cash flows, and the hurdle rate you will justify",
+   "level": "intro",
+   "formula": "NPV = sum of CF_t / (1 + r)^t, with the first cash flow at t = 0 and undiscounted.",
+   "steps": [
+    "List the cash flows in order, starting with the negative outlay at t = 0.",
+    "Choose the discount rate that matches the project's risk.",
+    "Discount each flow and add them.",
+    "Compare the result with zero; a positive NPV clears the hurdle at that rate."
+   ],
+   "common_mistakes": [
+    "Discounting the t = 0 outlay, which removes one period of discounting.",
+    "Using accounting profit instead of cash flow.",
+    "Entering the rate as 10 instead of 0.10.",
+    "Comparing NPVs of projects with different lives without an equivalent-annual measure."
+   ],
+   "diagram": null,
+   "related": [
+    "irr",
+    "dpayback",
+    "projectmetrics",
+    "scenario"
+   ],
+   "group": "Corporate finance",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "irr",
+   "preset": "irr",
+   "method": "irr",
+   "label": "Internal rate of return",
+   "what": "Find the rate at which the project's NPV is zero, with the declared search bounds.",
+   "need": "the same cash flows; the method refuses more than one sign change",
+   "level": "intro",
+   "formula": "The IRR is the rate r at which NPV = 0: sum of CF_t / (1 + r)^t = 0.",
+   "steps": [
+    "Write the cash flows with the outlay at t = 0.",
+    "Solve for the rate that makes the present value zero.",
+    "Compare the IRR with the cost of capital.",
+    "Use it with NPV, not instead of it, when projects differ in scale or life."
+   ],
+   "common_mistakes": [
+    "Ranking projects by IRR when their sizes differ.",
+    "Expecting one IRR when the cash flows change sign more than once.",
+    "Confusing IRR with the accounting return on investment.",
+    "Assuming cash flows are reinvested at the IRR."
+   ],
+   "diagram": null,
+   "related": [
+    "npv",
+    "projectmetrics",
+    "dpayback"
+   ],
+   "group": "Corporate finance",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "dpayback",
+   "preset": "dpayback",
+   "method": "discounted_payback",
+   "label": "Discounted payback",
+   "what": "Record how long the discounted cash flows take to repay the investment.",
+   "need": "the cash flows and the discount rate",
+   "level": "intro",
+   "formula": "Cumulate the discounted cash flows until they turn positive; interpolate inside the recovering period.",
+   "steps": [
+    "Discount each cash flow at the declared rate.",
+    "Add the discounted flows year by year.",
+    "Find the year in which the cumulative total crosses zero.",
+    "Interpolate within that year for the fractional period."
+   ],
+   "common_mistakes": [
+    "Using undiscounted cash flows and calling it discounted payback.",
+    "Ignoring every cash flow after recovery; payback is a liquidity measure.",
+    "Treating a short payback as proof of a high return.",
+    "Forgetting that an outlay never recovered has no payback period."
+   ],
+   "diagram": null,
+   "related": [
+    "npv",
+    "irr",
+    "projectmetrics"
+   ],
+   "group": "Corporate finance",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "projectmetrics",
+   "preset": "projectmetrics",
+   "method": "project_metrics",
+   "label": "Project ranking metrics",
+   "what": "Profitability index, MIRR, payback and equivalent annual annuity beside NPV and IRR.",
+   "need": "the cash flows, the hurdle rate and a finance rate",
+   "level": "intermediate",
+   "formula": "PI = PV(inflows) / |PV(outflows)|; MIRR reinvests positive flows at the finance rate; EAA = NPV x r / (1 - (1 + r)^-n).",
+   "steps": [
+    "Start from the same cash flows and rate as the NPV.",
+    "Compute the profitability index from the present values of inflows and outflows.",
+    "Reinvest positive flows at the finance rate and finance negative flows at the cost of capital for MIRR.",
+    "Spread the NPV over the project's life for the equivalent annual annuity."
+   ],
+   "common_mistakes": [
+    "Using IRR to rank projects of different scale.",
+    "Forgetting that MIRR depends on the reinvestment rate you declare.",
+    "Applying EAA to a one-off project that cannot be repeated.",
+    "Computing PI with the outlay undiscounted when the first flow is not at t = 0."
+   ],
+   "diagram": null,
+   "related": [
+    "npv",
+    "irr",
+    "dpayback"
+   ],
+   "group": "Corporate finance",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "wacc",
+   "preset": "wacc",
+   "method": "wacc",
+   "label": "Weighted average cost of capital",
+   "what": "Record the WACC from the declared capital structure and component costs.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "WACC = (E / V) x ke + (D / V) x kd(after tax), where V = E + D.",
+   "steps": [
+    "Enter the market value of equity and interest-bearing debt.",
+    "Enter the cost of equity and the AFTER-TAX cost of debt.",
+    "Compute the weights from market values.",
+    "Multiply each cost by its weight and add."
+   ],
+   "common_mistakes": [
+    "Using the pre-tax cost of debt without applying (1 - tax).",
+    "Using book values when market values are available.",
+    "Using one WACC for cash flows of very different risk.",
+    "Treating WACC as a cost of equity."
+   ],
+   "diagram": null,
+   "related": [
+    "capm",
+    "dcf",
+    "leverage"
+   ],
+   "group": "Corporate finance",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "capm",
+   "preset": "capm",
+   "method": "capm",
+   "label": "CAPM and beta",
+   "what": "Estimate beta from returns and turn it into a cost of equity, with Hamada relevering.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "ke = rf + beta x (rm - rf); beta = covariance(asset, market) / variance(market).",
+   "steps": [
+    "Enter the risk-free rate and the expected market return.",
+    "Enter beta, or supply both return series and let the method estimate it.",
+    "Multiply beta by the market risk premium and add the risk-free rate.",
+    "If you declare debt-to-equity and a tax rate, read the unlevered and relevered beta."
+   ],
+   "common_mistakes": [
+    "Using debt-to-value where Hamada needs debt-to-equity.",
+    "Relevering without the (1 - tax) shield.",
+    "Using the historical beta as if it were a forecast.",
+    "Subtracting the risk-free rate from the market return twice."
+   ],
+   "diagram": null,
+   "related": [
+    "wacc",
+    "portfolio",
+    "dcf"
+   ],
+   "group": "Corporate finance",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "leverage",
+   "preset": "leverage",
+   "method": "leverage_analysis",
+   "label": "Leverage, EPS and Altman Z",
+   "what": "EPS, financial leverage, interest cover, tax shield, EBIT-EPS indifference and the Z-score.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "EPS = (EBIT - interest)(1 - tax) / shares; DFL = EBIT / (EBIT - interest); Z = 1.2WC/TA + 1.4RE/TA + 3.3EBIT/TA + 0.6MVE/TL + Sales/TA.",
+   "steps": [
+    "Enter EBIT, interest, tax and the share count.",
+    "Read EPS, the degree of financial leverage and interest cover.",
+    "For the Z-score, also enter the six balance-sheet and market figures.",
+    "For EBIT-EPS indifference, declare the alternative plan's interest and share count."
+   ],
+   "common_mistakes": [
+    "Using a positive interest expense as a negative number or vice versa.",
+    "Reading the Z-score against a cut-off without citing which one.",
+    "Treating the indifference EBIT as a recommendation.",
+    "Forgetting that the tax shield is only worth something if the firm is taxable."
+   ],
+   "diagram": null,
+   "related": [
+    "wacc",
+    "dupont",
+    "ratios"
+   ],
+   "group": "Corporate finance",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "scenario",
+   "preset": "scenario",
+   "method": "scenario_analysis",
+   "label": "Scenario analysis",
+   "what": "Recompute NPV at a low and high discount rate and find the decision-flip rate.",
+   "need": "the cash flows, a base rate and a low/high range",
+   "level": "intro",
+   "formula": "Recompute NPV at the low and high discount rates; the break-even rate is the IRR of the same cash flows.",
+   "steps": [
+    "Enter the project's cash flows and the base discount rate.",
+    "Declare the optimistic (low) and pessimistic (high) rates.",
+    "Read the three NPVs, the swing and the decision-flip rate.",
+    "Say which single input changed and which did not."
+   ],
+   "common_mistakes": [
+    "Calling a one-input range a full scenario analysis.",
+    "Reversing the low and high rates.",
+    "Reporting the break-even rate when the cash flows have several sign changes.",
+    "Forgetting that revenue, cost and timing are held fixed."
+   ],
+   "diagram": null,
+   "related": [
+    "npv",
+    "risk",
+    "case_decision"
+   ],
+   "group": "Corporate finance",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "case_decision",
+   "preset": "case_decision",
+   "method": "case_decision",
+   "label": "Compare strategic options",
+   "what": "Compare alternatives by NPV and record the crossover rate that flips the decision.",
+   "need": "the facts, the alternatives, their cash flows and provenance",
+   "level": "intermediate",
+   "formula": "Compare each alternative's NPV at the declared rate; the crossover rate is where two alternatives' NPVs are equal.",
+   "steps": [
+    "Enter two to five alternatives, each with its own cash flows.",
+    "Read each alternative's NPV and the crossover rate between pairs.",
+    "Say which alternative wins at the decision rate and where the ranking flips.",
+    "Keep non-financial criteria visible beside the numbers."
+   ],
+   "common_mistakes": [
+    "Comparing alternatives of very different scale or life without saying so.",
+    "Ignoring a crossover that lies inside the plausible rate range.",
+    "Treating the highest NPV as the only criterion.",
+    "Forgetting that the alternatives must be mutually exclusive for a ranking to matter."
+   ],
+   "diagram": null,
+   "related": [
+    "npv",
+    "scenario",
+    "projectmetrics"
+   ],
+   "group": "Corporate finance",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "dcf",
+   "preset": "dcf",
+   "method": "dcf_valuation",
+   "label": "DCF valuation (year-end)",
+   "what": "Value a business or project from forecast free cash flows and a declared discount rate.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "EV = sum of FCF_t / (1 + r)^t + TV / (1 + r)^n; TV = FCF_n(1 + g) / (r - g).",
+   "steps": [
+    "Enter the free cash flows for the explicit forecast.",
+    "Enter the discount rate that matches the cash flows.",
+    "If the business continues, declare a terminal growth rate below the discount rate.",
+    "Read the explicit present value, the terminal present value and their sum."
+   ],
+   "common_mistakes": [
+    "Using a growth rate at or above the discount rate.",
+    "Discounting equity cash flows at WACC, or enterprise cash flows at the cost of equity.",
+    "Forgetting that the terminal value usually dominates the answer.",
+    "Forecasting cash flows inside the method; they are your declaration."
+   ],
+   "diagram": null,
+   "related": [
+    "wacc",
+    "dcfmid",
+    "equitybridge",
+    "multiples"
+   ],
+   "group": "Valuation",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "dcfmid",
+   "preset": "dcfmid",
+   "method": "dcf_valuation",
+   "label": "DCF valuation (mid-year)",
+   "what": "The same DCF with mid-year discounting, recorded separately so the assumption is visible.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "The same DCF, with every flow discounted at exponent t - 0.5 instead of t.",
+   "steps": [
+    "Use the same cash flows and rate as the year-end DCF.",
+    "Declare the mid-year timing convention.",
+    "Discount each flow and the terminal value one half-period earlier.",
+    "Compare the result with the year-end value; mid-year raises it."
+   ],
+   "common_mistakes": [
+    "Mixing mid-year flows with a year-end terminal value.",
+    "Using mid-year timing to 'fix' a rate that does not match the cash flows.",
+    "Forgetting that the convention is an assumption, not evidence about timing."
+   ],
+   "diagram": null,
+   "related": [
+    "dcf",
+    "wacc",
+    "equitybridge"
+   ],
+   "group": "Valuation",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "equitybridge",
+   "preset": "equitybridge",
+   "method": "equity_bridge",
+   "label": "Equity bridge",
+   "what": "Move from enterprise value to equity value through net debt and other declared claims.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Equity value = enterprise value - net debt - minority interest - preferred equity; per share = equity value / shares.",
+   "steps": [
+    "Start from the enterprise value the DCF or a multiple implies.",
+    "Subtract debt and add cash for net debt.",
+    "Subtract minority interest and preferred equity if they are claims on the enterprise.",
+    "Divide by shares outstanding only if you want a per-share value."
+   ],
+   "common_mistakes": [
+    "Subtracting gross debt without adding cash.",
+    "Forgetting pension deficits, leases or option dilution that the question names.",
+    "Using the enterprise value as if it were the equity value.",
+    "Dividing by the wrong share count (basic versus diluted)."
+   ],
+   "diagram": null,
+   "related": [
+    "dcf",
+    "multiples",
+    "leverage"
+   ],
+   "group": "Valuation",
+   "period": "point in time"
+  },
+  {
+   "kind": "compute",
+   "key": "multiples",
+   "preset": "multiples",
+   "method": "multiples_valuation",
+   "label": "Comparable multiples",
+   "what": "Apply peer multiples to your own earnings, EBITDA, sales or book value.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Implied value = subject metric x peer multiple; EV multiples bridge to equity through net debt.",
+   "steps": [
+    "Choose the metric: earnings and book value are equity multiples, EBITDA and sales are enterprise multiples.",
+    "Enter the subject's metric and the peer multiples.",
+    "Read the mean, median, minimum and maximum multiple.",
+    "Bridge enterprise value to equity value with net debt if the multiple is an EV multiple."
+   ],
+   "common_mistakes": [
+    "Applying a P/E to EBITDA.",
+    "Forgetting to subtract net debt from an enterprise multiple.",
+    "Averaging a peer set without checking comparability.",
+    "Treating one implied value as a valuation range."
+   ],
+   "diagram": null,
+   "related": [
+    "dcf",
+    "equitybridge",
+    "dupont"
+   ],
+   "group": "Valuation",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "portfolioval",
+   "preset": "portfolioval",
+   "method": "portfolio_valuation",
+   "label": "Portfolio valuation",
+   "what": "Value a dated portfolio from holdings, prices and cash: NAV, weights and concentration.",
+   "need": null,
+   "level": "intro",
+   "formula": "NAV = sum(shares x price) + cash; weight = value / NAV; top-three concentration = sum of the three largest weights.",
+   "steps": [
+    "Enter each holding's symbol, shares and price in one base currency.",
+    "Enter the cash balance.",
+    "Read NAV, invested value, cash share and each holding's weight.",
+    "Check the largest holding and the top-three concentration before using the snapshot."
+   ],
+   "common_mistakes": [
+    "Mixing currencies without converting first.",
+    "Leaving a holding out of the price list, which makes the snapshot incomplete.",
+    "Calling the snapshot a sale price or a forecast.",
+    "Using shares instead of market value to judge concentration."
+   ],
+   "diagram": null,
+   "related": [
+    "portfolio",
+    "ratios",
+    "risk"
+   ],
+   "group": "Investments",
+   "period": "point in time"
+  },
+  {
+   "kind": "compute",
+   "key": "portfolioperf",
+   "preset": "portfolioperf",
+   "method": "portfolio_performance",
+   "label": "Time-weighted return",
+   "what": "Chain dated period returns, net of flows, and compare them with a declared benchmark.",
+   "need": null,
+   "level": "intro",
+   "formula": "period return = (end NAV - start NAV - flow) / (start NAV + flow); TWR = product(1 + period return) - 1.",
+   "steps": [
+    "Record the NAV at the start and end of each period.",
+    "Record any contribution or withdrawal as that period's flow.",
+    "Chain the period returns to get the time-weighted return.",
+    "If you use a benchmark, record its level on each date."
+   ],
+   "common_mistakes": [
+    "Mixing a contribution into the return instead of the flow.",
+    "Adding simple returns instead of chaining them.",
+    "Comparing portfolio and benchmark returns measured over different dates.",
+    "Calling a past return a forecast."
+   ],
+   "diagram": null,
+   "related": [
+    "portfolioval",
+    "irr",
+    "npv"
+   ],
+   "group": "Investments",
+   "period": "period"
+  },
+  {
+   "kind": "compute",
+   "key": "bond",
+   "preset": "bond",
+   "method": "bond_analysis",
+   "label": "Bond price and duration",
+   "what": "Price a fixed-coupon bond or solve its yield, with duration, convexity and DV01.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Price = sum of coupon / (1 + y)^t + face / (1 + y)^n; Macaulay duration is the present-value-weighted time to each cash flow.",
+   "steps": [
+    "Divide the annual coupon and the annual yield by the payment frequency.",
+    "Discount every coupon and the face value at the periodic yield.",
+    "Add the present values for the price.",
+    "Weight each cash flow's time by its present value and divide by the price for duration."
+   ],
+   "common_mistakes": [
+    "Mixing an annual coupon with a semiannual yield.",
+    "Reading duration as the bond's maturity.",
+    "Assuming a premium bond's price stays above par until maturity.",
+    "Forgetting that a price and a yield must be consistent; supply one, solve the other."
+   ],
+   "diagram": null,
+   "related": [
+    "tvm",
+    "capm",
+    "risk"
+   ],
+   "group": "Investments",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "portfolio",
+   "preset": "portfolio",
+   "method": "portfolio_analysis",
+   "label": "Portfolio return and risk",
+   "what": "Two-asset return and risk, correlation, Sharpe, beta, Treynor and Jensen's alpha.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Rp = wRa + (1 - w)Rb; sigma_p^2 = w^2 sa^2 + (1 - w)^2 sb^2 + 2w(1 - w)cov; Sharpe = (Rp - rf) / sigma_p.",
+   "steps": [
+    "Enter the two return series for the same periods.",
+    "Declare the weight in the first asset and the risk-free rate for that period.",
+    "Read each asset's mean and standard deviation, their covariance and correlation.",
+    "Read the portfolio return and risk, then the Sharpe, beta, Treynor and Jensen measures."
+   ],
+   "common_mistakes": [
+    "Mixing monthly and annual returns.",
+    "Using an annual risk-free rate with monthly returns.",
+    "Assuming a negative correlation is required for diversification; anything below one helps.",
+    "Reading a negative Sharpe as a loss rather than a return below the risk-free rate."
+   ],
+   "diagram": null,
+   "related": [
+    "capm",
+    "risk",
+    "bond"
+   ],
+   "group": "Investments",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "pearson",
+   "preset": "pearson",
+   "method": "pearson",
+   "label": "Pearson correlation",
+   "what": "Record the linear association between two variables with its sample size and checks.",
+   "need": "the two numeric variables you are relating, and the pairs you observed",
+   "level": "intermediate",
+   "formula": "r = covariance(x, y) / (standard deviation of x x standard deviation of y).",
+   "steps": [
+    "Check both variables are numeric and paired.",
+    "Read r between minus one and one.",
+    "Inspect the scatter plot before trusting a linear summary."
+   ],
+   "common_mistakes": [
+    "Reading causation into a correlation.",
+    "Ignoring an outlier that drives r.",
+    "Using Pearson for a clearly non-linear relationship."
+   ],
+   "diagram": null,
+   "related": [
+    "spearman",
+    "ols"
+   ],
+   "group": "Investments",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "ols",
+   "preset": "ols",
+   "method": "ols",
+   "label": "Linear regression",
+   "what": "Fit a declared linear model and record coefficients, fit and diagnostics.",
+   "need": "the outcome, the predictors, and the observations you have for each",
+   "level": "advanced",
+   "formula": "y = intercept + coefficient x x + error; the coefficients minimise the sum of squared errors.",
+   "steps": [
+    "Check the sample size and missing values.",
+    "Read each coefficient with its standard error.",
+    "Check the fit and residual diagnostics.",
+    "State the assumptions and the claim ceiling."
+   ],
+   "common_mistakes": [
+    "Reading a coefficient as a causal effect.",
+    "Ignoring heteroskedasticity or influential points.",
+    "Comparing R-squared across different dependent variables."
+   ],
+   "diagram": null,
+   "related": [
+    "ols_robust",
+    "pearson",
+    "logit"
+   ],
+   "group": "Investments",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "ols_robust",
+   "preset": null,
+   "method": "ols_robust",
+   "label": "Linear regression (HC3)",
+   "what": "The same regression with heteroskedasticity-robust standard errors.",
+   "need": null,
+   "level": "advanced",
+   "formula": "The same OLS coefficients with HC3 heteroskedasticity-robust standard errors.",
+   "steps": [
+    "Fit the same model as OLS.",
+    "Read the robust standard errors and their tests.",
+    "Compare with the ordinary OLS errors to see whether heteroskedasticity mattered.",
+    "Keep the model specification fixed when comparing."
+   ],
+   "common_mistakes": [
+    "Thinking robust errors fix a misspecified model.",
+    "Comparing robust errors with a different sample or specification.",
+    "Using HC3 as a substitute for checking outliers.",
+    "Reporting robust errors without saying which correction was used."
+   ],
+   "diagram": null,
+   "related": [
+    "ols",
+    "pearson",
+    "portfolio"
+   ],
+   "group": "Investments",
+   "period": "per observation"
+  },
+  {
+   "kind": "compute",
+   "key": "risk",
+   "preset": "risk",
+   "method": "risk_metrics",
+   "label": "Value at risk",
+   "what": "Parametric and historical VaR and expected shortfall from a declared return series.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Parametric VaR = -(mu + z x sigma) at the declared confidence; historical VaR is the matching return quantile; CVaR is the average loss beyond it.",
+   "steps": [
+    "Enter a representative series of periodic returns.",
+    "Declare the confidence level, portfolio value and horizon.",
+    "Read the parametric and historical VaR side by side.",
+    "Read the expected shortfall to see how bad the tail beyond VaR is."
+   ],
+   "common_mistakes": [
+    "Calling VaR the maximum possible loss.",
+    "Mixing a 99% VaR with a 95% expected shortfall.",
+    "Scaling a one-day loss to a year by multiplying by 365 instead of the square root of 365.",
+    "Assuming normal returns when the series is fat-tailed."
+   ],
+   "diagram": null,
+   "related": [
+    "portfolio",
+    "options",
+    "scenario"
+   ],
+   "group": "Risk & derivatives",
+   "period": "per period"
+  },
+  {
+   "kind": "compute",
+   "key": "options",
+   "preset": "options",
+   "method": "option_pricing",
+   "label": "Option pricing",
+   "what": "Black-Scholes price and Greeks for a European call or put, with a binomial cross-check.",
+   "need": null,
+   "level": "advanced",
+   "formula": "Black-Scholes: C = S e^(-qT) N(d1) - K e^(-rT) N(d2); put-call parity: C - P = S e^(-qT) - K e^(-rT).",
+   "steps": [
+    "Enter the spot price, strike, annual volatility, risk-free rate and time to expiry in years.",
+    "Choose call or put and declare the dividend yield if any.",
+    "Read the price, intrinsic and time value, and the Greeks.",
+    "Use the binomial cross-check and the parity gap to see that the arithmetic is consistent."
+   ],
+   "common_mistakes": [
+    "Entering volatility as 25 instead of 0.25.",
+    "Pricing an American put with a European model and expecting early exercise.",
+    "Reading delta as the probability of exercise; it is a hedge ratio.",
+    "Using a time to expiry in months without converting to years."
+   ],
+   "diagram": null,
+   "related": [
+    "risk",
+    "bond",
+    "portfolio"
+   ],
+   "group": "Risk & derivatives",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "fx",
+   "preset": "fx",
+   "method": "fx_parity",
+   "label": "FX and interest parity",
+   "what": "Implied forward, expected spot, forward premium and real rates, plus a one-forward hedge comparison.",
+   "need": null,
+   "level": "intermediate",
+   "formula": "Covered parity: F = S(1 + rd)^T / (1 + rf)^T; relative PPP: E[S_T] = S(1 + inflation_d)^T / (1 + inflation_f)^T.",
+   "steps": [
+    "Quote the spot rate as domestic currency per one unit of foreign currency.",
+    "Enter the domestic and foreign interest and inflation rates.",
+    "Read the parity forward, the PPP expected spot and the forward premium.",
+    "If you declare an exposure, compare the hedged and unhedged domestic amounts."
+   ],
+   "common_mistakes": [
+    "Quoting the rate the other way up.",
+    "Mixing a one-year rate with a six-month horizon without adjusting the exponent.",
+    "Treating a parity value as a forecast.",
+    "Calling a hedge result a loss without naming the expected spot it is measured against."
+   ],
+   "diagram": null,
+   "related": [
+    "currency",
+    "capm",
+    "scenario"
+   ],
+   "group": "International",
+   "period": "annual"
+  },
+  {
+   "kind": "compute",
+   "key": "currency",
+   "preset": "currency",
+   "method": "currency_convert",
+   "label": "Currency conversion",
+   "what": "Convert an amount at a rate you declare; the rate and its source are recorded.",
+   "need": null,
+   "level": "intro",
+   "formula": "Converted amount = amount x rate, with the rate's provenance recorded.",
+   "steps": [
+    "Enter the amount, the source currency and the target currency.",
+    "Declare the rate and where it came from.",
+    "Read the converted amount and the recorded rate.",
+    "Keep the rate date with the result."
+   ],
+   "common_mistakes": [
+    "Multiplying when the quote is the other way up; divide instead.",
+    "Using a stale rate without saying so.",
+    "Forgetting the target currency's minor units.",
+    "Treating a declared rate as a verified market rate."
+   ],
+   "diagram": null,
+   "related": [
+    "fx",
+    "case_decision",
+    "forecast"
+   ],
+   "group": "International",
+   "period": "spot rate"
+  }
+ ],
+ "worksheets": [],
+ "records": [
+  {
+   "id": "QNT-FIN-01",
+   "name": "Capital budgeting",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: NPV, IRR, discounted payback, the profitability index, MIRR, simple payback and the equivalent annual annuity are implemented; unequal-life ranking rules and real options are not implemented",
+   "implementation_status": "partial: NPV, IRR, discounted payback, the profitability index, MIRR, simple payback and the equivalent annual annuity are implemented; unequal-life ranking rules and real options are not implemented",
+   "structures": "Capital budgeting: NPV, IRR, discounted cash flow, profitability index, payback period, discounted payback.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "npv",
+    "irr",
+    "discounted_payback",
+    "project_metrics"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-FIN-02",
+   "name": "Cost and profitability",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: single-product and multi-product break-even, activity-based costing and sales price/mix/yield variances are implemented; operating-leverage, relevant-cost and make-or-buy analysis are not implemented",
+   "implementation_status": "partial: single-product and multi-product break-even, activity-based costing and sales price/mix/yield variances are implemented; operating-leverage, relevant-cost and make-or-buy analysis are not implemented",
+   "structures": "Cost and profitability: cost\u2013volume\u2013profit analysis, break-even, contribution margin, operating leverage, relevant-cost analysis, make-or-buy analysis.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "breakeven",
+    "multi_product_breakeven",
+    "abc_costing",
+    "sales_variances"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-FIN-03",
+   "name": "Financial performance",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: 15 declared financial-statement ratios, the DuPont decomposition (three- and five-step), common-size ratios, one-period growth, multi-year trend analysis and the cash conversion cycle are implemented; industry benchmarks and restatements are not implemented",
+   "implementation_status": "partial: 15 declared financial-statement ratios, the DuPont decomposition (three- and five-step), common-size ratios, one-period growth, multi-year trend analysis and the cash conversion cycle are implemented; industry benchmarks and restatements are not implemented",
+   "structures": "Financial performance: liquidity/leverage/profitability/activity ratios, common-size analysis, trend analysis, DuPont decomposition, cash conversion cycle, working-capital analysis.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "ratio_analysis",
+    "dupont_analysis",
+    "working_capital"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-FIN-04",
+   "name": "Valuation and financing",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: WACC, CAPM, discounted cash flow valuation, the enterprise-to-equity bridge, comparable multiples and bond pricing with duration are implemented; debt-capacity and real-option valuation are not implemented",
+   "implementation_status": "partial: WACC, CAPM, discounted cash flow valuation, the enterprise-to-equity bridge, comparable multiples and bond pricing with duration are implemented; debt-capacity and real-option valuation are not implemented",
+   "structures": "Valuation and financing: WACC, CAPM, debt capacity, valuation scenarios; these require explicit model assumptions and appropriate domain review.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "wacc",
+    "capm",
+    "dcf_valuation",
+    "equity_bridge",
+    "multiples_valuation",
+    "bond_analysis"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-FIN-05",
+   "name": "Management accounting",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: a declarative double-entry engagement is implemented (chart, opening balances, entries, schedules, trial balance, statements, routes for the cash flow, closing and bank reconciliation), together with material, labour and overhead standard-cost variances and activity-based costing; target, life-cycle and budget-variance topics named here are not implemented",
+   "implementation_status": "partial: a declarative double-entry engagement is implemented (chart, opening balances, entries, schedules, trial balance, statements, routes for the cash flow, closing and bank reconciliation), together with material, labour and overhead standard-cost variances and activity-based costing; target, life-cycle and budget-variance topics named here are not implemented",
+   "structures": "Management accounting: standard-cost variance analysis, activity-based costing, target costing, life-cycle costing, budget variance and responsibility accounting.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "management_accounts",
+    "standard_cost_variances",
+    "abc_costing"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-FIN-06",
+   "name": "Unit economics",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: contribution margin, acquisition payback and LTV/CAC are implemented; retention curves and cohort economics are not implemented",
+   "implementation_status": "partial: contribution margin, acquisition payback and LTV/CAC are implemented; retention curves and cohort economics are not implemented",
+   "structures": "Unit economics: customer acquisition cost (CAC), customer lifetime value (CLV/LTV), contribution per customer/order, payback on acquisition, retention/cohort economics.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "unit_economics"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-FIN-07",
+   "name": "Pricing and demand",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+   "implementation_status": "partial: cost-plus, target-margin, break-even and target-return prices are implemented, together with arc price elasticity between two observations; estimating a demand curve or willingness to pay is not implemented",
+   "structures": "Pricing and demand: price elasticity, marginal revenue/cost, break-even volume, price/volume/mix analysis.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "pricing_decision",
+    "elasticity"
+   ],
+   "disciplines": [
+    "finance, accounting and managerial economics"
+   ],
+   "discipline_label": "finance, accounting and managerial economics"
+  },
+  {
+   "id": "QNT-DEC-01",
+   "name": "Decision trees, expected value and expected utility",
+   "type": "Q",
+   "form": "read_only",
+   "status_short": "Method not built",
+   "status_note": "not implemented",
+   "implementation_status": "not implemented",
+   "structures": "Decision trees, expected value and expected utility; show probabilities and whose utility is represented.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "decision analysis and risk quantification"
+   ],
+   "discipline_label": "decision analysis and risk quantification"
+  },
+  {
+   "id": "QNT-DEC-02",
+   "name": "Sensitivity analysis, scenario analysis, break-even thresholds and decision-flip analysis",
+   "type": "Q",
+   "form": "computed",
+   "status_short": "Computed",
+   "status_note": "partial: decision-flip on the NPV discount rate and a declared low/high rate scenario are implemented; multi-input scenario analysis, Monte Carlo and expected-value decision trees are not implemented",
+   "implementation_status": "partial: decision-flip on the NPV discount rate and a declared low/high rate scenario are implemented; multi-input scenario analysis, Monte Carlo and expected-value decision trees are not implemented",
+   "structures": "Sensitivity analysis, scenario analysis, break-even thresholds and decision-flip analysis.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [
+    "npv",
+    "scenario_analysis"
+   ],
+   "disciplines": [
+    "decision analysis and risk quantification"
+   ],
+   "discipline_label": "decision analysis and risk quantification"
+  },
+  {
+   "id": "QNT-DEC-03",
+   "name": "Multi-criteria decision analysis: weighted sum, AHP, TOPSIS and other methods where justified",
+   "type": "Q",
+   "form": "read_only",
+   "status_short": "Method not built",
+   "status_note": "not implemented",
+   "implementation_status": "not implemented",
+   "structures": "Multi-criteria decision analysis: weighted sum, AHP, TOPSIS and other methods where justified. Show criteria, weights, scales, normalization and rank sensitivity.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "decision analysis and risk quantification"
+   ],
+   "discipline_label": "decision analysis and risk quantification"
+  },
+  {
+   "id": "QNT-DEC-04",
+   "name": "Monte Carlo simulation with documented distributions, dependence assumptions and model validation",
+   "type": "Q",
+   "form": "read_only",
+   "status_short": "Method not built",
+   "status_note": "not implemented",
+   "implementation_status": "not implemented",
+   "structures": "Monte Carlo simulation with documented distributions, dependence assumptions and model validation.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "decision analysis and risk quantification"
+   ],
+   "discipline_label": "decision analysis and risk quantification"
+  },
+  {
+   "id": "QNT-DEC-05",
+   "name": "Expected loss, risk exposure and scenario-based stress testing",
+   "type": "Q",
+   "form": "read_only",
+   "status_short": "Method not built",
+   "status_note": "not implemented",
+   "implementation_status": "not implemented",
+   "structures": "Expected loss, risk exposure and scenario-based stress testing.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "decision analysis and risk quantification"
+   ],
+   "discipline_label": "decision analysis and risk quantification"
+  },
+  {
+   "id": "QNT-DEC-06",
+   "name": "Fault-tree probability calculations when component probabilities and logical relationships are defensible",
+   "type": "Q",
+   "form": "read_only",
+   "status_short": "Method not built",
+   "status_note": "not implemented",
+   "implementation_status": "not implemented",
+   "structures": "Fault-tree probability calculations when component probabilities and logical relationships are defensible.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "decision analysis and risk quantification"
+   ],
+   "discipline_label": "decision analysis and risk quantification"
+  },
+  {
+   "id": "QNT-DEC-07",
+   "name": "FMEA prioritization scores",
+   "type": "Q",
+   "form": "read_only",
+   "status_short": "Method not built",
+   "status_note": "not implemented",
+   "implementation_status": "not implemented",
+   "structures": "FMEA prioritization scores; do not interpret a Risk Priority Number as a calibrated probability unless validated.",
+   "evidence_needs": "",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "decision analysis and risk quantification"
+   ],
+   "discipline_label": "decision analysis and risk quantification"
+  },
+  {
+   "id": "RSK-01",
+   "name": "ISO 31000 Risk Management Process",
+   "type": "F",
+   "form": "read_only",
+   "status_short": "No worksheet yet",
+   "status_note": "read-only record: no worksheet yet",
+   "implementation_status": "read-only record: no worksheet yet",
+   "structures": "Establish context; identify, analyze, evaluate, treat, monitor and communicate risk",
+   "evidence_needs": "Risk criteria, evidence, owners, treatment plans and monitoring measures; check current edition before use",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  },
+  {
+   "id": "RSK-02",
+   "name": "COSO Enterprise Risk Management",
+   "type": "F",
+   "form": "read_only",
+   "status_short": "No worksheet yet",
+   "status_note": "read-only record: no worksheet yet",
+   "implementation_status": "read-only record: no worksheet yet",
+   "structures": "Integrate risk with governance, strategy, performance and review",
+   "evidence_needs": "Strategy/objective mapping, risk appetite, ownership and performance evidence; use authoritative current materials",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  },
+  {
+   "id": "RSK-03",
+   "name": "Bow-Tie Analysis",
+   "type": "F",
+   "form": "read_only",
+   "status_short": "No worksheet yet",
+   "status_note": "read-only record: no worksheet yet",
+   "implementation_status": "read-only record: no worksheet yet",
+   "structures": "Threats, preventive controls, top event, consequences and mitigative controls",
+   "evidence_needs": "Incident/engineering evidence; probability estimates only where supported",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  },
+  {
+   "id": "RSK-04",
+   "name": "Fault Tree Analysis",
+   "type": "Q",
+   "form": "read_only",
+   "status_short": "Method not built",
+   "status_note": "not implemented",
+   "implementation_status": "not implemented",
+   "structures": "Logical combinations of failures that can lead to a top event",
+   "evidence_needs": "System logic and failure probabilities if quantitative; assumptions must be explicit",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  },
+  {
+   "id": "RSK-05",
+   "name": "Stakeholder Analysis / Power\u2013Interest Matrix",
+   "type": "F",
+   "form": "read_only",
+   "status_short": "No worksheet yet",
+   "status_note": "read-only record: no worksheet yet",
+   "implementation_status": "read-only record: no worksheet yet",
+   "structures": "Identify stakeholders, interests, influence, impacts and engagement response",
+   "evidence_needs": "Source-supported stakeholder facts; power/interest classifications are judgments",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  },
+  {
+   "id": "RSK-06",
+   "name": "Materiality Assessment",
+   "type": "F",
+   "form": "read_only",
+   "status_short": "No worksheet yet",
+   "status_note": "read-only record: no worksheet yet",
+   "implementation_status": "read-only record: no worksheet yet",
+   "structures": "Prioritize issues by their importance to affected stakeholders and/or enterprise impacts",
+   "evidence_needs": "Defined methodology, stakeholder evidence and current reporting requirements where applicable",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  },
+  {
+   "id": "RSK-07",
+   "name": "Red-Team / Premortem Review",
+   "type": "F",
+   "form": "read_only",
+   "status_short": "No worksheet yet",
+   "status_note": "read-only record: no worksheet yet",
+   "implementation_status": "read-only record: no worksheet yet",
+   "structures": "Challenge a proposed plan and identify how it could fail",
+   "evidence_needs": "Independent reviewers, documented challenge prompts and resolutions",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  },
+  {
+   "id": "RSK-08",
+   "name": "Dialectical Inquiry / Devil's Advocate",
+   "type": "F",
+   "form": "read_only",
+   "status_short": "No worksheet yet",
+   "status_note": "read-only record: no worksheet yet",
+   "implementation_status": "read-only record: no worksheet yet",
+   "structures": "Deliberately develop and test competing interpretations or strategies",
+   "evidence_needs": "Shared criteria, balanced evidence and explicit handling of unresolved disagreement",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  },
+  {
+   "id": "RSK-09",
+   "name": "Multi-Criteria Decision Analysis (MCDA)",
+   "type": "F",
+   "form": "read_only",
+   "status_short": "No worksheet yet",
+   "status_note": "read-only record: no worksheet yet",
+   "implementation_status": "read-only record: no worksheet yet",
+   "structures": "Compare options against criteria and explicit weights",
+   "evidence_needs": "Score definitions, weights, normalization, sensitivity analysis and user-owned value judgments",
+   "template": null,
+   "linked_methods": [],
+   "disciplines": [
+    "risk and decision analysis"
+   ],
+   "discipline_label": "risk and decision analysis"
+  }
+ ],
+ "tiles": [],
+ "definition": {
+  "id": "finance",
+  "label": "Finance",
+  "summary": "Corporate finance, valuation and the investments, debt, risk and international tools a finance student needs.",
+  "guidance": "Start with the question, not the tool. For one cash flow or one instrument, use time value, a loan or a bond. For a project, use NPV, IRR and discounted payback, then rank it. For a company, use WACC and DCF, then bridge to equity. For an investment or a risk question, use CAPM, the portfolio, risk and options tools. For an international question, use the parity and currency tools. Every rate, price and cash flow is yours to declare.",
+  "start_steps": [
+   "One cash flow or instrument: Time value of money, Loan amortization or Bond price and duration.",
+   "A project: NPV, IRR and Discounted payback, then Project ranking metrics and Scenario analysis.",
+   "A company: WACC, DCF valuation, the Equity bridge and Comparable multiples.",
+   "An investment or risk question: CAPM, Portfolio return and risk, Value at risk and Option pricing.",
+   "An international question: FX and interest parity, then Currency conversion."
+  ],
+  "does_not": [
+   "It does not retrieve market prices, yields, exchange rates or peer multiples; you declare them.",
+   "It does not choose the discount rate, the peer set or the risk appetite for you.",
+   "It does not model tax, American exercise, liquidity risk or a full portfolio optimisation."
+  ],
+  "disciplines": [
+   "finance, accounting and managerial economics",
+   "decision analysis and risk quantification"
+  ],
+  "tools": [
+   "tvm",
+   "loan",
+   "dupont",
+   "trendanalysis",
+   "workingcapital",
+   "ratios",
+   "breakeven",
+   "multibreakeven",
+   "unitecon",
+   "forecast",
+   "descriptive",
+   "npv",
+   "irr",
+   "dpayback",
+   "projectmetrics",
+   "wacc",
+   "capm",
+   "leverage",
+   "scenario",
+   "case_decision",
+   "dcf",
+   "dcfmid",
+   "equitybridge",
+   "multiples",
+   "portfolioval",
+   "portfolioperf",
+   "bond",
+   "portfolio",
+   "pearson",
+   "ols",
+   "ols_robust",
+   "risk",
+   "options",
+   "fx",
+   "currency"
+  ],
+  "worksheets": [],
+  "catalogue_ids": [
+   "QNT-FIN-01",
+   "QNT-FIN-02",
+   "QNT-FIN-03",
+   "QNT-FIN-04",
+   "QNT-FIN-05",
+   "QNT-FIN-06",
+   "QNT-FIN-07",
+   "QNT-DEC-01",
+   "QNT-DEC-02",
+   "QNT-DEC-03",
+   "QNT-DEC-04",
+   "QNT-DEC-05",
+   "QNT-DEC-06",
+   "QNT-DEC-07",
+   "RSK-01",
+   "RSK-02",
+   "RSK-03",
+   "RSK-04",
+   "RSK-05",
+   "RSK-06",
+   "RSK-07",
+   "RSK-08",
+   "RSK-09"
+  ]
+ }
+}

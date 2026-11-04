@@ -1,0 +1,6 @@
+draftable 19 of 19
+profiles missing []
+examples missing []
+tiles [('strategy_design', 9, 0), ('resourcing', 3, 0), ('development', 5, 0), ('reward', 0, 0), ('engagement_culture', 2, 0), ('analytics', 0, 10)]
+groups ['analytics']
+null levels []

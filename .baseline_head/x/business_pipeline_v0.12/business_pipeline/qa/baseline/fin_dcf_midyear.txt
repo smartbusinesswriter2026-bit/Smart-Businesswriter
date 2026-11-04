@@ -1,0 +1,20 @@
+﻿== independent recomputation (plain float, hand loop) ==
+end-of-year : EV=1750939.14  (explicit PV=401133.80 + terminal PV=1349805.34)
+mid-year    : EV=1836400.47  (explicit PV=420712.68 + terminal PV=1415687.79)
+mid > end   : True   (mid/end = 1.048809)
+
+== the frozen method on the same two input sets ==
+  validate_inputs(end) -> no errors
+  impl(end).enterprise_value = 1750939.1435011269722013523666416228399699474079639
+  validate_inputs(mid) -> no errors
+  impl(mid).enterprise_value = 1836400.4663114486703708357728257660204707896801854
+  method mid/year ratio     = 1.0488088481701515469914535136799375984752718576815
+
+== the method's own declared checks, on each input set ==
+  on end inputs: 6 checks, failing=none
+  on mid inputs: 6 checks, failing=['mid_year_convention_raises_the_value']
+
+== what the product does with the dcfmid preset ==
+  server.PRESETS['dcfmid']['inputs']['timing'] = 'mid'
+  status = 'blocked'
+  reason = "checks failed after 0 amendment(s): ['mid_year_convention_raises_the_value']; escalate to human/lower tier"

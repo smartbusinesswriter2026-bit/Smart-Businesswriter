@@ -1,0 +1,32 @@
+Computation: probit
+Result
+The probit slope is 0.0916 and the intercept is -0.0229. The marginal effect at the mean of the predictor is 0.0365. A binary probit with one predictor; the coefficients are on the latent-index scale. The marginal effect is evaluated at the mean of x and is not a constant effect. Separation or near-separation is refused; no robust or clustered standard errors are computed. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Inputs and results
+What you declared
+Y: 0, 1, 0, 1, 0, 1, 0, 1, 1, 0
+X: -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5
+What was computed
+Intercept: -0.0229
+Slope: 0.0916
+Log likelihood: -6.8768
+Pseudo r2: 0.0079
+Marginal effect at mean: 0.0365
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+multiple comparisons: One hypothesis is tested, so no multiple-comparison correction is applied.
+power: No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved.
+weights and clusters: Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+Assumptions made
+The outcome is binary and observations are independent.
+The latent index is linear in the predictor.
+No separation or near-separation.
+Limitations
+One predictor only; no controls or interactions.
+No robust, clustered or bootstrapped standard errors.
+Separation is refused rather than penalised.
+How the figures were checked
+Second implementation agrees.
+Score equations are near zero.
+Predicted probabilities are between zero and one.
+Scaling the predictor rescales the slope.
+Shifting the predictor moves the intercept not the slope.

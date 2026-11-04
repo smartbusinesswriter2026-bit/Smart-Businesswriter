@@ -1,0 +1,6 @@
+﻿DEFECTS_HAS_DECO=9
+DEFECTS_SESSION2=5
+ .../business_pipeline/docs/CHANGELOG.md            | 38 ++++++++++++++++++++++
+ .../business_pipeline/docs/DECISIONS.md            |  1 +
+ 2 files changed, 39 insertions(+)
++## Economics: a share is not money, and a conversion stops mislabelling its sou

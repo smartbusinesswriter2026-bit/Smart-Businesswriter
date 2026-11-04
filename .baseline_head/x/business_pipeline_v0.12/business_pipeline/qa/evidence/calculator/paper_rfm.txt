@@ -1,0 +1,39 @@
+Computation: rfm scoring
+Result
+Across 12 customers the quintile scores put 5 in Champions, 0 in Loyal customers, 1 At risk and 0 in Lost. The mean recency score is 3.17, the mean frequency score 3.42 and the mean monetary score 3.17; the combined score averages 9.75 out of fifteen. The scores come from the ranks inside this file, not from an external benchmark: the same customer can score differently in another dataset. Ties share the better band, so the five bands need not hold equal numbers of customers. The segment names come from the declared first-match rules; a different rule set gives different names for the same scores. Nothing here tests whether a segment is stable over time or differs by more than chance; it describes one snapshot.
+Inputs and results
+What you declared
+Customers: Name: C01; Recency days: 3; Frequency: 9; Monetary: 15000, Name: C02; Recency days: 8; Frequency: 7; Monetary: 12000, Name: C03; Recency days: 15; Frequency: 6; Monetary: 9000, Name: C04; Recency days: 25; Frequency: 5; Monetary: 7000, Name: C05; Recency days: 40; Frequency: 4; Monetary: 5000, Name: C06; Recency days: 55; Frequency: 3; Monetary: 3500, Name: C07; Recency days: 70; Frequency: 2; Monetary: 2000, Name: C08; Recency days: 90; Frequency: 1; Monetary: 900, Name: C09; Recency days: 120; Frequency: 1; Monetary: 400, Name: C10; Recency days: 160; Frequency: 1; Monetary: 100, Name: C11; Recency days: 12; Frequency: 5; Monetary: 8000, Name: C12; Recency days: 200; Frequency: 2; Monetary: 1500
+What was computed
+Total customers: 12
+Count cannot lose: 0
+Count champions: 5
+Count loyal: 0
+Count potential loyalist: 0
+Count new: 0
+Count promising: 0
+Count need attention: 3
+Count at risk: 1
+Count about to sleep: 2
+Count hibernating: 1
+Count lost: 0
+Mean r score: 3.17
+Mean f score: 3.42
+Mean m score: 3.17
+Mean rfm score: 9.75
+Honesty: what was not done
+this method: The scores come from the ranks inside this file, not from an external benchmark: the same customer can score differently in another dataset. Ties share the better band, so the five bands need not hold equal numbers of customers. The segment names come from the declared first-match rules; a different rule set gives different names for the same scores. Nothing here tests whether a segment is stable over time or differs by more than chance; it describes one snapshot.
+Assumptions made
+Every customer's recency, frequency and monetary value covers the same period and the same definition of a purchase.
+The customer list is the population you want to describe, not a sample with a design.
+Limitations
+Ranks inside the file only; no external or industry benchmark.
+Ties share a band, so bands need not be equal-sized.
+One snapshot: no stability test, no migration and no prediction.
+Segment names follow the declared rules and are not natural kinds.
+How the figures were checked
+Second implementation agrees.
+Every customer has exactly one segment.
+Scores lie between one and five.
+Recency is scored in reverse.
+Combined score is the sum of the three.

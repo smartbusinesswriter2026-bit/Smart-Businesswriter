@@ -1,0 +1,368 @@
+{
+ "base": "http://127.0.0.1:8001",
+ "page_checks": [
+  "PASS  page marker 'railSubject'",
+  "PASS  page marker 'markCurrentRailItem'",
+  "PASS  page marker 'activate(\"new\")'",
+  "PASS  page marker 'calculator'",
+  "PASS  page marker 'subjectgallery'",
+  "PASS  page marker 'not teacher-approved'",
+  "PASS  no reviewer surface 'Reviewer name'",
+  "PASS  no reviewer surface 'Sign-off'",
+  "PASS  no reviewer surface 'Review status'",
+  "PASS  GET /api/cases/subjects/finance -> 200, 35 tools, 23 records",
+  "PASS  tvm              tvm -> delivered",
+  "PASS  loan             loan -> delivered",
+  "PASS  dupont           dupont -> delivered",
+  "PASS  trendanalysis    trendanalysis -> delivered",
+  "PASS  workingcapital   workingcapital -> delivered",
+  "PASS  ratios           ratios -> delivered",
+  "PASS  breakeven        breakeven -> delivered",
+  "PASS  multibreakeven   multibreakeven -> delivered",
+  "PASS  unitecon         unitecon -> delivered",
+  "PASS  forecast         forecast -> delivered",
+  "PASS  descriptive      descriptive -> delivered",
+  "PASS  npv              npv -> delivered",
+  "PASS  irr              irr -> delivered",
+  "PASS  dpayback         dpayback -> delivered",
+  "PASS  projectmetrics   projectmetrics -> delivered",
+  "PASS  wacc             wacc -> delivered",
+  "PASS  capm             capm -> delivered",
+  "PASS  leverage         leverage -> delivered",
+  "PASS  scenario         scenario -> delivered",
+  "PASS  case_decision    case_decision -> delivered",
+  "PASS  dcf              dcf -> delivered",
+  "KNOWN dcfmid           dcfmid -> blocked (D-FIN-01)",
+  "PASS  equitybridge     equitybridge -> delivered",
+  "PASS  multiples        multiples -> delivered",
+  "PASS  portfolioval     portfolioval -> delivered",
+  "PASS  portfolioperf    portfolioperf -> delivered",
+  "PASS  bond             bond -> delivered",
+  "PASS  portfolio        portfolio -> delivered",
+  "PASS  pearson          pearson -> delivered",
+  "PASS  ols              ols -> delivered",
+  "SKIP  ols_robust       no preset (G-fin-05)",
+  "PASS  risk             risk -> delivered",
+  "PASS  options          options -> delivered",
+  "PASS  fx               fx -> delivered",
+  "PASS  currency         currency -> delivered"
+ ],
+ "runs": [
+  {
+   "tool": "tvm",
+   "preset": "tvm",
+   "method": "time_value",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At the declared rate and compounding, the future value is USD 412,169.51",
+   "ok": true
+  },
+  {
+   "tool": "loan",
+   "preset": "loan",
+   "method": "loan_amortization",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The level payment is USD 4,151.67 over 60 payments, so the total paid is USD 249,100.26 and the total interest is USD 49,100.26",
+   "ok": true
+  },
+  {
+   "tool": "dupont",
+   "preset": "dupont",
+   "method": "dupont_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The net margin is 0.0900, asset turnover is 1.6667 and the equity multiplier is 2.4000, giving a three-step return on equity of 0.3600",
+   "ok": true
+  },
+  {
+   "tool": "trendanalysis",
+   "preset": "trendanalysis",
+   "method": "trend_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Over the declared periods revenue grew at a compound rate of 10.00%, with the latest period 10.00% above the previous one and an index of 133.1000 against the base period",
+   "ok": true
+  },
+  {
+   "tool": "workingcapital",
+   "preset": "workingcapital",
+   "method": "working_capital",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The cash conversion cycle is 36.5 days (27.4 receivable days, 36.5 inventory days and 27.4 payable days)",
+   "ok": true
+  },
+  {
+   "tool": "ratios",
+   "preset": "ratios",
+   "method": "ratio_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The analysis computes 15 financial-statement ratios from the figures supplied",
+   "ok": true
+  },
+  {
+   "tool": "breakeven",
+   "preset": "breakeven",
+   "method": "breakeven",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At a contribution margin of 10.00 per unit, the business breaks even at 100.00 units, or 2,000.00 of sales",
+   "ok": true
+  },
+  {
+   "tool": "multibreakeven",
+   "preset": "multibreakeven",
+   "method": "multi_product_breakeven",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The mix-weighted contribution margin is 3.0000, so break-even needs 2,000.00 units in total and revenue of USD 10,500.00 at the declared mix",
+   "ok": true
+  },
+  {
+   "tool": "unitecon",
+   "preset": "unitecon",
+   "method": "unit_economics",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The unit contribution margin is USD 37.00 (a margin rate of 75.51%), and payback takes 2.162 periods",
+   "ok": true
+  },
+  {
+   "tool": "forecast",
+   "preset": "forecast",
+   "method": "trend_forecast",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The fitted linear trend on 12 observations has a slope of 1.003 per period and accounts for 0.930 of the variation in the series (0 entries excluded as missing)",
+   "ok": true
+  },
+  {
+   "tool": "descriptive",
+   "preset": "descriptive",
+   "method": "descriptive_stats",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The dataset contains 6 valid observations, with 1 excluded as missing",
+   "ok": true
+  },
+  {
+   "tool": "npv",
+   "preset": "npv",
+   "method": "npv",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Under the stated assumptions, the npv is USD (5.26)",
+   "ok": true
+  },
+  {
+   "tool": "irr",
+   "preset": "irr",
+   "method": "irr",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The internal rate of return is 21.86%: the discount rate at which the declared cash flows have a net present value of zero (the residual value at that rate is 0.00)",
+   "ok": true
+  },
+  {
+   "tool": "dpayback",
+   "preset": "dpayback",
+   "method": "discounted_payback",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The discounted cash flows recover the initial outlay after USD 3.02 periods (during period 4), and the net present value over the whole horizon is USD 267.95",
+   "ok": true
+  },
+  {
+   "tool": "projectmetrics",
+   "preset": "projectmetrics",
+   "method": "project_metrics",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The project's net present value is USD 267.95 and its profitability index is 1.2679, with a modified internal rate of return of USD 0.16 and an equivalent annual annuity of USD 84.",
+   "ok": true
+  },
+  {
+   "tool": "wacc",
+   "preset": "wacc",
+   "method": "wacc",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The weighted average cost of capital is 10.60%, with an equity weight of 80.00% and a debt weight of 20.00%",
+   "ok": true
+  },
+  {
+   "tool": "capm",
+   "preset": "capm",
+   "method": "capm",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "With a beta of 1.2000 and a market risk premium of 6.00%, the CAPM cost of equity is 11.20%",
+   "ok": true
+  },
+  {
+   "tool": "leverage",
+   "preset": "leverage",
+   "method": "leverage_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Earnings per share are USD 2.80 on declared EBIT of USD 500,000.00 and interest of USD 100,000.00, with an interest tax shield of USD 30,000.00",
+   "ok": true
+  },
+  {
+   "tool": "scenario",
+   "preset": "scenario",
+   "method": "scenario_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The base-case net present value is USD 267.95",
+   "ok": true
+  },
+  {
+   "tool": "case_decision",
+   "preset": "case_decision",
+   "method": "case_decision",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "This case comparison covers 2 alternatives you supplied, each citing the case facts it follows from (2 facts in total)",
+   "ok": true
+  },
+  {
+   "tool": "dcf",
+   "preset": "dcf",
+   "method": "dcf_valuation",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The present value of the explicit forecast is USD 401,133.80, and the present value of the terminal value is USD 1,349,805.34 (a terminal share of 0.771), giving an enterprise valu",
+   "ok": true
+  },
+  {
+   "tool": "dcfmid",
+   "preset": "dcfmid",
+   "method": "dcf_valuation",
+   "planned": "awaiting_confirmation",
+   "status": "blocked",
+   "first_line": "",
+   "ok": false
+  },
+  {
+   "tool": "equitybridge",
+   "preset": "equitybridge",
+   "method": "equity_bridge",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The enterprise value is USD 1,750,939.14; subtracting net debt of USD 150,000.00 and the declared minority and preferred claims gives an equity value of USD 1,570,939.14",
+   "ok": true
+  },
+  {
+   "tool": "multiples",
+   "preset": "multiples",
+   "method": "multiples_valuation",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Across the declared comparables the mean multiple is 10.0000 (median 10.0000), which implies an enterprise value of USD 5,000,000.00 and an equity value of USD 4,700,000.00",
+   "ok": true
+  },
+  {
+   "tool": "portfolioval",
+   "preset": "portfolioval",
+   "method": "portfolio_valuation",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The portfolio's net asset value is USD 5,000.00, with USD 4,000.00 invested across 2 holdings and USD 1,000.00 in cash",
+   "ok": true
+  },
+  {
+   "tool": "portfolioperf",
+   "preset": "portfolioperf",
+   "method": "portfolio_performance",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Across 2 periods the portfolio's time-weighted return is 0.0100, from a starting NAV of USD 10,000.00 to a final NAV of USD 10,100.00",
+   "ok": true
+  },
+  {
+   "tool": "bond",
+   "preset": "bond",
+   "method": "bond_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At the declared yield the bond price is USD 1,148.77, with a current yield of 6.96%",
+   "ok": true
+  },
+  {
+   "tool": "portfolio",
+   "preset": "portfolio",
+   "method": "portfolio_analysis",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The portfolio's expected return is 1.70% with a standard deviation of 1.40%, and the two assets' correlation is 0.8303",
+   "ok": true
+  },
+  {
+   "tool": "pearson",
+   "preset": "pearson",
+   "method": "pearson",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The sample contains 8 complete pairs, with 0 excluded as missing",
+   "ok": true
+  },
+  {
+   "tool": "ols",
+   "preset": "ols",
+   "method": "ols",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "The model uses 10 complete observations, with 0 excluded as missing, and 2 predictor variable(s)",
+   "ok": true
+  },
+  {
+   "tool": "ols_robust",
+   "preset": null,
+   "ok": null,
+   "note": "no preset (G-fin-05)"
+  },
+  {
+   "tool": "risk",
+   "preset": "risk",
+   "method": "risk_metrics",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At the declared confidence the parametric value at risk is USD 0.00 and the historical value at risk is USD 0.03, or USD 0.00 on the declared portfolio",
+   "ok": true
+  },
+  {
+   "tool": "options",
+   "preset": "options",
+   "method": "option_pricing",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Under the declared volatility and rates the option is worth USD 12.34, of which USD 0.00 is intrinsic value and USD 12.34 is time value",
+   "ok": true
+  },
+  {
+   "tool": "fx",
+   "preset": "fx",
+   "method": "fx_parity",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "Under relative purchasing power parity the expected spot rate is 57.0980, while covered interest parity implies a forward rate of 57.0874",
+   "ok": true
+  },
+  {
+   "tool": "currency",
+   "preset": "currency",
+   "method": "currency_convert",
+   "planned": "awaiting_confirmation",
+   "status": "delivered",
+   "first_line": "At the declared rate, EUR 1,000.00 converts to EUR 920.00",
+   "ok": true
+  }
+ ],
+ "failures": [],
+ "known_blocked": [
+  "dcfmid is blocked by D-FIN-01"
+ ]
+}

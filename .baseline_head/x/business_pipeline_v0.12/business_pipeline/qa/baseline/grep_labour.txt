@@ -1,0 +1,14 @@
+﻿7524: def labour_market_impl(inp):
+7531: "real_wage": real, "wage_share_of_productivity": real / productivity}
+7538: out["labour_market_tightness"] = vacancies / unemployment
+7545: return {"real_wage": wage / (cpi / 100), "wage_share_of_productivity": (wage / (cpi / 100)) / productivity}
+7548: def labour_market_tests(inp, impl):
+7555: ("wage_share_is_real_wage_over_productivity", _close(base["wage_share_of_productivity"], base["real_wage"] / prod), "the wage share compares the real wage with productivity"),
+7557: ("a_higher_productivity_lowers_the_wage_share", impl({**inp, "labour_productivity": str(prod + 1)})["wage_share_of_productivity"] < base["wage_share_of_productivity"], "higher productivity lowers the wage share for a fixed real wage"),
+7562: def labour_market_profile(inp):
+7587: def labour_market_caveats(out, th):
+7593: def labour_market_template(out, P, th):
+7596: tok("wage_share_of_productivity") + ".")
+16123: "labour_market": Method("labour_market", "T1", labour_market_impl, labour_market_tests,
+16124: labour_market_profile, "real_wage", "currency", None,
+16141: default_period="annual", caveats=labour_market_caveats, template=labour_market_template,

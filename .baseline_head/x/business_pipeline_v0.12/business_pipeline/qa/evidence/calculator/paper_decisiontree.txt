@@ -1,0 +1,35 @@
+Computation: decision tree
+Result
+The best alternative is number 1, with an expected value of 52,000.00 across 4 terminal outcomes. The tree, its probabilities and its terminal values are yours; the method only multiplies and adds them. No probability is inferred, no branch is pruned and no recommendation is added beyond the highest expected value. Expected value ignores risk aversion; the loss probability and the range are reported beside it.
+Inputs and results
+What you declared
+Tree: Type: decision; Alternatives: Name: Launch; Node: Type: chance; Branches: Probability: 0.6; Node: Type: terminal; Value: 100000, Probability: 0.4; Node: Type: terminal; Value: -20000, Name: Pilot; Node: Type: chance; Branches: Probability: 0.7; Node: Type: terminal; Value: 40000, Probability: 0.3; Node: Type: terminal; Value: 5000
+What was computed
+Expected value: 52000.00
+Best index: 1
+Alternative count: 2
+Terminal count: 4
+Ev 1: 52000.00
+Loss probability 1: 0.4000
+Worst value 1: -20000.00
+Best value 1: 100000.00
+Ev 2: 29500.00
+Loss probability 2: 0.0000
+Worst value 2: 5000.00
+Best value 2: 40000.00
+Honesty: what was not done
+this method: The tree, its probabilities and its terminal values are yours; the method only multiplies and adds them. No probability is inferred, no branch is pruned and no recommendation is added beyond the highest expected value. Expected value ignores risk aversion; the loss probability and the range are reported beside it.
+Assumptions made
+The tree, its probabilities and its terminal values are the student's.
+Chance branches at a node are mutually exclusive and exhaustive.
+The tree is at most twelve levels deep.
+Limitations
+No probabilities are inferred and no branch is pruned.
+Expected value ignores risk aversion; no utility or certainty equivalent.
+No sensitivity analysis beyond the reported range.
+How the figures were checked
+Second implementation agrees.
+Chance probabilities sum to one.
+The root value is the best alternative.
+Every alternative has a probability and a range.
+The best index points to the highest value.

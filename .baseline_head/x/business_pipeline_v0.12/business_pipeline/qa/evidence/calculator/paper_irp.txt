@@ -1,0 +1,35 @@
+Computation: interest rate parity
+Result
+Covered interest parity implies a forward rate of 50.9615, a forward premium of 1.92%. The declared forward rate differs from the implied rate by 0.08%. Covered interest parity is an arbitrage condition on declared rates and a declared horizon; it is not a forecast of the spot rate. The forward rate is implied by the declared rates, not observed; a declared forward is compared with it. No transaction costs, capital controls, credit risk or basis risk are included.
+Inputs and results
+What you declared
+Spot rate: 50.0000
+Domestic rate: 0.0600
+Foreign rate: 0.0400
+Time to maturity: 1.0000
+Forward rate: 51.0000
+Domestic inflation: 0.0400
+Foreign inflation: 0.0200
+What was computed
+Implied forward: 50.9615
+Forward premium: 0.0192
+Forward rate: 51.0000
+Cip gap: 0.0008
+Real domestic rate: 0.0192
+Real foreign rate: 0.0196
+Honesty: what was not done
+this method: Covered interest parity is an arbitrage condition on declared rates and a declared horizon; it is not a forecast of the spot rate. The forward rate is implied by the declared rates, not observed; a declared forward is compared with it. No transaction costs, capital controls, credit risk or basis risk are included.
+Assumptions made
+The spot rate is domestic per foreign.
+The two interest rates apply to the same horizon.
+Capital is mobile and there are no controls or transaction costs.
+Limitations
+No transaction costs, capital controls, credit or basis risk.
+Uncovered parity is not a forecast and is not computed.
+The forward is implied, not observed, unless declared.
+How the figures were checked
+Second implementation agrees.
+Covered interest parity holds.
+Forward premium is the interest differential.
+A higher domestic rate raises the implied forward.
+A higher foreign rate lowers the implied forward.

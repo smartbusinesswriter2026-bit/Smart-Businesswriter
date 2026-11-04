@@ -1,0 +1,138 @@
+anova            delivered 1595 chars 
+bop              delivered  434 chars token 'nan'
+breakeven        delivered  437 chars 
+budgetdebt       delivered  572 chars 
+cba              delivered  807 chars token 'nan'
+cea              delivered  694 chars token 'nan'
+chi_square       delivered 1227 chars 
+comparative      delivered  474 chars long decimal '2.0000'; long decimal '1.6667'
+concentration    delivered  451 chars 
+costcurves       delivered  540 chars 
+cournot          delivered  370 chars 
+currency         delivered  814 chars token 'nan'
+dcf              delivered 1137 chars 
+demandcurve      delivered 1203 chars long decimal '12.0000'; long decimal '1.0000'; long decimal '1.2857'
+descriptive      delivered  535 chars 
+did              delivered  746 chars 
+elasticity       delivered  550 chars long decimal '1.5000'; long decimal '1.5000'
+equilibrium      delivered  527 chars 
+expectedutility  delivered  665 chars 
+externality      delivered  496 chars 
+fiscal           delivered  601 chars long decimal '0.8000'; long decimal '0.2500'; long decimal '2.5000'; long decimal '2.0000'
+forecast         delivered 1623 chars 
+gini             delivered  668 chars long decimal '0.2500'
+growth           delivered  447 chars 
+hdi              delivered  422 chars long decimal '0.7692'; long decimal '0.6000'; long decimal '0.5909'; long decimal '0.6485'
+inflation        delivered  506 chars 
+irp              delivered  468 chars long decimal '50.9615'
+iv               delivered 1053 chars long decimal '1.4605'; long decimal '0.9048'; long decimal '1.4079'
+labour           delivered  369 chars 
+marketpower      delivered  444 chars long decimal '0.6000'; long decimal '1.6667'
+moneymultiplier  delivered  575 chars long decimal '0.1000'; long decimal '10.0000'; long decimal '7.0000'
+multibreakeven   delivered  476 chars long decimal '3.0000'
+nash             delivered  635 chars 
+nationalincome   delivered  569 chars 
+npv              delivered  236 chars 
+okun             delivered  468 chars 
+ols              delivered 2150 chars long decimal '0.0424'
+optimalpollution delivered  459 chars 
+panel            delivered  762 chars long decimal '2.0000'; long decimal '1.0000'
+pearson          delivered 1267 chars long decimal '0.0005'
+poverty          delivered  671 chars 
+power            delivered  925 chars long decimal '0.4757'; long decimal '0.0500'; long decimal '0.8000'
+ppp              delivered  480 chars long decimal '50.0000'; long decimal '1.1000'
+pricecontrol     delivered  491 chars 
+pricing          delivered  683 chars 
+probit           delivered  960 chars long decimal '0.0916'; long decimal '0.0229'; long decimal '0.0365'
+profitmax        delivered  491 chars long decimal '0.5625'
+prospect         delivered  736 chars long decimal '2.2500'; long decimal '0.6100'
+publicgood       delivered  525 chars 
+rdd              delivered  781 chars long decimal '6.0000'
+socialwelfare    delivered  738 chars 
+sroi             delivered  858 chars 
+tariff           delivered  468 chars 
+taxincidence     delivered  562 chars 
+taxprogressivity delivered  725 chars 
+unemployment     delivered  510 chars 
+unitecon         delivered  516 chars token 'nan'
+welch            delivered 1560 chars long decimal '0.0018'
+
+PRESETS WITH PROBLEMS: 26
+
+=== bop :: token 'nan'
+The current account is PHP (50.00), the capital account is PHP 0.00 and the financial account is PHP 50.00, giving a net balance of PHP 0.00. The three account balances are declared on one sign convention; the method checks that they add up, not that the data are right. A zero net balance is the accounting identity, not evidence of external sustainability. No valuation effects, reserve changes or debt-service analysis is included.
+
+=== cba :: token 'nan'
+Over 3 periods the present value of benefits is USD 80,812.01 against present-value costs of USD 65,327.72, a net present value of USD 15,484.29. The benefit-cost ratio is 1.237. The appraisal is arithmetic on the costs and benefits you declared; monetising a non-monetised effect is your valuation choice, not the system's. The discount rate is an input, not an estimated social or financial rate; changing it can reverse the sign of the net value. No tax, financing, risk adjustment or sensitivity distribution is included unless supplied as declared flows. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+
+=== cea :: token 'nan'
+Compared with the first-listed option, the analysis reports 2 options with an incremental cost per unit of effect for each non-comparator. The ratios are in the appendix; an option that costs less and is more effective is flagged as dominant rather than given a ratio. An incremental cost-effectiveness ratio compares each option with the first-listed comparator only; it says nothing about options against each other unless one is the baseline. The ratio is undefined when the effect does not change; a dominant option (cheaper and more effective) needs no ratio, and the flag reports it. Effects must be on one declared outcome scale; the system does not convert or weight different outcomes.
+
+=== comparative :: long decimal '2.0000'; long decimal '1.6667'
+Country A's opportunity cost of good one is 2.0000 units of good two; country B's is 1.6667. The lower opportunity cost indicates comparative advantage in good one. The model uses two countries, two goods and constant unit labour requirements; it is the Ricardian textbook case. Opportunity costs are ratios of labour requirements; absolute advantage does not determine the pattern of trade. No transport cost, tariffs, demand differences or increasing returns are included.
+
+=== currency :: token 'nan'
+At the declared rate, EUR 1,000.00 converts to EUR 920.00. The rate is the owner's declaration and is not retrieved or verified by the system; the appendix records the currency codes, the rate, its provenance and any declared date. The exchange rate is a declaration, not a retrieved price: the appendix records the currencies, the rate, its provenance (user, sourced or assumption) and any declared date. The system does not fetch, verify or interpolate exchange rates. The converted amount is only as good as the declared rate and its date; a stale rate produces a stale value, and a sourced rate is the owner's claim, not something this system checked. No conversion happens automatically anywhere else: one engagement still uses one currency, and multi-currency consolidation or translation is not implemented.
+
+=== demandcurve :: long decimal '12.0000'; long decimal '1.0000'; long decimal '1.2857'
+Fitting quantity on price gives a slope of -12.0000 with an R-squared of 1.0000, so at the mean price of PHP 30.00 the elasticity is -1.2857. Within the fitted line, revenue is highest at a price of PHP 26.67. The fit is an association between the prices and quantities you observed, not an identified demand curve; omitted variables, simultaneity and measurement error are not addressed. A line is imposed on the data; a non-linear or kinked demand pattern will not be captured. The revenue-maximising price exists only when the fitted slope is negative, and it is arithmetic on the fit, not a pricing recommendation. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+
+=== elasticity :: long decimal '1.5000'; long decimal '1.5000'
+Between the two declared observations the arc price elasticity of demand is -1.5000, with an absolute value of 1.5000. Total revenue moves from PHP 1,000.00 to PHP 1,120.00, a change of PHP 120.00. Demand is elastic over this range. The elasticity is the arc (midpoint) elasticity between the two observations you declared; a point elasticity at one price needs a demand function. The sign is negative for an ordinary demand curve; the absolute value is the one usually compared with one. No income, cross-price or supply elasticity is computed here.
+
+=== fiscal :: long decimal '0.8000'; long decimal '0.2500'; long decimal '2.5000'; long decimal '2.0000'
+With an mpc of 0.8000 and a tax rate of 0.2500, the government-spending multiplier is 2.5000, the tax multiplier is -2.0000 and the balanced-budget multiplier is 0.5000. The declared changes imply an output change of PHP 250.00. The multiplier is a closed-economy Keynesian arithmetic identity on the declared mpc and tax rate; it is not an estimated fiscal effect. A proportional income tax is included when tax_rate is declared; a lump-sum tax change uses the same multiplier on the declared tax change. Crowding out, confidence, supply-side effects, lags and open-economy leakages are not modelled.
+
+=== gini :: long decimal '0.2500'
+Across 4 incomes the Gini coefficient is 0.2500. The poorest income is PHP 10.00 and the richest is PHP 40.00. The Gini coefficient is computed from the declared incomes; the income definition, unit and population coverage are the owner's choice. It is a single summary of inequality and does not show where in the distribution the differences lie. No equivalence scales, taxes, transfers or in-kind income are included. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+
+=== hdi :: long decimal '0.7692'; long decimal '0.6000'; long decimal '0.5909'; long decimal '0.6485'
+The life index is 0.7692, the education index is 0.6000 and the income index is 0.5909, giving an HDI of 0.6485. The HDI uses the UNDP goalposts declared in the method: life 20-85, expected schooling 0-18, mean schooling 0-15, GNI 100-75,000. The index is a summary of three dimensions and does not show inequality within them. The GNI figure and the schooling years are the owner's declared values; no data are retrieved.
+
+=== irp :: long decimal '50.9615'
+Covered interest parity implies a forward rate of 50.9615, a forward premium of 1.92%. The declared forward rate differs from the implied rate by 0.08%. Covered interest parity is an arbitrage condition on declared rates and a declared horizon; it is not a forecast of the spot rate. The forward rate is implied by the declared rates, not observed; a declared forward is compared with it. No transaction costs, capital controls, credit risk or basis risk are included.
+
+=== iv :: long decimal '1.4605'; long decimal '0.9048'; long decimal '1.4079'
+The just-identified IV slope is 1.4605; the first-stage slope is 0.9048 and the OLS slope is 1.4079. A just-identified IV estimator with one endogenous regressor and one excluded instrument; there is no over-identification test. The estimate is causal only if the instrument is relevant and satisfies the exclusion restriction, which the method cannot test. No controls, robust or clustered standard errors, weak-instrument diagnostics or panel structure are included. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+
+=== marketpower :: long decimal '0.6000'; long decimal '1.6667'
+At a price of PHP 50.00 and a marginal cost of PHP 20.00, the markup is PHP 30.00 and the Lerner index is 0.6000. The implied demand elasticity is 1.6667. The Lerner index is (price - marginal cost) / price, computed from the two figures you declared. It is a static markup measure, not proof of market power or of harm to consumers. The implied elasticity is the inverse of the Lerner index only under the declared single-price monopoly model.
+
+=== moneymultiplier :: long decimal '0.1000'; long decimal '10.0000'; long decimal '7.0000'
+With a monetary base of PHP 100.00 and a reserve ratio of 0.1000, the simple money multiplier is 10.0000 and the currency-adjusted multiplier is 7.0000. The implied money supply is PHP 700.00. The money multiplier is a declared reserve-ratio identity, not a forecast of the money supply. The simple multiplier assumes no currency drain and no excess reserves; the extended multiplier adds a declared currency drain but still assumes no excess reserves. Banks are assumed to lend to the reserve requirement; the model does not include capital, liquidity or demand constraints.
+
+=== multibreakeven :: long decimal '3.0000'
+The mix-weighted contribution margin is 3.0000, so break-even needs 2,000.00 units in total and revenue of USD 10,500.00 at the declared mix. The per-product break-even units are in the appendix. Break-even assumes a fixed product mix and constant unit prices and costs; a change in mix changes the weighted contribution and therefore the break-even. The per-product units are the break-even mix, not a target or a forecast. No step costs, capacity limits or tax are modelled.
+
+=== ols :: long decimal '0.0424'
+The model uses 10 complete observations, with 0 excluded as missing, and 2 predictor variable(s). It accounts for 0.933 of the variation in the outcome in this sample (adjusted 0.913), a large effect by the declared thresholds. The overall F test has a p-value below the reporting floor. Each one-unit difference in study_hours is associated with a difference of 4.037 in the outcome, holding the other predictors constant (confidence interval at level 95.00% from 3.066 to 5.007; p-value below the reporting floor; standardized coefficient 0.998). Each one-unit difference in sleep_hours is associated with a difference of -2.380 in the outcome, holding the other predictors constant (confidence interval at level 95.00% from -4.652 to -0.107; p-value 0.0424; standardized coefficient -0.251). The intercept is 63.076, the fitted outcome when all predictors are zero, which may lie outside the observed range. Statistical significance and practical importance are separate questions. Caution: the sample is small, so the estimates are imprecise and should be described, not generalized. These are associations; the analysis makes no causal claim and omitted variables could explain the pattern. The diagnostic screens are coarse; inspect residual plots before relying on the model. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-d
+
+=== panel :: long decimal '2.0000'; long decimal '1.0000'
+The within-entity slope is 2.0000 across 3 entities and 3 periods, with a within R-squared of 1.0000. The fixed-effects estimator uses only within-entity variation; time-invariant regressors are absorbed. The panel must be balanced; an unbalanced panel is refused rather than handled with a different estimator. No clustered or robust standard errors, lagged dependent variables or dynamic panel bias correction are included. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+
+=== pearson :: long decimal '0.0005'
+The sample contains 8 complete pairs, with 0 excluded as missing. The Pearson correlation is 0.943, a large positive association in this sample. The confidence interval at level 95.00% runs from 0.709 to 0.990. The p-value is 0.0005. At the declared significance level of 5.00% the association is statistically significant. Statistical significance and practical importance are separate questions. Caution: the sample is small, so this estimate is imprecise and should be described, not generalized. An association does not establish a causal relationship, and this analysis makes no causal claim. The coefficient does not test linearity; inspect a scatterplot before relying on it. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+
+=== power :: long decimal '0.4757'; long decimal '0.0500'; long decimal '0.8000'
+At the stated effect the design has power 0.4757 against a declared alpha of 0.0500 (target power 0.8000). The smallest effect that reaches that target power is 7.38, with a standard error of 2.63 for that effect. Power is calculated under the normal approximation and describes the planned design, not any observed result. Power is calculated under the normal approximation with the standard deviations you supplied; with sds estimated from a pilot, the exact power is somewhat lower (noncentral t, not implemented). Power is a planning property of the design, not evidence about the result: a low-powered study can still be significant and a high-powered one can still fail. The calculation assumes independent observations and a single comparison; it does not account for clustering, weights, repeated measures or multiplicity. A minimum detectable effect is not a justification for ignoring a smaller effect that matters.
+
+=== ppp :: long decimal '50.0000'; long decimal '1.1000'
+The PPP rate is 50.0000 and the real exchange rate is 1.1000, a misalignment of 10.00%. Relative PPP implies an expected depreciation of 1.96%. Absolute PPP compares declared price levels; it is not a test of whether PPP holds in practice. The real exchange rate is 1 at PPP; values above 1 mean the foreign currency looks expensive on this basket. Relative PPP uses the declared inflation rates and a one-period horizon; no transport costs, tariffs or non-tradables are included.
+
+=== probit :: long decimal '0.0916'; long decimal '0.0229'; long decimal '0.0365'
+The probit slope is 0.0916 and the intercept is -0.0229. The marginal effect at the mean of the predictor is 0.0365. A binary probit with one predictor; the coefficients are on the latent-index scale. The marginal effect is evaluated at the mean of x and is not a constant effect. Separation or near-separation is refused; no robust or clustered standard errors are computed. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+
+=== profitmax :: long decimal '0.5625'
+The profit-maximising quantity is 18.00 at a price of PHP 64.00. Revenue is PHP 1,152.00, cost is PHP 442.00 and profit is PHP 710.00; the Lerner index is 0.5625. The firm faces the declared linear inverse demand P = a - bQ and the declared quadratic cost TC = fixed + linear x Q + quadratic x Q squared. The result is a single-period monopoly or monopoly-like optimum; it is not a competitive market outcome. No tax, subsidy, multi-product interaction, entry or dynamic pricing is modelled.
+
+=== prospect :: long decimal '2.2500'; long decimal '0.6100'
+The prospect value is PHP (19.54) against an expected value of PHP 0.00. The declared loss aversion is 2.2500 and the probability-weighting parameter is 0.6100. The value function and probability weighting are the declared Kahneman-Tversky-style parameterisation, not estimates from data. The probability weights are normalised to sum to one; different weighting functions would change the result. Prospect theory is descriptive; the result is not a recommendation or a normative utility. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+
+=== rdd :: long decimal '6.0000'
+The local-linear jump at the cutoff is 6.0000, using 2 observations on the left and 2 on the right. A sharp RDD with a local linear fit on each side and a declared bandwidth; the estimate is the intercept jump at the cutoff. The design assumes no manipulation of the running variable and no other discontinuity at the cutoff, which the method cannot test. No optimal bandwidth selection, bias correction, covariates or fuzzy design is included. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the precision the sample actually achieved. Survey weights, clustered observations and repeated measures are not supported; every observation is treated as independent.
+
+=== unitecon :: token 'nan'
+The unit contribution margin is USD 37.00 (a margin rate of 75.51%), and payback takes 2.162 periods. At the declared churn rate the lifetime value is USD 925.00. The unit margin, payback and any LTV are arithmetic on the prices, costs and churn you declared; none of them is estimated by a model. LTV divides the unit margin by the declared churn rate; that assumes a constant churn and no discounting, so it is a period-value, not a present value. No tax, financing cost, cross-sell or retention curve is included.
+
+=== welch :: long decimal '0.0018'
+Group lecture has 8 valid observations with a mean of 68.625, and group workshop has 9 with a mean of 77.444; 0 entries were excluded as missing. The difference in means (lecture minus workshop) is -8.819, with a confidence interval at level 95.00% from -13.781 to -3.858. Welch's test gives a p-value of 0.0018. The standardized difference (Hedges' g) is -1.733, a large difference by the declared thresholds, with an interval from -2.869 to -0.596. At the declared significance level of 5.00% the difference is statistically significant. Statistical significance and practical importance are separate questions. Caution: the groups are small, so these estimates are imprecise and should be described, not generalized. A difference between groups does not show that group membership produces it; assignment and other differences between the groups were not assessed, and no causal claim is made. Check the data for outliers and entry errors before relying on the comparison. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different. One hypothesis is tested, so no multiple-comparison correction is applied. No power or minimum-detectable-effect calculation is reported; the confidence interval shows the prec

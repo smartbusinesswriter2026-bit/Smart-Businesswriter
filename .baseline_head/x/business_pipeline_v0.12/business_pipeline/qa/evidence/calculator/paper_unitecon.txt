@@ -1,0 +1,34 @@
+Computation: unit economics
+Result
+The unit contribution margin is 37.00 (a margin rate of 75.51%), and payback takes 2.162 periods. At the declared churn rate the lifetime value is 925.00. The unit margin, payback and any LTV are arithmetic on the prices, costs and churn you declared; none of them is estimated by a model. LTV divides the unit margin by the declared churn rate; that assumes a constant churn and no discounting, so it is a period-value, not a present value. No tax, financing cost, cross-sell or retention curve is included.
+Inputs and results
+What you declared
+Price: 49.00
+Variable cost: 12.00
+Acquisition cost: 80.00
+Churn rate: 0.0400
+What was computed
+Unit margin: 37.00
+Margin pct: 0.7551
+Payback periods: 2.162
+Price: 49.00
+Variable cost: 12.00
+Acquisition cost: 80.00
+Churn rate: 0.0400
+Ltv: 925.00
+Ltv cac: 11.562
+Honesty: what was not done
+this method: The unit margin, payback and any LTV are arithmetic on the prices, costs and churn you declared; none of them is estimated by a model. LTV divides the unit margin by the declared churn rate; that assumes a constant churn and no discounting, so it is a period-value, not a present value. No tax, financing cost, cross-sell or retention curve is included.
+Assumptions made
+Prices, costs and churn are the owner's declared inputs.
+The unit margin is earned each period until churn.
+Limitations
+No present-value discounting, retention curve, tax or financing.
+Churn is a single constant rate.
+Segment or product-level CAC is not modelled.
+How the figures were checked
+Second implementation agrees.
+Margin is price minus variable cost.
+Payback is acquisition cost over margin.
+Raising price raises margin by the same amount.
+Lower churn raises ltv.

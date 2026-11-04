@@ -134,6 +134,37 @@ class DetectIntegration(unittest.TestCase):
         self.assertIn("cash_sale", ids)
         self.assertIn("credit_sale", ids)
 
+    def test_an_issue_for_shares_in_the_business_is_read(self):
+        # "invested 50,000 cash in the business for shares" is the ordinary wording.
+        # The detector wanted "in exchange for" or nothing, so the equity issue was
+        # missed, cash went negative, and the ledger refused the whole answer.
+        text = "The owner invested 50,000 cash in the business for shares on 1 January 2025."
+        ms = sd.detect(text)
+        ids = {m.detector_id for m in ms}
+        self.assertIn("equity_issuance_cash", ids)
+        match = [m for m in ms if m.detector_id == "equity_issuance_cash"][0]
+        self.assertEqual(match.slots["amount"], Decimal("50000"))
+        lines = sd.journalize(match.detector_id, match.slots)
+        self.assertEqual([ln[2] for ln in lines if ln[1] == "Dr"], [Decimal("50000")])
+
+    def test_a_wording_that_fills_the_second_amount_slot_still_posts(self):
+        # The two wordings of the same fact fill different slots.  The template used
+        # to reach for the first one alone, so the entry it posted carried no amount
+        # and the posting died on a conversion error.
+        text = "It paid 8,000 cash salaries on 31 March 2025."
+        ms = sd.detect(text)
+        match = [m for m in ms if m.detector_id == "salaries_payment"][0]
+        self.assertIsNone(match.slots["amount"])
+        self.assertEqual(match.slots["amount2"], Decimal("8000"))
+        lines = sd.journalize(match.detector_id, match.slots)
+        self.assertEqual([ln[2] for ln in lines if ln[1] == "Dr"], [Decimal("8000")])
+
+    def test_a_detection_with_no_amount_is_named_not_crashed(self):
+        # A line with no amount is a gap.  It must be raised as a DetectError the
+        # tile can catch, never as a conversion error it cannot.
+        with self.assertRaises(sd.DetectError):
+            sd.journalize("salaries_payment", {"amount": None, "amount2": None})
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,160 @@
+﻿2440: def _fmt_number(value):
+2490: lines = ["At a declared fixed cost of " + _fmt_number(fixed) + ", a price of " + _fmt_number(price)
+2491: + " per unit and a variable cost of " + _fmt_number(variable) + " per unit, the break-even quantity is "
+2492: + _fmt_number(result["breakeven_units"]) + " units and the break-even revenue is "
+2493: + _fmt_number(result["breakeven_revenue"]) + "."]
+2494: lines.append("The contribution margin is " + _fmt_number(result["contribution_margin"]) + " per unit ("
+2498: + _fmt_number(result["margin_of_safety_units"]) + " units.")
+2506: CAPABILITY_LINES = {"breakeven": lambda row, inputs, result: _break_even_lines(inputs, result),
+2510: def _npv_lines(row, inputs, result):
+2515: lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "% and the declared cash flows ("
+2516: + "; ".join(_fmt_exact(value) for value in flows) + "), the net present value is "
+2517: + _fmt_number(figure) + "."]
+2527: return _fmt_number(Decimal(str(value)) * 100)
+2534: return _fmt_number(value)
+2542: lines = ["At the declared cash flows (" + "; ".join(_fmt_exact(value) for value in flows)
+2553: def _payback_lines(row, inputs, result):
+2557: lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "%, the declared cash flows ("
+2558: + "; ".join(_fmt_exact(value) for value in flows) + ") recover the outlay in "
+2559: + _fmt_exact(period) + " periods (inside period "
+2560: + _fmt_exact(result.get("recovered_in_period")) + ")."]
+2568: lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "%, the declared project has a net "
+2570: + _fmt_exact(result.get("profitability_index")) + ", a modified internal rate of return of "
+2585: + " is covered after " + _fmt_exact(result.get("payback_periods"))
+2613: + _money(monthly) + ", the cash runway is " + _fmt_exact(runway) + " months."]
+2659: lines.append("The schedule performance index is " + _fmt_exact(result.get("spi"))
+2660: + " and the cost performance index is " + _fmt_exact(result.get("cpi"))
+2670: + _money(product.get("variable_cost")) + " and a mix of " + _fmt_exact(product.get("mix_units"))
+2679: units.append(_fmt_number(value) + " of " + str(product.get("name", "")))
+2680: lines.append("Break-even is " + _fmt_number(result.get("breakeven_total_units")) + " units in total"
+2690: + _fmt_exact(result.get("beta")) + ", the cost of equity is "
+2702: + "% annual coupon and " + _fmt_exact(inputs.get("years_to_maturity"))
+2707: + "% annual coupon and " + _fmt_exact(inputs.get("years_to_maturity"))
+2734: parts.append(label + " " + _fmt_number(value))
+2738: parts.append(label + " " + _fmt_number(value))
+2750: lines = ["At a declared discount rate of " + _fmt_exact(rate * 100) + "%, the declared free cash flows ("
+2751: + "; ".join(_fmt_exact(value) for value in flows) + ") have a present value of "
+2766: lines = ["Applying a mean multiple of " + _fmt_exact(result.get("mean_multiple")) + "x to the declared "
+2785: + _fmt_exact(inputs.get("time_to_maturity")) + " years to maturity, the declared "
+2800: + _pct(inputs.get("risk_free_rate")) + "% and " + _fmt_exact(inputs.get("steps"))
+2836: lines = ["From the declared sample of " + _fmt_exact(result.get("n")) + " observation(s)"
+2837: + (", with " + _fmt_exact(excluded) + " excluded as missing" if str(excluded or "0") != "0" else "")
+2848: lines = ["Across " + _fmt_exact(result.get("n_pairs")) + " declared pair(s), the correlation between the "
+2850: + "), with a " + _fmt_number(level * 100) + "% confidence interval of "
+2859: lines = ["The declared control group (n = " + _fmt_exact(result.get("n_control")) + ", mean "
+2861: + ") and the declared treatment group (n = " + _fmt_exact(result.get("n_treated")) + ", mean "
+2871: lines = ["The declared " + _fmt_exact(result.get("n_groups")) + " group(s), " + _fmt_exact(result.get("n_total"))
+2873: + _fmt_exact(result.get("df_between")) + ", " + _fmt_exact(result.get("df_within"))
+2882: lines = ["Across the declared " + _fmt_exact(result.get("n_total")) + " counts, chi-square is "
+2883: + _money(result.get("chi_squared")) + " (df " + _fmt_exact(result.get("df")) + ") with p = "
+2894: lines = ["On " + _fmt_exact(result.get("n")) + " declared observation(s) and "
+2895: + _fmt_exact(result.get("k")) + " predictor(s), the regression has R squared "
+2914: lines = ["At a declared arrival rate of " + _fmt_number(inputs.get("arrival_rate")) + " and a declared service "
+2915: "rate of " + _fmt_number(inputs.get("service_rate")) + " per period, utilisation is "
+2962: lines = ["From the declared sample of " + _fmt_exact(result.get("n")) + " measurement(s), the mean is "
+3005: lines = ["Across " + _fmt_exact(result.get("total_customers")) + " declared customers, the RFM scores place: "
+3013: lines = ["On the declared funnel, the last declared stage holds " + _fmt_exact(result.get("customers"))
+3026: + _fmt_exact(inputs.get("visitors_a")) + " declared visitors and variant B converted "
+3048: lines = ["Across " + _fmt_exact(result.get("k_items")) + " declared item(s) and "
+3049: + _fmt_exact(result.get("n")) + " respondent(s), reliability (Cronbach's alpha) is "
+3068: lines = ["At a declared effect of " + _money(inputs.get("effect")) + ", " + _fmt_exact(inputs.get("n1"))
+3089: lines = ["Across " + _fmt_exact(len(inputs.get("cohort_sizes") or [])) + " declared cohort(s), retention is "
+3112: lines = ["The declared series of " + _fmt_exact(result.get("n_fitted")) + " period(s) has a trend of "
+3122: lines = ["Of the declared values, " + _fmt_exact(result.get("n_valid")) + " are valid and "
+3123: + _fmt_exact(result.get("n_missing")) + " missing (" + _pct(result.get("pct_missing"))
+3137: lines = ["With " + _fmt_exact(result.get("vehicles") or len(vehicles)) + " declared vehicle(s), the plan "
+3154: best = " The most conversions come from " + name + " (" + _fmt_exact(value) + ")."
+3185: lines = ["Across " + _fmt_exact(result.get("segments")) + " declared segment(s), revenue of "
+3237: + _fmt_exact(result.get("stations")) + " station(s) (lower bound "
+3238: + _fmt_exact(result.get("lower_bound_stations")) + "), with "
+3239: + _fmt_exact(result.get("idle_time")) + " minutes of idle time and an efficiency of "
+3268: lines = ["Across " + _fmt_exact(result.get("n_periods")) + " declared period(s), revenue grew at "
+3297: + _pct(inputs.get("annual_rate")) + "%, repaid over " + _fmt_exact(result.get("n_payments"))
+3347: + "%; at the declared " + _fmt_number(confidence * 100) + "% confidence over "
+3348: + _fmt_exact(result.get("horizon_days")) + " day(s), the parametric value at risk is "
+3358: lines = ["At a declared spot rate of " + _fmt_exact(inputs.get("spot_rate")) + " and declared interest rates "
+3373: + _fmt_exact(result.get("rate")) + " gives " + _money(result.get("amount")) + " "
+3383: lines = ["Across " + _fmt_exact(result.get("n_firms")) + " declared firm(s) with total revenue of "
+3386: + _fmt_exact(result.get("cr4")) + "% and the effective number of firms is "
+3452: + _money(result.get("net_value")) + " over " + _fmt_exact(result.get("n_periods"))
+3543: lines = ["On the declared payoff matrix the method finds " + _fmt_exact(result.get("nash_count"))
+3659: lines = ["Across " + _fmt_exact(result.get("n")) + " declared incomes with a mean of "
+3670: lines = ["Across " + _fmt_exact(result.get("n")) + " declared incomes with a mean of "
+3681: lines = ["Against a declared poverty line, " + _fmt_exact(result.get("poor_count")) + " of "
+3682: + _fmt_exact(result.get("n")) + " people are poor, a headcount ratio of "
+3691: lines = ["Across " + _fmt_exact(result.get("n")) + " declared incomes and taxes, the average tax rate is "
+3732: + _fmt_exact(inputs.get("nominal_rate")) + ", purchasing-power parity implies a rate of "
+3741: lines = ["At a declared spot rate of " + _fmt_exact(inputs.get("spot_rate")) + " and interest rates of "
+3802: + _money(result.get("first_stage_slope")) + " on " + _fmt_exact(result.get("n"))
+3809: lines = ["On " + _fmt_exact(result.get("n_obs")) + " observation(s) across "
+3810: + _fmt_exact(result.get("n_entities")) + " entity(ies) and "
+3811: + _fmt_exact(result.get("n_periods")) + " period(s), the within slope is "
+3820: + ", from " + _fmt_exact(result.get("n_left")) + " observation(s) below and "
+3821: + _fmt_exact(result.get("n_right")) + " above."]
+3844: + _fmt_exact(result.get("activity_count")) + " activity(ies)"
+3857: + _fmt_exact(result.get("overallocated_periods_before")) + " to "
+3858: + _fmt_exact(result.get("overallocated_periods_after")) + ", and peak demand from "
+3877: lines = ["Across " + _fmt_exact(result.get("iterations")) + " seeded simulations, the project duration has a "
+3893: + " working periods across " + _fmt_exact(result.get("activity_count"))
+3894: + " activity(ies), with " + _fmt_exact(result.get("critical_count"))
+3914: lines = ["Scoring " + _fmt_exact(result.get("alternative_count")) + " alternative(s) against "
+3915: + _fmt_exact(result.get("criteria_count")) + " weighted criteria (weights summing to "
+3925: lines = ["Across " + _fmt_exact(result.get("iterations")) + " seeded draws, the simulated result has a "
+3952: + _fmt_exact(result.get("best_index")) + "."]
+3970: + _fmt_exact(result.get("project_count")) + " project(s): " + "; ".join(parts) + "."]
+3975: CAPABILITY_LINES.update({
+4086: def _fmt_exact(value):
+4100: def _generic_lines(row, inputs, result):
+4106: declared = "; ".join((name.replace("_", " ") + " " + _fmt_exact(value))
+4110: produced = "; ".join((name.replace("_", " ") + " " + _fmt_exact(value))
+4123: def _capability_lines(row, recorded):
+4127: formatter = CAPABILITY_LINES.get(key)
+4167: pieces.append(name.replace("_", " ") + " " + _fmt_exact(value) + source)
+4200: + _fmt_number(inputs.get("market_size")) + " at a price of " + _fmt_number(inputs.get("price"))
+4201: + " gives target revenue of " + _fmt_number(result.get("target_revenue")) + " and "
+4202: + _fmt_number(result.get("target_units")) + " units."]
+4206: return ["Depreciation on a cost of " + _fmt_number(result.get("cost")) + " to a salvage value of "
+4207: + _fmt_number(result.get("salvage")) + " over " + _fmt_number(result.get("life"))
+4208: + " periods totals " + _fmt_number(result.get("total_depreciation"))
+4209: + ", leaving a carrying amount of " + _fmt_number(result.get("final_carrying")) + "."]
+4214: lines.append("In period " + str(period) + ", revenue is " + _fmt_number(result.get("revenue_%d" % period))
+4215: + ", net income is " + _fmt_number(result.get("net_income_%d" % period))
+4216: + " and closing cash is " + _fmt_number(result.get("closing_cash_%d" % period)) + ".")
+4217: lines.append("Over the declared periods, revenue totals " + _fmt_number(result.get("total_revenue"))
+4218: + " and net income totals " + _fmt_number(result.get("total_net_income"))
+4219: + ", closing with cash of " + _fmt_number(result.get("closing_cash_final"))
+4220: + " and equity of " + _fmt_number(result.get("closing_equity_final")) + ".")
+4226: lines.append("The declared period-1 revenue matches the " + _fmt_number(target)
+4229: lines.append("The declared period-1 revenue is " + _fmt_number(first) + ", against target revenue of "
+4230: + _fmt_number(target) + " from the declared market share.")
+4237: lines = ["At the declared base case, profit is " + _fmt_number(result.get("base_profit")) + "."]
+4242: lines.append("Across the declared changes, profit ranges from " + _fmt_number(low[1])
+4244: + _pct_sign(volumes[low_j]) + ", to " + _fmt_number(high[1])
+4251: lines = ["Income tax at the declared rate is " + _fmt_number(result.get("income_tax"))
+4252: + " and the after-tax income is " + _fmt_number(result.get("net_income_after_tax")) + "."]
+4254: lines.append("VAT payable is " + _fmt_number(result.get("vat_payable")) + ".")
+4256: lines.append("The deferred tax charge is " + _fmt_number(result.get("deferred_tax"))
+4257: + " and the total tax charge is " + _fmt_number(result.get("total_tax_charge")) + ".")
+4260: return ["After the round the post-money value is " + _fmt_number(result.get("post_money_valuation"))
+4261: + ", the price per share is " + _fmt_number(result.get("price_per_share"))
+4262: + ", the new shares number " + _fmt_number(result.get("new_shares"))
+4270: + name[5:].replace("_", " ") + " is " + _fmt_number(value) + ".")
+4303: + _fmt_number(result.get("target_revenue")) + " and target volume is "
+4304: + _fmt_number(result.get("target_units")) + " units.")
+4308: + _fmt_number(proforma["result"].get("total_revenue")) + " and net income totals "
+4309: + _fmt_number(proforma["result"].get("total_net_income")) + ".")
+4417: + _fmt_number(sales["result"].get("target_revenue")) + ".")
+4420: + _fmt_number(proforma["result"].get("total_net_income"))
+4479: + _fmt_number(result.get("target_revenue")) + " and target volume is "
+4480: + _fmt_number(result.get("target_units")) + " units.")
+4484: + _fmt_number(proforma.get("result", {}).get("total_revenue")) + ".")
+4561: lines.append(paper.paragraph(_capability_lines(block, data)))
+4610: + _fmt_number(result.get("target_revenue")) + " and target volume is "
+4611: + _fmt_number(result.get("target_units")) + " units.")
+4667: [paper.paragraph(_capability_lines(block, data))]
+4732: + _fmt_number(result.get("target_revenue")) + " and target volume is "
+4733: + _fmt_number(result.get("target_units")) + " units.")
+4778: [paper.paragraph(_capability_lines(block, data))]
+5152: shown = _fmt_number(value)
+5252: declar = "; ".join(name.replace("_", " ") + " " + _fmt_exact(value)
+5405: [paper.paragraph(_capability_lines(row, recorded.get(row["key"]) or {}))]

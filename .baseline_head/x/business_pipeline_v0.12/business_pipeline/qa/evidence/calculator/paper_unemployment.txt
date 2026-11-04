@@ -1,0 +1,31 @@
+Computation: unemployment rate
+Result
+With a labour force of 1,000 and 920 employed, the unemployment rate is 8.00%. The participation rate is 66.67% and the employment-population ratio is 61.33%. The unemployment rate uses the labour-force definition implied by the counts you declared; discouraged workers outside the labour force are not counted. The participation rate and employment ratio use the working-age population you supplied, not a demographic estimate. No seasonal adjustment, underemployment or informal-sector adjustment is applied.
+Inputs and results
+What you declared
+Labour force: 1000
+Employed: 920
+Working age population: 1500.0000
+What was computed
+Labour force: 1000
+Employed: 920
+Unemployed: 80
+Unemployment rate: 0.0800
+Labour force participation rate: 0.6667
+Employment population ratio: 0.6133
+Honesty: what was not done
+this method: The unemployment rate uses the labour-force definition implied by the counts you declared; discouraged workers outside the labour force are not counted. The participation rate and employment ratio use the working-age population you supplied, not a demographic estimate. No seasonal adjustment, underemployment or informal-sector adjustment is applied.
+Assumptions made
+The three counts cover the same population and period.
+The labour force does not exceed the working-age population.
+The employed are a subset of the labour force.
+Limitations
+Counts only; no underemployment or informal-sector adjustment.
+No seasonal adjustment or demographic standardisation.
+The labour-force definition is the owner's.
+How the figures were checked
+Second implementation agrees.
+Unemployed equals labour force minus employed.
+Unemployment rate equals unemployed over labour force.
+Participation rate equals labour force over working age population.
+Employment population ratio equals employed over working age population.

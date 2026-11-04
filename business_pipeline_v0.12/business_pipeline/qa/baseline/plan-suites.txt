@@ -1,0 +1,12 @@
+tests\test_subject_accounting_acceptance.py: 1023 lines
+tests\test_subject_economics_acceptance.py: 468 lines
+tests\test_subject_entrepreneurship_acceptance.py: 755 lines
+tests\test_subject_finance_acceptance.py: 777 lines
+tests\test_subject_management_acceptance.py: 729 lines
+tests\test_subject_marketing_acceptance.py: 130 lines
+tests\test_subject_operations_acceptance.py: 752 lines
+tests\test_subject_people_acceptance.py: 1162 lines
+tests\test_subject_project_management_acceptance.py: 1257 lines
+tests\test_subject_research_acceptance.py: 634 lines
+tests\test_subject_supply_chain_acceptance.py: 982 lines
+catalogue_truth: 173

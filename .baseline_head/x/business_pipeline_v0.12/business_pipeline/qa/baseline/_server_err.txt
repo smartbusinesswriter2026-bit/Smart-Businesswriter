@@ -1,0 +1,60 @@
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 54193)
+Traceback (most recent call last):
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\http\server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\http\server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\server.py", line 668, in do_POST
+    return self._send(*product_api.handle("POST", self.path, self._body()))
+                                                        ^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\session.py", line 132, in create
+    s = Session(request, self.sandbox, self.assist_runs)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\session.py", line 63, in __init__
+    r = self.p.start(request)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\orchestrator.py", line 108, in start
+    try: issues = m.profile(inp)
+    
+AttributeError: 'NoneType' object has no attribute 'get'
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 64993)
+Traceback (most recent call last):
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+    ~~~~~~~~~~~^^
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\http\server.py", line 496, in handle
+    self.handle_one_request()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\Roderick\AppData\Local\Programs\Python\Python314\Lib\http\server.py", line 484, in handle_one_request
+    method()
+    ~~~~~~^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\server.py", line 668, in do_POST
+    return self._send(*product_api.handle("POST", self.path, self._body()))
+                                                        ^^^^^^^^^^^^^^^^^^^
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\session.py", line 132, in create
+    s = Session(request, self.sandbox, self.assist_runs)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\session.py", line 63, in __init__
+    r = self.p.start(request)
+  File "D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline\src\bp\orchestrator.py", line 108, in start
+    try: issues = m.profile(inp)
+    
+AttributeError: 'NoneType' object has no attribute 'get'
+----------------------------------------

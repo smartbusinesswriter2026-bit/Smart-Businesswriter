@@ -1,0 +1,89 @@
+subject: accounting
+glossary entries: 19
+   - Debit / credit
+   - Journal
+   - Ledger
+   - Trial balance
+   - Accrual
+   - Prepayment
+   - Depreciation
+   - Accumulated depreciation
+   - Closing entries
+   - Retained earnings
+   - Gross profit
+   - Working capital
+   - Current ratio
+   - Variance
+   - Favourable / unfavourable
+   - Standard cost
+   - Taxable income
+   - VAT
+   - Deferred tax
+
+== related ids ==
+accounts         -> tbcheck            ok
+accounts         -> ratios             ok
+accounts         -> scv                ok
+tbcheck          -> accounts           ok
+tbcheck          -> ratios             ok
+ratios           -> dupont             ok
+ratios           -> workingcapital     ok
+ratios           -> leverage           ok
+scv              -> accounts           ok
+scv              -> breakeven          ok
+scv              -> ratios             ok
+abc              -> scv                ok
+abc              -> salesvar           ok
+abc              -> ratios             ok
+salesvar         -> scv                ok
+salesvar         -> abc                ok
+salesvar         -> pricing            ok
+breakeven        -> multibreakeven     ok
+breakeven        -> unitecon           ok
+breakeven        -> pricing            ok
+multibreakeven   -> breakeven          ok
+multibreakeven   -> unitecon           ok
+workingcapital   -> dupont             ok
+workingcapital   -> ratios             ok
+workingcapital   -> loan               ok
+loan             -> tvm                ok
+loan             -> bond               ok
+loan             -> leverage           ok
+trendanalysis    -> dupont             ok
+trendanalysis    -> ratios             ok
+trendanalysis    -> forecast           ok
+tax              -> accounts           ok
+tax              -> scv                ok
+tax              -> salesprojection    ok
+
+== catalogue records: linked methods vs library ==
+QNT-FIN-02 Cost and profitability form=computed template=None
+   linked: breakeven                      ok
+   linked: multi_product_breakeven        ok
+   linked: abc_costing                    ok
+   linked: sales_variances                ok
+   status: partial: single-product and multi-product break-even, activity-based costing and sales price/mix/yield variances are implemented; operating-leverage, relevant-cost and make-or-buy analysis are not implemented
+QNT-FIN-03 Financial performance form=computed template=None
+   linked: ratio_analysis                 ok
+   linked: dupont_analysis                ok
+   linked: working_capital                ok
+   status: partial: 15 declared financial-statement ratios, the DuPont decomposition (three- and five-step), common-size ratios, one-period growth, multi-year trend analysis and the cash conversion cycle are implemented; industry benchmarks and restatements are not implemented
+QNT-FIN-05 Management accounting form=computed template=None
+   linked: management_accounts            ok
+   linked: standard_cost_variances        ok
+   linked: abc_costing                    ok
+   status: partial: a declarative double-entry engagement is implemented (chart, opening balances, entries, schedules, trial balance, statements, routes for the cash flow, closing and bank reconciliation), together with material, labour and overhead standard-cost variances and activity-based costing; target, life-cycle and budget-variance topics named here are not implemented
+
+== tool notes completeness ==
+accounts         missing=[] need=None
+tbcheck          missing=[] need=None
+ratios           missing=[] need=None
+scv              missing=[] need=None
+abc              missing=[] need=None
+salesvar         missing=[] need=None
+breakeven        missing=[] need=None
+multibreakeven   missing=[] need=None
+workingcapital   missing=[] need=None
+loan             missing=[] need=None
+trendanalysis    missing=[] need=None
+tax              missing=[] need=None

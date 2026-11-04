@@ -1,0 +1,59 @@
+5S Workplace Analysis: The Lunch Service at the Meal Counter Takes an Order
+A Student
+Example University
+November 03, 2026
+5S Workplace Analysis: The Lunch Service at the Meal Counter Takes an Order
+Introduction
+The decision under examination is whether to proceed with the course of action set out in the brief. The unit of analysis is one workplace, because 5S is a statement about what a person finds and does in a specific area rather than about the organisation. The evidence base is confined to the items accepted for the case.
+The analysis treats each of the 5 steps in turn: sort, set in order, shine, standardize, sustain. Each is established from the accepted evidence and then interpreted, with attention to its effect on the decision.
+The argument advanced is that the steps supported by evidence constrain the decision, and that a step for which no evidence is recorded cannot be treated as favourable. The conclusion returns to this proposition.
+The Workplace and Its Scope
+The case concerns the following decision: The lunch service at the meal counter takes an order, assembles and packs the meal, then the student collects and pays. At noon the queue reaches the gate, one oven bakes one tray at a time, and the supervisor re-times the wait from collection. The counter hands on a packed meal and a payment receipt. Bread arrives from one regional bakery every morning before opening. The relevant area is the one named in the brief; the steps are properties of that area.
+Evidence is limited to the accepted items. A step without an accepted item is recorded as a gap, and an assumption is identified as such and is not treated as evidence. No aggregate score or recommendation is produced.
+5S
+Figure 1. 5S
+Sort
+•  the lunch service at the meal counter lunch service meal workplace organisation and sorting (Lovelace, 2024)
+Set in order
+•  the lunch service at the meal counter lunch service meal workplace layout and visual location marking (Lovelace, 2024)
+Shine
+•  the lunch service at the meal counter lunch service meal cleaning and inspection routine in a workplace (Lovelace, 2024)
+Standardize
+•  the lunch service at the meal counter lunch service meal standard work and visual standards in a workplace (Lovelace, 2024)
+Sustain
+•  the lunch service at the meal counter lunch service meal sustaining a workplace standard through audits (Lovelace, 2024)
+Note. The five S are read in order; each rests on the one before it.
+5S organises one workplace through five steps - sort, set in order, shine, standardize and sustain. Each is treated in turn, first through the evidence accepted for the case and then through what that evidence implies.
+Sort
+Evidence on the lunch service at the meal counter lunch service meal workplace organisation and sorting. A second sentence follows it. (Lovelace, 2024)
+Sorting removes what the work does not need, so the area shows only what it uses. The relevant question is whether what remains is there because it is needed.
+Set in Order
+Evidence on the lunch service at the meal counter lunch service meal workplace layout and visual location marking. A second sentence follows it. (Lovelace, 2024)
+Setting in order gives each thing a place and marks it, so the place teaches the standard. The relevant question is whether a person who did not arrange the area could put something back correctly.
+Shine
+Evidence on the lunch service at the meal counter lunch service meal cleaning and inspection routine in a workplace. A second sentence follows it. (Lovelace, 2024)
+Shining is cleaning used as inspection: the area is restored and faults are seen early. The relevant question is whether cleaning is scheduled rather than occasional.
+Standardize
+Evidence on the lunch service at the meal counter lunch service meal standard work and visual standards in a workplace. A second sentence follows it. (Lovelace, 2024)
+Standardizing writes down what the first three steps require, so the state can be repeated by anyone. The relevant question is whether the standard is visible where the work happens.
+Sustain
+Evidence on the lunch service at the meal counter lunch service meal sustaining a workplace standard through audits. A second sentence follows it. (Lovelace, 2024)
+Sustaining is the audit and the habit that keep the standard alive after attention moves elsewhere. The relevant question is whether a slip would be noticed.
+Discussion
+What the Evidence Shows About the Workplace
+The case supplies 5 accepted items across the steps: 5 sourced items, 0 items of the student's own evidence and 0 case assumptions. The steps carrying evidence are Sort (1), Set in order (1), Shine (1), Standardize (1), Sustain (1), while 0 step(s) are recorded as gaps.
+Read together, the steps describe a workplace in which some disciplines are evidenced and others are not, and a step without evidence cannot be treated as done. A step without evidence carries no weight in the assessment, because a gap is not a finding and cannot be read as either a strength or a weakness.
+Implications for the Decision the Workplace Must Support
+The combined reading bears on the decision: the documented conditions must be answered by the proposed position, and the plan must show how each would be met. A step that appears weak in the evidence is not thereby one that can be disregarded; it is a step the case has not documented.
+A decision about the area has to answer the steps the evidence shows: what is removed, where things belong, what is kept clean, and who keeps it that way. The decision itself remains the student's.
+Limitations
+The analysis does not rate the steps, compute an aggregate score or recommend a decision, because the accepted items do not support a quantitative comparison across them. Several steps may rest on a single item, which limits the weight they can bear; an assumption is not a source and a gap is not a finding. The student must verify every item before submission.
+Conclusion
+The analysis set out to establish, step by step, what the accepted evidence implies for the decision. The steps with evidence are Sort (1), Set in order (1), Shine (1), Standardize (1), Sustain (1). Each of them carries the same number of accepted items, so on this evidence none is better supported than another.
+The proposition advanced in the introduction is supported only to the extent that the items reach. The paper does not make the decision; it identifies the conditions that any justification must address.
+References
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace organisation and sorting. Journal of Operations Management. 10.1/428908
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal workplace layout and visual location marking. Journal of Operations Management. 10.1/824826
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal cleaning and inspection routine in a workplace. Journal of Operations Management. 10.1/902370
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal standard work and visual standards in a workplace. Journal of Operations Management. 10.1/949438
+Lovelace, A. (2024). the lunch service at the meal counter lunch service meal sustaining a workplace standard through audits. Journal of Operations Management. 10.1/578119

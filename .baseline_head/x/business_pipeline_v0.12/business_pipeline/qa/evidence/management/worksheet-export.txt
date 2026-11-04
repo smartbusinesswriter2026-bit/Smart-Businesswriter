@@ -1,0 +1,35 @@
+Value chain worksheet (case mgt-evidence)
+Report
+This value chain organizes 6 evidence items across 6 of 9 blocks. No evidence was supplied for: support: firm infrastructure, support: human resource management, support: technology development. Those blocks are left empty and are not filled in by the system. Some items are synthetic and illustrative only; they are not observations. This worksheet organizes evidence only. It does not score, rank or choose between blocks or items, and it adds no facts of its own.
+Support: firm infrastructure — Planning, finance, legal, quality and management
+No evidence supplied.
+Support: human resource management — Recruiting, developing and rewarding people
+No evidence supplied.
+Support: technology development — Product, process and information technology
+No evidence supplied.
+Support: procurement — How inputs are bought, not the inputs themselves
+• Rice and vegetables bought from one market supplier — illustrative only
+Primary: inbound logistics — Receiving, storing and moving inputs
+• Daily market run before six in the morning — illustrative only
+Primary: operations — Turning inputs into the product or service
+• One kitchen line cooks and packs meals — illustrative only
+Primary: outbound logistics — Storing and delivering the finished offer
+• Meals carried to the gate counter — illustrative only
+Primary: marketing and sales — Winning customers and setting the offer
+• Class-group chats and a meal-card stall — illustrative only
+Primary: service — Installing, supporting and keeping the offer working
+• Replacement of a meal that arrives cold — illustrative only
+Verification checks
+planned: each_item_placed_exactly_once
+planned: counts_agree_with_independent_recount
+planned: listing_reproduces_every_input_text_verbatim
+planned: analysis_contains_only_supplied_text
+planned: empty_blocks_reported_not_filled
+planned: links_resolve_to_supplied_items_and_are_kept_verbatim
+planned: assumptions_and_synthetic_flagged
+planned: no_score_or_ranking_present
+planned: rendering_is_deterministic
+Limitations
+The system adds no evidence, judgment or recommendation; quality depends on what you supply.
+No check that an item is true, that a customer segment exists, or that a claimed link holds in reality.
+No scoring, ranking or overall verdict on the canvas.

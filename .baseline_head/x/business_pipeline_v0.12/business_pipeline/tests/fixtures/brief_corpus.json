@@ -1,0 +1,405 @@
+[
+ {
+  "brief": "The grocery chain is assessing the Saudi market for a second branch; will it pay for itself? fixed cost 40000, price 25, variable 12.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "breakeven"
+  ],
+  "expected_question": null,
+  "note": "cost-cover"
+ },
+ {
+  "brief": "The grocery chain is appraising a branch in the Saudi market: net present value of an outlay of 100000 that returns 40000 a year for four years at a discount rate of 10 percent.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "npv"
+  ],
+  "expected_question": null,
+  "note": "appraisal"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a dcf on its declared free cash flows at a declared discount rate.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "dcf_valuation"
+  ],
+  "expected_question": null,
+  "note": "valuation"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the cost of equity for the branch is needed: capm on declared rates.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "capm"
+  ],
+  "expected_question": null,
+  "note": "capm"
+ },
+ {
+  "brief": "The grocery chain is entering the Jeddah market: how big is the market and what market share can it take?",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "market_sizing",
+   "market_share"
+  ],
+  "expected_question": null,
+  "note": "two intents, two capabilities"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a currency conversion of a declared amount at a declared rate.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "currency_convert"
+  ],
+  "expected_question": null,
+  "note": "currency"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the working capital cycle is the question, with inventory and receivables declared.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "working_capital"
+  ],
+  "expected_question": null,
+  "note": "working capital"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the equipment downtime needs an oee reading on declared time and units.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "oee_analysis"
+  ],
+  "expected_question": null,
+  "note": "oee"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the store queue is the constraint: queue performance on declared arrival and service rates.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "queue_analysis"
+  ],
+  "expected_question": null,
+  "note": "queue"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the packing line capacity is the bottleneck against declared demand.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "capacity_analysis"
+  ],
+  "expected_question": null,
+  "note": "capacity"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the loyalty cohorts need their cohort retention read from declared sizes and retained counts.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "cohort_retention"
+  ],
+  "expected_question": null,
+  "note": "cohort"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the project needs the critical path on its declared activities.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "cpm_schedule"
+  ],
+  "expected_question": null,
+  "note": "cpm"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the board needs a weighted decision matrix over the declared criteria.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "multi_criteria"
+  ],
+  "expected_question": null,
+  "note": "matrix"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the report needs the gini coefficient on the declared household incomes.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "gini_coefficient"
+  ],
+  "expected_question": null,
+  "note": "gini"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs the correlation between two declared series of weekly observations.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "pearson"
+  ],
+  "expected_question": null,
+  "note": "correlation"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a regression with robust standard errors on declared observations.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "ols_robust"
+  ],
+  "expected_question": null,
+  "note": "robust regression"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a market equilibrium from the declared demand and supply curves.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "demand_supply_equilibrium"
+  ],
+  "expected_question": null,
+  "note": "equilibrium"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and a tariff on declared imports needs its welfare read.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "tariff_welfare"
+  ],
+  "expected_question": null,
+  "note": "tariff"
+ },
+ {
+  "brief": "Assess the Saudi market for a grocery chain entering the country.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [],
+  "expected_question": null,
+  "note": "framework only, nothing selected"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a five forces analysis of the industry.",
+  "requested_framework": "five_forces",
+  "expected_framework": "five_forces",
+  "expected_capabilities": [],
+  "expected_question": null,
+  "note": "framework chosen, no computation"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market; build a vrio of its resources.",
+  "requested_framework": "vrio",
+  "expected_framework": "vrio",
+  "expected_capabilities": [],
+  "expected_question": null,
+  "note": "vrio"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market; what does a swot say?",
+  "requested_framework": "swot",
+  "expected_framework": "swot",
+  "expected_capabilities": [],
+  "expected_question": null,
+  "note": "swot"
+ },
+ {
+  "brief": "The grocery chain is assessing the Saudi market; will the branch pay for itself?",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [],
+  "expected_question": "capability:breakeven",
+  "note": "cue without figures: one question"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the markup and market power need reading from the declared price and marginal cost.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "market_power"
+  ],
+  "expected_question": null,
+  "note": "no cost curves, no pricing"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the donor needs the social return on investment for the declared investment and benefits.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "sroi"
+  ],
+  "expected_question": null,
+  "note": "sroi is not roi"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the channel economics need reading: CAC and LTV/CAC on declared channels.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "channel_economics"
+  ],
+  "expected_question": null,
+  "note": "ltv/cac is channel, not clv"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the assembly line needs balancing on its declared task times and cycle.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "line_balancing"
+  ],
+  "expected_question": null,
+  "note": "line balancing"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a panel regression on its declared observations across entities.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "panel_regression"
+  ],
+  "expected_question": null,
+  "note": "panel is not plain ols"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs the real wage against the declared CPI and productivity.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "labour_market"
+  ],
+  "expected_question": null,
+  "note": "real wage is not inflation"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a demand curve from its declared price and quantity points.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "demand_curve"
+  ],
+  "expected_question": null,
+  "note": "demand curve has two lists"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the project needs resource levelling on its declared activities.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "resource_leveling"
+  ],
+  "expected_question": null,
+  "note": "levelling"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the project crashing needs the declared target duration.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "project_crashing"
+  ],
+  "expected_question": null,
+  "note": "crashing"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs the schedule risk with three-point estimates.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "schedule_risk"
+  ],
+  "expected_question": null,
+  "note": "three-point estimate satisfies needs_any"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs the calendar schedule in declared working periods.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "calendar_schedule"
+  ],
+  "expected_question": null,
+  "note": "calendar"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a monte carlo range on the declared cash flow distributions.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "monte_carlo"
+  ],
+  "expected_question": null,
+  "note": "monte carlo"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the board needs a decision tree over the declared options.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "decision_tree"
+  ],
+  "expected_question": null,
+  "note": "tree"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs a multi-project schedule against shared capacity.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "multi_project_schedule"
+  ],
+  "expected_question": null,
+  "note": "multi project"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and pro-forma statements are needed for the declared revenue and margin.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "proforma_statements"
+  ],
+  "expected_question": null,
+  "note": "pro forma"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the board needs a multiples valuation against declared peer multiples for the ebitda.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "multiples_valuation"
+  ],
+  "expected_question": null,
+  "note": "multiples"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and the rate sensitivity of the declared cash flows needs a scenario analysis.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "scenario_analysis"
+  ],
+  "expected_question": null,
+  "note": "scenario"
+ },
+ {
+  "brief": "The grocery chain is entering the Saudi market and needs the net present value of a branch that costs 100000 and returns 40000 a year for four years, at its cost of capital. The equity is 1000 at a required return of 11%, the debt is 500 at 5% after tax.",
+  "requested_framework": null,
+  "expected_framework": "pestel",
+  "expected_capabilities": [
+   "capm",
+   "npv",
+   "wacc"
+  ],
+  "expected_question": null,
+  "note": "NPV written as costs and yearly returns plus its cost of capital: three capabilities, no question"
+ }
+]

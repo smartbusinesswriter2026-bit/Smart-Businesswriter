@@ -1,0 +1,6 @@
+﻿counts: {"tools": 59, "worksheets": 0, "records": 5, "theories": 0, "glossary": 25, "tiles": 8, "start_steps": 5, "does_not": 3, "methods_in_library": 142, "presets": 144}
+findings: 75
+  DUPLICATE_DEFINITION         3
+  NO_NEED                      52
+  RELATED_UNRESOLVED           20
+exit=0

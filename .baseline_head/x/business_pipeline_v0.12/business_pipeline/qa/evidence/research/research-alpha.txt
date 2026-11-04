@@ -1,0 +1,28 @@
+Computation: reliability alpha
+Result
+Across 4 items and 8 complete responses the reliability is 0.8874. It measures internal consistency of these items, not validity or a single factor. Cronbach's alpha measures internal consistency, not unidimensionality, validity or a single underlying factor. The classic formula assumes continuous, roughly interval items and listwise-complete responses; ordinal items and missing-data mechanisms are not modelled. A high alpha can come from redundant items; a low alpha does not by itself mean the construct is invalid. Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Inputs and results
+What you declared
+Items: One: 4, 5, 3, 4, 5, 2, 4, 3; Two: 4, 4, 3, 5, 4, 3, 4, 2; Three: 3, 4, 2, 4, 5, 3, 4, 3; Four: 4, 5, 3, 4, 4, 2, 3, 3
+What was computed
+Alpha: 0.8874
+K items: 4
+N: 8
+N excluded: 0
+Sum item variance: 3.6250
+Total variance: 10.8393
+Honesty: what was not done
+missing data: Missing values (blank entries and declared missing codes) are excluded listwise before the computation; the missing-data mechanism (MCAR, MAR or MNAR) was not established, so the results assume the excluded values are not systematically different.
+Assumptions made
+Items are continuous or roughly interval and measure one construct.
+Responses are complete per retained respondent.
+Limitations
+Alpha is a lower bound on reliability under tau-equivalence, not a measure of unidimensionality.
+Listwise deletion only.
+No confidence interval is computed.
+How the figures were checked
+Second implementation agrees.
+Alpha is at most k over k minus one.
+Duplicating an item raises alpha.
+Row order invariant.
+Missing rows are excluded.

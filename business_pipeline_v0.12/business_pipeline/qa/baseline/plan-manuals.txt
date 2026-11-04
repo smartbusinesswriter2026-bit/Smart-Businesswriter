@@ -1,0 +1,11 @@
+accounting.md 45653 bytes
+economics.md 116222 bytes
+entrepreneurship.md 35825 bytes
+finance.md 33505 bytes
+management.md 30272 bytes
+operations.md 39071 bytes
+people.md 51696 bytes
+project-management.md 53541 bytes
+research.md 38140 bytes
+rubric.md 21841 bytes
+supply-chain.md 52986 bytes
