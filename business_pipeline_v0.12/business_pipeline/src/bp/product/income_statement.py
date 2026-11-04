@@ -35,7 +35,8 @@ class AccountLine:
     account: str
     amount: Decimal
     kind: str  # revenue | contra_revenue | cogs | operating_expense |
-               # non_operating_revenue | non_operating_expense | tax_rate
+               # non_operating_revenue | non_operating_expense | tax_rate |
+               # current_asset | current_liability | non_current_asset | non_current_liability
     line: str  # presentation line name
 
 
@@ -58,6 +59,19 @@ class IncomeStatementResult:
     lines: List[Dict[str, Any]]  # rendered lines for presentation
 
 
+@dataclass
+class BalanceSheetResult:
+    """Computed balance sheet analysis (ratio analysis)."""
+    current_assets: Decimal
+    current_liabilities: Decimal
+    working_capital: Decimal
+    current_ratio: Decimal
+    total_assets: Decimal
+    total_liabilities: Decimal
+    total_equity: Decimal
+    lines: List[Dict[str, Any]]  # rendered lines for presentation
+
+
 #: Detectors for multi-step income statement problems.
 INCOME_STATEMENT_DETECTORS = [
     (r"multi.step\s+income\s+statement", "multi_step"),
@@ -70,11 +84,30 @@ INCOME_STATEMENT_DETECTORS = [
     (r"sales\s+returns", "multi_step"),
 ]
 
+#: Detectors for ratio analysis / balance sheet analysis problems.
+RATIO_DETECTORS = [
+    (r"current\s+ratio", "ratio"),
+    (r"working\s+capital", "ratio"),
+    (r"current\s+assets", "ratio"),
+    (r"current\s+liabilities", "ratio"),
+    (r"liquidity", "ratio"),
+    (r"balance\s+sheet\s+analysis", "ratio"),
+]
+
 
 def detect_income_statement(text: str) -> bool:
     """Return True if the problem reads as a multi-step income statement computation."""
     low = text.lower()
     for pattern, _ in INCOME_STATEMENT_DETECTORS:
+        if re.search(pattern, low):
+            return True
+    return False
+
+
+def detect_ratio_analysis(text: str) -> bool:
+    """Return True if the problem reads as a ratio analysis / balance sheet analysis."""
+    low = text.lower()
+    for pattern, _ in RATIO_DETECTORS:
         if re.search(pattern, low):
             return True
     return False
@@ -141,6 +174,26 @@ def _classify_account(account: str) -> Tuple[str, str]:
     # Tax rate — only if explicitly a tax account
     if re.search(r"\btax\b", a):
         return ("tax_rate", "Income Tax Expense")
+
+    # Balance sheet classification
+    if re.search(r"^(cash|bank|cash at bank|bank account)$", a):
+        return ("current_asset", "Cash")
+    if re.search(r"^(trade receivables?|receivables?|accounts? receivable|sundry debtors)$", a):
+        return ("current_asset", "Accounts Receivable")
+    if re.search(r"^(inventor(y|ies)|stock|closing stock)$", a):
+        return ("current_asset", "Inventory")
+    if re.search(r"^(prepaid\s+expenses?|prepaids?)$", a):
+        return ("current_asset", "Prepaid Expenses")
+    if re.search(r"^(equipment|vehicles?|machinery|furniture|land|buildings?|plant)$", a) and not re.search(r"accumulated", a):
+        return ("non_current_asset", "Equipment (net)")
+    if re.search(r"^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors)$", a):
+        return ("current_liability", "Accounts Payable")
+    if re.search(r"^(notes payable|short.term notes? payable)$", a):
+        return ("current_liability", "Short-term Notes Payable")
+    if re.search(r"^(accrued (expenses?|liabilities?|liability)|accruals?)$", a):
+        return ("current_liability", "Accrued Liabilities")
+    if re.search(r"^(long.term (debt|notes? payable)|long.term debt|long.term loan)$", a):
+        return ("non_current_liability", "Long-term Debt")
 
     # Generic expense fallback
     if re.search(r"\b(expense|cost)\b", a):
@@ -313,4 +366,139 @@ def render_income_statement(result: IncomeStatementResult, period: str, currency
     out.append(f"Less: Income Tax Expense ({result.tax_rate * 100:.0f}%)                      {result.income_tax:>12,.2f}")
     out.append(f"Net Income                                                  {result.net_income:>12,.2f}")
 
+    out.append(f"Net Income                                                  {result.net_income:>12,.2f}")
+
     return "\n".join(out)
+
+
+def compute_balance_sheet_analysis(lines: List[AccountLine]) -> BalanceSheetResult:
+    """Compute balance sheet analysis from parsed account lines.
+
+    Computes current assets, current liabilities, working capital, and current ratio.
+    """
+    current_assets = Decimal("0")
+    current_liabilities = Decimal("0")
+    non_current_assets = Decimal("0")
+    non_current_liabilities = Decimal("0")
+
+    for line in lines:
+        if line.kind == "current_asset":
+            current_assets += line.amount
+        elif line.kind == "current_liability":
+            current_liabilities += line.amount
+        elif line.kind == "non_current_asset":
+            non_current_assets += line.amount
+        elif line.kind == "non_current_liability":
+            non_current_liabilities += line.amount
+
+    total_assets = current_assets + non_current_assets
+    total_liabilities = current_liabilities + non_current_liabilities
+    total_equity = total_assets - total_liabilities
+    working_capital = current_assets - current_liabilities
+    current_ratio = current_assets / current_liabilities if current_liabilities > 0 else Decimal("0")
+
+    # Build rendered lines
+    rendered: List[Dict[str, Any]] = []
+
+    rendered.append({"label": "Current Assets", "kind": "heading", "amount": Decimal("0"), "indent": 0})
+    for line in lines:
+        if line.kind == "current_asset":
+            rendered.append({"label": "  " + line.account.title(), "kind": "current_asset",
+                            "amount": line.amount, "indent": 1})
+    rendered.append({"label": "Total Current Assets", "kind": "subtotal",
+                    "amount": current_assets, "indent": 0})
+
+    rendered.append({"label": "Non-Current Assets", "kind": "heading", "amount": Decimal("0"), "indent": 0})
+    for line in lines:
+        if line.kind == "non_current_asset":
+            rendered.append({"label": "  " + line.account.title(), "kind": "non_current_asset",
+                            "amount": line.amount, "indent": 1})
+    rendered.append({"label": "Total Non-Current Assets", "kind": "subtotal",
+                    "amount": non_current_assets, "indent": 1})
+    rendered.append({"label": "Total Assets", "kind": "subtotal",
+                    "amount": total_assets, "indent": 0})
+
+    rendered.append({"label": "Current Liabilities", "kind": "heading", "amount": Decimal("0"), "indent": 0})
+    for line in lines:
+        if line.kind == "current_liability":
+            rendered.append({"label": "  " + line.account.title(), "kind": "current_liability",
+                            "amount": line.amount, "indent": 1})
+    rendered.append({"label": "Total Current Liabilities", "kind": "subtotal",
+                    "amount": current_liabilities, "indent": 1})
+
+    rendered.append({"label": "Non-Current Liabilities", "kind": "heading", "amount": Decimal("0"), "indent": 0})
+    for line in lines:
+        if line.kind == "non_current_liability":
+            rendered.append({"label": "  " + line.account.title(), "kind": "non_current_liability",
+                            "amount": line.amount, "indent": 1})
+    rendered.append({"label": "Total Non-Current Liabilities", "kind": "subtotal",
+                    "amount": non_current_liabilities, "indent": 1})
+    rendered.append({"label": "Total Liabilities", "kind": "subtotal",
+                    "amount": total_liabilities, "indent": 0})
+
+    rendered.append({"label": "Total Equity", "kind": "subtotal",
+                    "amount": total_equity, "indent": 0})
+    rendered.append({"label": "Total Liabilities and Equity", "kind": "total",
+                    "amount": total_liabilities + total_equity, "indent": 0})
+
+    rendered.append({"label": "", "kind": "spacer", "amount": Decimal("0"), "indent": 0})
+    rendered.append({"label": "Working Capital (Current Assets − Current Liabilities)",
+                    "kind": "ratio_line", "amount": working_capital, "indent": 0})
+    rendered.append({"label": "Current Ratio (Current Assets ÷ Current Liabilities)",
+                    "kind": "ratio_line", "amount": current_ratio, "indent": 0})
+
+    return BalanceSheetResult(
+        current_assets=current_assets,
+        current_liabilities=current_liabilities,
+        working_capital=working_capital,
+        current_ratio=current_ratio,
+        total_assets=total_assets,
+        total_liabilities=total_liabilities,
+        total_equity=total_equity,
+        lines=rendered,
+    )
+
+
+def render_balance_sheet_analysis(result: BalanceSheetResult, period: str, currency: str = "USD") -> str:
+    """Render the balance sheet analysis as text."""
+    out = ["BALANCE SHEET ANALYSIS", f"As of {period}", f"   {currency}", ""]
+
+    out.append("Current Assets")
+    for line in result.lines:
+        if line["kind"] == "current_asset":
+            out.append(f"  {line['label'].strip():<55}{line['amount']:>12,.2f}")
+    out.append(f"  Total Current Assets                                {result.current_assets:>12,.2f}")
+    out.append("")
+
+    out.append("Non-Current Assets")
+    for line in result.lines:
+        if line["kind"] == "non_current_asset":
+            out.append(f"  {line['label'].strip():<55}{line['amount']:>12,.2f}")
+    out.append(f"  Total Non-Current Assets                            {result.total_assets - result.current_assets:>12,.2f}")
+    out.append(f"  Total Assets                                        {result.total_assets:>12,.2f}")
+    out.append("")
+
+    out.append("Current Liabilities")
+    for line in result.lines:
+        if line["kind"] == "current_liability":
+            out.append(f"  {line['label'].strip():<55}{line['amount']:>12,.2f}")
+    out.append(f"  Total Current Liabilities                           {result.current_liabilities:>12,.2f}")
+    out.append("")
+
+    out.append("Non-Current Liabilities")
+    for line in result.lines:
+        if line["kind"] == "non_current_liability":
+            out.append(f"  {line['label'].strip():<55}{line['amount']:>12,.2f}")
+    out.append(f"  Total Non-Current Liabilities                       {result.total_liabilities - result.current_liabilities:>12,.2f}")
+    out.append(f"  Total Liabilities                                   {result.total_liabilities:>12,.2f}")
+    out.append("")
+
+    out.append(f"Total Equity                                          {result.total_equity:>12,.2f}")
+    out.append(f"Total Liabilities and Equity                          {result.total_liabilities + result.total_equity:>12,.2f}")
+    out.append("")
+
+    out.append(f"Working Capital                                       {result.working_capital:>12,.2f}")
+    out.append(f"Current Ratio                                         {result.current_ratio:>12,.2f}")
+
+    return "\n".join(out)
+

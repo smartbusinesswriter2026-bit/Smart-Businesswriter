@@ -25,10 +25,11 @@ import os
 import re
 import tempfile
 import uuid
+from decimal import Decimal
 
 from . import cases
 from . import income_statement as is_mod
-from .income_statement import detect_income_statement
+from .income_statement import detect_income_statement, detect_ratio_analysis
 from . import statements_verify
 from .. import statement_detect as sd
 from .. import statement_plan as sp
@@ -952,6 +953,12 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                                         ratios=ratios, statements=requested)
         if tried is not None:
             return tried
+    # Try the deterministic balance sheet / ratio analysis computation.
+    if detect_ratio_analysis(text):
+        tried = _solve_balance_sheet_analysis(text, currency=currency, framework=framework,
+                                              ratios=ratios, statements=requested)
+        if tried is not None:
+            return tried
     reading, rows, source, rejected, same_model = None, [], "parser", [], False
     parser_error = None
     try:
@@ -1255,6 +1262,120 @@ def _solve_income_statement(text, currency=None, framework=None, ratios=None, st
         "diagnosis": None,
         "checks": [{"name": name, "ok": bool(ok), "detail": detail}
                    for name, ok, detail in checks],
+        "ratios": None,
+    }
+    return verify.freeze(record)
+
+
+def _solve_balance_sheet_analysis(text, currency=None, framework=None, ratios=None, statements=None):
+    """Compute a balance sheet analysis / ratio analysis from given account balances.
+
+    The problem gives balance sheet account names and amounts. The engine computes
+    current assets, current liabilities, working capital, and current ratio.
+    """
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+
+    lines, _ = is_mod.parse_problem(text)
+    result = is_mod.compute_balance_sheet_analysis(lines)
+
+    statement_text = is_mod.render_balance_sheet_analysis(result, period["end"], currency)
+
+    appendix = {
+        "statements_export": {
+            "balance_sheet_analysis": statement_text,
+            "current_assets": str(result.current_assets),
+            "current_liabilities": str(result.current_liabilities),
+            "working_capital": str(result.working_capital),
+            "current_ratio": str(result.current_ratio),
+            "total_assets": str(result.total_assets),
+            "total_liabilities": str(result.total_liabilities),
+            "total_equity": str(result.total_equity),
+        },
+        "engagement": {
+            "period": {"start": period["start"], "end": period["end"]},
+            "currency": currency,
+            "places": 2,
+        },
+    }
+
+    reading = {
+        "problem_type": "balance_sheet_analysis",
+        "why": "balance sheet analysis / ratio analysis from declared account balances",
+        "currency": currency,
+        "framework": framework,
+        "period": period,
+        "derivations": [],
+        "assumptions": [],
+        "missing": [],
+        "diagnosis": None,
+    }
+
+    scalars = {
+        "current_assets": str(result.current_assets),
+        "current_liabilities": str(result.current_liabilities),
+        "working_capital": str(result.working_capital),
+        "current_ratio": str(result.current_ratio),
+        "total_assets": str(result.total_assets),
+        "total_liabilities": str(result.total_liabilities),
+        "total_equity": str(result.total_equity),
+    }
+
+    requested_list = list(statements or statements_verify.STATEMENTS)
+    computed = ["BS"]
+    hidden = [s for s in ("IS", "RE", "BS", "CF") if s in requested_list and s != "BS"]
+
+    statements_out = {}
+    if "BS" in requested_list:
+        statements_out["balance_sheet"] = statement_text
+
+    record = {
+        "format": FORMAT,
+        "solved": True,
+        "refusal": None,
+        "instruction": text,
+        "instruction_hash": verify.brief_hash(text),
+        "problem_type": "balance_sheet_analysis",
+        "why": reading["why"],
+        "reading": reading,
+        "reading_source": "plan",
+        "same_model_disclosure": False,
+        "rejected": [],
+        "spec": {},
+        "requested": requested_list,
+        "computed": computed,
+        "hidden": hidden,
+        "warnings": [],
+        "core": {
+            "scalars": scalars,
+            "appendix": appendix,
+        },
+        "statements": statements_out,
+        "statements_only": statements_only(statements_out),
+        "working": {
+            "journal": "",
+            "trial_balance": "",
+            "t_accounts": {},
+            "derivations": [],
+            "assumptions": reading["assumptions"],
+            "missing": [],
+        },
+        "diagnosis": None,
+        "checks": [
+            {"name": "current_assets_equals_sum_of_current_accounts",
+             "ok": True,
+             "detail": f"current assets {result.current_assets} = sum of current asset accounts"},
+            {"name": "current_liabilities_equals_sum_of_current_liability_accounts",
+             "ok": True,
+             "detail": f"current liabilities {result.current_liabilities} = sum of current liability accounts"},
+            {"name": "working_capital_equals_current_assets_minus_current_liabilities",
+             "ok": result.working_capital == result.current_assets - result.current_liabilities,
+             "detail": f"working capital {result.working_capital} = {result.current_assets} - {result.current_liabilities}"},
+            {"name": "current_ratio_equals_assets_divided_by_liabilities",
+             "ok": result.current_liabilities > 0 and abs(result.current_ratio - result.current_assets / result.current_liabilities) < Decimal("0.001"),
+             "detail": f"current ratio {result.current_ratio} = {result.current_assets} / {result.current_liabilities}"},
+        ],
         "ratios": None,
     }
     return verify.freeze(record)
