@@ -4051,6 +4051,14 @@ function ensureSubjects() {
     state.subjects = (d && d.subjects) || [];
     renderRailSubjects();
     return state.subjects;
+  }).catch(() => {
+    // Static fallback for hosts without the Python backend (e.g. Cloudflare Pages):
+    // load the subject index snapshot baked into the site.
+    return fetch("/subjects.json").then((r) => r.json()).then((d) => {
+      state.subjects = (d && d.subjects) || [];
+      renderRailSubjects();
+      return state.subjects;
+    }).catch(() => { state.subjects = []; renderRailSubjects(); return state.subjects; });
   });
 }
 
@@ -4076,12 +4084,18 @@ function loadRailSubjects() {
     state.subjects = (d && d.subjects) || [];
     renderRailSubjects();
     return state.subjects;
-  }).catch((e) => {
-    // Keep the static subject list (rendered in the page) when the API is unavailable.
-    const box = $("#railsubjects");
-    if (box && !box.querySelector(".railfallback")) {
-      box.insertAdjacentHTML("beforeend", '<span class="railfallback">Live counts unavailable: ' + esc(e.message) + "</span>");
-    }
+  }).catch(() => {
+    // Static fallback for hosts without the Python backend (e.g. Cloudflare Pages).
+    return fetch("/subjects.json").then((r) => r.json()).then((d) => {
+      state.subjects = (d && d.subjects) || [];
+      renderRailSubjects();
+      return state.subjects;
+    }).catch(() => {
+      const box = $("#railsubjects");
+      if (box && !box.querySelector(".railfallback")) {
+        box.insertAdjacentHTML("beforeend", '<span class="railfallback">Live counts unavailable</span>');
+      }
+    });
   });
 }
 
@@ -9875,7 +9889,7 @@ async function boot() {
     api("/api/health").then((d) => { state.health = d || null; paintBuild(d && d.build); })
   ]);
   const failed = results.filter((r) => r.status === "rejected");
-  if (failed.length) {
+  if (failed.length && failed.length < results.length) {
     $("#panel-home").insertAdjacentHTML("afterbegin", banner("blocked", "The local API did not answer completely",
       "<div>" + esc(failed[0].reason && failed[0].reason.message ? failed[0].reason.message : String(failed[0].reason)) + "</div>"));
   }
