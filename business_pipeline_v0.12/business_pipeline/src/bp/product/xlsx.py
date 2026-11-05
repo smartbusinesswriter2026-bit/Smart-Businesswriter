@@ -60,13 +60,17 @@ STYLES = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <border><left/><right/><top/><bottom/></border>
 <border><left/><right/><top/><bottom style="thin"><color rgb="BFBFBF"/></bottom></border>
 </borders>
+<numFmts count="1">
+<numFmt numFmtId="164" formatCode="#,##0.00"/>
+</numFmts>
 <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
 <cellXfs count="4">
-<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/>
-<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0"/>
-<xf numFmtId="4" fontId="0" fillId="0" borderId="1" xfId="0"/>
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="0" applyFont="0" applyFill="0" applyBorder="0" applyAlignment="0"/>
+<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>
+<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1"/>
 </cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
 </styleSheet>"""
 
 NUM_FMT = '#,##0.00'
