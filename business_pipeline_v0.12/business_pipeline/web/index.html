@@ -4048,12 +4048,21 @@ function bindSubjectCards(root) {
 function ensureSubjects() {
   if (state.subjects && state.subjects.length) return Promise.resolve(state.subjects);
   return api("/api/cases/subjects").then((d) => {
-    state.subjects = (d && d.subjects) || [];
-    renderRailSubjects();
-    return state.subjects;
+    const rows = (d && Array.isArray(d.subjects)) ? d.subjects : [];
+    if (rows.length) {
+      state.subjects = rows;
+      renderRailSubjects();
+      return state.subjects;
+    }
+    // The API answered but carried no subjects (e.g. a static host that
+    // returns the page HTML instead of the subject index): fall back to the
+    // snapshot baked into the site.
+    return fetch("/subjects.json").then((r) => r.json()).then((d2) => {
+      state.subjects = (d2 && d2.subjects) || [];
+      renderRailSubjects();
+      return state.subjects;
+    }).catch(() => { state.subjects = []; renderRailSubjects(); return state.subjects; });
   }).catch(() => {
-    // Static fallback for hosts without the Python backend (e.g. Cloudflare Pages):
-    // load the subject index snapshot baked into the site.
     return fetch("/subjects.json").then((r) => r.json()).then((d) => {
       state.subjects = (d && d.subjects) || [];
       renderRailSubjects();
@@ -4081,11 +4090,23 @@ function renderRailSubjects() {
 
 function loadRailSubjects() {
   return api("/api/cases/subjects").then((d) => {
-    state.subjects = (d && d.subjects) || [];
-    renderRailSubjects();
-    return state.subjects;
+    const rows = (d && Array.isArray(d.subjects)) ? d.subjects : [];
+    if (rows.length) {
+      state.subjects = rows;
+      renderRailSubjects();
+      return state.subjects;
+    }
+    return fetch("/subjects.json").then((r) => r.json()).then((d2) => {
+      state.subjects = (d2 && d2.subjects) || [];
+      renderRailSubjects();
+      return state.subjects;
+    }).catch(() => {
+      const box = $("#railsubjects");
+      if (box && !box.querySelector(".railfallback")) {
+        box.insertAdjacentHTML("beforeend", '<span class="railfallback">Live counts unavailable</span>');
+      }
+    });
   }).catch(() => {
-    // Static fallback for hosts without the Python backend (e.g. Cloudflare Pages).
     return fetch("/subjects.json").then((r) => r.json()).then((d) => {
       state.subjects = (d && d.subjects) || [];
       renderRailSubjects();
