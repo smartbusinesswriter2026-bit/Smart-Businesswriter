@@ -224,7 +224,7 @@ def classify(text):
     # can match adjustment cues).
     import re as _re
     if _re.search(r"\d[\d,]*(?:\.\d+)?\s*(?:Dr|Cr)\.?(?=\s|$|[;,.])", text, _re.I):
-        return "trial_balance", "Dr/Cr markers", text[:60]
+        return "trial_balance", "trial balance", "the instruction carries Dr/Cr markers"
     for kind, patterns in CUES:
         for pattern in patterns:
             match = re.search(pattern, text, re.I)
@@ -603,7 +603,7 @@ def read_deterministic(text, currency=None, framework=None):
     places = max([2] + [_decimals(row["written"]) for row in rows])
     reading = {
         "problem_type": kind,
-        "why": "cue '" + cue + "' in: " + (sentence or cue),
+        "why": ("Trial balance read from Dr/Cr markers." if cue == "trial balance" else "cue '" + cue + "' in: " + (sentence or cue)),
         "currency": currency_of(text, currency),
         "framework": framework_of(text, framework),
         "places": places,
