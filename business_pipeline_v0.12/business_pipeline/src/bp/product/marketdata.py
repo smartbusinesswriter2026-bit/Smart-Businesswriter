@@ -487,7 +487,8 @@ def _massive_quote(symbol):
     """Previous close from Massive's Stocks Basic plan (5 requests/minute)."""
     key = (os.environ.get("BP_MASSIVE_KEY") or os.environ.get("BP_MASSIVE_API_KEY") or "").strip()
     if not key:
-        raise MarketDataError("a Massive key is required: set BP_MASSIVE_KEY")
+        raise MarketDataError("a Massive key is required: set BP_MASSIVE_KEY "
+                              "(or BP_MASSIVE_API_KEY)")
     url = (MASSIVE + "/v2/aggs/ticker/" + urllib.parse.quote(symbol) +
            "/prev?adjusted=true&apiKey=" + urllib.parse.quote(key))
     raw, final = _fetch(url)
@@ -730,7 +731,8 @@ def worldbank_indicator(country, indicator="gdp_growth", years=5):
 def _massive_key():
     key = (os.environ.get("BP_MASSIVE_KEY") or os.environ.get("BP_MASSIVE_API_KEY") or "").strip()
     if not key:
-        raise MarketDataError("a Massive key is required for this provider: set BP_MASSIVE_KEY")
+        raise MarketDataError("a Massive key is required for this provider: set BP_MASSIVE_KEY "
+                              "(or BP_MASSIVE_API_KEY)")
     return key
 
 
