@@ -402,11 +402,11 @@ def parse(text):
     """The model's text as a JSON object, refusing anything that is not one."""
     raw = _FENCE.sub("", str(text or "").strip())
     if not raw:
-        raise ExtractionError("the model returned nothing")
+        raise ExtractionError("the model did not return a readable journal. Try restating as a trial balance (one account per line) or as labelled figures (Data: ... Required: ...).")
     try:
         data = json.loads(raw)
     except ValueError:
-        raise ExtractionError("the model did not return JSON")
+        raise ExtractionError("the model response was not in the expected format. Try restating as a trial balance (one account per line) or as labelled figures (Data: ... Required: ...).")
     if not isinstance(data, dict):
         raise ExtractionError("the model returned JSON but not an object")
     if not isinstance(data.get("entries"), list):
