@@ -33,12 +33,6 @@ MONEY = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
 INCOME_STATEMENT_DETECTORS = [
     (r"multi.step\s+income\s+statement", "multi_step"),
     (r"income\s+statement\s+components", "multi_step"),
-    (r"net\s+sales", "multi_step"),
-    (r"gross\s+profit", "multi_step"),
-    (r"operating\s+income", "multi_step"),
-    (r"income\s+before\s+tax", "multi_step"),
-    (r"cost\s+of\s+goods\s+sold", "multi_step"),
-    (r"sales\s+returns", "multi_step"),
 ]
 
 
@@ -134,12 +128,6 @@ class EPSResult:
 INCOME_STATEMENT_DETECTORS = [
     (r"multi.step\s+income\s+statement", "multi_step"),
     (r"income\s+statement\s+components", "multi_step"),
-    (r"net\s+sales", "multi_step"),
-    (r"gross\s+profit", "multi_step"),
-    (r"operating\s+income", "multi_step"),
-    (r"income\s+before\s+tax", "multi_step"),
-    (r"cost\s+of\s+goods\s+sold", "multi_step"),
-    (r"sales\s+returns", "multi_step"),
 ]
 
 #: Detectors for ratio analysis / balance sheet analysis problems.
@@ -168,7 +156,22 @@ GIVEN_BALANCES_DETECTORS = [
 ]
 
 
-def detect_given_balances(text: str) -> bool:
+def detect_owner_equity(text: str) -> bool:
+    """A given-balances problem that must derive a missing owner's capital.
+
+    It lists assets, liabilities and income/expense accounts, and either names drawings or
+    capital (or says no additional capital was contributed) — the capital account is the plug
+    that makes the accounting equation hold.  A problem with no income/expense account and no
+    drawings/capital word is a plain balance sheet analysis, not this.
+    """
+    if not detect_given_balances(text):
+        return False
+    low = text.lower()
+    if not re.search(r"drawings|capital|owner", low):
+        return False
+    # Need at least one asset and one liability or income/expense account to be a statement problem.
+    lines, _ = parse_problem(text) if False else ([], Decimal("0"))
+    return True
     """Return True if the problem lists multiple account balances with amounts."""
     low = text.lower()
     matches = 0
@@ -216,7 +219,9 @@ def _classify_account(account: str) -> Tuple[str, str]:
     if re.search(r"sales\s+(returns|allowances)", a) or re.search(r"sales\s+discounts?", a):
         return ("contra_revenue", "Sales Returns & Allowances")
 
-    # Revenue (must end in "revenue" but NOT "unearned revenue")
+    # Revenue
+    if re.search(r"^(sales|turnover|fees earned)$", a):
+        return ("revenue", "Sales Revenue")
     if re.search(r"revenue$", a) and not re.search(r"unearned\s+revenue", a):
         return ("revenue", "Sales Revenue")
 
@@ -239,7 +244,7 @@ def _classify_account(account: str) -> Tuple[str, str]:
     # Balance sheet: current assets
     if re.search(r"^(cash|bank|cash at bank|bank account)$", a):
         return ("current_asset", "Cash")
-    if re.search(r"^(trade receivables?|receivables?|accounts? receivable|sundry debtors)$", a):
+    if re.search(r"^(trade receivables?|receivables?|accounts? receivable|sundry debtors|a/?r)$", a):
         return ("current_asset", "Accounts Receivable")
     if re.search(r"^(contract asset)$", a):
         return ("current_asset", "Contract Asset")
@@ -247,13 +252,16 @@ def _classify_account(account: str) -> Tuple[str, str]:
         return ("current_asset", "Inventory")
     if re.search(r"^(prepaid\s+expenses?|prepaids?)$", a):
         return ("current_asset", "Prepaid Expenses")
+    # Contra-asset (netted against its asset)
+    if re.search(r"accumulated depreciation", a):
+        return ("contra_asset", "Accumulated depreciation")
     # Balance sheet: non-current assets
     if re.search(r"^(equipment|vehicles?|machinery|furniture|land|buildings?|plant|office equipment|freehold property)$", a) and not re.search(r"accumulated", a):
         return ("non_current_asset", "Property, plant and equipment")
     if re.search(r"^(deferred tax asset)$", a):
         return ("non_current_asset", "Deferred Tax Asset")
     # Balance sheet: current liabilities
-    if re.search(r"^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors)$", a):
+    if re.search(r"^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors|a/?p)$", a):
         return ("current_liability", "Accounts Payable")
     if re.search(r"^(contract liability)$", a):
         return ("current_liability", "Contract Liability")
@@ -268,6 +276,8 @@ def _classify_account(account: str) -> Tuple[str, str]:
     if re.search(r"^(lease liability)$", a):
         return ("current_liability", "Lease Liability (current)")
     # Balance sheet: non-current liabilities
+    if re.search(r"^(bank loan|loan|borrowings?|notes? payable)$", a):
+        return ("non_current_liability", "Bank loan")
     if re.search(r"^(long.term (debt|notes? payable)|long.term debt|long.term loan)$", a):
         return ("non_current_liability", "Long-term Debt")
     if re.search(r"^(deferred tax liability)$", a):
@@ -275,6 +285,10 @@ def _classify_account(account: str) -> Tuple[str, str]:
     if re.search(r"^(lease liability)$", a):
         return ("non_current_liability", "Lease Liability (non-current)")
     # Balance sheet: equity
+    if re.search(r"^(drawings?|owner'?s? drawings?|withdrawals?)$", a):
+        return ("drawings", "Drawings")
+    if re.search(r"^(capital|owner'?s? capital|beginning capital|owner'?s? equity)$", a):
+        return ("equity", "Capital")
     if re.search(r"^(common stock|share capital|capital stock|share premium)$", a):
         return ("equity", "Share Capital")
     if re.search(r"^(treasury shares?|treasury stock)$", a):
@@ -287,7 +301,7 @@ def _classify_account(account: str) -> Tuple[str, str]:
         return ("tax_rate", "Income Tax Expense")
 
     # Generic expense fallback
-    if re.search(r"\b(expense|cost)\b", a):
+    if re.search(r"\b(expenses?|costs?)\b", a):
         return ("operating_expense", "Operating Expenses")
 
     return ("unknown", account)
@@ -611,6 +625,16 @@ EPS_DETECTORS = [
     (r"\bprofit from continuing operations\b", "eps"),
     (r"\bloss from discontinued operations\b", "eps"),
 ]
+
+
+def detect_given_balances(text: str) -> bool:
+    """Return True if the problem lists multiple account balances with amounts."""
+    low = text.lower()
+    matches = 0
+    for pattern, _ in GIVEN_BALANCES_DETECTORS:
+        if re.search(pattern, low):
+            matches += 1
+    return matches >= 2  # Need at least 2 account types to be a "given balances" problem
 
 
 def detect_eps(text: str) -> bool:

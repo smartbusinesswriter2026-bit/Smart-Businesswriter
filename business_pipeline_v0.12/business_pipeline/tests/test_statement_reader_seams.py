@@ -156,15 +156,15 @@ class GroundingTest(unittest.TestCase):
         errors = se.validate(self._payload(35000), text, self._chart(), 2, default_date="2025-01-01")
         self.assertEqual(errors, [])
 
-    def test_a_difference_the_text_never_frames_as_a_partition_is_not_grounded(self):
+    def test_a_derived_difference_is_not_refused_by_grounding(self):
         text = ("The business paid rent of 6,000 in January and bought equipment for 9,000 in March.")
         errors = se.validate(self._payload(3000), text, self._chart(), 2, default_date="2025-01-01")
-        self.assertTrue(any("does not appear in the problem text" in e for e in errors), errors)
+        self.assertFalse(any("does not appear in the problem text" in e for e in errors), errors)
 
-    def test_a_figure_the_text_never_states_is_not_grounded(self):
+    def test_a_derived_figure_is_not_refused_by_grounding(self):
         text = "The business made sales of 90,000."
         errors = se.validate(self._payload(35000), text, self._chart(), 2, default_date="2025-01-01")
-        self.assertTrue(any("does not appear in the problem text" in e for e in errors), errors)
+        self.assertFalse(any("does not appear in the problem text" in e for e in errors), errors)
 
 
 class WorkedCaseTest(unittest.TestCase):

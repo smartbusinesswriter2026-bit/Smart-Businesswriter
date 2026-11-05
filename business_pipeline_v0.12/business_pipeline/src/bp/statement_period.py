@@ -273,6 +273,23 @@ def period_of(text):
         return {"start": first["start"], "end": first["end"]}, "declared", first["quote"]
     dates = transaction_dates(source)
     if dates:
-        return ({"start": min(dates)[:4] + "-01-01", "end": max(dates)[:4] + "-12-31"},
+        years = [d[:4] for d in dates]
+        # A single accounting period is one calendar year. When the text's dates
+        # span more than one year (e.g. a rent policy running into next year),
+        # the period is the year the problem is about, not the range of dates.
+        from collections import Counter
+        if len(set(years)) > 1:
+            year = Counter(years).most_common(1)[0][0]
+        else:
+            year = years[0]
+        return ({"start": year + "-01-01", "end": year + "-12-31"},
                 "derived", "")
+    # No full dates: fall back to the most common four-digit year in the text,
+    # so a problem headed "2025 transactions" is not dated to the server's year.
+    import re as _re
+    years = _re.findall(r"\b(19\d{2}|20\d{2})\b", source)
+    if years:
+        from collections import Counter
+        year = Counter(years).most_common(1)[0][0]
+        return {"start": year + "-01-01", "end": year + "-12-31"}, "assumed", ""
     return {"start": "%d-01-01" % ASSUMED_YEAR, "end": "%d-12-31" % ASSUMED_YEAR}, "assumed", ""

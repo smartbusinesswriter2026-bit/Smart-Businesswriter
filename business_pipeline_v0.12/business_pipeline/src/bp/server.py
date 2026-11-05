@@ -1,11 +1,12 @@
 """Minimal JSON API + static shell (stdlib only; FastAPI can replace this later behind the same routes)."""
-import base64, json, os, re, sys, time
+import base64, copy, json, os, re, sys, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from decimal import Decimal
 from .session import SessionManager
 from urllib.parse import urlparse, parse_qs, quote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
+from . import finance_methods  # registers additional computation methods into methods.LIBRARY
 from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, session_paper as product_session_paper, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
@@ -22,7 +23,7 @@ def _plan_method(method_id, inputs):
 
 product_api.attach_methods(_plan_method, methods.describe)
 from .product import statements as product_statements, statements_council as product_statement_council
-from . import statement_extract, statement_plan
+from . import statement_extract, statement_plan, schedule_math
 
 
 def _statement_reader(text):
@@ -33,15 +34,34 @@ def _statement_reader(text):
     return product_statement_council.read(text)
 
 
-def _statement_models():
-    """A model for journal extraction, or None when none is configured."""
+_statement_model_tier = 1
+
+
+def _statement_models(tier=None):
+    """A model for journal extraction, or None when none is configured.
+
+    tier: 1=standard, 2=retry, 3=escalation. Controls which model is used.
+    """
+    global _statement_model_tier
+    t = tier if tier is not None else _statement_model_tier
     models = llm.from_env()
     if models is not None:
         return models
     if os.environ.get("DEEPSEEK_API_KEY"):
+        if t >= 2:
+            try:
+                return llm.Models(llm.DeepSeekProvider("deepseek-reasoner"),
+                                  config=llm.LLMConfig(enabled=True, max_output_tokens=4096))
+            except Exception:
+                pass
         return llm.Models(llm.DeepSeekProvider("deepseek-chat"),
-                          config=llm.LLMConfig(enabled=True))
+                          config=llm.LLMConfig(enabled=True, max_output_tokens=4096))
     return None
+
+
+def set_statement_model_tier(tier):
+    global _statement_model_tier
+    _statement_model_tier = tier
 
 
 def _statement_extract(text, period):
@@ -79,6 +99,8 @@ product_statements.attach_core(
     reader=_statement_reader,
     extract=_statement_extract,
     build=_statement_build,
+    set_tier=set_statement_model_tier,
+    schedules=schedule_math.compute,
 )
 from .sandbox import SubprocessSandbox
 
@@ -562,6 +584,10 @@ PRESETS = {
                                                 {"symbol": "MSFT", "shares": "5", "price": "400"}], "cash": "1000"}},
 
 }
+
+# The accounts preset must be the documented example spec; the earlier inline chart
+# drifted from `accounts.EXAMPLE_SPEC` and broke the statement modules that build on it.
+PRESETS["accounts"]["inputs"]["spec"] = copy.deepcopy(accounts.EXAMPLE_SPEC)
 
 def _template_payload(template_id):
     """A template description plus the completion profile, when it has one."""

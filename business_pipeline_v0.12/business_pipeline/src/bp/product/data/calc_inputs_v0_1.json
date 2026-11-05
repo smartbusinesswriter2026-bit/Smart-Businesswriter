@@ -1436,8 +1436,8 @@
      "required": true,
      "type": "decimal"
     },
-    "unemployment_rate": {
-     "desc": "optional unemployment rate as a fraction for tightness",
+    "unemployed": {
+     "desc": "optional unemployment count: the number of unemployed people, for the vacancy-to-unemployed ratio",
      "required": false,
      "type": "decimal"
     },

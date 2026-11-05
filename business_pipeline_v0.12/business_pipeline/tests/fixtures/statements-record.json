@@ -1965,5 +1965,231 @@
   }
  ],
  "ratios": null,
- "plan_hash": "sha256:c33abb562eaa0174"
+ "entries": [
+  {
+   "date": "2026-01-01",
+   "description": "Shares issued",
+   "lines": [
+    {
+     "account": "1000",
+     "debit": "50000"
+    },
+    {
+     "account": "3000",
+     "credit": "50000"
+    }
+   ]
+  },
+  {
+   "date": "2026-01-02",
+   "description": "Bank loan",
+   "lines": [
+    {
+     "account": "1000",
+     "debit": "40000"
+    },
+    {
+     "account": "2100",
+     "credit": "40000"
+    }
+   ]
+  },
+  {
+   "date": "2026-01-03",
+   "description": "Equipment",
+   "lines": [
+    {
+     "account": "1500",
+     "debit": "60000"
+    },
+    {
+     "account": "1000",
+     "credit": "60000"
+    }
+   ]
+  },
+  {
+   "date": "2026-01-04",
+   "description": "Inventory on credit",
+   "lines": [
+    {
+     "account": "1200",
+     "debit": "70000"
+    },
+    {
+     "account": "2000",
+     "credit": "70000"
+    }
+   ]
+  },
+  {
+   "date": "2026-01-10",
+   "description": "Insurance",
+   "lines": [
+    {
+     "account": "1300",
+     "debit": "6000"
+    },
+    {
+     "account": "1000",
+     "credit": "6000"
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "description": "Cash sales",
+   "lines": [
+    {
+     "account": "1000",
+     "debit": "120000"
+    },
+    {
+     "account": "4000",
+     "credit": "120000"
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "description": "Credit sales",
+   "lines": [
+    {
+     "account": "1100",
+     "debit": "80000"
+    },
+    {
+     "account": "4000",
+     "credit": "80000"
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "description": "Collections",
+   "lines": [
+    {
+     "account": "1000",
+     "debit": "65000"
+    },
+    {
+     "account": "1100",
+     "credit": "65000"
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "description": "Payables paid",
+   "lines": [
+    {
+     "account": "2000",
+     "debit": "55000"
+    },
+    {
+     "account": "1000",
+     "credit": "55000"
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "description": "Salaries",
+   "lines": [
+    {
+     "account": "6100",
+     "debit": "35000"
+    },
+    {
+     "account": "1000",
+     "credit": "35000"
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "description": "Rent",
+   "lines": [
+    {
+     "account": "6200",
+     "debit": "12000"
+    },
+    {
+     "account": "1000",
+     "credit": "12000"
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "description": "Interest",
+   "lines": [
+    {
+     "account": "7000",
+     "debit": "2400"
+    },
+    {
+     "account": "1000",
+     "credit": "2400"
+    }
+   ]
+  },
+  {
+   "date": "2026-12-31",
+   "description": "Accrued salaries",
+   "lines": [
+    {
+     "account": "6100",
+     "debit": "3000"
+    },
+    {
+     "account": "2300",
+     "credit": "3000"
+    }
+   ]
+  }
+ ],
+ "adjustments": [
+  {
+   "id": "dep",
+   "function": "straight_line_depreciation",
+   "debit": "6400",
+   "credit": "1510",
+   "params": {
+    "cost": 60000,
+    "residual": 0,
+    "life_years": 5
+   }
+  },
+  {
+   "id": "ins",
+   "function": "prepaid_amortization",
+   "debit": "6300",
+   "credit": "1300",
+   "params": {
+    "payment": 6000,
+    "months_expired": 11,
+    "total_months": 12
+   }
+  },
+  {
+   "id": "cogs",
+   "function": "periodic_cogs",
+   "debit": "5000",
+   "credit": "1200",
+   "params": {
+    "beginning_inventory": 0,
+    "purchases": 70000,
+    "ending_inventory": 10000
+   }
+  },
+  {
+   "id": "tax",
+   "function": "tax_on_pretax",
+   "debit": "8000",
+   "credit": "2200",
+   "params": {}
+  }
+ ],
+ "plan_hash": "sha256:646f2eb271930350"
 }

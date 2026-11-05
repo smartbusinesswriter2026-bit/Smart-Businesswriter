@@ -1865,6 +1865,10 @@ def forecast_typing(metric):
     if metric in ("confidence_level", "coverage_holdout"): return "rate", 2
     if metric == "r_squared": return "ratio", 3
     if metric.startswith("n_") or metric == "horizon": return "count", 0
+    # Series-valued outputs (forecasts and their intervals) are in the request unit, not a ratio.
+    if (metric.startswith("forecast_") or metric.startswith("ci_lower_") or metric.startswith("ci_upper_")
+            or metric in ("slope", "residual_se", "mae_holdout")):
+        return "units", 3
     return "ratio", 3  # B-216: unknown metrics default to ratio, not @unit (which would inherit request currency)
 
 def forecast_caveats(out, th):

@@ -321,11 +321,13 @@ def closing_entries(j, st=None):
         if n == 0: continue
         if a.type == "oci":
             oci.append({"account": code, "natural": n}); continue     # OCI may legitimately be a loss, so it is not screened as abnormal
+        if a.role == "cash":
+            continue    # cash may legitimately be overdrawn; not screened as abnormal
         if n < 0: bad.append(f"{code} ({a.name})")
         if a.type == "income": inc.append({"account": code, "debit": str(n)})
         elif a.type == "expense": exp.append({"account": code, "credit": str(n)})
         elif a.role == "dividends": divs.append({"account": code, "credit": str(n)})   # dividends carry a debit balance and reduce equity
-    if bad: raise LedgerError("closing with abnormal balances needs a human decision (flags(j) reports them): " + ", ".join(bad))
+    if bad: raise LedgerError("closing with abnormal balances needs a human decision (flags(j) reports them): " + ", ".join(bad) + ". An abnormal balance usually means an entry has the wrong sign or an account type is misclassified; check the entries for those accounts.")
     if oci and not oci_res_codes:
         raise LedgerError("closing other comprehensive income needs an equity account with role 'oci_reserve'")
     out = []

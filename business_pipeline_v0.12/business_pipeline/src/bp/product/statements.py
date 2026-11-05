@@ -79,14 +79,17 @@ _CORE = {}
 
 
 def attach_core(solve=None, diagnose=None, ratio_analysis=None, dupont=None, reader=None,
-                extract=None, build=None):
+                extract=None, build=None, set_tier=None, schedules=None):
     """Attach the frozen-core callables (called from `bp.server`).
 
     `extract` and `build` are the plan layer, injected for the same reason as the rest: the product
     package computes nothing and imports no core module (`tests/test_product_boundary.py`).
+    `set_tier` switches the model tier for escalation.  `schedules` is the frozen schedule
+    arithmetic (`bp.schedule_math.compute`), used by the labelled-figure routes.
     """
     for name, fn in (("solve", solve), ("diagnose", diagnose), ("ratio_analysis", ratio_analysis),
-                     ("dupont", dupont), ("reader", reader), ("extract", extract), ("build", build)):
+                     ("dupont", dupont), ("reader", reader), ("extract", extract), ("build", build),
+                     ("set_tier", set_tier), ("schedules", schedules)):
         if fn is not None:
             _CORE[name] = fn
     return sorted(_CORE)
@@ -124,9 +127,9 @@ CUES = (
 #: Order is the ranking when a label matches more than once: the earlier rule is the literal
 #: standard reading (a loan is a liability before it is capital).  A label that matches nothing is
 #: reported, never guessed.
-RULES = (
+_RULES_SEED = (
     (r"^(cash|bank|cash at bank|bank account|bank current account)$", "asset", "current", "Cash", "cash", "operating", False),
-    (r"^(trade receivables?|receivables?|debtors?|accounts? receivable|sundry debtors)$", "asset", "current", "Trade receivables", "", "operating", False),
+    (r"^(trade receivables?|receivables?|debtors?|accounts? receivable|sundry debtors|a/?r)$", "asset", "current", "Trade receivables", "", "operating", False),
     (r"^(inventor(y|ies)|stock|closing stock)$", "asset", "current", "Inventory", "", "operating", False),
     (r"^(prepayments?|prepaid\b.*)$", "asset", "current", "Prepayments", "", "operating", False),
     (r"^(equipment|vehicles?|machinery|furniture|land|buildings?|plant|motor vehicles?|office equipment|freehold property)$",
@@ -134,7 +137,7 @@ RULES = (
     (r"^(accumulated depreciation\b.*|provision for depreciation\b.*)$",
      "asset", "non_current", "Property, plant and equipment", "", "investing", True),
     (r"\bloan\b", "liability", "non_current", "Borrowings", "", "financing", False),
-    (r"^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors)$", "liability", "current", "Trade payables", "", "operating", False),
+    (r"^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors|a/?p)$", "liability", "current", "Trade payables", "", "operating", False),
     (r"^(accrued expenses?|accruals?|accrued\b.*)$", "liability", "current", "Accruals", "", "operating", False),
     (r"\bowner'?s?\b", "equity", "", "Capital", "capital", "financing", False),
     (r"^(capital|share capital|equity|owner'?s? capital)$", "equity", "", "Capital", "capital", "financing", False),
@@ -154,7 +157,7 @@ RULES = (
     # Rent are different things, and a statement that cannot tell them apart cannot show
     # a reader what the business spent money on.
     (r"^(rent|rental|rent expense)$", "expense", "", "Rent expense", "", "operating", False),
-    (r"^(salaries|salary|wages|staff costs?|salaries and wages)$", "expense", "", "Salaries expense", "", "operating", False),
+    (r"^(salaries|salary|wages|staff costs?|salaries and wages)( expense)?$", "expense", "", "Salaries expense", "", "operating", False),
     (r"^(utilities|utilities expense|electricity|water)$", "expense", "", "Utilities expense", "", "operating", False),
     (r"^(insurance|insurance expense)$", "expense", "", "Insurance expense", "", "operating", False),
     (r"^(advertising|advertising expense|marketing)$", "expense", "", "Advertising expense", "", "operating", False),
@@ -166,10 +169,14 @@ RULES = (
     (r"^(transport|transport expense|delivery)$", "expense", "", "Transport expense", "", "operating", False),
     (r"^(repairs?|repairs and maintenance)$", "expense", "", "Repairs expense", "", "operating", False),
     (r"^(stationery|stationery expense|office supplies)$", "expense", "", "Stationery expense", "", "operating", False),
+    (r"^supplies expense$", "expense", "", "Supplies expense", "", "operating", False),
     (r"^(fuel|fuel expense)$", "expense", "", "Fuel expense", "", "operating", False),
     (r"^(travel|travel expense)$", "expense", "", "Travel expense", "", "operating", False),
     (r"^(other expenses?|costs?|expenses?)$", "expense", "", "Other expenses", "", "operating", False),
 )
+
+from . import tier1_tables as _t1
+RULES = _t1.get_rules() or _RULES_SEED
 
 #: Internal chart codes.  The statements print the `line`, never the code, so these are
 #: house-keeping rather than a numbering convention the student has to match.
@@ -182,7 +189,8 @@ CODE_FOR_LINE = {"Cash": "1000", "Trade receivables": "1100", "Inventory": "1200
                  "Travel expense": "6060", "Salaries expense": "6100", "Rent expense": "6200",
                  "Utilities expense": "6250", "Insurance expense": "6300", "Advertising expense": "6350",
                  "Depreciation": "6400", "Bad debts": "6500", "General expenses": "6600",
-                 "Other expenses": "5300", "Finance costs": "5200", "Interest expense": "7100"}
+                 "Other expenses": "5300", "Finance costs": "5200", "Interest expense": "7100",
+                 "Supplies expense": "6550"}
 
 MONTHS = {m: i + 1 for i, m in enumerate(("january february march april may june july august september "
                                           "october november december").split())}
@@ -210,7 +218,7 @@ def currency_of(text, declared=None):
 
 
 def classify(text):
-    """(problem_type, cue, sentence) — the first group that fires wins, and the cue is recorded."""
+    """(problem_type, cue, sentence) â€” the first group that fires wins, and the cue is recorded."""
     for kind, patterns in CUES:
         for pattern in patterns:
             match = re.search(pattern, text, re.I)
@@ -254,7 +262,8 @@ def place(label):
     """
     normalised = _norm_label(label)
     hits = []
-    for index, rule in enumerate(RULES):
+    _rules = _t1.get_rules() if _t1.get_rules() is not None else _RULES_SEED
+    for index, rule in enumerate(_rules):
         if re.search(rule[0], normalised):
             hits.append({"rule": index, "type": rule[1], "section": rule[2], "line": rule[3],
                          "role": rule[4], "activity": rule[5], "contra": rule[6]})
@@ -346,7 +355,7 @@ def _free_code(base, chart):
 
 
 def _resolve(row):
-    """(key, amount) — the side a row is posted on: its marker, else its nature, then its sign."""
+    """(key, amount) â€” the side a row is posted on: its marker, else its nature, then its sign."""
     placement = row["placed"]["placement"]
     amount = row["written"].replace(",", "")
     negative = amount.startswith("-")
@@ -463,11 +472,15 @@ def _split_semicolon_accounts(text: str) -> str:
     """Split semicolon-separated account-amount pairs into separate lines.
 
     Problems like "revenue 8,000; cost of sales 5,000; distribution costs 600" have multiple
-    account-amount pairs on one line separated by semicolons. The trial-balance reader would see
-    this as one line with multiple figures (a comparative) and refuse it. Split them into separate
-    lines so each account gets its own line.
+    account-amount pairs on one line separated by semicolons.  The trial-balance reader would
+    see this as one line with multiple figures (a comparative) and refuse it, so each pair
+    becomes its own line.
 
-    If there are no semicolons, return the text unchanged.
+    A pair whose label is **already an account name** is kept verbatim, with its Dr/Cr marker:
+    "Cash 10,000 Dr" and "Accumulated depreciation 8,000 Cr" name their own accounts, and
+    rewriting them to the statement line they map to ("Property, plant and equipment") loses
+    both the side and the identity.  Only a label that is a sentence wrapping an account name
+    is rewritten, which is the case this function was written for.
     """
     parts = str(text or "").split(";")
     if len(parts) == 1:
@@ -485,13 +498,21 @@ def _split_semicolon_accounts(text: str) -> str:
         label = re.sub(r"\b(dr|cr)\.?\b", " ", re.sub(r"\.{2,}", " ", part[:last.start()]), flags=re.I)
         label = re.sub(r"\b(dr|cr)\.?\b", " ", label, flags=re.I)
         label = re.sub(r"[\t$]", " ", label)
-        # Strip parenthetical qualifiers
         label = re.sub(r"\s*\(.*", "", label)
         label = re.sub(r"\s+", " ", label).strip(" .,:-|()[]")
-        # Check if the label contains a known account name
+        if label and not _is_sentence(label) and place(label)["candidates"]:
+            # It is already an account name: keep the row exactly as written, marker and all.
+            out_parts.append(part)
+            continue
         acct_name = _extract_account_name(label)
         if acct_name:
-            out_parts.append(f"{acct_name} {last.group(0)}")
+            marker = ""
+            side = _side(part)
+            if side == "D":
+                marker = " Dr"
+            elif side == "C":
+                marker = " Cr"
+            out_parts.append(f"{acct_name} {last.group(0)}{marker}")
         else:
             out_parts.append(part)
     return "\n".join(out_parts)
@@ -616,7 +637,7 @@ def tb_rows(rows, places=2):
     """The rows in the shape the core's trial-balance check expects: name, code, and one side.
 
     Each row is named by its **own label and code**, never by the statement line it maps to.  Two
-    accounts may share a line — "Cash" and "Bank" both report as Cash — and that is a legitimate
+    accounts may share a line â€” "Cash" and "Bank" both report as Cash â€” and that is a legitimate
     trial balance; naming both "Cash" made the core refuse it as a duplicate.  With the account's own
     name, the core's duplicate check fires only on a real duplicate, which is the signal that the
     text holds two sets of books.
@@ -656,7 +677,7 @@ def _reads_as_trial_balance(text):
     """Whether the instruction reads as a trial balance.
 
     A trial balance is a trial balance even when the student also asks for
-    something else — "... and also compute the liquidity ratios".  The
+    something else â€” "... and also compute the liquidity ratios".  The
     trial-balance route is the exact one and the more complete answer: it renders
     the income statement, the statement of changes in equity and the balance
     sheet, and it carries the ratios when they are asked for.
@@ -862,7 +883,7 @@ def _diagnose(rows, places):
 
     `trial_balance_check` publishes its amounts at the top level of its output and its findings in
     `_appendix` (see `methods.tbcheck_impl`); both are read here, and a missing key is an error
-    rather than a silent zero — a diagnosis that quietly reads "balanced" is worse than no diagnosis.
+    rather than a silent zero â€” a diagnosis that quietly reads "balanced" is worse than no diagnosis.
     """
     try:
         report = _core("diagnose")(tb_rows(rows, places), places)
@@ -898,7 +919,7 @@ def derive_balancing_figure(reading, rows):
 
     The figure is the core's `submitted_balance_difference`, labelled `derived` and shown with its
     identity.  It is applied **only** when the problem is an incomplete record and the chart has no
-    capital line — i.e. when the instruction asks for the capital.  Any other unknown is left alone,
+    capital line â€” i.e. when the instruction asks for the capital.  Any other unknown is left alone,
     because there the difference is not the answer and plugging it is the one thing this tile must
     never do.
     """
@@ -1055,24 +1076,47 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
 
     The deterministic reader goes first because it is exact on a trial balance; the model reader is
     used when it cannot read the problem (a transaction list, an adjusting-entry narrative), and
-    every reading — either source — passes the verifier before the core is called.
+    every reading â€” either source â€” passes the verifier before the core is called.
 
     `statements` is the output request (`["IS"]`, `["BS", "CF"]`, ...).  It defaults to the full set,
     or to what the instruction itself asks for ("only the balance sheet").  It never changes what is
-    computed — the ledger is always built in full (Tip 3).
+    computed â€” the ledger is always built in full (Tip 3).
     """
     text = str(instruction or "").strip()
     if len(text) < 10:
         raise StatementError("describe the problem in at least a sentence, with its figures")
-    # Split semicolon-separated account-amount pairs into separate lines so the
-    # trial-balance reader doesn't mistake them for a two-column comparative.
-    text = _split_semicolon_accounts(text)
+    original = text
     blocked = blocked_cue(text)
     if blocked:
         raise StatementError("'" + blocked + "' is a currency or a place this product does not use. It "
                              "works in USD with neutral places: restate the figures in USD and it will "
                              "solve them.")
     requested = _requested_statements(statements, text)
+    # A problem that states labelled figures and names a schedule needs no journal and no
+    # model: it is an identity over the stated figures.  This runs before every rewriting of
+    # the text, so the labels are read exactly as the student wrote them.
+    from . import schedules as _sched
+    try:
+        kind = _sched.detect(original)
+    except Exception:
+        kind = None
+    if kind is not None:
+        tried = _solve_schedule(kind, original, currency=currency, framework=framework,
+                                ratios=ratios, statements=requested)
+        if tried is not None:
+            return tried
+    # An unadjusted trial balance plus stated adjustments is a ledger problem with a second
+    # set of entries, not a single trial balance.
+    try:
+        tried = _solve_adjusted_trial_balance(original, currency=currency, framework=framework,
+                                              ratios=ratios, statements=requested)
+    except Exception:
+        tried = None
+    if tried is not None:
+        return tried
+    # Split semicolon-separated account-amount pairs into separate lines so the
+    # trial-balance reader doesn't mistake them for a two-column comparative.
+    text = _split_semicolon_accounts(text)
     # Try the deterministic multi-step income statement computation first,
     # before the trial-balance reader. A list of accounts with amounts that
     # doesn't balance as a trial balance is an income-statement computation,
@@ -1105,6 +1149,17 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                 return tried
         except Exception:
             pass
+    # A sole-trader engagement: accounts are given, capital is the balancing figure that the
+    # problem asks us to determine.  It must run before the generic given-balances route, which
+    # would otherwise misread it as a balance sheet analysis.
+    if is_mod.detect_owner_equity(text):
+        try:
+            tried = _solve_owner_equity(text, currency=currency, framework=framework,
+                                       ratios=ratios, statements=requested)
+        except Exception:
+            tried = None
+        if tried is not None:
+            return tried
     # Try the deterministic given-balances computation for problems that list
     # account names and amounts but don't match a specific statement template.
     if detect_given_balances(text):
@@ -1124,7 +1179,13 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
     # Try the comprehensive financial computation engine (sections A-K).
     # A trial balance is read exactly, and it carries the ratios itself, so it
     # does not go to the engine.
-    computation_named = bool(fc.detect_sections(text)) and not _reads_as_trial_balance(text)
+    # A statement-preparation problem ("prepare the income statement / balance sheet /
+    # cash flow statement") is not a financial-computation problem, even if it mentions
+    # cue words like "book value" or "ratio".
+    _is_statement_prep = bool(re.search(
+        r"prepare\s+(?:the\s+)?(?:income\s+statement|balance\s+sheet|statement\s+of\s+cash\s+flows|classified\s+balance\s+sheet)",
+        text, re.I))
+    computation_named = bool(fc.detect_sections(text)) and not _reads_as_trial_balance(text) and not _is_statement_prep
     if computation_named:
         tried = _solve_financial_computations(text, currency=currency, framework=framework,
                                               ratios=ratios, statements=requested)
@@ -1132,20 +1193,34 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
             return tried
     reading, rows, source, rejected, same_model = None, [], "parser", [], False
     parser_error = None
+    tier1_gaps = []
     try:
         reading = read_deterministic(text, currency=currency, framework=framework)
         rows = reading.pop("_rows", []) or []
+        # If the deterministic reader missed most of the problem (many missing
+        # lines), treat it as a failed read so the model path takes over.
+        missing = reading.get("missing") if isinstance(reading, dict) else None
+        if isinstance(missing, list) and len(missing) > 3:
+            if isinstance(reading, dict):
+                tier1_gaps = (reading.get("missing") or []) + (reading.get("unplaceable") or [])
+            parser_error = StatementError("deterministic reader missed most of the problem")
+            reading = None
+            rows = []
     except StatementRefused as error:
+        if isinstance(reading, dict):
+            tier1_gaps = (reading.get("missing") or []) + (reading.get("unplaceable") or [])
         parser_error = error
         reading = None
     except StatementError as error:
+        if isinstance(reading, dict):
+            tier1_gaps = (reading.get("missing") or []) + (reading.get("unplaceable") or [])
         parser_error = error
         reading = None
     if reading is None:
         if isinstance(parser_error, StatementRefused) and _reads_as_balances(text):
             # A refusal is a refusal: no model reading can rescue two periods, two entities or a
             # consolidation, so it must not be softened into "the reading failed".  A *transaction*
-            # narrative is different — a sentence can carry two figures without being a comparative,
+            # narrative is different â€” a sentence can carry two figures without being a comparative,
             # and the plan layer is the reader that is meant to handle it.
             raise parser_error
         # Try the deterministic multi-step income statement computation before transactions/model.
@@ -1173,18 +1248,43 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
         used = reader if reader is not None else _CORE.get("reader")
         plan_error = None
         if "extract" in _CORE:
-            try:
-                return _solve_narrative(text, currency=currency, framework=framework, ratios=ratios,
-                                        statements=requested)
-            except NoModel as error:
-                plan_error = error
-            except StatementError:
-                raise           # a substantive plan-layer refusal is final
+            # Retry loop: the model proposes, the gates verify. A failed attempt is fed
+            # back and retried (max 4). Escalation to a higher-tier model is configured
+            # via BP_TIER2_MODEL / BP_TIER3_MODEL; debate is the last resort.
+            last_error = None
+            for attempt in range(4):
+                try:
+                    # Escalate model tier: 1 (standard) â†’ 2 (retry) â†’ 3 (escalation) â†’ 3 (debate)
+                    tier = 1 if attempt == 0 else (2 if attempt == 1 else 3)
+                    if "set_tier" in _CORE:
+                        _core("set_tier")(tier)
+                    attempt_text = text
+                    if attempt > 0 and last_error is not None:
+                        attempt_text = (text + "\n\nPREVIOUS ATTEMPT FAILED: " +
+                                        str(last_error)[:400] +
+                                        "\nFix the entries and adjustments so the statements tie.")
+                    # Completeness hint: list stated dollar figures
+                    if attempt > 0:
+                        import re as _re
+                        stated_nums = set(_re.findall(r'\$[\d,]+(?:\.\d+)?', text))
+                        attempt_text += ("\n\nSTATED FIGURES (ensure EACH is used in an entry or adjustment): " +
+                                         ", ".join(sorted(stated_nums)))
+                    return _solve_narrative(attempt_text, currency=currency, framework=framework,
+                                            ratios=ratios, statements=requested,
+                                            tier1_gaps=tier1_gaps)
+                except NoModel as error:
+                    plan_error = error
+                    break
+                except StatementError as error:
+                    last_error = error
+                    if attempt == 3:
+                        raise
+                    continue
         if used is None:
             if plan_error is not None:
-                raise StatementError(str(parser_error) + " — and the plan layer could not read it either: "
+                raise StatementError(str(parser_error) + " â€” and the plan layer could not read it either: "
                                     + str(plan_error))
-            raise StatementError(str(parser_error) + " — and no model is configured to read it")
+            raise StatementError(str(parser_error) + " â€” and no model is configured to read it")
         try:
             answer = used(text)
         except Exception as error:
@@ -1215,6 +1315,96 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
     return _record(reading, spec, result, text, source, rejected, same_model, pack, requested)
 
 
+def _solve_schedule(kind, text, currency=None, framework=None, ratios=None, statements=None):
+    """A labelled-figure schedule: figures in, a named schedule out, no model.
+
+    The arithmetic is `bp.schedule_math` (injected as `schedules`); this function only turns
+    the result into the record the tile stores.
+
+    **This is an accelerator, not a gatekeeper** (manual Â§2A).  A figure the text does not state,
+    or a check that fails, returns ``None`` so `solve()` continues into the model loop exactly as
+    it would have without this route.  It never refuses in the model's place.
+    """
+    compute = _CORE.get("schedules")
+    if compute is None:
+        return None
+    from . import schedules as sched
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+    try:
+        out = sched.run(kind, text, compute)
+    except Exception:
+        # A missing label, an unreadable figure, arithmetic that cannot proceed: the model loop
+        # is the next seat, and it is better informed than a refusal from here.
+        return None
+    if not out.get("sections"):
+        return None
+    if [check for check in (out.get("checks") or []) if not check[1]]:
+        # The schedule does not tie on its own figures.  That is an ambiguous problem: hand it to
+        # the model loop, which can see what the labels mean.
+        return None
+    sections = out["sections"]
+    body = {}
+    for section in sections:
+        title = str(section.get("title") or "")
+        if kind == "cogm" and title.startswith("SCHEDULE"):
+            body["schedules"] = section["text"]
+        elif kind == "cogm" and title.startswith("INCOME"):
+            body["income_statement"] = section["text"]
+        elif kind == "cash_flow_indirect":
+            body["cash_flow"] = section["text"]
+        elif kind == "equity_statement":
+            body["equity"] = section["text"]
+        else:
+            body["notes"] = (body.get("notes", "") + "\n\n" + section["text"]).strip()
+
+    statements_out = {"trial_balance": "", "income_statement": "", "balance_sheet": "",
+                      "equity": "", "notes": "", "cash_flow": None,
+                      "cash_flow_withheld_because": None}
+    statements_out.update(body)
+
+    rendered = "\n\n".join(section["text"] for section in sections)
+    figures = out.get("computed") or out.get("figures") or {}
+    scalars = {key: str(value) for key, value in figures.items()}
+    code = {"cogm": "IS", "cash_flow_indirect": "CF", "equity_statement": "RE",
+            "bank_reconciliation": "BS"}.get(kind, "IS")
+    reading = {
+        "problem_type": kind,
+        "why": ("the figures are stated as labelled amounts, so the schedule is an identity "
+                "over them: no journal entry is posted and no model is consulted"),
+        "currency": currency, "framework": framework, "period": period,
+        "derivations": [], "assumptions": [],
+        "missing": [], "diagnosis": None,
+    }
+    record = {
+        "format": FORMAT, "solved": True, "refusal": None,
+        "instruction": text, "instruction_hash": verify.brief_hash(text),
+        "problem_type": kind, "why": reading["why"],
+        "reading": reading, "reading_source": "schedule",
+        "same_model_disclosure": False, "rejected": [],
+        "spec": {"schedule": kind, "figures": {k: str(v) for k, v in figures.items()}},
+        "requested": [code], "computed": [code], "hidden": [],
+        "warnings": [],
+        "core": {"scalars": scalars,
+                 "appendix": {"engagement": {"period": period, "currency": currency,
+                                             "places": 2},
+                              "schedule": kind,
+                              "schedule_figures": scalars,
+                              "statements_export": body}},
+        "statements": statements_out,
+        "statements_only": rendered,
+        "working": {"journal": "", "trial_balance": "", "t_accounts": {},
+                    "derivations": [], "assumptions": [], "missing": [],
+                    "schedule_figures": scalars},
+        "diagnosis": None,
+        "checks": [{"name": name, "ok": bool(ok), "detail": detail}
+                   for name, ok, detail in (out.get("checks") or [])],
+        "ratios": None,
+    }
+    return verify.freeze(record)
+
+
 def _solve_transactions(text, currency=None, framework=None, ratios=None, statements=None):
     """A transaction narrative solved through the deterministic detector/template layer.
 
@@ -1228,6 +1418,15 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
     matches = sd.detect(text)
     journalizable = [m for m in matches if sd.journalizable(m)]
     if not journalizable:
+        return None
+    # If the text carries adjusting-entry cues, the deterministic (transactions-only)
+    # path cannot finish the statements; let the model reader handle the whole narrative.
+    adjustment_cues = ("accrued", "prepaid", "amortiz", "depreciat", "estimated at",
+                       "ending supplies", "ending inventory count", "earned but unpaid",
+                       "unpaid at year", "estimated uncollectible", "allowance",
+                       "warranty", "shrinkage", "estimated warranty")
+    low = text.lower()
+    if any(c in low for c in adjustment_cues):
         return None
 
     # The chart is the one chart of the tile (`bp.statement_chart`), so a detector that
@@ -1249,6 +1448,8 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
             else:
                 line_dict["credit"] = str(amt)
             je_lines.append(line_dict)
+        if len(je_lines) < 2:
+            continue
         entries.append({
             "date": period["end"],
             "description": m.detector_id,
@@ -1268,10 +1469,11 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
     }
     try:
         result = _core("build")(plan)
-    except StatementError:
-        raise
-    except Exception as error:
-        raise StatementError("the journal did not build: " + str(error)[:400])
+    except Exception:
+        # The deterministic detector only matched part of the text, so the partial
+        # journal does not tie. Fall through to the model reader, which reads the
+        # whole narrative. Returning None (not raising) lets solve() try the next route.
+        return None
 
     reading = {
         "problem_type": "transactions",
@@ -1290,12 +1492,236 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
     return record
 
 
+def _strip_preamble(text):
+    """Remove the words in front of a trial balance block ('Data â€” unadjusted trial balance:').
+
+    The reader takes the label as everything before the last amount on a line, so a preamble
+    left in place becomes part of the first account's name and the account is lost.
+    """
+    out = re.sub(r"(?is)^\s*(?:data|given|information|the following)\b[\s\u2014\u2013\-:]*", "",
+                 str(text or ""), count=1)
+    out = re.sub(r"(?i)\b(?:unadjusted|adjusted|pre-?closing)?\s*trial balance\s*[:\-\u2014]\s*", "",
+                 out, count=1)
+    return out.lstrip()
+
+
+def _tb_balance(rows, line):
+    """The balance of the accounts on one statement line, signed debit-positive."""
+    total, found = Decimal(0), False
+    for row in rows:
+        if row["placed"]["placement"]["line"] != line:
+            continue
+        side, amount = _resolve(row)
+        value = Decimal(str(amount).replace(",", ""))
+        total += value if side == "debit" else -value
+        found = True
+    return total if found else None
+
+
+def _chart_code(chart, pattern, contra=None, type_=None):
+    """The code of the chart account whose name matches, or None.
+
+    ``type_`` restricts the search to one account type.  Without it, a loose fragment picks the
+    first account that happens to contain it: "revenue" finds "Unearned revenue" (a liability)
+    before it finds "Service revenue" (income), and an adjustment would then debit and credit the
+    same account.
+    """
+    for account in chart:
+        if type_ is not None and str(account.get("type") or "") != type_:
+            continue
+        if re.search(pattern, str(account.get("name") or ""), re.I):
+            if contra is None or bool(account.get("contra")) == bool(contra):
+                return account["code"]
+    return None
+
+
+def _ensure_account(chart, name, type_, line, quote="", section=None, activity="operating",
+                    contra=False):
+    """The code for this account, adding it to the chart when the adjustment names it.
+
+    Adding an account the adjustment names is chart completion, not invention: the account
+    is stated by the adjustment's own words, and the quote records which clause named it.
+    """
+    for account in chart:
+        if str(account.get("name") or "").strip().lower() == name.strip().lower():
+            return account["code"]
+    code = _free_code(CODE_FOR_LINE.get(line, "9000"), chart)
+    account = {"code": code, "name": name, "type": type_, "line": line,
+               "quote": quote or name, "synthesised": True}
+    if section:
+        account["section"] = section
+    if activity:
+        account["activity"] = activity
+    if contra:
+        account["contra"] = True
+    chart.append(account)
+    return code
+
+
+def _clause_amount(clause):
+    found = MONEY.findall(str(clause or ""))
+    return Decimal(found[-1].replace(",", "")) if found else None
+
+
+def _adjustment_specs(adj_text, rows, chart):
+    """Read the stated adjustments into adjustment specs and stated entries.
+
+    Only the adjustments this table names are read; an adjustment it does not recognise is
+    left out and named in the record's `missing`, never guessed.  The amount of every derived
+    adjustment is computed by the plan layer's registered function, not here.
+    """
+    specs, entries, unread = [], [], []
+    supplies = _tb_balance(rows, "Supplies")
+    supplies_code = _chart_code(chart, r"supplies")
+    revenue_code = _chart_code(chart, r"revenue|sales", type_="income")
+    salaries_code = _chart_code(chart, r"salaries|wages")
+    unearned_code = _chart_code(chart, r"unearned|deferred revenue", type_="liability")
+    accumulated_code = _chart_code(chart, r"accumulated depreciation", contra=True)
+
+    for clause in re.split(r"[;.\n]+", str(adj_text or "")):
+        clause = clause.strip()
+        if not clause:
+            continue
+        amount = _clause_amount(clause)
+        low = clause.lower()
+        if amount is None:
+            continue
+        if re.search(r"required|journali[sz]e|prepare|create|compute", low):
+            continue
+        if re.search(r"supplies (?:on hand|counted|count|remaining|at year)", low) and supplies is not None:
+            debit = _ensure_account(chart, "Supplies expense", "expense", "Supplies expense",
+                                    quote=clause)
+            credit = supplies_code or _ensure_account(chart, "Supplies", "asset", "Supplies",
+                                                      quote=clause, section="current")
+            specs.append({"id": "supplies_used", "function": "supplies_used",
+                          "params": {"beginning_inventory": str(supplies), "purchases": "0",
+                                     "ending_inventory": str(amount)},
+                          "debit": debit, "credit": credit, "description": clause})
+        elif re.search(r"\bdepreciation\b", low) and "accumulated" not in low:
+            debit = _ensure_account(chart, "Depreciation", "expense", "Depreciation", quote=clause)
+            credit = accumulated_code or _ensure_account(
+                chart, "Accumulated depreciation", "asset", "Property, plant and equipment",
+                quote=clause, section="non_current", activity="investing", contra=True)
+            entries.append({"date": None, "description": clause,
+                            "lines": [{"account": debit, "debit": str(amount)},
+                                      {"account": credit, "credit": str(amount)}]})
+        elif re.search(r"unearned|deferred revenue", low) and re.search(r"earned|recogni[sz]ed", low):
+            debit = unearned_code or _ensure_account(chart, "Unearned revenue", "liability",
+                                                     "Accruals", quote=clause, section="current")
+            credit = revenue_code or _ensure_account(chart, "Revenue", "income", "Revenue",
+                                                     quote=clause)
+            specs.append({"id": "unearned_earned", "function": "unearned_revenue_earned",
+                          "params": {"amount": str(amount)},
+                          "debit": debit, "credit": credit, "description": clause})
+        elif re.search(r"accrued\s+(salaries|salary|wages|payroll)", low):
+            debit = salaries_code or _ensure_account(chart, "Salaries expense", "expense",
+                                                     "Salaries expense", quote=clause)
+            credit = _ensure_account(chart, "Salaries payable", "liability", "Accruals",
+                                     quote=clause, section="current")
+            specs.append({"id": "accrued_salaries", "function": "accrued_expense",
+                          "params": {"amount": str(amount)},
+                          "debit": debit, "credit": credit, "description": clause})
+        elif re.search(r"accrued\s+(interest|rent|utilities|expenses?)", low):
+            debit = _chart_code(chart, r"interest") or _ensure_account(
+                chart, "Interest expense", "expense", "Interest expense", quote=clause)
+            credit = _ensure_account(chart, "Accruals", "liability", "Accruals",
+                                     quote=clause, section="current")
+            specs.append({"id": "accrued_expense", "function": "accrued_expense",
+                          "params": {"amount": str(amount)},
+                          "debit": debit, "credit": credit, "description": clause})
+        else:
+            unread.append(clause)
+    return specs, entries, unread
+
+
+def _solve_adjusted_trial_balance(text, currency=None, framework=None, ratios=None,
+                                  statements=None):
+    """An unadjusted trial balance plus the adjusting entries the text states.
+
+    The trial balance is posted as one period entry (the rule the tile has always used), and
+    each stated adjustment is posted as a second entry, its amount computed by the plan
+    layer's registered function.  Nothing is derived that the text does not state, and an
+    adjustment the reader does not recognise is named as unread rather than guessed.
+    """
+    if "build" not in _CORE:
+        return None
+    pieces = re.split(r"\badjustments?\b\s*[:\-\u2014]?", str(text or ""), maxsplit=1, flags=re.I)
+    if len(pieces) != 2:
+        return None
+    tb_text, adj_text = pieces[0], pieces[1]
+    if not re.search(r"trial balance|balances?\b", tb_text, re.I):
+        return None
+    tb_text = _split_semicolon_accounts(_strip_preamble(tb_text))
+    rows, _skipped = parse_rows(tb_text)
+    if len(rows) < 3:
+        return None
+    try:
+        preflight_rows(rows)
+    except StatementRefused:
+        return None
+    chart = build_chart(rows)
+    specs, stated, unread = _adjustment_specs(adj_text, rows, chart)
+    if not specs and not stated:
+        return None
+    period = period_of(text)[0]
+    places = max([2] + [_decimals(row["written"]) for row in rows])
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+
+    lines = []
+    for row in rows:
+        side, amount = _resolve(row)
+        lines.append({"account": row["code"], side: amount})
+    entries = [{"date": period["end"], "description": "the unadjusted trial balance as given",
+                "aggregate": True, "lines": lines}]
+    for entry in stated:
+        entries.append({"date": entry.get("date") or period["end"],
+                        "description": entry["description"], "lines": entry["lines"]})
+    for spec in specs:
+        spec.setdefault("date", period["end"])
+
+    plan = {"period": period, "currency": currency, "framework": framework, "places": places,
+            "policy": {"rounding": "half_up", "inventory_system": "periodic",
+                       "depreciation": {"method": "straight_line", "convention": "pro_rata"},
+                       "explicitly_stated": []},
+            "prior_closing": {}, "opening": [], "entries": entries,
+            "adjustments": specs, "schedules": [],
+            "chart": [{k: v for k, v in a.items() if k not in ("quote", "synthesised")}
+                      for a in chart],
+            "problem_type": "trial_balance"}
+    try:
+        result = _core("build")(plan)
+    except Exception:
+        # Accelerator, not gatekeeper (manual Â§2A): if the ledger cannot build this, the model
+        # loop reads the same problem and the gates judge its answer.
+        return None
+
+    posted = [spec["description"] for spec in specs] + [entry["description"] for entry in stated]
+    reading = {
+        "problem_type": "trial_balance",
+        "why": ("the unadjusted trial balance posted as one period entry, with the stated "
+                "adjusting entries posted after it; every figure comes from the instruction"),
+        "currency": currency, "framework": framework, "derivations": [],
+        "assumptions": ["adjusting entry: " + text_ for text_ in posted],
+        "missing": [{"what": clause,
+                     "why": "this adjustment is not one the reader recognises, so it was left "
+                            "out rather than guessed"} for clause in unread],
+        "diagnosis": None,
+    }
+    pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
+    spec = {"period": period, "currency": currency, "framework": framework, "places": places,
+            "chart": [{k: v for k, v in a.items() if k not in ("quote", "synthesised")}
+                      for a in chart],
+            "entries": entries, "adjustments": specs}
+    return _record(reading, spec, result, text, "plan", [], False, pack, statements)
+
+
 def _solve_income_statement(text, currency=None, framework=None, ratios=None, statements=None):
     """Compute a multi-step income statement from given account balances.
 
     The problem gives account names and amounts (revenue, contra-revenue, COGS,
     operating expenses, non-operating items, tax rate).  The engine computes
-    Net Sales → Gross Profit → Operating Income → Income Before Tax → Net Income
+    Net Sales â†’ Gross Profit â†’ Operating Income â†’ Income Before Tax â†’ Net Income
     deterministically, with no model involvement.
     """
     currency = currency or currency_of(text) or DEFAULT_CURRENCY
@@ -1543,6 +1969,144 @@ def _solve_balance_sheet_analysis(text, currency=None, framework=None, ratios=No
     return verify.freeze(record)
 
 
+def _solve_owner_equity(text, currency=None, framework=None, ratios=None, statements=None):
+    """A sole-trader problem: accounts are given, capital is the balancing figure.
+
+    Assets, liabilities, income and expenses are stated; drawings and any additional capital are
+    stated or zero.  The closing capital is whatever the accounting equation requires, and the
+    opening capital is derived from it (closing capital = opening + net income - drawings +
+    additional capital).  The three statements and that derived figure are the answer.
+
+    This is a general capability, not a patch for one problem: any sole-trader engagement whose
+    capital account is unstated is solved the same way, and the derivation is shown, never hidden.
+    """
+    if "build" not in _CORE:
+        return None
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+    tb_text = _split_semicolon_accounts(text)
+    rows, _skipped = parse_rows(tb_text)
+    if len(rows) < 3:
+        return None
+
+    assets = []          # (label, amount, is_contra)
+    liabilities = []
+    income = Decimal(0)
+    expenses = Decimal(0)
+    drawings = Decimal(0)
+    capital_stated = None
+    additional = Decimal(0)
+    additional = Decimal(0)
+    m_add = re.search(r"additional capital.{0,40}", text, re.I)
+    if m_add:
+        nums = re.findall(r"[0-9][0-9,]*(?:\.[0-9]+)?", m_add.group(0))
+        if nums:
+            additional = Decimal(nums[-1].replace(",", ""))
+
+    for row in rows:
+        side, amount = _resolve(row)
+        value = Decimal(str(amount).replace(",", ""))
+        label = row["label"]
+        kind, line_name = is_mod._classify_account(label)
+        if kind in ("current_asset", "non_current_asset"):
+            assets.append((label, value, False))
+        elif kind == "contra_asset":
+            assets.append((label, value, True))
+        elif kind in ("current_liability", "non_current_liability"):
+            liabilities.append((label, value))
+        elif kind == "revenue":
+            income += value
+        elif kind == "operating_expense":
+            expenses += value
+        elif kind == "drawings":
+            drawings += value
+        elif kind == "equity":
+            capital_stated = value
+
+    if not assets or not liabilities:
+        return None
+    if capital_stated is not None:
+        # Capital is stated: this is a plain balance sheet, not a derivation problem.
+        return None
+
+    total_assets = Decimal(0)
+    for label, value, contra in assets:
+        total_assets += -value if contra else value
+    total_liabilities = sum(v for _, v in liabilities)
+    net_income = income - expenses
+    ending_capital = total_assets - total_liabilities
+    beginning_capital = ending_capital - net_income + drawings - additional
+
+    # Rendered statements
+    is_lines = ["INCOME STATEMENT", "", "Sales revenue" + " " * 40 + "{:>14}".format("{:,.2f}".format(income)),
+                "Less: expenses" + " " * 42 + "({:>12})".format("{:,.2f}".format(expenses)),
+                "-" * 60,
+                "Net income" + " " * 49 + "{:>14}".format("{:,.2f}".format(net_income))]
+    equity_lines = ["STATEMENT OF OWNER'S EQUITY", "",
+                    "Beginning capital" + " " * 38 + "{:>14}".format("{:,.2f}".format(beginning_capital)),
+                    "Add: net income" + " " * 41 + "{:>14}".format("{:,.2f}".format(net_income)),
+                    "Less: drawings" + " " * 42 + "({:>12})".format("{:,.2f}".format(drawings))]
+    if additional:
+        equity_lines.append("Add: additional capital" + " " * 33 +
+                           "{:>14}".format("{:,.2f}".format(additional)))
+    equity_lines += ["-" * 60,
+                     "Ending capital" + " " * 42 + "{:>14}".format("{:,.2f}".format(ending_capital))]
+    bs_lines = ["BALANCE SHEET", "", "Assets"]
+    for label, value, contra in assets:
+        bs_lines.append("  " + label + " " * (48 - len(label)) + "{:>14}".format(
+            "{:,.2f}".format(-value if contra else value)))
+    bs_lines += ["-" * 60, "Total assets" + " " * 47 + "{:>14}".format("{:,.2f}".format(total_assets)),
+                 "", "Liabilities"]
+    for label, value in liabilities:
+        bs_lines.append("  " + label + " " * (48 - len(label)) + "{:>14}".format("{:,.2f}".format(value)))
+    bs_lines += ["-" * 60, "Total liabilities" + " " * 43 + "{:>14}".format("{:,.2f}".format(total_liabilities)),
+                 "", "Owner's equity", "  Capital" + " " * 43 + "{:>14}".format("{:,.2f}".format(ending_capital)),
+                 "-" * 60, "Total liabilities and equity" + " " * 32 +
+                 "{:>14}".format("{:,.2f}".format(total_liabilities + ending_capital))]
+
+    rendered = "\n".join(is_lines) + "\n\n" + "\n".join(equity_lines) + "\n\n" + "\n".join(bs_lines)
+    scalars = {"net_income": str(net_income), "total_assets": str(total_assets),
+               "total_liabilities": str(total_liabilities), "ending_capital": str(ending_capital),
+               "beginning_capital": str(beginning_capital), "drawings": str(drawings)}
+    checks = [
+        ("net_income_equals_income_less_expenses", net_income == income - expenses,
+         "%s = %s - %s" % (net_income, income, expenses)),
+        ("ending_capital_equals_assets_less_liabilities", ending_capital == total_assets - total_liabilities,
+         "%s = %s - %s" % (ending_capital, total_assets, total_liabilities)),
+        ("beginning_capital_derivation",
+         beginning_capital + net_income - drawings + additional == ending_capital,
+         "%s + %s - %s = %s" % (beginning_capital, net_income, drawings, ending_capital)),
+        ("accounting_equation", total_assets == total_liabilities + ending_capital,
+         "%s = %s + %s" % (total_assets, total_liabilities, ending_capital)),
+    ]
+
+    statements_out = {"trial_balance": "", "income_statement": "\n".join(is_lines),
+                      "balance_sheet": "\n".join(bs_lines), "equity": "\n".join(equity_lines),
+                      "notes": "", "cash_flow": None, "cash_flow_withheld_because": None}
+    record = {
+        "format": FORMAT, "solved": True, "refusal": None,
+        "instruction": text, "instruction_hash": verify.brief_hash(text),
+        "problem_type": "owner_equity", "why": "derived the missing capital from the accounting equation",
+        "reading": {"problem_type": "owner_equity", "why": "derived the missing capital from the accounting equation",
+                    "currency": currency, "framework": framework, "period": period,
+                    "derivations": ["beginning capital = " + str(beginning_capital)],
+                    "assumptions": ["no additional capital was contributed"],
+                    "missing": [], "diagnosis": None},
+        "reading_source": "plan", "same_model_disclosure": False, "rejected": [],
+        "spec": {}, "requested": ["IS", "RE", "BS"], "computed": ["IS", "RE", "BS"],
+        "hidden": [], "warnings": [],
+        "core": {"scalars": scalars, "appendix": {"engagement": {"period": period, "currency": currency, "places": 2}}},
+        "statements": statements_out, "statements_only": rendered, "working": {
+            "journal": "", "trial_balance": "", "t_accounts": {}, "derivations": [],
+            "assumptions": ["no additional capital was contributed"], "missing": []},
+        "diagnosis": None,
+        "checks": [{"name": name, "ok": bool(ok), "detail": detail} for name, ok, detail in checks],
+        "ratios": None,
+    }
+    return verify.freeze(record)
+
+
 def _solve_given_balances(text, currency=None, framework=None, ratios=None, statements=None):
     """Solve a problem that gives account balances with amounts.
 
@@ -1552,7 +2116,7 @@ def _solve_given_balances(text, currency=None, framework=None, ratios=None, stat
     a frozen record.
 
     A trial balance (mentions "trial balance" or carries Dr/Cr markers) is not a
-    "given balances" problem — it goes through the deterministic parser instead.
+    "given balances" problem â€” it goes through the deterministic parser instead.
     """
     if re.search(r"\btrial balance\b", text, re.I):
         return None
@@ -2075,6 +2639,7 @@ def _solve_financial_computations(text, currency=None, framework=None, ratios=No
         "checks": [{"name": name, "ok": bool(ok), "detail": detail}
                    for name, ok, detail in checks],
         "ratios": None,
+        "tier1_gaps": tier1_gaps or [],
     }
     return verify.freeze(record)
 
@@ -2084,7 +2649,7 @@ def _posted_a_figure(entries):
 
     The plan layer answers a sentence that carries no transaction with a plan that has no entries;
     built into the ledger it produces a full set of statements whose every figure is zero.  A zero
-    statement set is not a solution — the instruction declared nothing — so it is refused instead
+    statement set is not a solution â€” the instruction declared nothing â€” so it is refused instead
     of shown.  Every real narrative has at least one non-zero amount on a line.
     """
     for entry in entries or []:
@@ -2107,12 +2672,12 @@ def _posted_a_figure(entries):
     return False
 
 
-def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None):
+def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None, tier1_gaps=None):
     """A narrative (not a trial balance) solved through the plan layer.
 
     The deterministic parser could not read this instruction, so the model is asked to structure it
     into journal lines; the ledger then posts them, and the three articulation identities decide
-    whether the record is allowed out. Only the *stated* transactions are posted — adjusting entries
+    whether the record is allowed out. Only the *stated* transactions are posted â€” adjusting entries
     are not derived here, and that is named in the record's `missing`.
 
     Both plan-layer steps are injected (`extract`, `build`): the model call and the ledger build stay
@@ -2132,6 +2697,17 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None, statement
         raise StatementError("this instruction names no transaction and declares no figure, so there "
                              "is nothing to post; state the transactions and the tile will build the "
                              "statements")
+    # Completeness gate: every stated dollar figure must appear in an entry or adjustment.
+    try:
+        from . import statement_completeness as _sc
+        ok, missing = _sc.check(text, extracted)
+        if not ok:
+            raise StatementError("stated figures not used in any entry or adjustment: " +
+                                 ", ".join(str(x) for x in missing))
+    except StatementError:
+        raise
+    except Exception:
+        pass
     policy = extracted.get("policy") or {}
     stated = list(policy.get("explicitly_stated") or [])
     if "tax_rate" in policy and "tax_rate" not in stated:
@@ -2175,7 +2751,10 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None, statement
     record = _record(reading, {}, result, text, "plan",
                      extracted.get("unplaceable") or [], False, pack, statements)
     record["reading_source"] = "plan"
-    return record
+    # Store extracted entries/adjustments for the learning library (few-shot)
+    record["entries"] = extracted.get("entries", [])
+    record["adjustments"] = extracted.get("adjustments", [])
+    return verify.freeze(record)
 
 
 ID_RE = re.compile(r"[0-9a-f]{12}")
@@ -2289,6 +2868,15 @@ def replay(record):
             "recorded": record.get("plan_hash"), "recomputed": again}
 
 
+def _library_record(record, origin=None):
+    """Write one outcome to the learning library, never letting the library break a request."""
+    try:
+        from . import statement_library as _slib
+        _slib.record(record, origin=origin)
+    except Exception:
+        pass
+
+
 def handle(verb, segments, body=None):
     """Dispatch `/api/cases/statements...`.  Returns `(status, payload)`."""
     body = body if isinstance(body, dict) else {}
@@ -2301,11 +2889,20 @@ def handle(verb, segments, body=None):
                                framework=body.get("framework"), ratios=body.get("ratios"),
                                statements=body.get("statements"))
             except StatementError as error:
+                # A problem the pipeline could not solve is the most valuable record there is:
+                # it names the gap.  Recording only successes is why the library never learned.
+                _library_record({"instruction": body.get("instruction"), "solved": False,
+                                 "refusal": str(error), "error": str(error),
+                                 "problem_type": "refused"}, origin=body.get("origin"))
                 return 400, {"error": str(error)}
             except Exception as error:      # a bug is a clean 500, never a stack trace to the browser
+                _library_record({"instruction": body.get("instruction"), "solved": False,
+                                 "refusal": type(error).__name__ + ": " + str(error)[:400],
+                                 "problem_type": "error"}, origin=body.get("origin"))
                 return 500, {"error": "the statements tile failed: " + type(error).__name__ + ": "
                                       + str(error)[:200]}
             stored = save(record)
+            _library_record(stored, origin=body.get("origin"))
             return (201 if stored.get("solved") else 422), stored
         return 405, {"error": "method " + str(verb) + " is not allowed on the statements collection"}
     if len(segments) == 1:
@@ -2345,6 +2942,24 @@ def handle(verb, segments, body=None):
             return 200, {"format": "text", "view": view, "statement": wanted, "text": text,
                          "filename": wanted.lower() + "-" + str(record.get("id")) + ".txt"}
         text = working_text(record) if view == "working" else (record.get("statements_only") or "")
+        fmt = str(body.get("format") or "text").lower()
+        if fmt == "docx":
+            import base64
+            from . import docx as docx_export
+            title = "Financial statements - " + str(record.get("id"))
+            data = docx_export.render_bytes(title, [("Statements", text.splitlines())], mono=True)
+            return 200, {"format": "docx", "view": view, "statement": None,
+                          "data": base64.b64encode(data).decode("ascii"),
+                          "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                          "filename": "statements-" + str(record.get("id")) + ".docx"}
+        if fmt == "xlsx":
+            import base64
+            from . import xlsx as xlsx_export
+            data = xlsx_export.render_bytes(record)
+            return 200, {"format": "xlsx", "view": view, "statement": None,
+                          "data": base64.b64encode(data).decode("ascii"),
+                          "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                          "filename": "statements-" + str(record.get("id")) + ".xlsx"}
         return 200, {"format": "text", "view": view, "statement": None, "text": text,
                      "rendered": rendered,
                      "filename": "statements-" + str(record.get("id")) + ".txt"}
@@ -2355,8 +2970,238 @@ def handle(verb, segments, body=None):
             return 200, replay(load(segments[0]))
         except StatementError as error:
             return 404, {"error": str(error)}
+    if len(segments) == 1 and segments[0] == "proposals":
+        if verb != "GET":
+            return 405, {"error": "method " + str(verb) + " is not allowed on proposals"}
+        try:
+            from . import statement_library as _slib
+            report = _slib.gap_report()
+            return 200, {"proposals": report.get("proposals", []),
+                         "singles": report.get("singles", []),
+                         "total": report.get("total", 0),
+                         "distinct_problems": report.get("distinct_problems", 0),
+                         "solve_rate": report.get("solve_rate", 0),
+                         "by_kind": report.get("by_kind", {}),
+                         "by_origin": report.get("by_origin", {}),
+                         "most_repeated": report.get("most_repeated", [])}
+        except Exception as error:
+            return 500, {"error": "gap report failed: " + str(error)[:200]}
+
+    if len(segments) == 1 and segments[0] == "heal-log":
+        if verb != "GET":
+            return 405, {"error": "method " + str(verb) + " is not allowed on heal-log"}
+        try:
+            from . import statement_library as _slib
+            return 200, {"history": _slib.heal_history()}
+        except Exception as error:
+            return 500, {"error": "heal log failed: " + str(error)[:200]}
+
+    if len(segments) == 1 and segments[0] == "heal":
+        if verb != "POST":
+            return 405, {"error": "method " + str(verb) + " is not allowed on heal"}
+        proposal = body.get("proposal")
+        held_out = body.get("held_out") or []
+        if not proposal:
+            return 400, {"error": "proposal is required"}
+        if not held_out:
+            return 400, {"error": "held_out (list of problem texts) is required for validation"}
+        try:
+            success, reason, passed, tested = heal(tuple(proposal), held_out)
+            status = 200 if success else 422
+            return status, {"success": success, "reason": reason,
+                            "passed": passed, "tested": tested}
+        except Exception as error:
+            return 500, {"error": "heal failed: " + str(error)[:200]}
+
+    if len(segments) == 2 and segments[0] == "heal" and segments[1] == "history":
+        if verb != "GET":
+            return 405, {"error": "method " + str(verb) + " is not allowed"}
+        try:
+            from . import statement_library as _slib
+            return 200, {"history": _slib.heal_history(
+                limit=int(body.get("limit", 50)) if body else 50)}
+        except Exception as error:
+            return 500, {"error": "heal history failed: " + str(error)[:200]}
+
+    if len(segments) == 2 and segments[1] == "explanation":
+        if verb != "POST":
+            return 405, {"error": "method " + str(verb) + " is not allowed on an explanation"}
+        try:
+            record = load(segments[0])
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        if not record.get("solved"):
+            return 422, {"error": "this record has no solution to explain: " + str(record.get("refusal"))}
+        fmt = (body or {}).get("format", "docx") if isinstance(body, dict) else "docx"
+        try:
+            title, sections = explain(record)
+            import base64
+            from . import docx as docx_export
+            data = docx_export.render_bytes(title, sections, mono=False)
+            mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            filename = "explanation-" + str(record.get("id")) + ".docx"
+            return 200, {"format": "docx", "explanation": {"title": title},
+                          "document": {"filename": filename, "mime": mime,
+                                        "data": base64.b64encode(data).decode("ascii")}}
+        except Exception as error:
+            return 500, {"error": "explanation failed: " + str(error)[:200]}
+
     return 404, {"error": "unknown statements route"}
 
 
 
 
+
+
+
+def heal(proposal_rule, held_out_texts, origin="self_heal"):
+    """Apply a proposed RULES entry, validate against held-out set, keep or revert.
+
+    `proposal_rule` is a tuple matching the RULES schema:
+        (pattern, type, section, line, role, activity, contra)
+    `held_out_texts` is a list of problem texts that must still solve after the change.
+
+    Returns (success: bool, reason: str, passed: int, tested: int).
+    """
+    import os
+    from . import tier1_tables as _t1
+    from . import statement_library as _slib
+
+    # Snapshot current rules for revert
+    before = list(_t1.get_rules() or [])
+
+    # Apply the proposal
+    _t1.append_rule(proposal_rule)
+    after = list(_t1.get_rules() or [])
+
+    # Validate against held-out set
+    tested = 0
+    passed = 0
+    failures = []
+    for text in held_out_texts:
+        tested += 1
+        try:
+            rec = solve(text)
+            if rec.get("solved"):
+                passed += 1
+            else:
+                failures.append(text[:60] + " -> not solved")
+        except Exception as e:
+            failures.append(text[:60] + " -> " + str(e)[:80])
+
+    auto_heal = os.environ.get("BP_SELF_HEAL", "").strip() in ("1", "true", "yes")
+    if passed == tested and tested > 0:
+        # All held-out problems still pass -- keep the change
+        _slib.log_heal("rule", proposal_rule, "applied",
+                       "All %d held-out problems still pass." % tested,
+                       tested=tested, passed=passed)
+        return True, "All %d held-out problems still pass." % tested, passed, tested
+    else:
+        # Regression detected — revert
+        # Restore the rules list
+        _t1._rules_cache = [tuple(r) for r in before]
+        _t1._rules_cache = before
+        # Persist the reverted state
+        try:
+            _t1._save([list(r) for r in before], {})
+        except Exception:
+            pass
+        reason = "Regression: %d/%d passed. %s" % (passed, tested, "; ".join(failures[:3]))
+        _slib.log_heal("rule", proposal_rule, "rejected", reason,
+                       tested=tested, passed=passed)
+        return False, reason, passed, tested
+
+
+def explain(record):
+    """Generate a teach-the-student explanation document from a stored record.
+
+    Returns (title, sections) where sections is a list of (heading, lines) tuples
+    suitable for docx_export.render_bytes.
+    """
+    title = "Explanation: " + str(record.get("problem_type", "Financial Statements")).replace("_", " ").title()
+    sections = []
+
+    # Problem statement
+    instruction = record.get("instruction", "")
+    sections.append(("Problem", [instruction]))
+
+    # What was solved
+    why = record.get("why", "")
+    if why:
+        sections.append(("Approach", [why]))
+
+    problem_type = record.get("problem_type", "")
+    reading_source = record.get("reading_source", "")
+    sections.append(("Solution Summary", [
+        "Problem type: " + problem_type.replace("_", " ").title(),
+        "Reading source: " + reading_source,
+        "Solved: " + str(record.get("solved", False)),
+    ]))
+
+    # Key figures
+    scalars = (record.get("core") or {}).get("scalars") or {}
+    if scalars:
+        lines = []
+        for key, val in scalars.items():
+            label = key.replace("_", " ").title()
+            lines.append(f"{label}: {val}")
+        sections.append(("Key Figures", lines))
+
+    # Verification checks (formulas)
+    checks = record.get("checks") or []
+    if checks:
+        lines = []
+        for ch in checks:
+            if isinstance(ch, dict):
+                name = ch.get("name", "")
+                ok = "PASS" if ch.get("ok") else "FAIL"
+                detail = ch.get("detail", "")
+                lines.append(f"{name}: {ok}")
+                if detail:
+                    lines.append(f"  Formula: {detail}")
+            elif isinstance(ch, (list, tuple)) and len(ch) >= 2:
+                lines.append(f"{ch[0]}: {'PASS' if ch[1] else 'FAIL'}")
+                if len(ch) > 2:
+                    lines.append(f"  Formula: {ch[2]}")
+        sections.append(("Verification (formulas & checks)", lines))
+
+    # Step-by-step solution
+    statements_only = record.get("statements_only", "")
+    if statements_only:
+        sections.append(("Step-by-Step Solution", statements_only.splitlines()))
+
+    # Assumptions
+    reading = record.get("reading") or {}
+    assumptions = reading.get("assumptions") or []
+    if assumptions:
+        lines = []
+        for a in assumptions:
+            if isinstance(a, dict):
+                lines.append(a.get("text", str(a)))
+            else:
+                lines.append(str(a))
+        sections.append(("Assumptions", lines))
+
+    # Missing items (gaps)
+    missing = (record.get("working") or {}).get("missing") or []
+    if missing:
+        lines = []
+        for m in missing:
+            if isinstance(m, dict):
+                lines.append(f"{m.get('what', '')}: {m.get('why', '')}")
+            else:
+                lines.append(str(m))
+        sections.append(("Gaps / Missing Items", lines))
+
+    # Tier-1 gaps (self-healing)
+    tier1_gaps = record.get("tier1_gaps") or []
+    if tier1_gaps:
+        lines = []
+        for g in tier1_gaps:
+            if isinstance(g, dict):
+                lines.append(f"{g.get('what', '')}: {g.get('why', '')}")
+            else:
+                lines.append(str(g))
+        sections.append(("Tier-1 Reading Gaps (self-healing)", lines))
+
+    return title, sections

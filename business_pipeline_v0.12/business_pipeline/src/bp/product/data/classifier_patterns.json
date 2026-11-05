@@ -1,0 +1,187 @@
+[
+  {
+    "pattern": "sales\\s+(returns|allowances)",
+    "kind": "contra_revenue",
+    "line": "Sales Returns & Allowances"
+  },
+  {
+    "pattern": "sales\\s+discounts?",
+    "kind": "contra_revenue",
+    "line": "Sales Returns & Allowances"
+  },
+  {
+    "pattern": "^(sales|turnover|fees earned)$",
+    "kind": "revenue",
+    "line": "Sales Revenue"
+  },
+  {
+    "pattern": "revenue$",
+    "kind": "revenue",
+    "line": "Sales Revenue"
+  },
+  {
+    "pattern": "unearned\\s+revenue",
+    "kind": "revenue",
+    "line": "Sales Revenue"
+  },
+  {
+    "pattern": "^(purchases?|cost of (sales|goods sold)|cogs)$",
+    "kind": "cogs",
+    "line": "Cost of Goods Sold"
+  },
+  {
+    "pattern": "^(rent|salaries|salary|wages|utilities|insurance|advertising|marketing|depreciation|bad debts?|general expenses|operating expenses|telephone|transport|repairs|stationery|fuel|travel)$",
+    "kind": "operating_expense",
+    "line": "Operating Expenses"
+  },
+  {
+    "pattern": "\\bgain\\s+on\\s+sale",
+    "kind": "non_operating_revenue",
+    "line": "Gain on Sale of Equipment"
+  },
+  {
+    "pattern": "\\bgain\\b",
+    "kind": "non_operating_revenue",
+    "line": "Gain on Sale of Equipment"
+  },
+  {
+    "pattern": "^(interest (expense|paid)|finance costs?)$",
+    "kind": "non_operating_expense",
+    "line": "Interest Expense"
+  },
+  {
+    "pattern": "^(cash|bank|cash at bank|bank account)$",
+    "kind": "current_asset",
+    "line": "Cash"
+  },
+  {
+    "pattern": "^(trade receivables?|receivables?|accounts? receivable|sundry debtors|a/?r)$",
+    "kind": "current_asset",
+    "line": "Accounts Receivable"
+  },
+  {
+    "pattern": "^(contract asset)$",
+    "kind": "current_asset",
+    "line": "Contract Asset"
+  },
+  {
+    "pattern": "^(inventor(y|ies)|stock|closing stock)$",
+    "kind": "current_asset",
+    "line": "Inventory"
+  },
+  {
+    "pattern": "^(prepaid\\s+expenses?|prepaids?)$",
+    "kind": "current_asset",
+    "line": "Prepaid Expenses"
+  },
+  {
+    "pattern": "accumulated depreciation",
+    "kind": "contra_asset",
+    "line": "Accumulated depreciation"
+  },
+  {
+    "pattern": "^(equipment|vehicles?|machinery|furniture|land|buildings?|plant|office equipment|freehold property)$",
+    "kind": "non_current_asset",
+    "line": "Property, plant and equipment"
+  },
+  {
+    "pattern": "accumulated",
+    "kind": "non_current_asset",
+    "line": "Property, plant and equipment"
+  },
+  {
+    "pattern": "^(deferred tax asset)$",
+    "kind": "non_current_asset",
+    "line": "Deferred Tax Asset"
+  },
+  {
+    "pattern": "^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors|a/?p)$",
+    "kind": "current_liability",
+    "line": "Accounts Payable"
+  },
+  {
+    "pattern": "^(contract liability)$",
+    "kind": "current_liability",
+    "line": "Contract Liability"
+  },
+  {
+    "pattern": "^(accrued (expenses?|liabilities?|liability)|accruals?)$",
+    "kind": "current_liability",
+    "line": "Accrued Liabilities"
+  },
+  {
+    "pattern": "^(bank overdraft)$",
+    "kind": "current_liability",
+    "line": "Bank Overdraft"
+  },
+  {
+    "pattern": "^(short.term notes? payable)$",
+    "kind": "current_liability",
+    "line": "Short-term Notes Payable"
+  },
+  {
+    "pattern": "^(warranty provision|warranty liability)$",
+    "kind": "current_liability",
+    "line": "Warranty Provision"
+  },
+  {
+    "pattern": "^(lease liability)$",
+    "kind": "current_liability",
+    "line": "Lease Liability (current)"
+  },
+  {
+    "pattern": "^(bank loan|loan|borrowings?|notes? payable)$",
+    "kind": "non_current_liability",
+    "line": "Bank loan"
+  },
+  {
+    "pattern": "^(long.term (debt|notes? payable)|long.term debt|long.term loan)$",
+    "kind": "non_current_liability",
+    "line": "Long-term Debt"
+  },
+  {
+    "pattern": "^(deferred tax liability)$",
+    "kind": "non_current_liability",
+    "line": "Deferred Tax Liability"
+  },
+  {
+    "pattern": "^(lease liability)$",
+    "kind": "non_current_liability",
+    "line": "Lease Liability (non-current)"
+  },
+  {
+    "pattern": "^(drawings?|owner'?s? drawings?|withdrawals?)$",
+    "kind": "drawings",
+    "line": "Drawings"
+  },
+  {
+    "pattern": "^(capital|owner'?s? capital|beginning capital|owner'?s? equity)$",
+    "kind": "equity",
+    "line": "Capital"
+  },
+  {
+    "pattern": "^(common stock|share capital|capital stock|share premium)$",
+    "kind": "equity",
+    "line": "Share Capital"
+  },
+  {
+    "pattern": "^(treasury shares?|treasury stock)$",
+    "kind": "equity",
+    "line": "Treasury Shares"
+  },
+  {
+    "pattern": "^(retained earnings?|accumulated (profit|earnings)|revenue reserve|revaluation reserve|translation reserve)$",
+    "kind": "equity",
+    "line": "Retained Earnings"
+  },
+  {
+    "pattern": "\\btax\\b",
+    "kind": "tax_rate",
+    "line": "Income Tax Expense"
+  },
+  {
+    "pattern": "\\b(expenses?|costs?)\\b",
+    "kind": "operating_expense",
+    "line": "Operating Expenses"
+  }
+]

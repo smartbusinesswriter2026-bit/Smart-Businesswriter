@@ -3385,8 +3385,8 @@
      "required": true,
      "type": "decimal"
     },
-    "unemployment_rate": {
-     "desc": "optional unemployment rate as a fraction for tightness",
+    "unemployed": {
+     "desc": "optional unemployment count: the number of unemployed people, for the vacancy-to-unemployed ratio",
      "required": false,
      "type": "decimal"
     },
@@ -3396,24 +3396,26 @@
      "type": "decimal"
     }
    },
-   "intended_use": "Real wage, wage share of productivity and optional labour-market tightness from declared nominal wage, CPI, productivity and vacancy/unemployment figures.",
+   "intended_use": "Real wage, wage share of productivity and optional labour-market tightness - vacancies per unemployed person - from a declared nominal wage, CPI, productivity, vacancy count and unemployment count.",
    "limitations": [
     "No hours, composition, taxes, benefits or bargaining.",
     "The wage share is a simple ratio, not a full decomposition.",
-    "No regional or sectoral breakdown."
+    "No regional or sectoral breakdown.",
+    "Tightness needs an unemployment COUNT; an unemployment rate is not an input, because a count divided by a rate has no reading."
    ],
    "method_id": "labour_market",
    "planned_checks": [
     "second_implementation_agrees",
     "real_wage_is_nominal_wage_over_the_price_index",
     "wage_share_is_real_wage_over_productivity",
+    "tightness_is_vacancies_over_unemployed",
     "a_higher_cpi_lowers_the_real_wage",
     "a_higher_productivity_lowers_the_wage_share"
    ],
    "review_status": "pending_named_reviewer",
    "status": "implemented_tested",
    "tier": "T1",
-   "unsupported_use": "Estimating wages or productivity; hours, composition, taxes, benefits or bargaining; a full labour-market model.",
+   "unsupported_use": "Estimating wages or productivity; hours, composition, taxes, benefits or bargaining; an unemployment rate or a labour-force survey; a full labour-market model.",
    "version": "1.0.0"
   },
   "leverage_analysis": {

@@ -10194,7 +10194,7 @@ if (new URLSearchParams(location.search).get("pricing")) {
         buttons[key].setAttribute("aria-pressed", key === kind ? "true" : "false");
       });
     }
-    [["working", "Working"], ["statements", "Statements only"]].forEach(function (pair) {
+    [["working", "Working"], ["statements", "Result"]].forEach(function (pair) {
       var button = el("button", "", pair[1]);
       button.type = "button";
       button.setAttribute("aria-pressed", "false");
@@ -10204,7 +10204,7 @@ if (new URLSearchParams(location.search).get("pricing")) {
     });
     host.appendChild(toggle);
     host.appendChild(view);
-    showView("working");
+    showView("statements");
     var withheld = (record.statements || {}).cash_flow_withheld_because;
     if (withheld) { host.appendChild(el("p", "muted", "Cash flow statement withheld: " + withheld)); }
     if (record.same_model_disclosure) {
@@ -10239,7 +10239,24 @@ if (new URLSearchParams(location.search).get("pricing")) {
       }).then(function (answer) {
         return answer.json().then(function (body) { return {status: answer.status, body: body}; });
       }).then(function (result) {
-        if (result.status !== 200 || !result.body.text) {
+        if (result.status !== 200) {
+          host.appendChild(el("p", "muted", label + ": the server did not return a file (" +
+            ((result.body && result.body.error) || result.status) + ")."));
+          return;
+        }
+        if (result.body.data) {
+          var binary = atob(result.body.data), bytes = new Uint8Array(binary.length);
+          for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          var blob = new Blob([bytes], {type: result.body.mime || "application/octet-stream"});
+          var url = URL.createObjectURL(blob);
+          var link = document.createElement("a");
+          link.href = url; link.download = filename || result.body.filename;
+          document.body.appendChild(link); link.click();
+          setTimeout(function () { URL.revokeObjectURL(url); link.remove(); }, 0);
+          host.appendChild(el("p", "muted", label + ": " + (filename || result.body.filename) + " is ready."));
+          return;
+        }
+        if (!result.body.text) {
           host.appendChild(el("p", "muted", label + ": the server did not return a file (" +
             ((result.body && result.body.error) || result.status) + ")."));
           return;
@@ -10259,17 +10276,29 @@ if (new URLSearchParams(location.search).get("pricing")) {
       foot.appendChild(button);
     }
     act(".docx", function () {
-      fetchExport("statements_only", "Download the statements");
+      fetchExport("docx", "Download the statements", "statements-" + record.id + ".docx");
     });
-    act(".xls", function () {
-      fetchExport("working", "Download the working", "statements-" + record.id + "-working.txt");
+    act(".xlsx", function () {
+      fetchExport("xlsx", "Download the workbook", "statements-" + record.id + ".xlsx");
     });
     act("Explanation file", function () {
-      fetch("/api/cases/statements/" + record.id + "/replay", {method: "POST"})
+      fetch("/api/cases/statements/" + record.id + "/explanation", {method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({format: "docx"})})
         .then(function (answer) { return answer.json(); })
         .then(function (body) {
-          host.appendChild(el("p", "muted", body.ok ? "Replay matches: the record reproduces exactly."
-            : "Replay drifted: " + JSON.stringify(body)));
+          if (body.document && body.document.data) {
+            var binary = atob(body.document.data), bytes = new Uint8Array(binary.length);
+            for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            var url = URL.createObjectURL(new Blob([bytes], {type: body.document.mime}));
+            var link = document.createElement("a");
+            link.href = url; link.download = body.document.filename;
+            document.body.appendChild(link); link.click();
+            setTimeout(function () { URL.revokeObjectURL(url); link.remove(); }, 0);
+            host.appendChild(el("p", "muted", "Explanation downloaded: " + body.document.filename));
+          } else {
+            host.appendChild(el("p", "muted", (body.error) || "No explanation available."));
+          }
         });
     });
     host.appendChild(foot);

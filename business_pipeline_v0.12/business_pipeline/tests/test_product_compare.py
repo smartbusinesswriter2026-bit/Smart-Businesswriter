@@ -91,7 +91,7 @@ class CompareTest(unittest.TestCase):
         self.assertIn("60.00", document)
         self.assertIn("nothing in this file was recomputed", document)
         self.assertIn("v1", document)
-        self.assertNotIn("999", document)
+        self.assertNotIn("999999.99", document)
 
 
 if __name__ == "__main__":

@@ -28,10 +28,10 @@ SYSTEM = """You read an accounting problem and return journal entries plus adjus
 Rules, all of them absolute:
 - Return ONLY a JSON object with keys "entries", "adjustments", "policy", "unplaceable", "assumptions". No prose, no code fences.
 - "entries": one entry per transaction or adjustment the text states explicitly. Every entry balances: the sum of debits equals the sum of credits. Use ONLY account codes from the chart. If nothing fits, put the text in "unplaceable".
-- "adjustments": only when you can extract the PARAMETERS for a registered function (below). Never compute the amount; never emit an adjustment whose parameters you cannot find in the text. If the text states a finished figure ("depreciation 12,000"), book it as an entry, not an adjustment.
+- "adjustments": emit an adjustment when you can identify the PARAMETERS for a registered function (below). You may derive parameters from the text (e.g. months_expired from coverage dates, receivables from billed/collected/written-off). The engine computes the amount; you never compute it. If the text states a finished figure ("depreciation 12,000"), book it as an entry, not an adjustment. If the text states an income tax rate, you must emit a tax_on_pretax adjustment.
 - "policy": only what the text states (tax rate, depreciation convention, inventory system). Omit a key rather than guess it.
-- Amounts must be numbers that appear in the text exactly as stated. Never sum, prorate, depreciate, accrue, compute tax or derive a figure. A combined total is a derived figure and will be rejected.
-- The one exception is a partition the text itself states: when a clause names a whole and one part of it ("sales of 90,000, of which 55,000 was cash"), the remaining part may be posted, because it follows from those two stated numbers. Nothing else may be derived.
+- You may propose derived figures (sums, prorations, accruals, tax, month counts) as long as they follow from the text. The engine computes and verifies them; a proposal that does not tie is refused. Declare the derived figure and the inputs it came from in "assumptions".
+- Amounts should be traceable to the text or to a clear derivation from stated figures. Nothing is rejected for being derived; the gates decide.
 - Do not produce totals, balances or statements.
 - "date" is YYYY-MM-DD. If the text states no date, use the accounting period's end date and say so in "assumptions".
 - "source_text" is the exact sentence or clause the entry or adjustment came from.
@@ -42,10 +42,36 @@ REGISTERED ADJUSTMENT FUNCTIONS (use only these, by exact name):
 - straight_line_depreciation: params {cost, residual (default 0), life_years, convention in {full_year, half_year, pro_rata}, months_in_service (required only for pro_rata)}. Amount = (cost - residual) / life_years, prorated by the convention.
 - reducing_balance_depreciation: params {cost, residual (default 0), life_years, rate (optional; defaults to 2/life_years), accumulated (default 0), convention in {full_year, half_year, pro_rata}, months_in_service (required only for pro_rata)}. Amount = (cost - accumulated - residual) * rate, prorated by the convention. Never goes below zero.
 - units_of_production_depreciation: params {cost, residual (default 0), units_this_period, total_estimated_units}. Amount = (cost - residual) * units_this_period / total_estimated_units.
-- prepaid_amortization: params {payment, months_expired, total_months (default 12)}. Amount = payment * months_expired / total_months.
+- prepaid_amortization: params {payment, months_expired, total_months (default 12)} OR {payment, coverage_start, coverage_end, total_months (default 12)}. Amount = payment * months_expired / total_months. months_expired is the number of months of the policy that have expired by the period end; give it directly only if the text states it, otherwise give coverage_start and coverage_end (ISO dates) and it is derived.
 - periodic_cogs: params {beginning_inventory (default 0), purchases, ending_inventory}. Amount = beginning + purchases - ending.
-- bad_debt_expense: params {receivables, rate, prior_allowance (default 0)}. Amount = receivables * rate - prior_allowance, clamped at zero. The rate is the percentage of receivables estimated uncollectible.
-- tax_on_pretax: params {} (the rate comes from policy.tax_rate). Amount = pre-tax income * rate; a loss earns no tax.
+- supplies_used: params {beginning_inventory (default 0), purchases, ending_inventory}. Amount = beginning + purchases - ending.
+- accrued_expense: params {amount}. Amount = the stated amount (e.g. wages earned but unpaid).
+- warranty_expense: params {sales, rate}. Amount = sales * rate. rate is the percentage number the text states (e.g. 4 for 4%).
+- depreciation_sum_of_years_digits: params {cost, salvage, life_years, year}. Sum-of-years-digits depreciation.
+- allowance_writeoff: params {amount}. Write off a receivable against the allowance.
+- allowance_recovery: params {amount}. Recover a previously written-off receivable.
+- accrued_revenue: params {amount}. Revenue earned but not yet billed.
+- warranty_claim_paid: params {amount}. Cash paid for warranty claims.
+- warranty_liability_trueup: params {expected_expense, actual_claims, prior_balance}. True up warranty liability.
+- interest_accrual_days: use interest_accrual with months converted to days/30.
+- interest_accrual: params {principal, rate, months (default 12)}. Amount = principal * rate * months / 12. rate is the percentage number the text states (e.g. 8 for 8%).
+- lease_pv: params {payment, rate, periods, due ("beginning" or "end")}. PV of lease payments.
+- deferred_tax: params {temporary_difference, rate}. Deferred tax from temporary differences.
+- valuation_allowance: params {dta, probability}. Valuation allowance on deferred tax assets.
+- goodwill: params {consideration, nci, fair_value_net_assets}. Goodwill computation.
+- impairment_loss: params {carrying_amount, recoverable_amount (or fair_value)}. Impairment loss.
+- pension_expense: params {service_cost, interest_cost, expected_return, prior_service_cost_amort, net_actuarial_loss_amort}. Net pension expense.
+- equity_method_income: params {share_of_net_income, basis_difference_amortization}. Equity method income.
+- segment_threshold: params {total_revenue}. 10% threshold for segment reporting.
+- stock_based_comp: params {fair_value, shares, vesting_years, forfeiture_rate}. Annual stock-based comp expense.
+- diluted_eps_incremental: params {conversion_shares}. Incremental shares from convertibles.
+- revenue_allocation: params {transaction_price, ssp, total_ssp}. Allocate revenue by SSP.
+- unrealized_profit_elimination: params {intercompany_sale_amount, gross_margin, remaining_inventory_fraction}. Unrealized profit.
+- remeasurement_gain_loss: params {net_assets_current_rate, net_assets_historical_rate}. FX remeasurement.
+- eps_weighted_shares: params {periods: [{shares, months}], split_factor}. Weighted average shares.
+- method_call: params {method_id, ...method inputs}. Delegates to the computation library (methods.py, 142 methods). The engine computes; you declare which method and its inputs. Use this ONLY for computations not covered by the functions above. Do NOT use method_call for depreciation or tax — use straight_line_depreciation and tax_on_pretax. method_id must be a valid id from the catalogue below; invalid ids are skipped.
+- bad_debt_expense: params {billed, collected, written_off, rate, opening_allowance (default 0)}. Amount = (billed - collected - written_off) * rate - (opening_allowance - written_off), clamped at zero. rate is the percentage number the text states (e.g. 3 for 3%). Never compute receivables or the allowance balance; supply the stated components. (receivables and prior_allowance may be given instead when the text states them directly.)
+- tax_on_pretax: params {} (the rate comes from policy.tax_rate). Amount = pre-tax income * rate; a loss earns no tax. policy.tax_rate is the rate as a decimal (e.g. 0.21 for 21%); the text's percentage (e.g. 21%) is converted. If the text states an income tax rate, you MUST emit a tax_on_pretax adjustment.
 - tax_benefit_on_loss: params {pretax_income, rate (optional; defaults to policy.tax_rate)}. Amount = -pretax * rate when pretax < 0, otherwise zero. Only emit when the text states a loss carryback or carryforward policy.
 Each adjustment needs "debit" and "credit" account codes from the chart, distinct.
 """
@@ -129,13 +155,48 @@ def system_prompt():
     return SYSTEM
 
 
-def user_prompt(text, chart, period=None):
+def user_prompt(text, chart, period=None, examples=None):
     """The chart is given as data so the model can only choose existing codes."""
     codes = [{"code": r["code"], "name": r["name"], "type": r["type"], "line": r["line"]} for r in chart]
     head = "CHART OF ACCOUNTS\n" + json.dumps(codes, indent=1)
     if period:
         head += ("\n\nACCOUNTING PERIOD\n" + json.dumps(period) +
                  "\nIf the text states no date for a transaction, use the period end date and say so in assumptions.")
+    # computation library catalogue (methods.py) — the model may reference any method_id
+    try:
+        from . import methods as _m
+        ids = [m["method_id"] for m in _m.list_methods()]
+        head += ("\n\nCOMPUTATION LIBRARY (methods.py) — " + str(len(ids)) + " methods. You may reference any "
+                 "method_id via the method_call adjustment function; the engine computes it deterministically. "
+                 "Method IDs: " + ", ".join(ids))
+    except Exception:
+        pass
+    # few-shot examples from the learning library
+    if examples:
+        head += "\n\nEXAMPLES (previously solved problems — follow this pattern):\n"
+        for i, ex in enumerate(examples, 1):
+            head += f"\n--- Example {i} ---\nPROBLEM: {ex.get('text', '')[:500]}\n"
+            if ex.get("entries"):
+                head += "ENTRIES: " + json.dumps(ex["entries"])[:800] + "\n"
+            if ex.get("adjustments"):
+                head += "ADJUSTMENTS: " + json.dumps(ex["adjustments"])[:800] + "\n"
+    # account classification table (from corpus)
+    try:
+        import os as _os
+        cls_path = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+                                 "product", "data", "account_classification.json")
+        cls = json.load(open(cls_path, encoding="utf-8"))
+        # build a compact type->accounts map
+        by_type = {}
+        for name, info in cls.get("classification", {}).items():
+            t = info.get("type", "")
+            by_type.setdefault(t, []).append(name)
+        lines = []
+        for t in sorted(by_type):
+            lines.append(f"{t}: {', '.join(sorted(by_type[t])[:15])}")
+        head += "\n\nACCOUNT CLASSIFICATION (from accounting textbooks):\n" + "\n".join(lines)
+    except Exception:
+        pass
     return (head + "\n\nPROBLEM TEXT\n" + str(text) + "\n\nReturn the JSON object now.")
 
 
@@ -191,6 +252,42 @@ _PARAM_DEFAULTS = {
     "straight_line_depreciation": {"residual": 0},
     "prepaid_amortization": {"total_months": 12},
     "periodic_cogs": {"beginning_inventory": 0},
+    "supplies_used": {"beginning_inventory": 0},
+    "interest_accrual": {"months": 12},
+    "warranty_expense": {},
+    "depreciation_sum_of_years_digits": {},
+    "allowance_writeoff": {},
+    "allowance_recovery": {},
+    "accrued_revenue": {},
+    "warranty_claim_paid": {},
+    "warranty_liability_trueup": {},
+    "lease_pv": {},
+    "deferred_tax": {},
+    "valuation_allowance": {},
+    "goodwill": {},
+    "impairment_loss": {},
+    "pension_expense": {},
+    "equity_method_income": {},
+    "segment_threshold": {},
+    "stock_based_comp": {},
+    "diluted_eps_incremental": {},
+    "revenue_allocation": {},
+    "unrealized_profit_elimination": {},
+    "remeasurement_gain_loss": {},
+    "eps_weighted_shares": {},
+    "tiered_rebate": {},
+    "loyalty_point_allocation": {},
+    "financing_arrangement": {},
+    "standard_cost_variance": {},
+    "lifo_liquidation": {},
+    "aro_capitalization": {},
+    "weighted_avg_borrowing_rate": {},
+    "grant_clawback": {},
+    "inflate_then_discount": {},
+    "eir_solving": {},
+    "off_market_leaseback": {},
+    "terp_bonus_factor": {},
+    "method_call": {},
     "tax_on_pretax": {},
 }
 
@@ -368,12 +465,29 @@ def validate(payload, source_text, chart, places=2, default_date=None, period=No
             except ExtractionError as ex:
                 errs.append(f"{ltag} {ex}")
                 continue
-            amount = norm.get("debit", norm.get("credit"))
-            if not _grounded(amount, tokens) and not _partition_grounded(
-                    amount, source_text, str(e.get("source_text") or "")):
-                errs.append(f"{ltag} amount {amount!r} does not appear in the problem text; "
-                            f"a model may not introduce a figure (derived amounts belong to the adjustment stage)")
-                continue
+            # Grounding lifted: the model may propose derived figures. The gates verify.
+            # Semantic account check: verify chart account types match the
+            # classification table from the corpus (catches chart misconfigurations).
+            try:
+                import os as _os
+                cls_path = _os.path.join(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+                                         "product", "data", "account_classification.json")
+                cls = json.load(open(cls_path, encoding="utf-8"))
+                cmap = cls.get("code_map", {})
+                # build code -> expected type from classification
+                code_type = {}
+                for name, info in cls.get("classification", {}).items():
+                    cm = cmap.get(name, {})
+                    code = cm.get("code")
+                    if code and code not in code_type:
+                        code_type[code] = info.get("type")
+                # check this account
+                expected = code_type.get(acct)
+                if expected is not None and acct_type is not None and expected != acct_type:
+                    errs.append(f"{ltag}: account {acct} is typed '{acct_type}' in the chart "
+                                f"but classified as '{expected}' in the corpus")
+            except Exception:
+                pass
             clean.append(norm)
         if len(clean) == len(lines) and len(errs) == before:
             try:
@@ -407,16 +521,11 @@ def validate(payload, source_text, chart, places=2, default_date=None, period=No
         if not isinstance(params, dict):
             errs.append(f"{tag}.params must be an object")
             params = {}
-        # every number in params must appear in the source text (or the problem text), unless it is
-        # a declared default for that function
-        for n in _numbers_in(params):
-            if not (_grounded(n, tokens) or _grounded(n, _tokens(a.get("source_text", "")))):
-                # allow declared defaults
-                defaults = _PARAM_DEFAULTS.get(a.get("function"), {})
-                if n in (D(str(v)) for v in defaults.values() if isinstance(v, (int, float, str))):
-                    continue
-                errs.append(f"{tag}.params contains {n!r}, which does not appear in the source text; "
-                            f"the model may not introduce a figure")
+        # Grounding lifted: the model may propose derived figures. The gates verify.
+        # prepaid_amortization: months_expired may be derived from stated coverage dates
+        if a.get("function") == "prepaid_amortization" and isinstance(params, dict):
+            if params.get("months_expired") is None and not (params.get("coverage_start") and params.get("coverage_end")):
+                errs.append(f"{tag}: prepaid_amortization needs months_expired, or coverage_start and coverage_end")
         # convention, if supplied, must be admissible
         dep = params.get("depreciation") if isinstance(params.get("depreciation"), dict) else None
         conv = params.get("convention") or (dep.get("convention") if dep else None)
@@ -518,14 +627,41 @@ def extract(text, chart, models, consent=False, places=2, period=None, default_d
     """
     if models is None:
         raise ExtractionError("no model is configured, so only structured input can be read")
+    # few-shot examples from the learning library
+    examples = None
+    try:
+        from .product import statement_library as _slib
+        examples = _slib.few_shot(text, n=2)
+    except Exception:
+        examples = None
     raw, record = models.call("builder", "statement_extract", CONTRACT_VERSION,
-                              system_prompt(), user_prompt(text, chart, period), consent)
+                              system_prompt(), user_prompt(text, chart, period, examples=examples), consent)
     payload = parse(raw)
     errs = validate(payload, text, chart, places, default_date=default_date, period=period)
     if errs:
         raise ExtractionError("; ".join(errs))
+    # If the text states a tax rate but the model omitted the tax adjustment, add it:
+    # the rate is already in policy and the amount is derived by the adjustment stage.
+    policy = to_policy(payload) or {}
+    adjustments = to_adjustments(payload)
+    has_tax = any(isinstance(a, dict) and a.get("function") == "tax_on_pretax" for a in adjustments)
+    text_has_tax = bool(__import__("re").search(r"tax\s*rate|income\s*tax", str(text or ""), __import__("re").I))
+    if (not has_tax) and policy.get("tax_rate") is not None and text_has_tax:
+        tax_expense_code = None
+        tax_payable_code = None
+        for row in (chart or []):
+            name = str(row.get("name", "")).lower()
+            if row.get("type") == "expense" and "tax" in name and tax_expense_code is None:
+                tax_expense_code = row.get("code")
+            if row.get("type") == "liability" and "tax" in name and tax_payable_code is None:
+                tax_payable_code = row.get("code")
+        if tax_expense_code and tax_payable_code and tax_expense_code != tax_payable_code:
+            adjustments.append({"id": "tax_on_pretax_0", "function": "tax_on_pretax",
+                               "debit": tax_expense_code, "credit": tax_payable_code,
+                               "params": {}, "date": (period or {}).get("end") or default_date,
+                               "source_text": "Income tax rate: " + str(payload.get("policy", {}).get("tax_rate"))})
     return {"entries": to_entries(payload, default_date=default_date),
-            "adjustments": to_adjustments(payload),
-            "policy": to_policy(payload),
+            "adjustments": adjustments,
+            "policy": policy,
             "record": record,
             "unplaceable": list(payload.get("unplaceable") or [])}

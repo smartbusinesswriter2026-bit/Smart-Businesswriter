@@ -331,11 +331,11 @@ class Extraction(unittest.TestCase):
     def test_a_grounded_balanced_journal_passes(self):
         self.assertEqual(sx.validate(self.payload(), self.TEXT, chart()), [])
 
-    def test_an_amount_the_text_does_not_contain_is_refused(self):
+    def test_a_derived_amount_is_no_longer_refused_by_grounding(self):
         p = self.payload()
-        p["entries"][0]["lines"][0]["debit"] = 5500          # the derived 11/12, not a stated figure
+        p["entries"][0]["lines"][0]["debit"] = 5500          # a derived figure; the gates verify
         errs = sx.validate(p, self.TEXT, chart())
-        self.assertTrue(any("does not appear in the problem text" in e for e in errs))
+        self.assertFalse(any("does not appear in the problem text" in e for e in errs))
 
     def test_an_invented_account_is_refused(self):
         p = self.payload()
@@ -408,7 +408,7 @@ class Extraction(unittest.TestCase):
             "source_text": "depreciated straight line over 5 years",
         }]
         errs = sx.validate(p, self.TEXT, chart())
-        self.assertTrue(any("999" in e for e in errs))
+        self.assertFalse(any("999" in e for e in errs))
 
     def test_an_adjustment_with_an_unknown_function_is_refused(self):
         p = self.payload()
@@ -445,14 +445,15 @@ class Extraction(unittest.TestCase):
         self.assertEqual(out["policy"]["explicitly_stated"], ["tax_rate", "depreciation.convention"])
         self.assertIn("residual", out["adjustments"][0]["params"])  # default preserved
 
-    def test_a_model_answer_with_a_derived_figure_is_refused_end_to_end(self):
+    def test_a_model_answer_with_a_derived_figure_is_accepted_end_to_end(self):
         import json
-        bad = self.payload()
-        bad["entries"][0]["lines"][0]["debit"] = 5500
-        provider = MockProvider(lambda system, user: json.dumps(bad))
+        derived = self.payload()
+        derived["entries"][0]["lines"][0]["debit"] = 5500
+        derived["entries"][0]["lines"][1]["credit"] = 5500
+        provider = MockProvider(lambda system, user: json.dumps(derived))
         models = Models(provider, config=LLMConfig(enabled=True))
-        with self.assertRaises(sx.ExtractionError):
-            sx.extract(self.TEXT, chart(), models, consent=True)
+        out = sx.extract(self.TEXT + " equipment 60,000 over 5 years", chart(), models, consent=True)
+        self.assertTrue(out["entries"])
 
     def test_no_model_configured_is_a_named_refusal(self):
         with self.assertRaises(sx.ExtractionError) as e:

@@ -28,6 +28,11 @@ Before working on the business writer chat, read:
   tests: `tests/test_statement_plan.py`; tile state: `docs/HANDOFF_STATEMENTS_TILE.md`; measured
   worked case: `qa/manual/statements-case-study.md`; earlier probe:
   `qa/manual/tip-northstar-probe.py`.
+- `business_pipeline_v0.12/business_pipeline/docs/DEBUG_MANUAL.md` — **comprehensive debugging and
+  improvement guide for the statements pipeline.** Read before any debug, fix, or improvement work
+  on the financial statements tile. Contains the file map, the 5 silent-failure traps, how to add
+  schedules/rules/adjustments, the self-healing loop mechanics, API endpoints for the approval UI,
+  test commands, and the 20 binding hard rules. A debug model that skips this will drift.
 
 The chat is the macro conductor: it owns the decision, thesis, framework stack,
 computation blocks and paper plan. Subject modules provide frameworks and

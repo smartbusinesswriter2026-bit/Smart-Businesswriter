@@ -1,0 +1,572 @@
+{
+ "Cash": {
+  "type": "asset",
+  "code": "1000",
+  "normal": "debit",
+  "contra": false
+ },
+ "Bank": {
+  "type": "asset",
+  "code": "1000",
+  "normal": "debit",
+  "contra": false
+ },
+ "Accounts receivable": {
+  "type": "asset",
+  "code": "1100",
+  "normal": "debit",
+  "contra": false
+ },
+ "Allowance for doubtful accounts": {
+  "type": "asset",
+  "code": "1310",
+  "normal": "credit",
+  "contra": true
+ },
+ "Inventory": {
+  "type": "asset",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Supplies": {
+  "type": "asset",
+  "code": "1350",
+  "normal": "debit",
+  "contra": false
+ },
+ "Prepaid rent": {
+  "type": "asset",
+  "code": "1300",
+  "normal": "debit",
+  "contra": false
+ },
+ "Prepaid insurance": {
+  "type": "asset",
+  "code": "1300",
+  "normal": "debit",
+  "contra": false
+ },
+ "Equipment": {
+  "type": "asset",
+  "code": "1500",
+  "normal": "debit",
+  "contra": false
+ },
+ "Accumulated depreciation": {
+  "type": "asset",
+  "code": "1700",
+  "normal": "credit",
+  "contra": true
+ },
+ "Accounts payable": {
+  "type": "liability",
+  "code": "2000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Notes payable": {
+  "type": "liability",
+  "code": "2100",
+  "normal": "credit",
+  "contra": false
+ },
+ "Loan payable": {
+  "type": "liability",
+  "code": "2100",
+  "normal": "credit",
+  "contra": false
+ },
+ "Accrued wages": {
+  "type": "liability",
+  "code": "2300",
+  "normal": "credit",
+  "contra": false
+ },
+ "Accrued interest": {
+  "type": "liability",
+  "code": "2300",
+  "normal": "credit",
+  "contra": false
+ },
+ "Unearned revenue": {
+  "type": "liability",
+  "code": "2400",
+  "normal": "credit",
+  "contra": false
+ },
+ "Warranty liability": {
+  "type": "liability",
+  "code": "2300",
+  "normal": "credit",
+  "contra": false
+ },
+ "Common stock": {
+  "type": "equity",
+  "code": "3000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Retained earnings": {
+  "type": "equity",
+  "code": "3100",
+  "normal": "credit",
+  "contra": false
+ },
+ "Dividends": {
+  "type": "equity",
+  "code": "3200",
+  "normal": "debit",
+  "contra": true
+ },
+ "Sales revenue": {
+  "type": "income",
+  "code": "4000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Service revenue": {
+  "type": "income",
+  "code": "4000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Cost of goods sold": {
+  "type": "expense",
+  "code": "5000",
+  "normal": "debit",
+  "contra": false
+ },
+ "Salaries expense": {
+  "type": "expense",
+  "code": "6100",
+  "normal": "debit",
+  "contra": false
+ },
+ "Rent expense": {
+  "type": "expense",
+  "code": "6200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Utilities expense": {
+  "type": "expense",
+  "code": "6250",
+  "normal": "debit",
+  "contra": false
+ },
+ "Depreciation expense": {
+  "type": "expense",
+  "code": "6400",
+  "normal": "debit",
+  "contra": false
+ },
+ "Bad debt expense": {
+  "type": "expense",
+  "code": "6500",
+  "normal": "debit",
+  "contra": false
+ },
+ "Supplies expense": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Interest expense": {
+  "type": "expense",
+  "code": "7100",
+  "normal": "debit",
+  "contra": false
+ },
+ "Tax expense": {
+  "type": "expense",
+  "code": "8000",
+  "normal": "debit",
+  "contra": false
+ },
+ "General expenses": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Warranty expense": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Freight-in": {
+  "type": "expense",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Freight-out": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Sales returns": {
+  "type": "income",
+  "code": "4000",
+  "normal": "debit",
+  "contra": true
+ },
+ "Sales discounts": {
+  "type": "income",
+  "code": "4000",
+  "normal": "debit",
+  "contra": true
+ },
+ "Purchase discounts": {
+  "type": "expense",
+  "code": "1200",
+  "normal": "credit",
+  "contra": true
+ },
+ "Petty cash": {
+  "type": "asset",
+  "code": "1000",
+  "normal": "debit",
+  "contra": false
+ },
+ "Short-term investments": {
+  "type": "asset",
+  "code": "1050",
+  "normal": "debit",
+  "contra": false
+ },
+ "Notes receivable": {
+  "type": "asset",
+  "code": "1150",
+  "normal": "debit",
+  "contra": false
+ },
+ "Interest receivable": {
+  "type": "asset",
+  "code": "1100",
+  "normal": "debit",
+  "contra": false
+ },
+ "Unbilled receivables": {
+  "type": "asset",
+  "code": "1100",
+  "normal": "debit",
+  "contra": false
+ },
+ "Merchandise inventory": {
+  "type": "asset",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Raw materials inventory": {
+  "type": "asset",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Work in process inventory": {
+  "type": "asset",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Finished goods inventory": {
+  "type": "asset",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Prepaid advertising": {
+  "type": "asset",
+  "code": "1300",
+  "normal": "debit",
+  "contra": false
+ },
+ "Land": {
+  "type": "asset",
+  "code": "1500",
+  "normal": "debit",
+  "contra": false
+ },
+ "Buildings": {
+  "type": "asset",
+  "code": "1500",
+  "normal": "debit",
+  "contra": false
+ },
+ "Vehicles": {
+  "type": "asset",
+  "code": "1500",
+  "normal": "debit",
+  "contra": false
+ },
+ "Accumulated depreciation - buildings": {
+  "type": "asset",
+  "code": "1700",
+  "normal": "credit",
+  "contra": true
+ },
+ "Patents and other intangibles": {
+  "type": "asset",
+  "code": "1600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Goodwill": {
+  "type": "asset",
+  "code": "1600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Wages payable": {
+  "type": "liability",
+  "code": "2300",
+  "normal": "credit",
+  "contra": false
+ },
+ "Interest payable": {
+  "type": "liability",
+  "code": "2300",
+  "normal": "credit",
+  "contra": false
+ },
+ "Income taxes payable": {
+  "type": "liability",
+  "code": "2200",
+  "normal": "credit",
+  "contra": false
+ },
+ "Sales tax payable": {
+  "type": "liability",
+  "code": "2300",
+  "normal": "credit",
+  "contra": false
+ },
+ "Dividends payable": {
+  "type": "liability",
+  "code": "2300",
+  "normal": "credit",
+  "contra": false
+ },
+ "Customer deposits": {
+  "type": "liability",
+  "code": "2400",
+  "normal": "credit",
+  "contra": false
+ },
+ "Deferred revenue": {
+  "type": "liability",
+  "code": "2400",
+  "normal": "credit",
+  "contra": false
+ },
+ "Mortgage payable": {
+  "type": "liability",
+  "code": "2100",
+  "normal": "credit",
+  "contra": false
+ },
+ "Bonds payable": {
+  "type": "liability",
+  "code": "2100",
+  "normal": "credit",
+  "contra": false
+ },
+ "Discount on bonds payable": {
+  "type": "liability",
+  "code": "2100",
+  "normal": "debit",
+  "contra": true
+ },
+ "Current portion of long-term debt": {
+  "type": "liability",
+  "code": "2100",
+  "normal": "credit",
+  "contra": false
+ },
+ "Deferred tax liability": {
+  "type": "liability",
+  "code": "2500",
+  "normal": "credit",
+  "contra": false
+ },
+ "Preferred stock": {
+  "type": "equity",
+  "code": "3000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Additional paid-in capital": {
+  "type": "equity",
+  "code": "3000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Owner's capital": {
+  "type": "equity",
+  "code": "3000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Owner's drawings": {
+  "type": "equity",
+  "code": "3200",
+  "normal": "debit",
+  "contra": true
+ },
+ "Dividends declared": {
+  "type": "equity",
+  "code": "3200",
+  "normal": "debit",
+  "contra": true
+ },
+ "Treasury stock": {
+  "type": "equity",
+  "code": "3300",
+  "normal": "debit",
+  "contra": true
+ },
+ "Accumulated other comprehensive income": {
+  "type": "equity",
+  "code": "3400",
+  "normal": "credit",
+  "contra": false
+ },
+ "Income summary": {
+  "type": "equity",
+  "code": "3100",
+  "normal": "credit",
+  "contra": false
+ },
+ "Fee revenue": {
+  "type": "income",
+  "code": "4000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Commission revenue": {
+  "type": "income",
+  "code": "4000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Rent revenue": {
+  "type": "income",
+  "code": "4000",
+  "normal": "credit",
+  "contra": false
+ },
+ "Interest revenue": {
+  "type": "income",
+  "code": "4100",
+  "normal": "credit",
+  "contra": false
+ },
+ "Gain on sale of equipment": {
+  "type": "income",
+  "code": "4200",
+  "normal": "credit",
+  "contra": false
+ },
+ "Purchases": {
+  "type": "expense",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Purchase returns and allowances": {
+  "type": "expense",
+  "code": "1200",
+  "normal": "credit",
+  "contra": true
+ },
+ "Direct labor": {
+  "type": "expense",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Manufacturing overhead": {
+  "type": "expense",
+  "code": "1200",
+  "normal": "debit",
+  "contra": false
+ },
+ "Inventory shrinkage": {
+  "type": "expense",
+  "code": "5000",
+  "normal": "debit",
+  "contra": false
+ },
+ "Advertising expense": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Insurance expense": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Repairs and maintenance expense": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Telephone expense": {
+  "type": "expense",
+  "code": "6250",
+  "normal": "debit",
+  "contra": false
+ },
+ "Bank charges": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Credit card fees": {
+  "type": "expense",
+  "code": "6600",
+  "normal": "debit",
+  "contra": false
+ },
+ "Payroll tax expense": {
+  "type": "expense",
+  "code": "6100",
+  "normal": "debit",
+  "contra": false
+ },
+ "Commission expense": {
+  "type": "expense",
+  "code": "6100",
+  "normal": "debit",
+  "contra": false
+ },
+ "Amortization expense": {
+  "type": "expense",
+  "code": "6400",
+  "normal": "debit",
+  "contra": false
+ },
+ "Loss on sale of equipment": {
+  "type": "expense",
+  "code": "6800",
+  "normal": "debit",
+  "contra": false
+ },
+ "Income tax expense": {
+  "type": "expense",
+  "code": "8000",
+  "normal": "debit",
+  "contra": false
+ }
+}

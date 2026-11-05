@@ -843,7 +843,7 @@ class Units(unittest.TestCase):
         self.assertIsNone(shown["labour_market_tightness"].currency)
         self.assertEqual(shown["vacancies"].display(), "10")
         self.assertEqual(shown["unemployed"].display(), "50")
-        self.assertEqual(shown["real_wage"].display(), "PHP 95.24")
+        self.assertEqual(shown["real_wage"].display(), "USD 95.24")
     def test_E_ppl_054__every_delivered_figure_is_printed_at_its_declared_precision(self):
         for key in TOOLS:
             pipeline, decision = delivered(preset_request(key))
