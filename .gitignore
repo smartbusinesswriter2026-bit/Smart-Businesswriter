@@ -89,3 +89,9 @@ business_pipeline_v0.12/business_pipeline/intake/
 .baseline_head2/
 .baseline_pre/
 .snapshot_wt/
+
+# The session scratch directory: one-off scripts, suite logs and the byte-exact
+# measurement archives. Two of the archives in it are 345 MB each, and GitHub
+# refuses any blob over 100 MB, so a stray `git add -A` would fail the push
+# outright. None of it is source: it is the working evidence of a build session.
+.scratch/
