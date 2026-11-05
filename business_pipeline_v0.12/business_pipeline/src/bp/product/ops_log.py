@@ -12,6 +12,7 @@ import datetime
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 from . import ops as ops_mod
@@ -81,12 +82,33 @@ def log_error(lane, error, problem_text=None, gap_label=None, count=1):
         "lane": str(lane or "unknown"),
         "error": str(error)[:500],
         "count": int(count),
+        "severity": classify_severity(str(error)),
     }
     if problem_text:
         record["problem_hash"] = hashlib.sha256(str(problem_text).encode("utf-8")).hexdigest()[:16]
     if gap_label:
         record["gap_label"] = str(gap_label)[:160]
     return _append_jsonl(_errors_path(), record)
+
+
+def classify_severity(error_text):
+    """Classify an error as light/moderate/severe based on keywords.
+
+    Returns 'light', 'moderate', or 'severe'.
+    """
+    text = str(error_text or "").lower()
+    severe_keywords = ["crash", "exception", "traceback", "500", "fatal", "refused", "cannot", "unable"]
+    moderate_keywords = ["fail", "missing", "invalid", "wrong", "incorrect", "mismatch", "refusal"]
+    if any(kw in text for kw in severe_keywords):
+        return "severe"
+    if any(kw in text for kw in moderate_keywords):
+        return "moderate"
+    return "light"
+
+
+def severity_count(severity):
+    """Return the default problem count for a severity level."""
+    return {"light": 3, "moderate": 5, "severe": 10}.get(severity, 5)
 
 
 def _read_jsonl(path, limit=50, filter_fn=None):
@@ -182,3 +204,18 @@ def is_error_resolved(error_id):
         if e.get("error_id") == error_id and e.get("resolved"):
             return True
     return False
+
+
+def merge_resolved(errors):
+    """Merge resolution records into error list.
+
+    Returns errors with 'resolved' field set based on resolution records.
+    """
+    resolved_ids = set()
+    all_records = _read_jsonl(_errors_path(), limit=100000)
+    for r in all_records:
+        if r.get("resolved") and r.get("error_id"):
+            resolved_ids.add(r["error_id"])
+    for e in errors:
+        e["resolved"] = e.get("error_id") in resolved_ids
+    return errors

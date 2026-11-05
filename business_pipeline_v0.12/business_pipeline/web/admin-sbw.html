@@ -301,7 +301,8 @@
             <h2>Problems &amp; Fixes</h2>
             <div id="workflowLog" class="code" style="min-height:60px;max-height:300px;overflow-y:auto;margin-bottom:12px;">Select an error and click "Generate problems" to start.</div>
             <div id="workflowActions" class="row" style="display:none;">
-              <button class="btn primary" id="wfProposeFix">Propose fix</button>
+              <button class="btn primary" id="wfAutoFix">Auto-fix</button>
+              <button class="btn" id="wfProposeFix">Propose fix</button>
               <button class="btn" id="wfApplyFix">Apply fix</button>
               <button class="btn" id="wfRunTests">Run tests</button>
             </div>
@@ -314,6 +315,7 @@
               <button class="btn" data-suite="prose">Prose</button>
               <button class="btn" data-suite="paper">Whole paper</button>
               <button class="btn primary" id="runAllTests">Run all</button>
+            <button class="btn" id="exportTests">Export JSON</button>
             </div>
             <div class="progress" id="testProgress"><div class="bar" style="width:0%"></div></div>
             <div id="testResults"></div>
@@ -467,8 +469,10 @@ function renderErrorsTable(errors, container) {
   errors.forEach(e => {
     const eid = e.error_id || e.id || '';
     const resolved = e.resolved ? true : false;
-    const statusPill = resolved ? pill('resolved', 'ok') : pill('open', 'err');
-    const genBtn = resolved ? '' : '<button class="btn primary" style="font-size:11px;padding:3px 8px;" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\')">Generate</button>';
+    const sev = e.severity || 'moderate';
+    const sevPill = resolved ? pill('resolved', 'ok') : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'));
+    const statusPill = sevPill;
+    const genBtn = resolved ? '' : '<button class="btn primary" style="font-size:11px;padding:3px 8px;" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\',\'' + escapeHtml(e.severity||'moderate') + '\')">Generate</button>';
     const resolveBtn = resolved ? '' : '<button class="btn" style="font-size:11px;padding:3px 8px;" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
     html += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + escapeHtml(e.lane) + '</td><td style="font-size:12px;">' + escapeHtml((e.error||'').slice(0,80)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td>' + genBtn + ' ' + resolveBtn + '</td></tr>';
   });
@@ -498,11 +502,14 @@ document.getElementById('healFreeGen').addEventListener('click', async () => {
   log.scrollTop = log.scrollHeight;
 });
 
-async function genFromError(errorId, errorText) {
-  const count = parseInt(document.getElementById('healCount').value) || 5;
-  currentError = { id: errorId, text: errorText };
+async function genFromError(errorId, errorText, severity) {
+  // Auto-set problem count based on severity
+  const sevCount = { light: 3, moderate: 5, severe: 10 }[severity] || 5;
+  document.getElementById('healCount').value = sevCount;
+  const count = sevCount;
+  currentError = { id: errorId, text: errorText, severity: severity };
   const wfLog = document.getElementById('workflowLog');
-  wfLog.textContent = '[Generating ' + count + ' problems from error: ' + errorText.slice(0, 60) + '…]\n';
+  wfLog.textContent = '[' + (severity||'moderate').toUpperCase() + '] Generating ' + count + ' problems from error: ' + errorText.slice(0, 60) + '…]\n';
   document.getElementById('workflowActions').style.display = 'none';
 
   const r = await apiFetch('/api/ops/chat/problems-from-error', {
@@ -597,17 +604,105 @@ document.getElementById('wfApplyFix').addEventListener('click', async () => {
 
 document.getElementById('wfRunTests').addEventListener('click', async () => {
   const wfLog = document.getElementById('workflowLog');
-  wfLog.textContent += '\n[Running tests…]\n';
-  const r = await apiFetch('/api/ops/tests/run', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ suite: 'computations' })
-  });
-  if (r.status === 200) {
-    wfLog.textContent += '[Computations: ' + (r.data.passed||0) + '/' + (r.data.total||0) + ' passed]\n';
+  wfLog.textContent += '\n[Running all test suites…]\n';
+  for (const s of ['computations','frameworks','prose','paper']) {
+    const r = await apiFetch('/api/ops/tests/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ suite: s })
+    });
+    if (r.status === 200) {
+      const icon = r.data.failed > 0 ? '❌' : '✅';
+      wfLog.textContent += '[' + s + '] ' + icon + ' ' + (r.data.passed||0) + '/' + (r.data.total||0) + ' passed\n';
+    } else {
+      wfLog.textContent += '[' + s + '] error: ' + (r.data.error||'unknown') + '\n';
+    }
+    wfLog.scrollTop = wfLog.scrollHeight;
   }
   loadTestResults();
+});
+
+// Auto-fix: full loop
+document.getElementById('wfAutoFix').addEventListener('click', async () => {
+  const wfLog = document.getElementById('workflowLog');
+  wfLog.textContent += '\n═══ AUTO-FIX START ═══\n';
+  // Step 1: Generate
+  wfLog.textContent += '[1/5] Generating problems…\n';
+  const genR = await apiFetch('/api/ops/chat/problems-from-error', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ error: currentError.text, count: parseInt(document.getElementById('healCount').value) || 5 })
+  });
+  if (genR.status !== 200) { wfLog.textContent += 'Failed: ' + (genR.data.error||'unknown') + '\n'; return; }
+  workflowProblems = genR.data.problems || [];
+  wfLog.textContent += '  Generated ' + workflowProblems.length + ' problems\n';
+
+  // Step 2: Solve
+  wfLog.textContent += '[2/5] Solving…\n';
+  const solveR = await apiFetch('/api/ops/chat/solve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ problems: workflowProblems })
+  });
+  workflowResults = (solveR.status === 200) ? (solveR.data.results || []) : [];
+  const failures = workflowResults.filter(r => r.status === 'error' || r.status === 'logged');
+  wfLog.textContent += '  Solved: ' + (solveR.data.solved||0) + '/' + (solveR.data.total||0) + ', failures: ' + failures.length + '\n';
+
+  // Step 3: Propose fix
+  wfLog.textContent += '[3/5] Proposing fix…\n';
+  if (failures.length) {
+    const impR = await apiFetch('/api/ops/chat/improve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ failures: failures.map(f => ({ problem: f.problem, error: f.error })) })
+    });
+    if (impR.status === 200) {
+      wfLog.textContent += '  Improvements: ' + (impR.data.improvements||[]).length + '\n';
+      (impR.data.improvements||[]).forEach((imp,i) => wfLog.textContent += '    ' + (i+1) + '. ' + (imp.suggestion||'').slice(0,100) + '\n');
+    }
+  } else {
+    wfLog.textContent += '  No failures — all problems solved.\n';
+  }
+
+  // Step 4: Apply fix (if proposals exist)
+  wfLog.textContent += '[4/5] Applying fix…\n';
+  const propR = await apiFetch('/api/cases/statements/proposals');
+  const proposals = (propR.status === 200) ? (propR.data.proposals || []) : [];
+  if (proposals.length) {
+    const heldOut = workflowProblems.slice(0, 3);
+    const healR = await apiFetch('/api/cases/statements/heal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposal: proposals[0], held_out: heldOut })
+    });
+    if (healR.status === 200 && healR.data.success) {
+      wfLog.textContent += '  Fix applied: ' + (healR.data.reason||'ok') + '\n';
+      if (currentError) await resolveError(currentError.id);
+    } else {
+      wfLog.textContent += '  Fix rejected: ' + (healR.data.reason || healR.data.error || 'unknown') + '\n';
+    }
+  } else {
+    wfLog.textContent += '  No pending proposals to apply.\n';
+  }
+
+  // Step 5: Run all tests
+  wfLog.textContent += '[5/5] Running all tests…\n';
+  for (const s of ['computations','frameworks','prose','paper']) {
+    const r = await apiFetch('/api/ops/tests/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ suite: s })
+    });
+    if (r.status === 200) {
+      const icon = r.data.failed > 0 ? '❌' : '✅';
+      wfLog.textContent += '  ' + s + ': ' + icon + ' ' + (r.data.passed||0) + '/' + (r.data.total||0) + '\n';
+    }
+  }
+  wfLog.textContent += '═══ AUTO-FIX COMPLETE ═══\n';
   wfLog.scrollTop = wfLog.scrollHeight;
+  loadErrors();
+  loadHealHistory();
+  loadTestResults();
 });
 
 /* ── Heal ── */
@@ -708,6 +803,22 @@ document.querySelectorAll('[data-suite]').forEach(btn => {
 });
 document.getElementById('runAllTests').addEventListener('click', async () => {
   for (const s of ['computations','frameworks','prose','paper']) await runSuite(s);
+});
+
+document.getElementById('exportTests').addEventListener('click', async () => {
+  const r = await apiFetch('/api/ops/tests/results');
+  if (r.status === 200 && r.data.results) {
+    const blob = new Blob([JSON.stringify(r.data.results, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'test-results-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('Exported test results');
+  } else {
+    toast('No test results to export');
+  }
 });
 async function runSuite(suite) {
   toast('Running ' + suite + '…');

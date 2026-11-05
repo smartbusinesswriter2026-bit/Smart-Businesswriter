@@ -664,7 +664,9 @@ class H(BaseHTTPRequestHandler):
                 _qs = parse_qs(_ops_url.query)
                 _lane = (_qs.get("lane") or [""])[0] or None
                 _limit = int((_qs.get("limit") or ["50"])[0])
-                return self._send(200, {"errors": product_ops_log.list_errors(limit=_limit, lane=_lane),
+                errors = product_ops_log.list_errors(limit=_limit, lane=_lane)
+                errors = product_ops_log.merge_resolved(errors)
+                return self._send(200, {"errors": errors,
                                         "total": product_ops_log.error_count()})
             if _ops_url.path == "/api/ops/summary":
                 runs = product_ops_log.list_runs(limit=10000)
