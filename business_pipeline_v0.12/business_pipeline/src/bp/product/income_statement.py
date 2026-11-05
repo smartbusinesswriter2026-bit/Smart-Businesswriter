@@ -92,6 +92,7 @@ class IncomeStatementResult:
     tax_rate: Decimal
     income_tax: Decimal
     net_income: Decimal
+    gross_margin_percent: Decimal  # gross profit / net sales
     lines: List[Dict[str, Any]]  # rendered lines for presentation
 
 
@@ -228,6 +229,15 @@ def _classify_account(account: str) -> Tuple[str, str]:
     # COGS
     if re.search(r"^(purchases?|cost of (sales|goods sold)|cogs)$", a):
         return ("cogs", "Cost of Goods Sold")
+    # Inventory components for COGS computation
+    if re.search(r"^(beginning inventory|opening inventory|beginning stock)$", a):
+        return ("beginning_inventory", "Beginning Inventory")
+    if re.search(r"^(purchase returns?|returns? outwards|purchase returns and allowances)$", a):
+        return ("purchase_returns", "Purchase Returns")
+    if re.search(r"^(freight[- ]?in|carriage inwards?|freight on purchases)$", a):
+        return ("freight_in", "Freight-In")
+    if re.search(r"^(ending inventory|closing inventory|ending stock)$", a):
+        return ("ending_inventory", "Ending Inventory")
 
     # Operating expenses
     if re.search(r"^(rent|salaries|salary|wages|utilities|insurance|advertising|marketing|depreciation|bad debts?|general expenses|operating expenses|telephone|transport|repairs|stationery|fuel|travel)$", a):
@@ -359,6 +369,15 @@ def compute_income_statement(lines: List[AccountLine], tax_rate: Decimal) -> Inc
     operating_expenses = Decimal("0")
     non_operating_revenue = Decimal("0")
     non_operating_expense = Decimal("0")
+    beginning_inventory = Decimal("0")
+    purchases = Decimal("0")
+    purchase_returns = Decimal("0")
+    freight_in = Decimal("0")
+    ending_inventory = Decimal("0")
+
+    # First pass: detect if inventory data is present
+    has_inventory_data = any(l.kind in ("beginning_inventory", "purchase_returns",
+                                       "freight_in", "ending_inventory") for l in lines)
 
     for line in lines:
         if line.kind == "revenue":
@@ -366,13 +385,31 @@ def compute_income_statement(lines: List[AccountLine], tax_rate: Decimal) -> Inc
         elif line.kind == "contra_revenue":
             contra_revenue += line.amount
         elif line.kind == "cogs":
-            cogs += line.amount
+            if has_inventory_data:
+                # "purchases" classified as cogs; treat as purchases component
+                purchases += line.amount
+            else:
+                cogs += line.amount
         elif line.kind == "operating_expense":
             operating_expenses += line.amount
         elif line.kind == "non_operating_revenue":
             non_operating_revenue += line.amount
         elif line.kind == "non_operating_expense":
             non_operating_expense += line.amount
+        elif line.kind == "beginning_inventory":
+            beginning_inventory += line.amount
+        elif line.kind == "purchases":
+            purchases += line.amount
+        elif line.kind == "purchase_returns":
+            purchase_returns += line.amount
+        elif line.kind == "freight_in":
+            freight_in += line.amount
+        elif line.kind == "ending_inventory":
+            ending_inventory += line.amount
+
+    # If inventory data is present, compute COGS from it
+    if has_inventory_data:
+        cogs = beginning_inventory + purchases - purchase_returns + freight_in - ending_inventory
 
     net_sales = revenue - contra_revenue
     gross_profit = net_sales - cogs
@@ -433,6 +470,7 @@ def compute_income_statement(lines: List[AccountLine], tax_rate: Decimal) -> Inc
         tax_rate=tax_rate,
         income_tax=income_tax,
         net_income=net_income,
+        gross_margin_percent=(gross_profit / net_sales * 100) if net_sales else Decimal("0"),
         lines=rendered,
     )
 
@@ -451,6 +489,7 @@ def render_income_statement(result: IncomeStatementResult, period: str, currency
     # COGS
     out.append(f"Less: Cost of Goods Sold                                    {result.cogs:>12,.2f}")
     out.append(f"Gross Profit                                              {result.gross_profit:>12,.2f}")
+    out.append(f"Gross Margin %                                            {result.gross_margin_percent:>12.2f}%")
     out.append("")
 
     # Operating expenses
