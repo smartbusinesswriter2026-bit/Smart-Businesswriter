@@ -4174,8 +4174,17 @@ RENDERERS.subject = function () {
   }
   out.innerHTML = loading("Reading the subject");
   api("/api/cases/subjects/" + encodeURIComponent(state.subjectId)).then((d) => {
-    state.subject = d; renderSubject();
-  }).catch((e) => { out.innerHTML = errorBanner(e); });
+    if (d && d.id) { state.subject = d; renderSubject(); return; }
+    // Static host (e.g. Cloudflare Pages) returns the page HTML instead of the
+    // subject payload: fall back to the baked subject detail.
+    return fetch("/subject-" + encodeURIComponent(state.subjectId) + ".json").then((r) => r.json()).then((d2) => {
+      state.subject = d2; renderSubject();
+    }).catch((e) => { out.innerHTML = errorBanner(e); });
+  }).catch((e) => {
+    return fetch("/subject-" + encodeURIComponent(state.subjectId) + ".json").then((r) => r.json()).then((d2) => {
+      state.subject = d2; renderSubject();
+    }).catch((e2) => { out.innerHTML = errorBanner(e2); });
+  });
 };
 
 
@@ -5673,12 +5682,80 @@ RENDERERS.calculator = function () {
   const note = $("#calcnote"), out = $("#calcout");
   note.innerHTML = "";
   out.innerHTML = "";
-  api("/api/cases/calculator").then((d) => {
+  const loadCalc = (d) => {
     state.calculator = d;
-    if (!d.groups || !d.groups.length) {
+    if (!d || !d.groups || !d.groups.length) {
       note.innerHTML = banner("blocked", "No calculations returned", "<div>The server returned an empty tool list. Nothing has been invented here.</div>");
       return;
     }
+  };
+  api("/api/cases/calculator").then((d) => {
+    if (d && d.groups && d.groups.length) { state.calculator = d; loadCalc(d); 
+      state.calcGroup = state.calcGroup || d.groups[0].id;
+      $("#calcgroups").innerHTML = d.groups.map((g) =>
+        '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
+      $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; state.calcTool = null; renderCalculator(); }; });
+      $("#calcq").oninput = () => renderCalculator();
+      buildCalcPad();
+      $("#calceq").onclick = calcRun;
+      $("#calcreset").onclick = () => {
+        state.calcValues = {}; state.calcFocus = 0; state.calcDelivery = null; state.calcRan = null;
+        renderCalcShell();
+      };
+      $("#calcback").onclick = () => { state.calcTool = null; renderCalculator(); };
+      $("#calcmode-pad").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+      $("#calcmode-ask").onclick = () => setCalcMode("ask");
+      $("#calcmode-back").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+      $("#calcaskgo").onclick = calcAsk;
+      $("#calcask").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); calcAsk(); } };
+      renderCalculator();
+      return;
+    }
+    // Static host fallback
+    return fetch("/calculator.json").then((r) => r.json()).then((d2) => {
+      state.calculator = d2;
+      loadCalc(d2);
+      if (!d2 || !d2.groups || !d2.groups.length) return;
+      state.calcGroup = state.calcGroup || d2.groups[0].id;
+      $("#calcgroups").innerHTML = d2.groups.map((g) =>
+        '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
+      $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; state.calcTool = null; renderCalculator(); }; });
+      $("#calcq").oninput = () => renderCalculator();
+      buildCalcPad();
+      $("#calceq").onclick = calcRun;
+      $("#calcreset").onclick = () => {
+        state.calcValues = {}; state.calcFocus = 0; state.calcDelivery = null; state.calcRan = null;
+        renderCalcShell();
+      };
+      $("#calcback").onclick = () => { state.calcTool = null; renderCalculator(); };
+      $("#calcmode-pad").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+      $("#calcmode-ask").onclick = () => setCalcMode("ask");
+      $("#calcmode-back").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+      $("#calcaskgo").onclick = calcAsk;
+      $("#calcask").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); calcAsk(); } };
+      renderCalculator();
+    }).catch((e) => { note.innerHTML = errorBanner(e); });
+  }).catch((e) => {
+    return fetch("/calculator.json").then((r) => r.json()).then((d2) => {
+      state.calculator = d2;
+      if (!d2 || !d2.groups || !d2.groups.length) { note.innerHTML = banner("blocked", "No calculations returned", "<div>The server returned an empty tool list.</div>"); return; }
+      state.calcGroup = state.calcGroup || d2.groups[0].id;
+      $("#calcgroups").innerHTML = d2.groups.map((g) =>
+        '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
+      $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; state.calcTool = null; renderCalculator(); }; });
+      $("#calcq").oninput = () => renderCalculator();
+      buildCalcPad();
+      $("#calceq").onclick = calcRun;
+      $("#calcreset").onclick = () => { state.calcValues = {}; state.calcFocus = 0; state.calcDelivery = null; state.calcRan = null; renderCalcShell(); };
+      $("#calcback").onclick = () => { state.calcTool = null; renderCalculator(); };
+      $("#calcmode-pad").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+      $("#calcmode-ask").onclick = () => setCalcMode("ask");
+      $("#calcmode-back").onclick = () => { setCalcMode("pad"); renderCalculator(); };
+      $("#calcaskgo").onclick = calcAsk;
+      $("#calcask").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); calcAsk(); } };
+      renderCalculator();
+    }).catch((e2) => { note.innerHTML = errorBanner(e2); });
+  });
     state.calcGroup = state.calcGroup || d.groups[0].id;
     $("#calcgroups").innerHTML = d.groups.map((g) =>
       '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
