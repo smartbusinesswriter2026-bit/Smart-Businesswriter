@@ -173,7 +173,7 @@ class LibraryTest(unittest.TestCase):
                                  "solved": False,
                                  "reading": {"missing": [{"what": marker, "why": "probe"}]}},
                                 origin="test")
-        report = self.library.gap_report()
+        report = self.library.gap_report(top=1000)
         proposal = next(p for p in report["proposals"] if p["item"] == marker)
         self.assertGreaterEqual(proposal["problems"], 2)
 
