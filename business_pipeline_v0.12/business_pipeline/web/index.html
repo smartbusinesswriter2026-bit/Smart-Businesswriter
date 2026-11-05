@@ -5756,25 +5756,6 @@ RENDERERS.calculator = function () {
       renderCalculator();
     }).catch((e2) => { note.innerHTML = errorBanner(e2); });
   });
-    state.calcGroup = state.calcGroup || d.groups[0].id;
-    $("#calcgroups").innerHTML = d.groups.map((g) =>
-      '<button class="chip" data-calcgroup="' + esc(g.id) + '"><span class="dot"></span>' + esc(g.label) + "</button>").join("");
-    $$("[data-calcgroup]").forEach((b) => { b.onclick = () => { state.calcGroup = b.dataset.calcgroup; state.calcTool = null; renderCalculator(); }; });
-    $("#calcq").oninput = () => renderCalculator();
-    buildCalcPad();
-    $("#calceq").onclick = calcRun;
-    $("#calcreset").onclick = () => {
-      state.calcValues = {}; state.calcFocus = 0; state.calcDelivery = null; state.calcRan = null;
-      renderCalcShell();
-    };
-    $("#calcback").onclick = () => { state.calcTool = null; renderCalculator(); };
-    $("#calcmode-pad").onclick = () => { setCalcMode("pad"); renderCalculator(); };
-    $("#calcmode-ask").onclick = () => setCalcMode("ask");
-    $("#calcmode-back").onclick = () => { setCalcMode("pad"); renderCalculator(); };
-    $("#calcaskgo").onclick = calcAsk;
-    $("#calcask").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); calcAsk(); } };
-    renderCalculator();
-  }).catch((e) => { note.innerHTML = errorBanner(e); });
 };
 
 /* ---------- the Business Calculator shell -------------------------------
