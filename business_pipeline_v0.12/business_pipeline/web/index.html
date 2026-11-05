@@ -5634,7 +5634,7 @@ async function openWorksheet(template, label, objective) {
 
 RENDERERS.calculator = function () {
   const note = $("#calcnote"), out = $("#calcout");
-  note.innerHTML = loading("Reading the published method list");
+  note.innerHTML = "";
   out.innerHTML = "";
   api("/api/cases/calculator").then((d) => {
     state.calculator = d;
