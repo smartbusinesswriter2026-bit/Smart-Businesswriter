@@ -392,5 +392,182 @@ class StatusTest(unittest.TestCase):
 
 
 
+MASSIVE_JSON = (b'{"status":"OK","request_id":"r1","ticker":"AAPL","results":['
+                b'{"c":230.50,"h":231,"l":229,"o":230,"v":1000,"t":1793001600000},'
+                b'{"c":229.00,"h":230,"l":228,"o":229,"v":900,"t":1792915200000}],'
+                b'"resultsCount":2,"queryCount":2,"adjusted":true}')
+
+
+class MassiveQuoteTest(unittest.TestCase):
+    def setUp(self):
+        marketdata.clear_cache()
+        self.real = marketdata._fetch
+        self.previous = os.environ.get("BP_MASSIVE_API_KEY")
+        os.environ["BP_MASSIVE_API_KEY"] = "massive-secret"
+
+    def tearDown(self):
+        marketdata._fetch = self.real
+        if self.previous is None: os.environ.pop("BP_MASSIVE_API_KEY", None)
+        else: os.environ["BP_MASSIVE_API_KEY"] = self.previous
+        marketdata.clear_cache()
+
+    def test_a_massive_quote_records_close_previous_and_redacts_key(self):
+        marketdata._fetch = FakeFetch(
+            MASSIVE_JSON,
+            "https://api.massive.com/v2/aggs/ticker/AAPL/range/1/day/2026-10-20/2026-10-30"
+            "?adjusted=true&sort=desc&limit=2&apiKey=massive-secret")
+        out = marketdata.massive_quote("aapl")
+        self.assertEqual(Decimal(out["value"]), Decimal("230.5"))
+        self.assertEqual(out["symbol"], "AAPL")
+        self.assertEqual(out["provider"], "massive")
+        self.assertEqual(Decimal(out["previous_close"]), Decimal("229"))
+        import datetime as _dt
+        self.assertEqual(out["as_of"], _dt.datetime.fromtimestamp(1793001600, _dt.timezone.utc).date().isoformat())
+        self.assertNotIn("massive-secret", out["source_url"])
+        self.assertIn("apiKey=***", out["source_url"])
+
+    def test_massive_without_a_key_refuses_before_any_fetch(self):
+        os.environ.pop("BP_MASSIVE_API_KEY", None)
+        fake = FakeFetch(MASSIVE_JSON)
+        marketdata._fetch = fake
+        with self.assertRaises(marketdata.MarketDataError) as caught:
+            marketdata.massive_quote("AAPL")
+        self.assertIn("BP_MASSIVE_API_KEY", str(caught.exception))
+        self.assertEqual(fake.calls, 0)
+
+    def test_massive_refusal_status_is_not_read_as_data(self):
+        marketdata._fetch = FakeFetch(b'{"status":"ERROR","error":"invalid api key"}')
+        with self.assertRaises(marketdata.MarketDataError):
+            marketdata.massive_quote("AAPL")
+
+
+HISTORY_JSON = (b'{"status":"OK","ticker":"AAPL","results":['
+                b'{"c":100,"t":1792915200000},{"c":110,"t":1793001600000}]}')
+MASSIVE_OVERVIEW_JSON = (b'{"status":"OK","results":{"ticker":"AAPL","name":"Apple Inc.",'
+                         b'"market_cap":3500000000000,"weighted_shares_outstanding":16000000000,'
+                         b'"sic_description":"ELECTRONIC COMPUTERS","cik":"0000320193","currency_name":"usd"}}')
+
+
+class HistoryOverviewTest(unittest.TestCase):
+    def setUp(self):
+        marketdata.clear_cache()
+        self.real = marketdata._fetch
+        self.prev_m = os.environ.get("BP_MASSIVE_API_KEY")
+        self.prev_a = os.environ.get("BP_ALPHAVANTAGE_KEY")
+        os.environ["BP_MASSIVE_API_KEY"] = "massive-secret"
+        os.environ["BP_ALPHAVANTAGE_KEY"] = "alpha-secret"
+
+    def tearDown(self):
+        marketdata._fetch = self.real
+        for name, prev in (("BP_MASSIVE_API_KEY", self.prev_m), ("BP_ALPHAVANTAGE_KEY", self.prev_a)):
+            if prev is None: os.environ.pop(name, None)
+            else: os.environ[name] = prev
+        marketdata.clear_cache()
+
+    def test_massive_history_returns_sorted_daily_closes(self):
+        marketdata._fetch = FakeFetch(HISTORY_JSON, "https://api.massive.com/v2/aggs/ticker/AAPL/range/1/day/x/y?apiKey=massive-secret")
+        out = marketdata.massive_history("aapl", days=5)
+        self.assertEqual(out["kind"], "history")
+        self.assertEqual(len(out["bars"]), 2)
+        self.assertEqual(Decimal(out["bars"][0]["close"]), Decimal("100"))
+        self.assertEqual(Decimal(out["bars"][1]["close"]), Decimal("110"))
+        self.assertNotIn("massive-secret", out["source_url"])
+
+    def test_alpha_overview_parses_ratios(self):
+        marketdata._fetch = FakeFetch(AV_OVERVIEW, "https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL&apikey=alpha-secret")
+        out = marketdata.alpha_overview("aapl")
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("35.2"))
+        self.assertEqual(Decimal(out["roe"]), Decimal("1.50"))
+        self.assertEqual(Decimal(out["market_cap"]), Decimal("3500000000000"))
+        self.assertNotIn("alpha-secret", out["source_url"])
+
+    def test_massive_overview_parses_market_cap(self):
+        marketdata._fetch = FakeFetch(MASSIVE_OVERVIEW_JSON, "https://api.massive.com/v3/reference/tickers/AAPL?apiKey=massive-secret")
+        out = marketdata.massive_overview("AAPL")
+        self.assertEqual(out["company"], "Apple Inc.")
+        self.assertEqual(Decimal(out["market_cap"]), Decimal("3500000000000"))
+        self.assertEqual(out["provider"], "massive")
+
+    def test_fundamentals_dispatch_and_unknown_provider(self):
+        marketdata._fetch = FakeFetch(AV_OVERVIEW, "https://www.alphavantage.co/query?function=OVERVIEW&symbol=AAPL&apikey=alpha-secret")
+        out = marketdata.fundamentals("AAPL", "alphavantage")
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("35.2"))
+        with self.assertRaises(marketdata.MarketDataError):
+            marketdata.fundamentals("AAPL", "wibble")
+
+
+    def test_derived_ratios_from_sec_and_massive(self):
+        orig_sec, orig_mas = marketdata.sec_fundamentals, marketdata.massive_overview
+        marketdata.sec_fundamentals = lambda ticker: {
+            "company": "Apple Inc.", "as_of": "2025-09-27", "source_url": "sec", "response_sha256": "s",
+            "values": {"Net income": "1000", "Shareholders' equity": "5000", "Diluted EPS": "2"}}
+        marketdata.massive_overview = lambda ticker: {
+            "market_cap": "20000", "company": "Apple Inc.", "sector": "Tech",
+            "source_url": "mas", "response_sha256": "m"}
+        try:
+            out = marketdata.derived_ratios("AAPL")
+        finally:
+            marketdata.sec_fundamentals, marketdata.massive_overview = orig_sec, orig_mas
+        self.assertEqual(out["provider"], "derived")
+        self.assertEqual(Decimal(out["roe"]), Decimal("0.2"))
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("20"))
+        self.assertEqual(Decimal(out["market_cap"]), Decimal("20000"))
+
+    def test_derived_ratios_names_gap_without_market_cap(self):
+        orig_sec, orig_mas = marketdata.sec_fundamentals, marketdata.massive_overview
+        marketdata.sec_fundamentals = lambda ticker: {
+            "company": "X", "as_of": "", "source_url": "sec", "response_sha256": "s",
+            "values": {"Net income": "1000", "Shareholders' equity": "4000"}}
+        def boom(ticker):
+            raise marketdata.MarketDataError("no massive key")
+        marketdata.massive_overview = boom
+        try:
+            out = marketdata.derived_ratios("X")
+        finally:
+            marketdata.sec_fundamentals, marketdata.massive_overview = orig_sec, orig_mas
+        self.assertEqual(Decimal(out["roe"]), Decimal("0.25"))
+        self.assertNotIn("pe_ratio", out)
+        self.assertTrue(any("P/E needs" in gap for gap in out["gaps"]))
+
+
+    def test_fundamentals_chain_merges_and_names_gaps(self):
+        original = marketdata.fundamentals
+        def fake(symbol, provider="alphavantage"):
+            if provider == "derived":
+                return {"provider": "derived", "market_cap": "20000", "roe": "0.2",
+                        "source_url": "d", "response_sha256": "s", "gaps": []}
+            if provider == "alphavantage":
+                return {"provider": "alphavantage", "pe_ratio": "44.9",
+                        "source_url": "a", "response_sha256": "t", "gaps": []}
+            raise marketdata.MarketDataError("massive down")
+        marketdata.fundamentals = fake
+        try:
+            out = marketdata.fundamentals_chain("AAPL")
+        finally:
+            marketdata.fundamentals = original
+        self.assertEqual(Decimal(out["market_cap"]), Decimal("20000"))
+        self.assertEqual(Decimal(out["roe"]), Decimal("0.2"))
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("44.9"))
+        self.assertEqual(out["metric_sources"]["pe_ratio"], "alphavantage")
+        self.assertTrue(any("massive" in gap for gap in out["gaps"]))
+
+    def test_fundamentals_chain_non_us_uses_alpha_vantage(self):
+        original = marketdata.fundamentals
+        def fake(symbol, provider="alphavantage"):
+            if provider == "derived":
+                raise marketdata.MarketDataError("no SEC registrant for " + symbol)
+            if provider == "alphavantage":
+                return {"provider": "alphavantage", "pe_ratio": "12.3", "roe": "0.08",
+                        "market_cap": "90000000000", "source_url": "a", "response_sha256": "t", "gaps": []}
+            raise marketdata.MarketDataError("massive covers US markets only")
+        marketdata.fundamentals = fake
+        try:
+            out = marketdata.fundamentals_chain("VOD.LON")
+        finally:
+            marketdata.fundamentals = original
+        self.assertEqual(Decimal(out["pe_ratio"]), Decimal("12.3"))
+        self.assertIn("alphavantage", out["contributors"])
+
+
 if __name__ == "__main__":
     unittest.main()

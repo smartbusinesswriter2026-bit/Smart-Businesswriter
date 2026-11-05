@@ -400,7 +400,8 @@ def _limit_spend(name):
 def _equity_providers():
     """The declared order. A provider without its key is skipped, not guessed."""
     alpha = bool((os.environ.get("BP_ALPHAVANTAGE_KEY") or "").strip())
-    massive = bool((os.environ.get("BP_MASSIVE_KEY") or "").strip())
+    massive = bool((os.environ.get("BP_MASSIVE_KEY")
+                    or os.environ.get("BP_MASSIVE_API_KEY") or "").strip())
     qveris = bool((os.environ.get("BP_QVERIS_KEY") or "").strip()
                   and (os.environ.get("BP_QVERIS_TOOL_ID") or "").strip()
                   and (os.environ.get("BP_QVERIS_PRICE_PATH") or "").strip())
@@ -484,7 +485,7 @@ def _alpha_quote(symbol):
 
 def _massive_quote(symbol):
     """Previous close from Massive's Stocks Basic plan (5 requests/minute)."""
-    key = (os.environ.get("BP_MASSIVE_KEY") or "").strip()
+    key = (os.environ.get("BP_MASSIVE_KEY") or os.environ.get("BP_MASSIVE_API_KEY") or "").strip()
     if not key:
         raise MarketDataError("a Massive key is required: set BP_MASSIVE_KEY")
     url = (MASSIVE + "/v2/aggs/ticker/" + urllib.parse.quote(symbol) +

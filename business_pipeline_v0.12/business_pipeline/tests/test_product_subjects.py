@@ -452,6 +452,37 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('type === "value_list"', self.html)
         self.assertIn('type === "value_matrix"', self.html)
 
+    def test_every_tile_view_carries_a_close_button_back_to_its_group(self):
+        """Leaving a tile must never strand the student on the tile's page.
+
+        Each tile opens into its own view (a tool session, a worksheet, a
+        catalogue record). That view ends with one Close button, and Close
+        returns to the subject page scrolled to the group the tile belongs to.
+        The suite cannot click, so this guards the pieces the client needs:
+        the group remembered when a tile is opened, the exit row, the handler
+        that returns to the group, and the bindings on every tile kind.
+
+        Ported from origin/main (build 1.31) onto this branch's implementation.
+        The behaviour is the same; the wiring lives in the tile-close shim
+        rather than in four separate named functions, so the pins name the
+        shim's own pieces.
+        """
+        # the shim that owns the way out of a tile
+        self.assertIn('id="tile-close-shim"', self.html)
+        self.assertIn("window.__tileCloseShim", self.html)
+        # the group is remembered when the tile is opened
+        self.assertIn("back = { subject: subjectFromHash()", self.html)
+        self.assertIn("group: textOf(headOf(tile.closest('.capgrid')))", self.html)
+        # the exit row, right-aligned and built once
+        self.assertIn(".tilefoot{display:flex;justify-content:flex-end", self.html)
+        self.assertIn("button.id = 'tileclose'", self.html)
+        # the group is marked for a moment and scrolled to
+        self.assertIn(".grouphit{outline:2px solid", self.html)
+        self.assertIn("found.classList.add('grouphit')", self.html)
+        self.assertIn("found.scrollIntoView", self.html)
+        # the bindings on every tile kind
+        self.assertIn("data-close-tile", self.html)
+
     def test_frameworks_come_before_computation_and_too_many_get_a_picker(self):
         """The page puts no-computation worksheets first, then computed tools, and
         offers one picker across every framework when the shelf is long."""

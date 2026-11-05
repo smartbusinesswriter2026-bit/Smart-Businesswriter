@@ -1,3 +1,53 @@
+## 2026-11-05 — [integration] `origin/main` is merged in, and the branch stays the one line
+
+**Ask.** The deployment line has to be one line: `main` must carry the whole project so the Cloudflare Pages build
+publishes everything. `main` and `corpus/merge-v1` had grown apart — 25 commits and 317 commits, touching the same
+files, with fourteen conflicts — so the two lines had to be folded into one without losing either side's work.
+
+**Did.**
+
+- **Both lines were read before they were merged.** The merge base is `4350a57` (2026-10-28). `origin/main` reached
+  `f468e63` on 2026-11-02; this branch reached `c9c3ac6` on 2026-11-05. `main`'s 25 commits are the Business Calculator
+  line (builds 0.74-0.76), the Portfolio Lab (builds 1.23-1.29), the institutional market-data providers, the tile
+  Close (builds 1.30-1.31), the one-point font increase and the People & Organization - Strategy & Design subject.
+- **This branch had already ported `main`'s Portfolio Lab.** `docs/CHANGELOG.md` build 1.59 says so in its own words:
+  *"The lab was built on the main line (builds 1.23-1.29) and never reached `corpus/merge-v1` … Ported, not
+  re-invented."* That is why the code conflict resolved to this branch's side in every case: `origin/main`'s
+  `index.html` is 5,145 lines against this branch's 10,334, its tile Close is the older `rememberTileGroup` /
+  `closeTileView` pair that this branch replaced with the tile-close shim (same behaviour, later design), its font
+  sizes are this branch's plus one point on the body — which this branch then *reduced* by one point on the owner's
+  word of 2026-11-03 and pinned in the test — and its `marketdata.py` is this branch's file without the third
+  provider in the chain.
+- **Fourteen conflicts, each resolved deliberately.** `web/index.html` (27 hunks) and `mockup/business-calculator.html`
+  (18) took this branch's side; `api.py` (4), `marketdata.py` (3) and `instruments.py` (2) took this branch's side
+  because it is a strict superset — `api.py` keeps the fail-closed unknown-route refusal and the cleanup that deletes
+  an instrument whose first price could not be sourced, and `instruments.py` keeps the whole B-178 guidance, the
+  reference list and the example books; `source_env.py` took **both** sides, so the allowlist carries this branch's
+  payment and bundle-handoff entries *and* `main`'s two market-data keys; the six documents took this branch's side,
+  because each of `main`'s entries is already superseded here (the People shelf in 1.56, the Portfolio Lab in 1.58
+  and 1.59, the Close redesign in 1.66 and 1.68).
+- **Two checks were ported, not dropped.** `main`'s tile-Close check now pins the shim's own pieces — the same
+  behaviour, the later implementation. `main`'s tracked-instrument store class (`create`, `record`, the same-day
+  dedupe, the returns series, readiness, the fail-closed edges, the provider selection and the routes) is kept whole
+  against this branch's API, which is compatible.
+- **One compatibility fix.** `main` loads the Massive key as `BP_MASSIVE_API_KEY`; this branch reads `BP_MASSIVE_KEY`.
+  The allowlist keeps `main`'s name, because its test pins it, and the market-data layer now accepts either — so the
+  key in `Backend/.env` reaches the provider under whichever name it was loaded.
+- **The `.scratch/` directory is now ignored.** Two of the archives in it are 345 MB each, and GitHub refuses any blob
+  over 100 MB, so a stray `git add -A` would have failed the push outright.
+
+**Did not move.** No method, preset, input, check, computed number or frozen-core entry changed. The frozen contract
+is untouched.
+
+**Verified.**
+
+- MERGED_SUITE_PLACEHOLDER
+- The files `main` contributed that were missing here are present after the merge: the People & Organization -
+  Strategy & Design worksheets and before-briefings (Lewin, Galbraith, Mintzberg), `catalogue/slice.json`,
+  `catalogue/register.mjs`, the root `CHANGELOG.md` and `DECISIONS.md`, `tests/`, `wiring/`, `run-suite.mjs`,
+  `scripts/tile_close_browser_test.py`, and the two institutional market-data keys in `Backend/.env.example` and in the
+  credential allowlist.
+
 ## 2026-11-05 — [statements] The tile refuses what declares nothing, and the boundary import is relative
 
 **Ask.** The statements tile answers basic accounting problems badly: it should refuse what it cannot read, not present

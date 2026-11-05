@@ -45,6 +45,10 @@ ALLOWED = {
     # both products carry. The secret is server-side only.
     "WRITE_SMARTER_URL": "BP_WRITE_SMARTER_URL",
     "BUNDLE_HANDOFF_SECRET": "BP_BUNDLE_HANDOFF_SECRET",
+    # Market data: one institutional Alpha Vantage key shared by every student (free tier today).
+    "ALPHAVANTAGE_API_KEY": "BP_ALPHAVANTAGE_KEY",
+    # Second market-data provider: one institutional Massive key.
+    "MASSIVE_API_KEY": "BP_MASSIVE_API_KEY",
 }
 DEFAULT_PATHS = (str(PROJECT_ENV), r"D:\AA\Backend\.env", r"D:\AA\AcademicSources\Backend\.env")
 
@@ -75,7 +79,9 @@ def _status():
             "model": os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash"),
             "prose_model": os.environ.get("BP_PROSE_MODEL") or os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash"),
             "semantic_scholar": bool(os.environ.get("BP_SEMANTIC_SCHOLAR_KEY")),
-            "firecrawl_keyless": os.environ.get("BP_FIRECRAWL_KEYLESS", "1") != "0"}
+            "firecrawl_keyless": os.environ.get("BP_FIRECRAWL_KEYLESS", "1") != "0",
+            "alpha_vantage": bool(os.environ.get("BP_ALPHAVANTAGE_KEY")),
+            "massive": bool(os.environ.get("BP_MASSIVE_API_KEY"))}
 
 
 def load_web_credentials(path=None):
