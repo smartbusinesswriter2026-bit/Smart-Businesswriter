@@ -7,6 +7,9 @@ it. These rules change only on the owner's explicit order.
 **Owner:** Roderick. **Date:** 2026-11-05. **Version:** 1.1.
 
 **Debug manual:** `docs/DEBUG_MANUAL.md` — comprehensive debugging and improvement guide.
+**XLSX fix instructions:** `docs/MINIMAX_XLSX_FIX.md` — instruction block for Cline/MiniMax to fix
+the XLSX export (Excel shows empty content). Includes the OOXML structure requirements,
+the Minimax design rules, and a comparison approach against openpyxl reference files.
 Any model or developer touching this pipeline must read it first. It contains the file map,
 the 5 silent-failure traps, how to add schedules/rules/adjustments, the self-healing loop
 mechanics, API endpoints for the approval UI, test commands, and the 20 binding hard rules.
