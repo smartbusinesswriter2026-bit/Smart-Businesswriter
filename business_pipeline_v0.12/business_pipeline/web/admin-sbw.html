@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart BusinessWriter — Admin (self-healing)</title>
+<style>
+  /* ── Design tokens (sampled from logo: navy #143E68, green #1E9E6B) ── */
+  :root {
+    --navy: #143E68;
+    --navy-dark: #0C243E;
+    --green: #1E9E6B;
+    --green-dark: #14704D;
+    --bg: #F4F6F9;
+    --surface: #FFFFFF;
+    --border: #D8DEE6;
+    --text: #0C243E;
+    --muted: #5A6573;
+    --danger: #C0392B;
+    --warn: #B7791F;
+    --ok: #1E9E6B;
+    --radius: 10px;
+    --shadow: 0 2px 8px rgba(12,36,62,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  /* ── Top bar ── */
+  .topbar {
+    background: var(--navy);
+    color: #fff;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+  .topbar h1 { font-size: 18px; font-weight: 600; }
+  .topbar .meta { font-size: 13px; opacity: 0.85; }
+  .topbar .badge {
+    background: var(--green);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  /* ── Layout ── */
+  .layout {
+    display: flex;
+    min-height: calc(100vh - 52px);
+  }
+  .rail {
+    width: 200px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    flex-shrink: 0;
+  }
+  .rail button {
+    display: block;
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text);
+    transition: background 0.15s;
+  }
+  .rail button:hover { background: var(--bg); }
+  .rail button.active {
+    background: rgba(30,158,107,0.1);
+    color: var(--green-dark);
+    font-weight: 600;
+    border-left: 3px solid var(--green);
+  }
+  .main {
+    flex: 1;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 { font-size: 16px; margin-bottom: 12px; color: var(--navy); }
+  .card h3 { font-size: 14px; margin-bottom: 8px; color: var(--muted); }
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--bg);
+    font-weight: 600;
+    color: var(--navy);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tr:hover { background: var(--bg); }
+  /* ── Status pills ── */
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .pill.ok { background: rgba(30,158,107,0.15); color: var(--green-dark); }
+  .pill.err { background: rgba(192,57,43,0.12); color: var(--danger); }
+  .pill.warn { background: rgba(183,121,31,0.12); color: var(--warn); }
+  .pill.info { background: rgba(20,62,104,0.1); color: var(--navy); }
+  /* ── Buttons ── */
+  .btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn.primary { background: var(--green); color: #fff; border-color: var(--green); }
+  .btn.primary:hover { background: var(--green-dark); }
+  .btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .btn.danger:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* ── Form controls ── */
+  input, select, textarea {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; min-height: 60px; width: 100%; }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .row label { font-size: 13px; color: var(--muted); }
+  /* ── Panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--navy);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s;
+    pointer-events: none;
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  /* ── Empty state ── */
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 14px; }
+  .empty .icon { font-size: 32px; margin-bottom: 8px; }
+  /* ── Code blocks ── */
+  .code {
+    background: var(--navy-dark);
+    color: #e0e6ed;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 12px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  /* ── Progress bar ── */
+  .progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 8px 0; }
+  .progress .bar { height: 100%; background: var(--green); transition: width 0.3s; }
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(12,36,62,0.5);
+    z-index: 50;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 24px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .modal h2 { margin-bottom: 12px; }
+  .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .rail { width: 100%; display: flex; overflow-x: auto; }
+    .rail button { width: auto; white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Top bar ── -->
+<div class="topbar">
+  <h1>Smart BusinessWriter — Admin</h1>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="meta" id="buildInfo">Build: loading…</span>
+    <span class="badge" id="statusBadge">…</span>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- ── Left rail ── -->
+  <nav class="rail" id="rail">
+    <button data-panel="runs" class="active">📋 Run log</button>
+    <button data-panel="heal">🔧 Self-Healing</button>
+    <button data-panel="chat">💬 Chat box</button>
+    <button data-panel="health">💚 Health</button>
+  </nav>
+
+  <!-- ── Main content ── -->
+  <main class="main">
+
+    <!-- ═══ RUNS PANEL ═══ -->
+    <div class="panel active" id="panel-runs">
+      <div class="card">
+        <h2>Run log</h2>
+        <div class="row">
+          <label>Lane: <select id="runLane"><option value="">all</option><option value="computation">computation</option><option value="framework">framework</option><option value="prose">prose</option><option value="paper">paper</option></select></label>
+          <label>Status: <select id="runStatus"><option value="">all</option><option value="ok">ok</option><option value="refused">refused</option><option value="error">error</option></select></label>
+          <label>Limit: <input type="number" id="runLimit" value="50" min="1" max="500" style="width:70px;"></label>
+          <button class="btn primary" id="runRefresh">Refresh</button>
+        </div>
+        <div id="runsTable"></div>
+      </div>
+    </div>
+
+    <!-- ═══ SELF-HEALING PANEL (unified: errors + fixes + tests) ═══ -->
+    <div class="panel" id="panel-heal">
+      <div class="card">
+        <h2>Self-Healing Monitor</h2>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+          Errors → generate problems → solve → propose fix → validate → test. One flow.
+        </p>
+        <!-- Free-form problem generation -->
+        <div class="row">
+          <label style="flex:1;">Free-form instruction: <input type="text" id="healInstruction" placeholder="Describe what to test or improve…" style="width:100%;"></label>
+          <label>Problems: <select id="healCount">
+            <option value="3">3 (light)</option>
+            <option value="5" selected>5 (moderate)</option>
+            <option value="10">10 (severe)</option>
+          </select></label>
+          <button class="btn" id="healFreeGen">Generate</button>
+        </div>
+        <div id="healFreeLog" class="code" style="min-height:40px;max-height:200px;overflow-y:auto;margin-bottom:12px;"></div>
+      </div>
+
+      <!-- Two-column: errors (left) + workflow (right) -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <!-- LEFT: Error log -->
+        <div class="card">
+          <h2>Errors</h2>
+          <div class="row">
+            <label>Lane: <select id="errLane"><option value="">all</option><option value="computation">computation</option><option value="framework">framework</option><option value="prose">prose</option><option value="paper">paper</option><option value="statements">statements</option></select></label>
+            <label>Limit: <input type="number" id="errLimit" value="30" min="1" max="200" style="width:60px;"></label>
+            <button class="btn primary" id="errRefresh">Refresh</button>
+          </div>
+          <div id="errorsTable"></div>
+        </div>
+
+        <!-- RIGHT: Active workflow -->
+        <div>
+          <div class="card">
+            <h2>Problems &amp; Fixes</h2>
+            <div id="workflowLog" class="code" style="min-height:60px;max-height:300px;overflow-y:auto;margin-bottom:12px;">Select an error and click "Generate problems" to start.</div>
+            <div id="workflowActions" class="row" style="display:none;">
+              <button class="btn primary" id="wfProposeFix">Propose fix</button>
+              <button class="btn" id="wfApplyFix">Apply fix</button>
+              <button class="btn" id="wfRunTests">Run tests</button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Tests</h2>
+            <div class="row">
+              <button class="btn" data-suite="computations">Computations</button>
+              <button class="btn" data-suite="frameworks">Frameworks</button>
+              <button class="btn" data-suite="prose">Prose</button>
+              <button class="btn" data-suite="paper">Whole paper</button>
+              <button class="btn primary" id="runAllTests">Run all</button>
+            </div>
+            <div class="progress" id="testProgress"><div class="bar" style="width:0%"></div></div>
+            <div id="testResults"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Heal history -->
+      <div class="card">
+        <h2>Heal history</h2>
+        <div id="healHistory"></div>
+      </div>
+    </div>
+
+    <!-- ═══ CHAT PANEL ═══ -->
+    <div class="panel" id="panel-chat">
+      <div class="card">
+        <h2>Self-improvement chat box</h2>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+          Three-model loop: (a) one model creates problems, (b) another solves them, (c) a third writes improvements.
+        </p>
+        <div class="row">
+          <label style="flex:1;">Instruction: <textarea id="chatInstruction" placeholder="Describe what to test or improve…"></textarea></label>
+        </div>
+        <div class="row">
+          <label>Number of problems: <input type="number" id="chatCount" value="5" min="1" max="50" style="width:70px;"></label>
+          <button class="btn primary" id="chatGenerate">Generate problems</button>
+        </div>
+        <div id="chatLog" class="code" style="min-height:120px;max-height:400px;overflow-y:auto;"></div>
+        <div class="row" style="margin-top:12px;">
+          <button class="btn" id="chatSolve">Solve problems</button>
+          <button class="btn" id="chatImprove">Write improvements</button>
+          <button class="btn" id="chatRunTests">Run tests on results</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ HEALTH PANEL ═══ -->
+    <div class="panel" id="panel-health">
+      <div class="card">
+        <h2>Health</h2>
+        <div id="healthInfo"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── Modal ── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+/* ── State ── */
+const API = '';  // same origin
+let currentPanel = 'runs';
+
+/* ── Utilities ── */
+function toast(msg, duration) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), duration || 3000);
+}
+function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtTs(ts) { if (!ts) return '—'; try { return new Date(ts).toLocaleString(); } catch(e) { return ts; } }
+function pill(text, cls) { return '<span class="pill ' + cls + '">' + escapeHtml(text) + '</span>'; }
+
+async function apiFetch(path, opts) {
+  try {
+    const res = await fetch(API + path, opts);
+    const data = await res.json().catch(() => ({}));
+    return { status: res.status, data };
+  } catch (e) {
+    return { status: 0, data: { error: String(e) } };
+  }
+}
+
+/* ── Panel switching ── */
+document.querySelectorAll('.rail button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rail button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+    currentPanel = btn.dataset.panel;
+    loadPanel(currentPanel);
+  });
+});
+
+function loadPanel(name) {
+  if (name === 'runs') loadRuns();
+  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadTestResults(); }
+  else if (name === 'chat') { /* chat panel loaded on demand */ }
+  else if (name === 'health') loadHealth();
+}
+
+/* ── Runs ── */
+async function loadRuns() {
+  const lane = document.getElementById('runLane').value;
+  const status = document.getElementById('runStatus').value;
+  const limit = document.getElementById('runLimit').value;
+  // Try the new ops endpoint first; fall back to placeholder
+  const r = await apiFetch('/api/ops/runs?lane=' + encodeURIComponent(lane) + '&status=' + encodeURIComponent(status) + '&limit=' + limit);
+  const container = document.getElementById('runsTable');
+  if (r.status === 200 && Array.isArray(r.data.runs)) {
+    renderRunsTable(r.data.runs, container);
+  } else if (r.status === 404) {
+    container.innerHTML = '<div class="empty"><div class="icon">📋</div>Run log endpoint not yet wired.<br><span style="font-size:12px;">Backend route <code>/api/ops/runs</code> needed (design lane).</span></div>';
+  } else {
+    container.innerHTML = '<div class="empty"><div class="icon">📋</div>' + escapeHtml(r.data.error || 'No data') + '</div>';
+  }
+}
+function renderRunsTable(runs, container) {
+  if (!runs.length) { container.innerHTML = '<div class="empty"><div class="icon">📋</div>No runs recorded yet.</div>'; return; }
+  let html = '<table><thead><tr><th>Time</th><th>Lane</th><th>Kind</th><th>Status</th><th>Duration</th><th>Error</th></tr></thead><tbody>';
+  runs.forEach(run => {
+    const cls = run.status === 'ok' ? 'ok' : (run.status === 'refused' ? 'warn' : 'err');
+    html += '<tr><td>' + fmtTs(run.ts) + '</td><td>' + escapeHtml(run.lane) + '</td><td>' + escapeHtml(run.kind) + '</td><td>' + pill(run.status, cls) + '</td><td>' + (run.duration_ms || '—') + 'ms</td><td>' + escapeHtml(run.error || '—') + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+document.getElementById('runRefresh').addEventListener('click', loadRuns);
+
+/* ── Errors (unified self-healing) ── */
+let currentError = null;
+let workflowProblems = [];
+let workflowResults = [];
+
+async function loadErrors() {
+  const lane = document.getElementById('errLane').value;
+  const limit = document.getElementById('errLimit').value;
+  const r = await apiFetch('/api/ops/errors?lane=' + encodeURIComponent(lane) + '&limit=' + limit);
+  const container = document.getElementById('errorsTable');
+  if (r.status === 200 && Array.isArray(r.data.errors)) {
+    renderErrorsTable(r.data.errors, container);
+  } else if (r.status === 404) {
+    container.innerHTML = '<div class="empty"><div class="icon">⚠️</div>Error log endpoint not yet wired.</div>';
+  } else {
+    container.innerHTML = '<div class="empty"><div class="icon">⚠️</div>' + escapeHtml(r.data.error || 'No data') + '</div>';
+  }
+}
+function renderErrorsTable(errors, container) {
+  if (!errors.length) { container.innerHTML = '<div class="empty"><div class="icon">⚠️</div>No errors recorded.</div>'; return; }
+  let html = '<table><thead><tr><th>Time</th><th>Lane</th><th>Error</th><th>Count</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+  errors.forEach(e => {
+    const eid = e.error_id || e.id || '';
+    const resolved = e.resolved ? true : false;
+    const statusPill = resolved ? pill('resolved', 'ok') : pill('open', 'err');
+    const genBtn = resolved ? '' : '<button class="btn primary" style="font-size:11px;padding:3px 8px;" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\')">Generate</button>';
+    const resolveBtn = resolved ? '' : '<button class="btn" style="font-size:11px;padding:3px 8px;" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
+    html += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + escapeHtml(e.lane) + '</td><td style="font-size:12px;">' + escapeHtml((e.error||'').slice(0,80)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td>' + genBtn + ' ' + resolveBtn + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+document.getElementById('errRefresh').addEventListener('click', loadErrors);
+
+// Free-form problem generation
+document.getElementById('healFreeGen').addEventListener('click', async () => {
+  const instruction = document.getElementById('healInstruction').value.trim();
+  const count = parseInt(document.getElementById('healCount').value) || 5;
+  if (!instruction) { toast('Enter an instruction first'); return; }
+  const log = document.getElementById('healFreeLog');
+  log.textContent = '[Generating ' + count + ' problems…]\n';
+  const r = await apiFetch('/api/ops/chat/problems', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ instruction, count })
+  });
+  if (r.status === 200) {
+    log.textContent += '[Generated ' + (r.data.problems||[]).length + ' problems]\n';
+    (r.data.problems||[]).forEach((p,i) => log.textContent += '  ' + (i+1) + '. ' + p + '\n');
+  } else {
+    log.textContent += '[Error: ' + (r.data.error || 'failed') + ']\n';
+  }
+  log.scrollTop = log.scrollHeight;
+});
+
+async function genFromError(errorId, errorText) {
+  const count = parseInt(document.getElementById('healCount').value) || 5;
+  currentError = { id: errorId, text: errorText };
+  const wfLog = document.getElementById('workflowLog');
+  wfLog.textContent = '[Generating ' + count + ' problems from error: ' + errorText.slice(0, 60) + '…]\n';
+  document.getElementById('workflowActions').style.display = 'none';
+
+  const r = await apiFetch('/api/ops/chat/problems-from-error', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ error: errorText, count })
+  });
+  if (r.status === 200) {
+    workflowProblems = r.data.problems || [];
+    wfLog.textContent += '[Generated ' + workflowProblems.length + ' problems]\n';
+    workflowProblems.forEach((p, i) => wfLog.textContent += '  ' + (i+1) + '. ' + p + '\n');
+    wfLog.scrollTop = wfLog.scrollHeight;
+    document.getElementById('workflowActions').style.display = 'flex';
+  } else {
+    wfLog.textContent += '[Error: ' + (r.data.error || 'failed') + ']\n';
+  }
+}
+
+async function resolveError(errorId) {
+  const r = await apiFetch('/api/ops/errors/resolve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ error_id: errorId })
+  });
+  if (r.status === 200 && r.data.resolved) {
+    toast('Error marked as resolved');
+    loadErrors();
+  } else {
+    toast('Could not resolve error');
+  }
+}
+
+// Workflow actions
+document.getElementById('wfProposeFix').addEventListener('click', async () => {
+  if (!workflowProblems.length) { toast('Generate problems first'); return; }
+  const wfLog = document.getElementById('workflowLog');
+  wfLog.textContent += '\n[Proposing fixes for ' + workflowProblems.length + ' problems…]\n';
+  // Solve first
+  const solveR = await apiFetch('/api/ops/chat/solve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ problems: workflowProblems })
+  });
+  workflowResults = (solveR.status === 200) ? (solveR.data.results || []) : [];
+  const failures = workflowResults.filter(r => r.status === 'error' || r.status === 'logged');
+  wfLog.textContent += '[Solved: ' + (solveR.data.solved || 0) + '/' + (solveR.data.total || 0) + ', failures: ' + failures.length + ']\n';
+
+  if (failures.length) {
+    const impR = await apiFetch('/api/ops/chat/improve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ failures: failures.map(f => ({ problem: f.problem, error: f.error })) })
+    });
+    if (impR.status === 200) {
+      wfLog.textContent += '[Improvements: ' + (impR.data.improvements || []).length + ']\n';
+      (impR.data.improvements || []).forEach((imp, i) => {
+        wfLog.textContent += '  ' + (i+1) + '. [' + (imp.type||'rule') + '] ' + (imp.suggestion||'').slice(0,120) + '\n';
+      });
+    }
+  } else {
+    wfLog.textContent += '[No failures — all problems solved.]\n';
+  }
+  wfLog.scrollTop = wfLog.scrollHeight;
+});
+
+document.getElementById('wfApplyFix').addEventListener('click', async () => {
+  const heldOut = prompt('Enter held-out problem texts (one per line):');
+  if (!heldOut) return;
+  const texts = heldOut.split('\\n').map(t => t.trim()).filter(Boolean);
+  if (!texts.length) { toast('No held-out problems'); return; }
+  // Load proposals first
+  const propR = await apiFetch('/api/cases/statements/proposals');
+  const proposals = (propR.status === 200) ? (propR.data.proposals || []) : [];
+  if (!proposals.length) { toast('No pending proposals to apply'); return; }
+  const r = await apiFetch('/api/cases/statements/heal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ proposal: proposals[0], held_out: texts })
+  });
+  const wfLog = document.getElementById('workflowLog');
+  if (r.status === 200 && r.data.success) {
+    wfLog.textContent += '\n[Fix applied: ' + (r.data.reason || 'ok') + ']\n';
+    toast('Fix applied');
+    if (currentError) resolveError(currentError.id);
+  } else {
+    wfLog.textContent += '\n[Fix rejected: ' + (r.data.reason || r.data.error || 'unknown') + ']\n';
+    toast('Fix rejected');
+  }
+  wfLog.scrollTop = wfLog.scrollHeight;
+  loadHealHistory();
+});
+
+document.getElementById('wfRunTests').addEventListener('click', async () => {
+  const wfLog = document.getElementById('workflowLog');
+  wfLog.textContent += '\n[Running tests…]\n';
+  const r = await apiFetch('/api/ops/tests/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ suite: 'computations' })
+  });
+  if (r.status === 200) {
+    wfLog.textContent += '[Computations: ' + (r.data.passed||0) + '/' + (r.data.total||0) + ' passed]\n';
+  }
+  loadTestResults();
+  wfLog.scrollTop = wfLog.scrollHeight;
+});
+
+/* ── Heal ── */
+async function loadProposals() {
+  const r = await apiFetch('/api/cases/statements/proposals');
+  const container = document.getElementById('healTable');
+  if (r.status === 200) {
+    const proposals = r.data.proposals || [];
+    if (!proposals.length) { container.innerHTML = '<div class="empty"><div class="icon">🔧</div>No pending proposals.</div>'; return; }
+    let html = '<table><thead><tr><th>Type</th><th>Item</th><th>Problems</th><th>Suggestion</th><th>Action</th></tr></thead><tbody>';
+    proposals.forEach(p => {
+      html += '<tr><td>' + escapeHtml(p.type) + '</td><td>' + escapeHtml(p.item) + '</td><td>' + (p.problems || 0) + '</td><td style="font-size:12px;">' + escapeHtml(p.suggestion) + '</td><td><button class="btn primary" onclick="applyHeal(' + JSON.stringify(p) + ')">Apply</button></td></tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } else if (r.status === 404) {
+    container.innerHTML = '<div class="empty"><div class="icon">🔧</div>Proposals endpoint not available.</div>';
+  } else {
+    container.innerHTML = '<div class="empty"><div class="icon">🔧</div>' + escapeHtml(r.data.error || 'Error') + '</div>';
+  }
+}
+async function loadHealHistory() {
+  const r = await apiFetch('/api/cases/statements/heal/history?limit=20');
+  const container = document.getElementById('healHistory');
+  if (r.status === 200 && Array.isArray(r.data.history)) {
+    if (!r.data.history.length) { container.innerHTML = '<div class="empty">No heal history.</div>'; return; }
+    let html = '<table><thead><tr><th>Time</th><th>Type</th><th>Outcome</th><th>Passed/Tested</th><th>Reason</th></tr></thead><tbody>';
+    r.data.history.forEach(h => {
+      const cls = h.outcome === 'applied' ? 'ok' : 'err';
+      html += '<tr><td>' + fmtTs(h.at) + '</td><td>' + escapeHtml(h.type) + '</td><td>' + pill(h.outcome, cls) + '</td><td>' + (h.passed || 0) + '/' + (h.tested || 0) + '</td><td style="font-size:12px;">' + escapeHtml(h.reason || '—') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } else {
+    container.innerHTML = '<div class="empty">Heal history not available.</div>';
+  }
+}
+async function applyHeal(proposal) {
+  // Ask for held-out problems
+  const heldOut = prompt('Enter held-out problem texts (one per line):');
+  if (!heldOut) return;
+  const texts = heldOut.split('\n').map(t => t.trim()).filter(Boolean);
+  if (!texts.length) { toast('No held-out problems provided'); return; }
+  const r = await apiFetch('/api/cases/statements/heal', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ proposal: proposal, held_out: texts })
+  });
+  if (r.status === 200 && r.data.success) {
+    toast('Fix applied: ' + (r.data.reason || 'ok'));
+  } else {
+    toast('Fix rejected: ' + (r.data.reason || r.data.error || 'unknown'));
+  }
+  loadProposals();
+  loadHealHistory();
+}
+function openFix(id) {
+  const modal = document.getElementById('modalOverlay');
+  const content = document.getElementById('modalContent');
+  content.innerHTML = '<h2>Fix error</h2><p style="font-size:13px;color:var(--muted);">Error ID: ' + escapeHtml(id) + '</p><p style="margin:12px 0;">This will be connected to the self-heal pipeline once the backend route is wired.</p><div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>';
+  modal.classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modalOverlay') closeModal();
+});
+
+/* ── Tests ── */
+async function loadTestResults() {
+  const r = await apiFetch('/api/ops/tests/results');
+  const container = document.getElementById('testResults');
+  if (r.status === 200 && r.data.results) {
+    renderTestResults(r.data.results, container);
+  } else if (r.status === 404) {
+    container.innerHTML = '<div class="empty"><div class="icon">🧪</div>Test runner endpoint not yet wired.<br><span style="font-size:12px;">Backend route <code>/api/ops/tests/run</code> needed (design lane).</span></div>';
+  } else {
+    container.innerHTML = '<div class="empty"><div class="icon">🧪</div>' + escapeHtml(r.data.error || 'No data') + '</div>';
+  }
+}
+function renderTestResults(results, container) {
+  let html = '';
+  results.forEach(suite => {
+    const cls = suite.failed > 0 ? 'err' : 'ok';
+    html += '<div class="card" style="margin-bottom:8px;"><h3>' + escapeHtml(suite.name) + ' ' + pill(suite.passed + '/' + suite.total + ' passed', cls) + '</h3>';
+    if (suite.failed > 0 && suite.failures) {
+      html += '<ul style="font-size:12px;margin-top:8px;">';
+      suite.failures.forEach(f => { html += '<li>' + escapeHtml(f) + '</li>'; });
+      html += '</ul>';
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html || '<div class="empty">No test results yet.</div>';
+}
+document.querySelectorAll('[data-suite]').forEach(btn => {
+  btn.addEventListener('click', () => runSuite(btn.dataset.suite));
+});
+document.getElementById('runAllTests').addEventListener('click', async () => {
+  for (const s of ['computations','frameworks','prose','paper']) await runSuite(s);
+});
+async function runSuite(suite) {
+  toast('Running ' + suite + '…');
+  const r = await apiFetch('/api/ops/tests/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ suite })
+  });
+  if (r.status === 200) {
+    toast(suite + ': ' + (r.data.passed || 0) + '/' + (r.data.total || 0) + ' passed');
+  } else {
+    toast(suite + ': ' + (r.data.error || 'endpoint not wired'));
+  }
+  loadTestResults();
+}
+
+/* ── Chat ── */
+let chatProblems = [];
+let chatResults = [];
+function appendChat(text) {
+  const el = document.getElementById('chatLog');
+  el.textContent += text + '\n';
+  el.scrollTop = el.scrollHeight;
+}
+document.getElementById('chatGenerate').addEventListener('click', async () => {
+  const instruction = document.getElementById('chatInstruction').value.trim();
+  const count = parseInt(document.getElementById('chatCount').value) || 5;
+  if (!instruction) { toast('Enter an instruction first'); return; }
+  appendChat('[Model A — problem generator] Creating ' + count + ' problems…');
+  const r = await apiFetch('/api/ops/chat/problems', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ instruction, count })
+  });
+  if (r.status === 200) {
+    chatProblems = r.data.problems || [];
+    appendChat('[Model A] Generated ' + chatProblems.length + ' problems.');
+    chatProblems.forEach((p, i) => appendChat('  ' + (i+1) + '. ' + p));
+  } else {
+    appendChat('[Model A] ' + (r.data.error || 'endpoint not available'));
+  }
+});
+document.getElementById('chatSolve').addEventListener('click', async () => {
+  if (!chatProblems.length) { toast('Generate problems first'); return; }
+  appendChat('[Model B — solver] Solving ' + chatProblems.length + ' problems…');
+  const r = await apiFetch('/api/ops/chat/solve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ problems: chatProblems })
+  });
+  if (r.status === 200) {
+    chatResults = r.data.results || [];
+    appendChat('[Model B] ' + (r.data.solved || 0) + '/' + (r.data.total || 0) + ' processed.');
+    chatResults.forEach((res, i) => {
+      appendChat('  ' + (i+1) + '. [' + (res.status || '?') + '] ' + (res.problem || '').slice(0, 80));
+      if (res.error) appendChat('     Error: ' + res.error);
+    });
+  } else {
+    appendChat('[Model B] ' + (r.data.error || 'endpoint not available'));
+  }
+});
+document.getElementById('chatImprove').addEventListener('click', async () => {
+  const failures = chatResults.filter(r => r.status === 'error' || r.status === 'logged');
+  if (!failures.length) { toast('No failures to review (run solver first)'); return; }
+  appendChat('[Model C — improvement writer] Reviewing ' + failures.length + ' failures…');
+  const r = await apiFetch('/api/ops/chat/improve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ failures: failures.map(f => ({ problem: f.problem, error: f.error })) })
+  });
+  if (r.status === 200) {
+    appendChat('[Model C] Wrote ' + (r.data.improvements || []).length + ' improvement proposals.');
+    (r.data.improvements || []).forEach((imp, i) => {
+      appendChat('  ' + (i+1) + '. [' + (imp.type || 'rule') + '] ' + (imp.suggestion || '').slice(0, 120));
+    });
+  } else {
+    appendChat('[Model C] ' + (r.data.error || 'endpoint not available'));
+  }
+});
+document.getElementById('chatRunTests').addEventListener('click', async () => {
+  appendChat('[Tests] Running automated tests on generated problems…');
+  for (const s of ['computations','frameworks','prose','paper']) await runSuite(s);
+});
+
+/* ── Health ── */
+async function loadHealth() {
+  const r = await apiFetch('/api/health');
+  const container = document.getElementById('healthInfo');
+  if (r.status === 200) {
+    const d = r.data;
+    container.innerHTML = '<div class="card"><h2>System health</h2>' +
+      '<table><tbody>' +
+      '<tr><td>Build</td><td>' + escapeHtml(d.build) + '</td></tr>' +
+      '<tr><td>Status</td><td>' + pill(d.status, d.status === 'ok' ? 'ok' : 'warn') + '</td></tr>' +
+      '<tr><td>Model assistance</td><td>' + (d.model_assistance ? pill('on', 'ok') : pill('off', 'warn')) + '</td></tr>' +
+      '<tr><td>Sandbox</td><td>' + escapeHtml((d.sandbox || '—')) + '</td></tr>' +
+      '<tr><td>Cases</td><td>' + (d.case_store ? d.case_store.cases : '—') + '</td></tr>' +
+      '<tr><td>Request log</td><td>' + (d.request_log && d.request_log.enabled ? pill('on', 'ok') : pill('off', 'info')) + '</td></tr>' +
+      '</tbody></table></div>';
+    document.getElementById('buildInfo').textContent = 'Build: ' + d.build;
+    document.getElementById('statusBadge').textContent = d.status;
+  } else {
+    container.innerHTML = '<div class="empty">Health endpoint not available.</div>';
+  }
+}
+
+/* ── Init ── */
+loadHealth();
+loadRuns();
+loadErrors();
+loadHealHistory();
+loadTestResults();
+</script>
+</body>
+</html>

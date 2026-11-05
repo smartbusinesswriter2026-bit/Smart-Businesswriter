@@ -8,6 +8,9 @@ import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
 from . import finance_methods  # registers additional computation methods into methods.LIBRARY
 from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, session_paper as product_session_paper, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments
+from .product import ops_log as product_ops_log
+from .product import test_runner as product_test_runner
+from .product import chat_heal as product_chat_heal
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -648,10 +651,49 @@ class H(BaseHTTPRequestHandler):
             if self.path == "/api/health":
                 return self._send(200, product_ops.health({"sandbox": "on" if SANDBOX_ENABLED else "off (development)",
                                                           "model_assistance": bool(MODELS)}))
+            # ── Ops / self-healing monitor (admin) ──
+            _ops_url = urlparse(self.path)
+            if _ops_url.path == "/api/ops/runs":
+                _qs = parse_qs(_ops_url.query)
+                _lane = (_qs.get("lane") or [""])[0] or None
+                _status = (_qs.get("status") or [""])[0] or None
+                _limit = int((_qs.get("limit") or ["50"])[0])
+                return self._send(200, {"runs": product_ops_log.list_runs(limit=_limit, lane=_lane, status=_status),
+                                        "total": product_ops_log.run_count()})
+            if _ops_url.path == "/api/ops/errors":
+                _qs = parse_qs(_ops_url.query)
+                _lane = (_qs.get("lane") or [""])[0] or None
+                _limit = int((_qs.get("limit") or ["50"])[0])
+                return self._send(200, {"errors": product_ops_log.list_errors(limit=_limit, lane=_lane),
+                                        "total": product_ops_log.error_count()})
+            if _ops_url.path == "/api/ops/summary":
+                runs = product_ops_log.list_runs(limit=10000)
+                errors = product_ops_log.list_errors(limit=10000)
+                by_lane = {}
+                for r in runs:
+                    lane = r.get("lane", "unknown")
+                    by_lane.setdefault(lane, {"runs": 0, "errors": 0, "ok": 0, "failed": 0})
+                    by_lane[lane]["runs"] += 1
+                    if r.get("status") == "ok":
+                        by_lane[lane]["ok"] += 1
+                    else:
+                        by_lane[lane]["failed"] += 1
+                for e in errors:
+                    lane = e.get("lane", "unknown")
+                    by_lane.setdefault(lane, {"runs": 0, "errors": 0, "ok": 0, "failed": 0})
+                    by_lane[lane]["errors"] += 1
+                return self._send(200, {"total_runs": len(runs), "total_errors": len(errors),
+                                        "by_lane": by_lane})
+            if _ops_url.path == "/api/ops/tests/results":
+                _qs = parse_qs(_ops_url.query)
+                _limit = int((_qs.get("limit") or ["20"])[0])
+                return self._send(200, {"results": product_test_runner.list_results(limit=_limit)})
             if urlparse(self.path).path == "/":
                 with open(os.path.join(WEB, "index.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
             if self.path == "/account.html":
                 with open(os.path.join(WEB, "account.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
+            if self.path == "/admin-sbw.html":
+                with open(os.path.join(WEB, "admin-sbw.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
             if self.path == "/pricing.html":
                 # Pricing is a dialog in the workbench, not a page of its own. The old URL stays
                 # alive as a hop so a bookmark or a typed address still lands on the plans.
@@ -770,7 +812,34 @@ class H(BaseHTTPRequestHandler):
             if self.path.startswith(product_api.CASE_ROUTE):
                 n = int(self.headers.get("Content-Length") or 0)
                 if n > MAXBODY: raise ValueError("body too large")
-                return self._send(*product_api.handle("POST", self.path, json.loads(self.rfile.read(n) or b"{}")))
+                body = json.loads(self.rfile.read(n) or b"{}")
+                code, payload = product_api.handle("POST", self.path, body)
+                # Log pipeline runs to the ops log
+                try:
+                    _path = self.path
+                    if "/chat/" in _path and "/draft" in _path:
+                        product_ops_log.log_run("paper", "draft", "ok" if code < 400 else "error",
+                                               problem_text=str(body.get("brief", ""))[:200] if isinstance(body, dict) else None,
+                                               error=payload.get("error") if isinstance(payload, dict) else None)
+                    elif "/chat/" in _path and "/polish" in _path:
+                        product_ops_log.log_run("prose", "polish", "ok" if code < 400 else "error",
+                                               error=payload.get("error") if isinstance(payload, dict) else None)
+                    elif "/frameworks/complete" in _path:
+                        product_ops_log.log_run("framework", "complete", "ok" if code < 400 else "error",
+                                               problem_text=str(body.get("instruction", ""))[:200] if isinstance(body, dict) else None,
+                                               error=payload.get("error") if isinstance(payload, dict) else None)
+                    elif "/statements" in _path:
+                        product_ops_log.log_run("computation", "solve", "ok" if code < 400 else "error",
+                                               problem_text=str(body.get("instruction", ""))[:200] if isinstance(body, dict) else None,
+                                               error=payload.get("error") if isinstance(payload, dict) else None)
+                    if code >= 400 and isinstance(payload, dict) and payload.get("error"):
+                        product_ops_log.log_error(
+                            "paper" if "/chat/" in _path else ("framework" if "/frameworks/" in _path else "computation"),
+                            payload["error"],
+                            problem_text=str(body.get("instruction", body.get("brief", "")))[:200] if isinstance(body, dict) else None)
+                except Exception:
+                    pass
+                return self._send(code, payload)
             if self.path.startswith("/api/portfolios"): return self._portfolios("POST")
             if self.path == "/api/sessions": return self._send(201, M.create(self._body()).to_dict())
             pm = re.fullmatch(r"/api/sessions/(\w+)/paper", self.path)
@@ -826,6 +895,50 @@ class H(BaseHTTPRequestHandler):
                 body = self._body(); s = M.get(m[1])
                 if not isinstance(body, dict): raise ValueError("body must be an object")
                 s.confirm(m[2] == "confirm", body.get("frameworks")); return self._send(200, s.to_dict())
+            # ── Ops / self-healing monitor (admin) ──
+            if self.path == "/api/ops/tests/run":
+                body = self._body()
+                suite = body.get("suite", "computations") if isinstance(body, dict) else "computations"
+                result = product_test_runner.run_suite(suite)
+                return self._send(200, result)
+            if self.path == "/api/ops/chat/problems":
+                body = self._body()
+                instruction = body.get("instruction", "") if isinstance(body, dict) else ""
+                count = int(body.get("count", 5)) if isinstance(body, dict) else 5
+                problems, error = product_chat_heal.generate_problems(instruction, count)
+                if error:
+                    return self._send(422, {"error": error, "problems": problems})
+                return self._send(200, {"problems": problems, "count": len(problems)})
+            if self.path == "/api/ops/chat/solve":
+                body = self._body()
+                problems = body.get("problems", []) if isinstance(body, dict) else []
+                results, error = product_chat_heal.solve_problems(problems)
+                if error:
+                    return self._send(422, {"error": error, "results": results})
+                return self._send(200, {"results": results, "solved": sum(1 for r in results if r["status"] != "error"),
+                                        "total": len(results)})
+            if self.path == "/api/ops/chat/improve":
+                body = self._body()
+                failures = body.get("failures", []) if isinstance(body, dict) else []
+                improvements, error = product_chat_heal.write_improvements(failures)
+                if error:
+                    return self._send(422, {"error": error, "improvements": improvements})
+                return self._send(200, {"improvements": improvements, "count": len(improvements)})
+            if self.path == "/api/ops/chat/problems-from-error":
+                body = self._body()
+                error_text = body.get("error", "") if isinstance(body, dict) else ""
+                count = int(body.get("count", 5)) if isinstance(body, dict) else 5
+                problems, instruction, error = product_chat_heal.generate_problems_from_error(error_text, count)
+                if error:
+                    return self._send(422, {"error": error, "problems": problems})
+                return self._send(200, {"problems": problems, "instruction": instruction, "count": len(problems)})
+            if self.path == "/api/ops/errors/resolve":
+                body = self._body()
+                error_id = body.get("error_id", "") if isinstance(body, dict) else ""
+                if not error_id:
+                    return self._send(400, {"error": "error_id required"})
+                ok = product_ops_log.mark_error_resolved(error_id)
+                return self._send(200, {"resolved": ok})
             self._send(404, {"error": "not found"})
         except KeyError: self._send(404, {"error": "unknown session"})
         except (ValueError, TypeError) as e: self._send(400, {"error": str(e)})
