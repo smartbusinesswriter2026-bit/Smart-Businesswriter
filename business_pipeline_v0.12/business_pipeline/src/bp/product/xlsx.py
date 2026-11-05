@@ -338,9 +338,8 @@ def _content_types(sheet_names):
 
 def _sheet_xml(rows_data):
     """Build worksheet XML from (label, value, style) tuples. value can be float or None."""
-    lines = ['<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
-             '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">',
-             '<sheetData>']
+    # First pass: build rows and count
+    row_lines = []
     r = 1
     for item in rows_data:
         if item is None:
@@ -349,16 +348,24 @@ def _sheet_xml(rows_data):
         if isinstance(item, str):
             item = (item, None, 0)
         label, val, style = item if len(item) == 3 else (item[0], item[1] if len(item) > 1 else None, 0)
-        lines.append('<row r="%d">' % r)
+        row_lines.append('<row r="%d">' % r)
         if label is not None and str(label).strip():
-            lines.append('<c r="A%d" t="inlineStr"><is><t xml:space="preserve">%s</t></is></c>' % (r, escape(str(label))))
+            row_lines.append('<c r="A%d" t="inlineStr"><is><t xml:space="preserve">%s</t></is></c>' % (r, escape(str(label))))
         if val is not None:
             if isinstance(val, str):
-                lines.append('<c r="B%d" t="inlineStr"><is><t xml:space="preserve">%s</t></is></c>' % (r, escape(val)))
+                row_lines.append('<c r="B%d" t="inlineStr"><is><t xml:space="preserve">%s</t></is></c>' % (r, escape(val)))
             else:
-                lines.append('<c r="B%d" s="%d"><v>%s</v></c>' % (r, style, val))
-        lines.append('</row>')
+                row_lines.append('<c r="B%d" s="%d"><v>%s</v></c>' % (r, style, val))
+        row_lines.append('</row>')
         r += 1
+    max_row = r - 1
+    if max_row < 1:
+        max_row = 1
+    lines = ['<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+             '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">',
+             '<dimension ref="A1:B%d"/>' % max_row,
+             '<sheetData>']
+    lines.extend(row_lines)
     lines.append('</sheetData>')
     lines.append('<cols><col min="1" max="1" width="44" customWidth="1"/><col min="2" max="2" width="18" customWidth="1"/></cols>')
     lines.append('</worksheet>')
