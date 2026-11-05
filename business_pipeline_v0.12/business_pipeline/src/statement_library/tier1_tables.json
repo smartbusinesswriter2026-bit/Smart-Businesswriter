@@ -1,0 +1,734 @@
+{
+  "version": 1,
+  "rules": [
+    [
+      "^(cash|bank|cash at bank|bank account|bank current account)$",
+      "asset",
+      "current",
+      "Cash",
+      "cash",
+      "operating",
+      false
+    ],
+    [
+      "^(trade receivables?|receivables?|debtors?|accounts? receivable|sundry debtors|a/?r)$",
+      "asset",
+      "current",
+      "Trade receivables",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(inventor(y|ies)|stock|closing stock)$",
+      "asset",
+      "current",
+      "Inventory",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(prepayments?|prepaid\\b.*)$",
+      "asset",
+      "current",
+      "Prepayments",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(equipment|vehicles?|machinery|furniture|land|buildings?|plant|motor vehicles?|office equipment|freehold property)$",
+      "asset",
+      "non_current",
+      "Property, plant and equipment",
+      "",
+      "investing",
+      false
+    ],
+    [
+      "^(accumulated depreciation\\b.*|provision for depreciation\\b.*)$",
+      "asset",
+      "non_current",
+      "Property, plant and equipment",
+      "",
+      "investing",
+      true
+    ],
+    [
+      "\\bloan\\b",
+      "liability",
+      "non_current",
+      "Borrowings",
+      "",
+      "financing",
+      false
+    ],
+    [
+      "^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors|a/?p)$",
+      "liability",
+      "current",
+      "Trade payables",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(accrued expenses?|accruals?|accrued\\b.*)$",
+      "liability",
+      "current",
+      "Accruals",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "\\bowner'?s?\\b",
+      "equity",
+      "",
+      "Capital",
+      "capital",
+      "financing",
+      false
+    ],
+    [
+      "^(capital|share capital|equity|owner'?s? capital)$",
+      "equity",
+      "",
+      "Capital",
+      "capital",
+      "financing",
+      false
+    ],
+    [
+      "^(retained earnings?|accumulated (profit|earnings)|revenue reserve)(\\s*\\(.*\\))?$",
+      "equity",
+      "",
+      "Retained earnings",
+      "retained_earnings",
+      "",
+      false
+    ],
+    [
+      "^(supplies|prepaid supplies|supplies on hand)$",
+      "asset",
+      "current",
+      "Supplies",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(unearned revenue|deferred revenue|unearned income)(\\s*\\(.*\\))?$",
+      "liability",
+      "current",
+      "Accruals",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(notes payable|notes payable.*|long.term (debt|notes? payable)|long.term debt)(\\s*\\(.*\\))?$",
+      "liability",
+      "non_current",
+      "Borrowings",
+      "",
+      "financing",
+      false
+    ],
+    [
+      "^(common stock|share capital|capital stock)(\\s*\\(.*\\))?$",
+      "equity",
+      "",
+      "Capital",
+      "capital",
+      "financing",
+      false
+    ],
+    [
+      "^(drawings?|dividends?)$",
+      "equity",
+      "",
+      "Dividends",
+      "dividends",
+      "financing",
+      true
+    ],
+    [
+      "^(sales|revenue|turnover|fees earned|service revenue)$",
+      "income",
+      "",
+      "Revenue",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(other income|other gains?|interest income|income|gains?|gain on .+|other .* income|other .* gains?)$",
+      "income",
+      "",
+      "Other income",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(purchases?|cost of (sales|goods sold)|cogs)$",
+      "expense",
+      "",
+      "Cost of sales",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(interest\\b.*|loan interest)$",
+      "expense",
+      "",
+      "Interest expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(finance costs?|financial (expenses?|charges)|bank charges?)$",
+      "expense",
+      "",
+      "Finance costs",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(rent|rental|rent expense)$",
+      "expense",
+      "",
+      "Rent expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(salaries|salary|wages|staff costs?|salaries and wages)( expense)?$",
+      "expense",
+      "",
+      "Salaries expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(utilities|utilities expense|electricity|water)$",
+      "expense",
+      "",
+      "Utilities expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(insurance|insurance expense)$",
+      "expense",
+      "",
+      "Insurance expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(advertising|advertising expense|marketing)$",
+      "expense",
+      "",
+      "Advertising expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(depreciation|depreciation expense)$",
+      "expense",
+      "",
+      "Depreciation",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(bad debts?|bad debt expense|provision for doubtful debts)$",
+      "expense",
+      "",
+      "Bad debts",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(general expenses?|general expense)$",
+      "expense",
+      "",
+      "General expenses",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(operating expenses?|operating expense)$",
+      "expense",
+      "",
+      "Operating expenses",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(telephone|telephone expense|phone)$",
+      "expense",
+      "",
+      "Telephone expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(transport|transport expense|delivery)$",
+      "expense",
+      "",
+      "Transport expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(repairs?|repairs and maintenance)$",
+      "expense",
+      "",
+      "Repairs expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(stationery|stationery expense|office supplies)$",
+      "expense",
+      "",
+      "Stationery expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^supplies expense$",
+      "expense",
+      "",
+      "Supplies expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(fuel|fuel expense)$",
+      "expense",
+      "",
+      "Fuel expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(travel|travel expense)$",
+      "expense",
+      "",
+      "Travel expense",
+      "",
+      "operating",
+      false
+    ],
+    [
+      "^(other expenses?|costs?|expenses?)$",
+      "expense",
+      "",
+      "Other expenses",
+      "",
+      "operating",
+      false
+    ]
+  ],
+  "schemas": {
+    "cogm": {
+      "request": "cost of goods manufactured|schedule of cost of goods",
+      "required": [
+        "direct_materials",
+        "direct_labour",
+        "manufacturing_overhead",
+        "beginning_wip",
+        "ending_wip"
+      ],
+      "require_all": [],
+      "require_any": [],
+      "figures": [
+        [
+          "direct_materials",
+          "direct materials?(?:\\s+used)?",
+          1
+        ],
+        [
+          "direct_labour",
+          "direct labou?r",
+          1
+        ],
+        [
+          "manufacturing_overhead",
+          "(?:manufacturing|factory|production) overhead",
+          1
+        ],
+        [
+          "beginning_wip",
+          "beginning (?:work in process|wip|work-in-process)",
+          1
+        ],
+        [
+          "ending_wip",
+          "ending (?:work in process|wip|work-in-process)",
+          1
+        ],
+        [
+          "beginning_finished_goods",
+          "beginning (?:finished goods|finished goods inventory)",
+          1
+        ],
+        [
+          "ending_finished_goods",
+          "ending (?:finished goods|finished goods inventory)",
+          1
+        ],
+        [
+          "sales",
+          "\\bsales\\b|\\brevenue\\b|\\bnet sales\\b",
+          1
+        ],
+        [
+          "selling_and_admin",
+          "selling (?:and|&) admin\\w*|selling,? general|sg&a|operating expenses",
+          1
+        ]
+      ]
+    },
+    "cash_flow_indirect": {
+      "request": "cash ?flows?|statement of cash",
+      "required": [],
+      "require_all": [
+        "net_income"
+      ],
+      "require_any": [
+        "depreciation",
+        "accounts_receivable",
+        "inventory",
+        "accounts_payable",
+        "capital_expenditure",
+        "proceeds_from_sale"
+      ],
+      "figures": [
+        [
+          "net_income",
+          "net income",
+          1
+        ],
+        [
+          "depreciation",
+          "depreciation(?!\\s+expense)",
+          1
+        ],
+        [
+          "gain_on_sale",
+          "gain on (?:the )?(?:sale|disposal)",
+          1
+        ],
+        [
+          "loss_on_sale",
+          "loss on (?:the )?(?:sale|disposal)",
+          1
+        ],
+        [
+          "accounts_receivable",
+          "increase in (?:accounts? receivables?|receivables|a/?r)\\b",
+          1
+        ],
+        [
+          "accounts_receivable",
+          "decrease in (?:accounts? receivables?|receivables|a/?r)\\b",
+          -1
+        ],
+        [
+          "inventory",
+          "increase in (?:inventor(?:y|ies)|stock)\\b",
+          1
+        ],
+        [
+          "inventory",
+          "decrease in (?:inventor(?:y|ies)|stock)\\b",
+          -1
+        ],
+        [
+          "prepaid_expenses",
+          "increase in prepaid\\w*",
+          1
+        ],
+        [
+          "prepaid_expenses",
+          "decrease in prepaid\\w*",
+          -1
+        ],
+        [
+          "accounts_payable",
+          "increase in (?:accounts? payables?|payables|a/?p)\\b",
+          1
+        ],
+        [
+          "accounts_payable",
+          "decrease in (?:accounts? payables?|payables|a/?p)\\b",
+          -1
+        ],
+        [
+          "accrued_liabilities",
+          "increase in (?:accrued|accruals?)\\b",
+          1
+        ],
+        [
+          "accrued_liabilities",
+          "decrease in (?:accrued|accruals?)\\b",
+          -1
+        ],
+        [
+          "capital_expenditure",
+          "purchase(?:s)? of (?:equipment|property|plant|ppe|machinery|land|buildings?|vehicles?|fixed assets)",
+          1
+        ],
+        [
+          "proceeds_from_sale",
+          "proceeds from (?:the )?(?:sale|disposal)",
+          1
+        ],
+        [
+          "shares_issued",
+          "(?:issue|issued|issuance)(?:\\s+of)?\\s+(?:common\\s+|ordinary\\s+|share\\s+)?(?:stock|shares)",
+          1
+        ],
+        [
+          "dividends_paid",
+          "dividends?[^;\\n]{0,30}?(?:paid|declared)",
+          1
+        ],
+        [
+          "beginning_cash",
+          "beginning cash|cash at (?:the )?beginning|opening cash",
+          1
+        ]
+      ]
+    },
+    "equity_statement": {
+      "request": "(?:changes?\\s+in|statement\\s+of)\\s+(?:[a-z']+\\s+){0,2}equity|statement of (?:owners?'?|stockholders?'?|shareholders?'?)\\s*equity",
+      "required": [],
+      "require_all": [
+        "net_income"
+      ],
+      "require_any": [
+        "beginning_common_stock",
+        "beginning_retained_earnings"
+      ],
+      "figures": [
+        [
+          "beginning_common_stock",
+          "beginning (?:common|ordinary|share|preferred) (?:stock|capital)",
+          1
+        ],
+        [
+          "beginning_retained_earnings",
+          "beginning retained earnings",
+          1
+        ],
+        [
+          "common_stock_issued",
+          "(?:common|ordinary|share|preferred) (?:stock|capital) (?:issued|issue)",
+          1
+        ],
+        [
+          "net_income",
+          "net income",
+          1
+        ],
+        [
+          "dividends",
+          "dividends?",
+          1
+        ],
+        [
+          "other_comprehensive_income",
+          "other comprehensive income",
+          1
+        ]
+      ]
+    },
+    "bank_reconciliation": {
+      "request": "bank reconciliation|reconcil\\w* (?:the )?(?:bank|cash)",
+      "required": [],
+      "require_all": [
+        "bank_statement_balance",
+        "book_cash_balance"
+      ],
+      "require_any": [],
+      "figures": [
+        [
+          "bank_statement_balance",
+          "bank statement balance|balance per bank|bank balance|balance per the bank",
+          1
+        ],
+        [
+          "book_cash_balance",
+          "book cash balance|balance per books?|book balance|cash balance per books?|balance per the books?",
+          1
+        ],
+        [
+          "deposits_in_transit",
+          "deposits? in transit",
+          1
+        ],
+        [
+          "outstanding_checks",
+          "outstanding checks?",
+          1
+        ],
+        [
+          "bank_service_charge",
+          "(?:bank )?service charge",
+          1
+        ],
+        [
+          "nsf_check",
+          "nsf(?:\\s+customer)?\\s+check|nsf",
+          1
+        ],
+        [
+          "note_collected",
+          "note collected(?:\\s+by (?:the )?bank)?",
+          1
+        ],
+        [
+          "interest_earned",
+          "interest earned",
+          1
+        ],
+        [
+          "book_error",
+          "book error|error in (?:the )?(?:books|cash)",
+          1
+        ]
+      ]
+    },
+    "asset_disposal": {
+      "request": "depreciation .* sold|sold .* depreciation|disposal|gain.?loss on (?:sale|disposal)|depreciation.*residual|residual.*depreciation",
+      "required": [],
+      "require_all": [
+        "cost",
+        "residual_value",
+        "useful_life",
+        "years_elapsed",
+        "sale_price"
+      ],
+      "require_any": [],
+      "figures": [
+        [
+          "cost",
+          "equipment cost|cost of (?:the )?(?:asset|equipment)|asset cost|\\bcost\\b",
+          1
+        ],
+        [
+          "residual_value",
+          "residual value|salvage value",
+          1
+        ],
+        [
+          "useful_life",
+          "useful life",
+          1
+        ],
+        [
+          "years_elapsed",
+          "year\\s*(\\d+)",
+          1
+        ],
+        [
+          "sale_price",
+          "sold .* for|proceeds from (?:the )?(?:sale|disposal)|sale price|selling price",
+          1
+        ]
+      ]
+    },
+    "ratio_computation": {
+      "request": "current ratio|quick ratio|debt ratio|gross margin|net margin|return on assets|return on equity|asset turnover|receivables turnover|days sales outstanding",
+      "required": [],
+      "require_all": [
+        "current_assets",
+        "current_liabilities",
+        "total_assets",
+        "total_liabilities",
+        "equity",
+        "sales",
+        "net_income",
+        "accounts_receivable"
+      ],
+      "require_any": [],
+      "figures": [
+        [
+          "current_assets",
+          "current assets",
+          1
+        ],
+        [
+          "inventory",
+          "inventory",
+          1
+        ],
+        [
+          "current_liabilities",
+          "current liabilities",
+          1
+        ],
+        [
+          "total_assets",
+          "total assets",
+          1
+        ],
+        [
+          "total_liabilities",
+          "total liabilities",
+          1
+        ],
+        [
+          "equity",
+          "\\bequity\\b",
+          1
+        ],
+        [
+          "sales",
+          "\\bsales\\b",
+          1
+        ],
+        [
+          "cogs",
+          "cogs|cost of goods sold",
+          1
+        ],
+        [
+          "net_income",
+          "net income",
+          1
+        ],
+        [
+          "accounts_receivable",
+          "accounts receivable",
+          1
+        ]
+      ]
+    }
+  }
+}
