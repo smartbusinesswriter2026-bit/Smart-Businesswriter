@@ -10283,29 +10283,10 @@ if (new URLSearchParams(location.search).get("pricing")) {
       return;
     }
     /* The toggle is the page's own: a pill of two buttons, the pressed one filled. */
-    var toggle = el("div", "toggle");
-    toggle.setAttribute("role", "group");
-    toggle.setAttribute("aria-label", "What to show");
+    /* Only the Result view is shown.  The Working view has been removed. */
     var view = el("div");
-    var buttons = {};
-    function showView(kind) {
-      view.innerHTML = "";
-      view.appendChild(pre(kind === "working" ? workingText(record) : record.statements_only));
-      Object.keys(buttons).forEach(function (key) {
-        buttons[key].setAttribute("aria-pressed", key === kind ? "true" : "false");
-      });
-    }
-    [["working", "Working"], ["statements", "Result"]].forEach(function (pair) {
-      var button = el("button", "", pair[1]);
-      button.type = "button";
-      button.setAttribute("aria-pressed", "false");
-      button.onclick = function () { showView(pair[0]); };
-      buttons[pair[0]] = button;
-      toggle.appendChild(button);
-    });
-    host.appendChild(toggle);
+    view.appendChild(pre(record.statements_only || ""));
     host.appendChild(view);
-    showView("statements");
     var withheld = (record.statements || {}).cash_flow_withheld_because;
     if (withheld) { host.appendChild(el("p", "muted", "Cash flow statement withheld: " + withheld)); }
     if (record.same_model_disclosure) {
