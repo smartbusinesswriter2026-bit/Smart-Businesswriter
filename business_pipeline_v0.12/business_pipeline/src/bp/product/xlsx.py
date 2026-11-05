@@ -298,15 +298,8 @@ def render_bytes(record):
         sheet_names.append("Working")
         sheet_defs.append(("Working", _sheet_xml_text(rows)))
 
-    # Notes sheet
-    notes_text = (record.get("statements") or {}).get("notes", "")
-    if notes_text:
-        rows = [("Notes", None, 2)]
-        rows.append(None)
-        for line in notes_text.splitlines():
-            rows.append((line, None, 0))
-        sheet_names.append("Notes")
-        sheet_defs.append(("Notes", _sheet_xml_text(rows)))
+    # Notes sheet is already created from _SHEET_NAMES above (key="notes").
+    # Do not create a duplicate.
 
     if not sheet_defs:
         sheet_defs.append(("Statements", _sheet_xml_text([("No statements available", None, 0)])))
