@@ -147,7 +147,9 @@ CONTRACT = {
 }
 
 
-class ExtractionError(ValueError):
+from .product.statements import StatementError as _StatementError
+
+class ExtractionError(_StatementError):
     """The model's answer was off-contract, ungrounded, or could not be posted."""
 
 
