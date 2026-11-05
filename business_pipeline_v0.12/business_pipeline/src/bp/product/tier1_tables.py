@@ -17,7 +17,7 @@ _schemas_cache = None
 
 def _seed_rules():
     try:
-        from bp.product import statements as S
+        from . import statements as S
         return [list(r) for r in S._RULES_SEED]
     except Exception:
         return None
@@ -25,7 +25,7 @@ def _seed_rules():
 
 def _seed_schemas():
     try:
-        from bp.product import schedules as SCH
+        from . import schedule_routes as SCH
         out = {}
         for kind, schema in SCH._SCHEMAS_SEED.items():
             out[kind] = {

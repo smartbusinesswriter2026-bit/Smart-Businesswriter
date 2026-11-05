@@ -2,7 +2,7 @@ import sys, os, json
 sys.path.insert(0, "src")
 from bp.product import statements as S
 from bp.product import income_statement as IS
-from bp.product import schedules as SCH
+from bp.product import schedule_routes as SCH
 
 # Seed RULES
 rules_seed = []
