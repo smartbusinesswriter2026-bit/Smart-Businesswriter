@@ -1083,6 +1083,30 @@ def _refusal(text, reading, spec, message, source, rejected, same_model, request
     return verify.freeze(record)
 
 
+def _is_complex_problem(text):
+    """Whether a narrative is complex enough to justify the deepseek-v4-pro gate.
+
+    Deterministic problems never reach the model path (they are solved by code above), so this
+    only governs narratives the deterministic reader could not read.  A small narrative that
+    slipped past it is retried on the cheap model (tier 1); only narratives with many stated
+    figures, schedules or adjustments escalate to the pro model (tier 2/3).
+    """
+    import re as _re
+    s = str(text or "")
+    low = s.lower()
+    # Count stated dollar amounts.
+    amounts = _re.findall(r"\$?\b\d[\d,]*(?:\.\d+)?\b", s)
+    # Distinct dates.
+    dates = set(_re.findall(r"\b\d{4}-\d{2}-\d{2}\b", s))
+    date_words = _re.findall(r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}\b", low)
+    complex_keywords = ("depreciation", "accrual", "prepayment", "prepaid", "deferred",
+                        "amortiz", "bad debt", "cogs", "cost of goods", "adjusting",
+                        "schedule", "inventory", "tax rate", "straight-line", "straight line")
+    keyword_hits = sum(1 for kw in complex_keywords if kw in low)
+    return (len(s) >= 600 or len(amounts) >= 8 or len(dates) + len(date_words) >= 4
+            or keyword_hits >= 2)
+
+
 def solve(instruction, currency=None, framework=None, ratios=None, reader=None, statements=None):
     """Solve one instruction and return a frozen record.
 
@@ -1264,10 +1288,17 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
             # back and retried (max 4). Escalation to a higher-tier model is configured
             # via BP_TIER2_MODEL / BP_TIER3_MODEL; debate is the last resort.
             last_error = None
+            # The deepseek-v4-pro gate is worth its cost only on genuinely complex problems.
+            # Deterministic problems never reach this path (solved by code above); small narratives
+            # that slipped past the deterministic reader are retried on the cheap model (tier 1).
+            complex_problem = _is_complex_problem(text)
             for attempt in range(4):
                 try:
-                    # Escalate model tier: 1 (standard) â†’ 2 (retry) â†’ 3 (escalation) â†’ 3 (debate)
-                    tier = 1 if attempt == 0 else (2 if attempt == 1 else 3)
+                    if complex_problem:
+                        # Escalate model tier: 1 (standard) -> 2 (retry) -> 3 (escalation) -> 3 (debate)
+                        tier = 1 if attempt == 0 else (2 if attempt == 1 else 3)
+                    else:
+                        tier = 1
                     if "set_tier" in _CORE:
                         _core("set_tier")(tier)
                     attempt_text = text

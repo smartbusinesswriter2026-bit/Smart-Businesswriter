@@ -47,7 +47,7 @@ def _statement_models(tier=None):
     """
     global _statement_model_tier
     t = tier if tier is not None else _statement_model_tier
-    models = llm.from_env()
+    models = llm.from_env(tier=t)
     if models is not None:
         return models
     if os.environ.get("DEEPSEEK_API_KEY"):

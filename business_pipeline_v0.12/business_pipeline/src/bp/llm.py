@@ -57,12 +57,15 @@ class OpenAICompatProvider(Provider):
     def __init__(self, model, api_key=None, base_url=None, timeout=60, opener=None):
         super().__init__(model); self._key = api_key or os.environ.get(self.KEY_ENV); self.timeout = timeout; self._open = opener
         self.base_url = base_url or self.URL
+        self.extra_headers = dict(getattr(self, "extra_headers", {}) or {})
         if not self._key: raise ProviderError(f"no API key: set the {self.KEY_ENV} environment variable on the server")
     def complete(self, system, user, max_tokens=1500):
         import urllib.request, urllib.error
         body = json.dumps({"model": self.model, "temperature": 0, "max_tokens": int(max_tokens),
                            "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}).encode()
-        req = urllib.request.Request(self.base_url, data=body, method="POST", headers={"content-type": "application/json", "authorization": f"Bearer {self._key}"})
+        headers = {"content-type": "application/json", "authorization": f"Bearer {self._key}"}
+        headers.update(getattr(self, "extra_headers", {}) or {})
+        req = urllib.request.Request(self.base_url, data=body, method="POST", headers=headers)
         try:
             with (self._open or urllib.request.urlopen)(req, timeout=self.timeout) as r: data = json.loads(r.read().decode("utf-8"))
         except urllib.error.HTTPError as e: raise ProviderError(f"provider returned HTTP {e.code}")          # never include headers or the key
@@ -80,6 +83,16 @@ class DeepSeekProvider(OpenAICompatProvider):
     deepseek-reasoner (R1) for the independent reviewer to decorrelate errors."""
     name = "deepseek"
     URL = "https://api.deepseek.com/chat/completions"; KEY_ENV = "DEEPSEEK_API_KEY"
+
+
+class OpenCodeProvider(OpenAICompatProvider):
+    """OpenCode Go (OpenAI-compatible). Uses the owner's OpenCode Go key (BP_OPENGO_API_KEY) and the OpenCode Go
+    inference endpoint, so the statements tile can run on the same credits as the prose/council lane instead of a
+    separate DeepSeek account. Model ids are the OpenCode Go catalog (e.g. deepseek-v4.1-flash, deepseek-v4-pro)."""
+    name = "opencode"
+    URL = "https://opencode.ai/inference/go/openai/v1/chat/completions"
+    KEY_ENV = "BP_OPENGO_API_KEY"
+    extra_headers = {"User-Agent": "smart-business-writer/1.0", "x-opencode-session": "bp-statements"}
 
 @dataclass
 class LLMConfig:
@@ -107,16 +120,28 @@ class Models:
                "output_sha256": hashlib.sha256(res.text.encode()).hexdigest(), "input_chars": len(system) + len(user), "input_tokens": res.input_tokens, "output_tokens": res.output_tokens, "seconds": round(time.time() - t0, 2)}
         self.log.append(rec); return res.text, rec
 
-PROVIDERS = {"anthropic": AnthropicProvider, "openai": OpenAICompatProvider, "deepseek": DeepSeekProvider}
+PROVIDERS = {"anthropic": AnthropicProvider, "openai": OpenAICompatProvider, "deepseek": DeepSeekProvider, "opencode": OpenCodeProvider}
 
-def from_env(env=None):
+def from_env(env=None, tier=None):
     """BP_LLM_PROVIDER in {anthropic, openai, deepseek}; BP_LLM_MODEL=<model id> (never defaulted); optional BP_LLM_REVIEWER_MODEL.
     Optional BP_LLM_BASE_URL overrides the endpoint for openai/deepseek (e.g. a local or alternate OpenAI-compatible server).
     Returns None when BP_LLM_PROVIDER is not set. The reviewer uses the same provider class, which keeps the boundary small;
-    per-role or per-task provider routing (graphs, spreadsheets, research, writing) is a future extension."""
-    env = env if env is not None else os.environ; prov = env.get("BP_LLM_PROVIDER"); model = env.get("BP_LLM_MODEL")
+    per-role or per-task provider routing (graphs, spreadsheets, research, writing) is a future extension.
+
+    `tier` (1/2/3) selects the model for the statement-extraction retry ladder: tier 1 uses BP_LLM_MODEL, tier 2 prefers
+    BP_LLM_MODEL_TIER2 (falling back to BP_LLM_MODEL), tier 3 prefers BP_LLM_MODEL_TIER3 (falling back to tier 2 then
+    BP_LLM_MODEL). With tier=None (the default) tier 1 is used, so existing callers are unaffected.
+    """
+    env = env if env is not None else os.environ; prov = env.get("BP_LLM_PROVIDER")
     if not prov: return None
     if prov not in PROVIDERS: raise ProviderError(f"unknown provider {prov!r}; supported: {', '.join(sorted(PROVIDERS))}")
+    t = 1 if tier is None else int(tier)
+    if t >= 3:
+        model = env.get("BP_LLM_MODEL_TIER3") or env.get("BP_LLM_MODEL_TIER2") or env.get("BP_LLM_MODEL")
+    elif t >= 2:
+        model = env.get("BP_LLM_MODEL_TIER2") or env.get("BP_LLM_MODEL")
+    else:
+        model = env.get("BP_LLM_MODEL")
     if not model: raise ProviderError("BP_LLM_MODEL is required (the model identifier is your choice and is never defaulted)")
     cls = PROVIDERS[prov]; kw = {"base_url": env["BP_LLM_BASE_URL"]} if env.get("BP_LLM_BASE_URL") and cls is not AnthropicProvider else {}
     b = cls(model, **kw); r = cls(env["BP_LLM_REVIEWER_MODEL"], **kw) if env.get("BP_LLM_REVIEWER_MODEL") else None
