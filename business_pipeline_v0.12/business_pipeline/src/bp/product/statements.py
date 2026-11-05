@@ -219,6 +219,12 @@ def currency_of(text, declared=None):
 
 def classify(text):
     """(problem_type, cue, sentence) â€” the first group that fires wins, and the cue is recorded."""
+    # A trial balance carries Dr/Cr markers.  If the text has them, it is a trial balance
+    # regardless of what the cue patterns say (account names like "Depreciation expense"
+    # can match adjustment cues).
+    import re as _re
+    if _re.search(r"\d[\d,]*(?:\.\d+)?\s*(?:Dr|Cr)\.?(?=\s|$|[;,.])", text, _re.I):
+        return "trial_balance", "Dr/Cr markers", text[:60]
     for kind, patterns in CUES:
         for pattern in patterns:
             match = re.search(pattern, text, re.I)
@@ -687,6 +693,12 @@ def _reads_as_trial_balance(text):
     of 86,900 where the trial-balance route prints 77,900, with nothing to say
     which is right.  The more specific reading wins.
     """
+    # A trial balance carries Dr/Cr markers on its lines.  If the text has them, it is a trial
+    # balance regardless of what classify() says (classify can be fooled by account names like
+    # "Depreciation expense" that match adjustment cues).
+    import re as _re
+    if _re.search(r"\d[\d,]*(?:\.\d+)?\s*(?:Dr|Cr)\.?(?=\s|$|[;,.])", text, _re.I):
+        return True
     try:
         kind, _cue, _sentence_text = classify(text)
     except StatementError:
@@ -2132,6 +2144,12 @@ def _solve_given_balances(text, currency=None, framework=None, ratios=None, stat
                                                "non_operating_revenue", "non_operating_expense")]
     bs_lines = [l for l in lines if l.kind in ("current_asset", "non_current_asset",
                                                 "current_liability", "non_current_liability")]
+
+    # A problem with BOTH income-statement and balance-sheet accounts is a trial balance,
+    # not a "given balances" problem.  Let the trial-balance route (read_deterministic)
+    # handle it — it renders IS + RE + BS and carries the ratios.
+    if is_lines and bs_lines:
+        return None
 
     # If we have income statement accounts, compute IS
     if is_lines:
