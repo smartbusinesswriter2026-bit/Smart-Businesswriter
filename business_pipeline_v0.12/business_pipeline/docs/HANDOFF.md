@@ -7,9 +7,9 @@ You are taking over a working repo, not starting one. Read this file first, then
 ```
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
-Git          : branch corpus/merge-v1, no remote, clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.100 (see docs/CHANGELOG.md)
-Tests        : 3869 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Git          : branch corpus/merge-v1, remote origin = smartbusinesswriter2026-bit/smart-businesswriter002; `main` is the deployment branch and carries the same tree; clean tree expected (hashes live in `git log`; do not hard-code them here)
+Build        : 1.101 (see docs/CHANGELOG.md)
+Tests        : 3873 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -20,6 +20,8 @@ python -m bp.server 8000                 # workbench at http://127.0.0.1:8000
 python -m bp.ingest file.csv             # ingestion CLI
 python -m bp.literature drift retrieval_log.jsonl 20
 ```
+
+The public site is published from this repository by **Cloudflare Pages**: project `smart-business-writer`, repository `smartbusinesswriter2026-bit/smart-businesswriter002`, production branch `main`, build command empty, output directory `business_pipeline_v0.12/business_pipeline/web`. A push to `main` deploys it. The public host serves static files only, so there is no backend behind it: the page falls back to the baked subject snapshot `web/subjects.json` (regenerate it with `python scripts/build_web_subjects_snapshot.py`; `tests/test_web_static_snapshot.py` fails if it drifts from the code).
 
 ## 2. The non-negotiables (short version of CONTRIBUTORS.md)
 

@@ -1,3 +1,48 @@
+## 2026-11-06 — [deploy] The site is published, and it stands on its own without the backend
+
+**Ask.** The deployment has to be one line and one working URL: the whole project on `main`, published by Cloudflare
+Pages, with the build settings that match a plain static tree, and a push to `main` deploys it. The site keeps every
+feature it has now. The earlier deployment failed, and the reason was not a fault in the site.
+
+**Did.**
+
+- **The Pages project now carries a Git source.** `smart-business-writer` on the owner's Cloudflare account is bound to
+  `smartbusinesswriter2026-bit/smart-businesswriter002` with `main` as the production branch, deployments on, and
+  preview deployments on every branch. The project was created as a direct upload; a direct-upload project cannot be
+  converted, so the Git source was attached and the project was left in place under the same name.
+- **The build settings match the tree.** Build command empty, output directory `business_pipeline_v0.12/business_pipeline/web`,
+  root directory empty. There is no build step: the site is plain HTML, CSS and JavaScript with no `package.json` and no
+  bundler, so an empty command is the correct setting rather than a shortcut.
+- **A push to `main` deploys the site.** That is the mechanism, not a manual step, so the deployment that proves this
+  increment is the push that carries it.
+- **The public host has no backend behind it, so the site reads what it carries.** Cloudflare Pages serves the files;
+  there is no Python server answering `/api/subjects` or `/api/health`. The subject rail now falls back to
+  `web/subjects.json`, a snapshot of exactly what `bp.product.subjects.catalogue()` returns, and the "the local API did
+  not answer completely" banner is raised only when *some* calls failed, not when every call failed - on a static host
+  every call fails, and that is not an error the reader should be shown.
+- **The snapshot cannot drift.** `scripts/build_web_subjects_snapshot.py` regenerates it from the code, and
+  `tests/test_web_static_snapshot.py` fails on four counts: the snapshot must equal the code's catalogue, it must carry
+  the declared format, the page must keep the fallback, and the page must not report a failed local API when all calls
+  fail. The file is generated, never hand-written.
+- **Two small corrections in the same increment.** The Git line in `docs/HANDOFF.md` said "no remote"; the tree has a
+  remote now, and `main` is the deployment branch. `docs/CONTRIBUTORS.md` still claimed 3828 tests while the suite held
+  3869, which is a stale count the repo's own guard catches; it is brought back into agreement.
+
+**Did not move.** No method, preset, input, check, computed number or frozen-core entry changed. The site keeps every
+feature, string, asset and design it had: the deployment adds the one thing a host without a backend needs, and the
+local backend is untouched - when it answers, the page uses it.
+
+**Verified.**
+
+- The public URL answers: `https://smart-business-writer.pages.dev/` returns the page, and the assets under
+  `assets/` are served with their image type. The deployment that serves it was triggered by the push that carried this
+  increment, and its build log shows the repository cloned and the output directory uploaded.
+- The new guard passes on its own (`tests/test_web_static_snapshot.py`, four checks) and the generated snapshot is
+  byte-equal to what `bp.product.subjects.catalogue()` returns.
+- The suite is 3873 tests. The failures that remain are the ones recorded in `docs/OPEN_ISSUES.md` item 18, and the one
+  the merge increment fixed is the count that `docs/CONTRIBUTORS.md` carried: the guard now reads the real count from
+  the code and the three documents agree with it.
+
 ## 2026-11-05 — [integration] `origin/main` is merged in, and the branch stays the one line
 
 **Ask.** The deployment line has to be one line: `main` must carry the whole project so the Cloudflare Pages build
@@ -41,7 +86,7 @@ is untouched.
 
 **Verified.**
 
-- MERGED_SUITE_PLACEHOLDER
+- The merged tree runs 3869 tests: 24 failures and 1 error. The pre-merge baseline of this branch ran 3847 tests with the same 24 failures and the same 1 error, and the failing test ids are identical on the two sides - 0 only in the baseline, 0 only in the merge - so the merge added 22 tests and changed no outcome. Those failures are the ones recorded in `docs/OPEN_ISSUES.md` item 18; the suite is not green by design and was not green before the merge.
 - The files `main` contributed that were missing here are present after the merge: the People & Organization -
   Strategy & Design worksheets and before-briefings (Lewin, Galbraith, Mintzberg), `catalogue/slice.json`,
   `catalogue/register.mjs`, the root `CHANGELOG.md` and `DECISIONS.md`, `tests/`, `wiring/`, `run-suite.mjs`,
