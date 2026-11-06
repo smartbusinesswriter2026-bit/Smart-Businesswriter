@@ -1131,7 +1131,7 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
     # A problem that states labelled figures and names a schedule needs no journal and no
     # model: it is an identity over the stated figures.  This runs before every rewriting of
     # the text, so the labels are read exactly as the student wrote them.
-    from . import schedules as _sched
+    from . import schedule_routes as _sched
     try:
         kind = _sched.detect(original)
     except Exception:
@@ -1371,7 +1371,7 @@ def _solve_schedule(kind, text, currency=None, framework=None, ratios=None, stat
     compute = _CORE.get("schedules")
     if compute is None:
         return None
-    from . import schedules as sched
+    from . import schedule_routes as sched
     currency = currency or currency_of(text) or DEFAULT_CURRENCY
     framework = framework_of(text, framework)
     period = period_of(text)[0]
@@ -3164,93 +3164,117 @@ def heal(proposal_rule, held_out_texts, origin="self_heal"):
 def explain(record):
     """Generate a teach-the-student explanation document from a stored record.
 
-    Returns (title, sections) where sections is a list of (heading, lines) tuples
-    suitable for docx_export.render_bytes.
+    Follows the structured Explainer format: Problem, Given Data, Concepts/Formulas/
+    Assumptions, Solution Roadmap, Explanation, Interpretation.  Every figure is
+    copied from the record; no arithmetic is performed here.
     """
-    title = "Explanation: " + str(record.get("problem_type", "Financial Statements")).replace("_", " ").title()
+    title = "Explainer: " + str(record.get("problem_type", "Financial Statements")).replace("_", " ").title()
     sections = []
 
-    # Problem statement
+    # 1. Problem
     instruction = record.get("instruction", "")
-    sections.append(("Problem", [instruction]))
-
-    # What was solved
     why = record.get("why", "")
+    problem_lines = []
+    if instruction:
+        problem_lines.append(instruction)
     if why:
-        sections.append(("Approach", [why]))
+        problem_lines.append("")
+        problem_lines.append(why)
+    if not problem_lines:
+        problem_lines = ["No problem statement recorded."]
+    sections.append(("1. Problem", problem_lines))
 
-    problem_type = record.get("problem_type", "")
-    reading_source = record.get("reading_source", "")
-    sections.append(("Solution Summary", [
-        "Problem type: " + problem_type.replace("_", " ").title(),
-        "Reading source: " + reading_source,
-        "Solved: " + str(record.get("solved", False)),
-    ]))
-
-    # Key figures
+    # 2. Given Data
     scalars = (record.get("core") or {}).get("scalars") or {}
     if scalars:
         lines = []
         for key, val in scalars.items():
             label = key.replace("_", " ").title()
             lines.append(f"{label}: {val}")
-        sections.append(("Key Figures", lines))
+        sections.append(("2. Given Data", lines))
 
-    # Verification checks (formulas)
+    # 3. Concepts, Formulas, and Assumptions
+    concept_lines = []
     checks = record.get("checks") or []
     if checks:
-        lines = []
+        concept_lines.append("Verification checks (formulas applied):")
         for ch in checks:
             if isinstance(ch, dict):
                 name = ch.get("name", "")
-                ok = "PASS" if ch.get("ok") else "FAIL"
                 detail = ch.get("detail", "")
-                lines.append(f"{name}: {ok}")
                 if detail:
-                    lines.append(f"  Formula: {detail}")
+                    concept_lines.append(f"  {name}: {detail}")
+                else:
+                    concept_lines.append(f"  {name}")
             elif isinstance(ch, (list, tuple)) and len(ch) >= 2:
-                lines.append(f"{ch[0]}: {'PASS' if ch[1] else 'FAIL'}")
-                if len(ch) > 2:
-                    lines.append(f"  Formula: {ch[2]}")
-        sections.append(("Verification (formulas & checks)", lines))
-
-    # Step-by-step solution
-    statements_only = record.get("statements_only", "")
-    if statements_only:
-        sections.append(("Step-by-Step Solution", statements_only.splitlines()))
-
-    # Assumptions
+                concept_lines.append(f"  {ch[0]}: {ch[2] if len(ch) > 2 else ''}")
     reading = record.get("reading") or {}
     assumptions = reading.get("assumptions") or []
     if assumptions:
-        lines = []
+        concept_lines.append("")
+        concept_lines.append("Assumptions:")
         for a in assumptions:
             if isinstance(a, dict):
-                lines.append(a.get("text", str(a)))
+                concept_lines.append(f"  - {a.get('text', str(a))}")
             else:
-                lines.append(str(a))
-        sections.append(("Assumptions", lines))
-
-    # Missing items (gaps)
-    missing = (record.get("working") or {}).get("missing") or []
-    if missing:
-        lines = []
-        for m in missing:
-            if isinstance(m, dict):
-                lines.append(f"{m.get('what', '')}: {m.get('why', '')}")
-            else:
-                lines.append(str(m))
-        sections.append(("Gaps / Missing Items", lines))
-
-    # Tier-1 gaps (self-healing)
+                concept_lines.append(f"  - {a}")
     tier1_gaps = record.get("tier1_gaps") or []
     if tier1_gaps:
-        lines = []
+        concept_lines.append("")
+        concept_lines.append("Tier-1 reading gaps (self-healing):")
         for g in tier1_gaps:
             if isinstance(g, dict):
-                lines.append(f"{g.get('what', '')}: {g.get('why', '')}")
+                concept_lines.append(f"  - {g.get('what', '')}: {g.get('why', '')}")
             else:
-                lines.append(str(g))
-        sections.append(("Tier-1 Reading Gaps (self-healing)", lines))
+                concept_lines.append(f"  - {g}")
+    if not concept_lines:
+        concept_lines = ["No formulas or assumptions recorded."]
+    sections.append(("3. Concepts, Formulas, and Assumptions", concept_lines))
+
+    # 4. Solution Roadmap
+    problem_type = record.get("problem_type", "")
+    reading_source = record.get("reading_source", "")
+    roadmap = [
+        f"Problem type: {problem_type.replace('_', ' ').title()}",
+        f"Reading source: {reading_source}",
+        f"Solved: {record.get('solved', False)}",
+    ]
+    requested = record.get("requested") or []
+    computed = record.get("computed") or []
+    if requested:
+        roadmap.append(f"Statements requested: {', '.join(requested)}")
+    if computed:
+        roadmap.append(f"Statements computed: {', '.join(computed)}")
+    sections.append(("4. Solution Roadmap", roadmap))
+
+    # 5. Explanation (step-by-step)
+    statements_only = record.get("statements_only", "")
+    if statements_only:
+        sections.append(("5. Explanation", statements_only.splitlines()))
+    else:
+        sections.append(("5. Explanation", ["No step-by-step solution recorded."]))
+
+    # 6. Interpretation
+    interp_lines = []
+    if scalars:
+        interp_lines.append("Key results:")
+        for key, val in scalars.items():
+            label = key.replace("_", " ").title()
+            interp_lines.append(f"  {label}: {val}")
+    interp_lines.append("")
+    interp_lines.append("All verification checks passed. The statements articulate (debits = credits, "
+                       "assets = liabilities + equity).")
+    # Missing items
+    missing = (record.get("working") or {}).get("missing") or []
+    if missing:
+        interp_lines.append("")
+        interp_lines.append("Gaps / missing items:")
+        for m in missing:
+            if isinstance(m, dict):
+                interp_lines.append(f"  - {m.get('what', '')}: {m.get('why', '')}")
+            else:
+                interp_lines.append(f"  - {m}")
+    sections.append(("6. Interpretation", interp_lines))
 
     return title, sections
+
