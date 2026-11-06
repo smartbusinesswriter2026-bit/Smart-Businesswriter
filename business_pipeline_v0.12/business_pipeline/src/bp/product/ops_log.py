@@ -366,8 +366,6 @@ def ingest_validation_manifest(manifest_path=None):
         subject = str(res.get("subject") or "")
         failures = res.get("failures") or res.get("findings") or []
         for f in failures:
-            if res.get("verdict") and res.get("verdict") != "fail":
-                continue  # §10 entries carry every paper; only failures are findings
             rule = f.get("rule") or res.get("rule")
             if not rule:
                 continue  # unattributed issues are not findings
