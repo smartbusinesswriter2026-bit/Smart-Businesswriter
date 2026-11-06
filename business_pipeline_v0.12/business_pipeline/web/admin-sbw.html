@@ -734,10 +734,12 @@ function renderErrorsTable(errors, container) {
     const eid = e.error_id || e.id || '';
     const resolved = e.resolved ? true : false;
     const sev = e.severity || 'moderate';
-    const sevPill = resolved ? pill('resolved', 'ok') : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'));
+    const verified = e.verified ? true : false;
+    const sevPill = resolved ? (verified ? pill('verified solved', 'ok') : pill('resolved (unverified)', 'warn'))
+      : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'));
     const statusPill = sevPill;
     const genBtn = resolved ? '' : '<button class="btn primary" style="font-size:10px;padding:3px 8px;" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\',\'' + escapeHtml(e.severity||'moderate') + '\')">Generate</button>';
-    const resolveBtn = resolved ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
+    const resolveBtn = resolved ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" title="Re-runs the failing problem; resolves only if it now passes" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
     html += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + escapeHtml(e.lane) + '</td><td style="font-size:10.2px;">' + escapeHtml((e.error||'').slice(0,80)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td>' + genBtn + ' ' + resolveBtn + '</td></tr>';
   });
   html += '</tbody></table>';
@@ -941,16 +943,20 @@ async function genFromError(errorId, errorText, severity) {
 }
 
 async function resolveError(errorId) {
+  toast('Attempting to resolve - replaying the failing problem...');
   const r = await apiFetch('/api/ops/errors/resolve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ error_id: errorId })
   });
   if (r.status === 200 && r.data.resolved) {
-    toast('Error marked as resolved');
+    toast(r.data.verified ? 'Resolved and verified - the failing problem now passes' : 'Resolved');
+    loadErrors();
+  } else if (r.status === 200 && r.data.attempted) {
+    toast('Not resolved - still failing: ' + ((r.data.reason || 'replay failed')).slice(0, 90));
     loadErrors();
   } else {
-    toast('Could not resolve error');
+    toast('Not resolved - ' + ((r.data && (r.data.reason || r.data.error)) || 'could not attempt a fix'));
   }
 }
 

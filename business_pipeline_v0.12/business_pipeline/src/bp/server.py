@@ -962,8 +962,24 @@ class H(BaseHTTPRequestHandler):
                 error_id = body.get("error_id", "") if isinstance(body, dict) else ""
                 if not error_id:
                     return self._send(400, {"error": "error_id required"})
-                ok = product_ops_log.mark_error_resolved(error_id)
-                return self._send(200, {"resolved": ok})
+                record = product_ops_log.get_error(error_id)
+                if record is None:
+                    return self._send(404, {"error": "unknown error_id"})
+                problem = record.get("problem") or ""
+                if not problem:
+                    return self._send(200, {
+                        "resolved": False, "attempted": False, "verified": False,
+                        "reason": "no replayable problem was stored for this error, so a fix cannot be verified"})
+                results, _err = product_chat_heal.solve_problems([problem])
+                first = results[0] if results else {}
+                if first.get("status") == "ok":
+                    product_ops_log.mark_error_verified(error_id, "replay of the failing problem passed")
+                    return self._send(200, {"resolved": True, "attempted": True, "verified": True,
+                                            "answer": first.get("answer") or "replay passed"})
+                return self._send(200, {
+                    "resolved": False, "attempted": True, "verified": False,
+                    "status": first.get("status") or "error",
+                    "reason": (first.get("error") or "the failing problem still fails")[:200]})
             if self.path == "/api/ops/errors/attend":
                 body = self._body()
                 error_id = body.get("error_id", "") if isinstance(body, dict) else ""

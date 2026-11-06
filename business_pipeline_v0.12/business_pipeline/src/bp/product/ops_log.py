@@ -96,6 +96,9 @@ def log_error(lane, error, problem_text=None, gap_label=None, count=1):
     }
     if problem_text:
         record["problem_hash"] = hashlib.sha256(str(problem_text).encode("utf-8")).hexdigest()[:16]
+        # Kept locally so "Resolve" can replay the exact failing problem;
+        # never shown as evidence and never leaves the state directory.
+        record["problem"] = str(problem_text)[:2000]
     if gap_label:
         record["gap_label"] = str(gap_label)[:160]
     return _append_jsonl(_errors_path(), record)
@@ -217,6 +220,31 @@ def mark_error_resolved(error_id):
     return False
 
 
+def get_error(error_id):
+    """Return one error record by id (with its stored replay problem), or None."""
+    for rec in _read_jsonl(_errors_path(), limit=100000):
+        if rec.get("error_id") == error_id and rec.get("error"):
+            return rec
+    return None
+
+
+def mark_error_verified(error_id, note=""):
+    """Mark an error resolved *because a replay passed*, recording the proof.
+
+    This is the only path that sets `verified: true`; a plain resolve never does.
+    """
+    record = {
+        "ts": _now_iso(),
+        "error_id": error_id,
+        "resolved": True,
+        "verified": True,
+        "resolution_ts": _now_iso(),
+        "note": str(note)[:200],
+    }
+    _append_jsonl(_errors_path(), record)
+    return True
+
+
 def is_error_resolved(error_id):
     """Check if an error has been marked resolved."""
     errors = list_errors(limit=10000)
@@ -256,15 +284,19 @@ def merge_resolved(errors):
     """
     resolved_ids = set()
     attended_ids = set()
+    verified_ids = set()
     all_records = _read_jsonl(_errors_path(), limit=100000)
     for r in all_records:
         if r.get("resolved") and r.get("error_id"):
             resolved_ids.add(r["error_id"])
+            if r.get("verified"):
+                verified_ids.add(r["error_id"])
         if r.get("attended") and r.get("error_id"):
             attended_ids.add(r["error_id"])
     for e in errors:
         e["resolved"] = e.get("error_id") in resolved_ids
         e["attended"] = e.get("error_id") in attended_ids
+        e["verified"] = e.get("error_id") in verified_ids
     return errors
 
 
