@@ -735,22 +735,32 @@ def _items(value, limit=6):
 
 def _infer_framework(brief):
     text = (brief or "").lower()
-    if "five forces" in text:
-        if "break-even" in text or "breakeven" in text or "break even" in text:
-            return "five_forces_breakeven"
-        return "five_forces"
+    detected = set()
+    if "five forces" in text or "porter's five forces" in text or "porters five forces" in text:
+        detected.add("five_forces")
     if "value chain" in text:
-        return "value_chain"
+        detected.add("value_chain")
     if "vrio" in text or "resource-based" in text:
-        return "vrio"
+        detected.add("vrio")
     if "ansoff" in text or "growth matrix" in text:
-        return "ansoff"
-    if "swot" in text and "pestel" in text:
-        return "pestel_swot"
+        detected.add("ansoff")
     if "swot" in text:
-        return "swot"
+        detected.add("swot")
+    if "pestel" in text:
+        detected.add("pestel")
     if "break-even" in text or "breakeven" in text or "break even" in text:
-        return "breakeven"
+        detected.add("breakeven")
+    # A named pair is one paper shape, not two competing frameworks.
+    if "pestel" in detected and "swot" in detected:
+        return "pestel_swot"
+    if "five_forces" in detected and "breakeven" in detected:
+        return "five_forces_breakeven"
+    # More than one framework is an ambiguity, not a choice the system may make
+    # silently.  Ask the student.
+    if len(detected) > 1:
+        return None
+    if detected:
+        return next(iter(detected))
     # No explicit framework was named.  Do not silently default to PESTEL: the
     # Home chat asks the student to choose, so the framework is a decision and
     # not an assumption.
