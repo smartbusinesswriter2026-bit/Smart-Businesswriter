@@ -301,6 +301,12 @@ def main():
     parser.add_argument("--host", default="127.0.0.1",
                         help="localhost only. Changing this needs an authenticating proxy.")
     args = parser.parse_args()
+    # The approve action calls the enrichment worker, so this process needs the
+    # same source keys the worker does.  Names are printed, never values.
+    credentials = lib.load_source_credentials()
+    if credentials["loaded"]:
+        print("source credentials: " + ", ".join(credentials["loaded"])
+              + " (from %s)" % credentials["path"])
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     print("corpus admin on http://%s:%d/  (database: %s)" % (args.host, args.port, lib.DB_PATH))
     try:

@@ -425,6 +425,14 @@ def main():
     parser.add_argument("--limit", type=int, default=10)
     args = parser.parse_args()
 
+    # The paper server loads Backend/.env at startup; this worker runs in its
+    # own process, so it loads the few source keys it needs itself.  Names are
+    # printed, never values.
+    credentials = lib.load_source_credentials()
+    if credentials["loaded"]:
+        print("source credentials: " + ", ".join(credentials["loaded"])
+              + " (from %s)" % credentials["path"], file=sys.stderr)
+
     connection = lib.connect()
     lib.apply_schema(connection)
     if args.job == "collect":

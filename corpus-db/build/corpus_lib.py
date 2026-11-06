@@ -37,6 +37,44 @@ DB_PATH = os.environ.get("BP_CORPUS_DB") or os.path.join(CORPUS_DIR, "corpus.sql
 #: Working copies of the PDFs.
 PDF_DIR = os.environ.get("BP_CORPUS_PDFS") or os.path.join(CORPUS_DIR, "pdfs")
 
+#: The pipeline's credential file.  The corpus tools run in their own process,
+#: so they do not inherit the paper server's environment.  Only the source keys
+#: the enrichment worker needs are read; values are never printed.
+SOURCE_ENV = os.environ.get("BP_SOURCE_ENV") or os.path.join(
+    CORPUS_DIR, "..", "business_pipeline_v0.12", "business_pipeline", "Backend", ".env")
+SOURCE_KEYS = {
+    "OPENALEX_API_KEY": "BP_OPENALEX_API_KEY",
+    "OPENALEX_EMAIL": "BP_OPENALEX_EMAIL",
+    "CROSSREF_MAILTO": "BP_CROSSREF_MAILTO",
+    "SEMANTIC_SCHOLAR_API_KEY": "BP_SEMANTIC_SCHOLAR_KEY",
+}
+
+
+def load_source_credentials(path=None):
+    """Load the source keys the corpus worker needs, never overriding one.
+
+    Returns the file path and the **names** loaded, never the values.  A
+    missing file is not an error: the worker then runs keyless and says so
+    when the API rate-limits it.
+    """
+    chosen = path or SOURCE_ENV
+    loaded = []
+    try:
+        with open(chosen, encoding="utf-8", errors="replace") as stream:
+            for line in stream:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                name, value = line.split("=", 1)
+                target = SOURCE_KEYS.get(name.strip())
+                value = value.strip().strip('"').strip("'")
+                if target and value and not os.environ.get(target):
+                    os.environ[target] = value
+                    loaded.append(target)
+    except OSError:
+        return {"path": chosen, "loaded": []}
+    return {"path": chosen, "loaded": loaded}
+
 MEILI_URL = os.environ.get("CORPUS_MEILI_URL", "http://127.0.0.1:7700").rstrip("/")
 MEILI_KEY = os.environ.get("CORPUS_MEILI_KEY", "")
 INDEX = os.environ.get("CORPUS_INDEX", "pages")
