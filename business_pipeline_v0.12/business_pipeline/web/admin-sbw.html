@@ -779,9 +779,22 @@ document.getElementById('healTile').addEventListener('change', () => {
 loadHealSubjects();
 
 document.getElementById('healFreeGen').addEventListener('click', async () => {
-  const instruction = document.getElementById('healInstruction').value.trim();
+  let instruction = document.getElementById('healInstruction').value.trim();
   const count = parseInt(document.getElementById('healCount').value) || 5;
-  if (!instruction) { toast('Enter an instruction first'); return; }
+  const subjectSel = document.getElementById('healSubject');
+  const tileSel = document.getElementById('healTile');
+  const subjectLabel = subjectSel.options[subjectSel.selectedIndex]?.textContent || '';
+  const tileLabel = tileSel.options[tileSel.selectedIndex]?.textContent || '';
+  const tileWhat = tileSel.options[tileSel.selectedIndex]?.dataset?.what || '';
+
+  // If instruction is blank, construct one from subject + tile
+  if (!instruction) {
+    if (!subjectSel.value) { toast('Select a subject or enter an instruction'); return; }
+    instruction = 'Generate ' + count + ' varied and diverse case studies or problems about ' + (tileLabel || subjectLabel) +
+      (tileWhat ? ' (' + tileWhat + ')' : '') +
+      ' in the ' + subjectLabel + ' domain. Make them realistic, varied in difficulty, and covering different aspects.';
+  }
+
   const log = document.getElementById('healFreeLog');
   log.textContent = '[Generating ' + count + ' problems…]\n';
   const r = await apiFetch('/api/ops/chat/problems', {
