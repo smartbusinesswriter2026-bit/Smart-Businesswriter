@@ -547,6 +547,16 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("refusalcard", self.html)
         self.assertIn("Start over", self.html)
 
+    def test_the_plan_proposal_is_visible_and_editable(self):
+        self.assertIn("function proposalHtml", self.html)
+        self.assertIn("Proposed plan", self.html)
+        self.assertIn("Proposed argument", self.html)
+        self.assertIn("Evidence needed", self.html)
+        self.assertIn('id="chatrefinetext"', self.html)
+        self.assertIn('id="chatrefinego"', self.html)
+        self.assertIn("/refine", self.html)
+        self.assertIn("Original instruction", self.html)
+
     def test_the_removed_panels_have_not_come_back(self):
         for gone in ('id="panel-frames"', 'id="panel-assistant"', 'data-panel="frames"', 'data-panel="assistant"'):
             self.assertNotIn(gone, self.html)

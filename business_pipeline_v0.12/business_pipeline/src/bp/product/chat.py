@@ -18,7 +18,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import audit as audit_mod, capabilities, council, docx, framework_profiles, guard, instruction_reading, matrix, paper, paper_contract, paper_families, prose, retrieval, rubric as rubric_reader, verify, writing
+from . import audit as audit_mod, capabilities, council, docx, framework_profiles, guard, instruction_reading, matrix, paper, paper_contract, paper_families, plan_proposal, prose, retrieval, rubric as rubric_reader, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -256,9 +256,18 @@ _WORD_TARGET = re.compile(r"\b(\d[\d,]*)\s*(?:-|to\s+)?\s*words?\b", re.I)
 
 
 def parse_word_target(text):
-    """The word count a brief asks for, or None.  It never guesses a number."""
-    match = _WORD_TARGET.search(str(text or ""))
+    """The word count a brief asks for, or None.  It never guesses a number.
+
+    A count attached to a summary, abstract, memo, section, table or JSON block
+    is not the paper's length.  Only a count that describes the paper itself is
+    read as the length target.
+    """
+    raw = str(text or "")
+    match = _WORD_TARGET.search(raw)
     if not match:
+        return None
+    suffix = raw[match.end():match.end() + 24].lower()
+    if re.match(r"\s*(summary|abstract|brief|memo|section|table|json|paragraph|note)\b", suffix):
         return None
     try:
         return int(match.group(1).replace(",", ""))
@@ -858,6 +867,44 @@ def _framework_choices(brief, archetype=None):
     return [("none", "No framework")] + [(key, FRAMEWORKS[key]["label"]) for key in suggested if key in FRAMEWORKS]
 
 
+def refine_plan(state, changes):
+    """Apply a guarded edit to the plan proposal."""
+    proposal = state.get("proposal") or {}
+    problems = plan_proposal.guard_edit(proposal, changes, state.get("brief") or "")
+    if problems:
+        raise ChatError("; ".join(problems))
+    framework = changes.get("framework")
+    text = str(changes.get("text") or "").strip()
+    if framework is None and text:
+        reading = instruction_reading.read_frameworks(text)
+        if reading.status == "resolved" and reading.primary:
+            framework = reading.primary
+        elif "no framework" in text.lower():
+            framework = "none"
+    if framework is not None:
+        framework = str(framework).strip().lower()
+        if framework not in FRAMEWORKS:
+            raise ChatError("Choose one of: " + ", ".join(FRAMEWORKS))
+        state["framework"] = framework
+        state["frameworks"] = [] if framework == "none" else [framework]
+        state["questions"] = [dict(q) for q in FRAMEWORK_QUESTIONS[framework]]
+        state["question_index"] = 0
+        state["stage"] = "clarify"
+    if changes.get("claim"):
+        proposal.setdefault("claims", []).append(
+            {"text": _clean(changes["claim"], 500), "status": "student_edit", "support": "student"})
+    if text:
+        proposal["student_note"] = text
+    reading = instruction_reading.read_frameworks(state.get("brief") or "")
+    slots = tuple(instruction_reading.Slot(**slot) for slot in (state.get("slots") or []))
+    choices = _framework_choices(state.get("brief") or "", state.get("archetype") or "analytical_report")
+    state["proposal"] = plan_proposal.build(
+        state.get("brief") or "", reading, slots, state.get("archetype") or "analytical_report",
+        state.get("framework"), choices, state.get("answers") or {})
+    state["updated_at"] = _now()
+    return state
+
+
 def start(brief, subject=None, framework=None, profile=None, level="shs", mode="strict",
           words=None, rubric=None, archetype=None, frameworks=None):
     """Create a conductor state.  No source is retrieved until the plan is confirmed.
@@ -873,6 +920,7 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         raise ChatError("Describe the case or assignment in at least one sentence.")
     category_errors = instruction_reading.find_category_errors(brief)
     instruction_slots = instruction_reading.extract_slots(brief)
+    instruction = instruction_reading.read_frameworks(brief)
     if category_errors:
         return _refusal_state(brief, category_errors[0], instruction_slots)
     attached = _read_rubric(rubric) if rubric is not None else None
@@ -939,6 +987,8 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
             fits, message = _fit(brief, framework)
     else:
         fits, message = True, None
+    proposal_archetype = archetype or _infer_archetype(brief, framework, profile)
+    framework_choices = _framework_choices(brief, proposal_archetype)
     if category_errors:
         error = category_errors[0]
         framework = None
@@ -951,7 +1001,7 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         questions = [{"id": "framework", "prompt": "Which framework should this paper use?",
                       "why": "The framework organises the evidence and the firm's position; choose the one the assignment asks for, or choose no framework.",
                       "type": "choice",
-                      "choices": _framework_choices(brief, archetype or _infer_archetype(brief, framework, profile)),
+                      "choices": framework_choices,
                       "allow_skip": False}]
     else:
         questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
@@ -972,6 +1022,8 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         answers.update({"strengths": [], "weaknesses": []})
     for key in (FRAMEWORKS[framework].get("inputs") if framework is not None else []) or []:
         answers.setdefault(key, [])
+    proposal = plan_proposal.build(brief, instruction, instruction_slots, proposal_archetype,
+                                   framework, framework_choices, answers)
     detected_label = ""
     if detected_id:
         try:
@@ -994,6 +1046,7 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
              "answers": answers, "questions": questions, "question_index": 0,
              "category_errors": [dataclasses.asdict(error) for error in category_errors],
              "slots": [dataclasses.asdict(slot) for slot in instruction_slots],
+             "proposal": proposal,
              "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
              "computation": None, "draft": None,
              "selection": None, "computations": {}, "orientation_sources": []}

@@ -743,6 +743,8 @@ def handle(method, path, body=None):
                                                       data.get("reason") or "")
             elif action == "customise":
                 state = chat_conductor.customise(state, data)
+            elif action == "refine":
+                state = chat_conductor.refine_plan(state, data)
             elif action == "inputs":
                 state = chat_conductor.set_inputs(state, data.get("values") or data.get("inputs") or {})
             elif action == "compute":

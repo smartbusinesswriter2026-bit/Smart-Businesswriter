@@ -71,6 +71,31 @@ class StartTest(unittest.TestCase):
             chat.start("help")
 
 
+class PlanProposalTest(unittest.TestCase):
+    def test_a_valid_instruction_gets_a_proposal_not_a_repeated_brief(self):
+        state = chat.start("Assess how a 6-week port disruption affects inventory policy using ABC analysis.",
+                           subject="any")
+        self.assertEqual(state["stage"], "clarify")
+        proposal = state.get("proposal") or {}
+        self.assertTrue(proposal.get("reading"))
+        self.assertTrue(proposal.get("framework_options"))
+        self.assertTrue(proposal.get("claims"))
+        self.assertNotIn("Your brief", str(proposal))
+
+    def test_refine_rejects_a_number_not_in_the_brief(self):
+        state = chat.start("Assess how a 6-week port disruption affects inventory policy.",
+                           subject="any")
+        with self.assertRaises(chat.ChatError):
+            chat.refine_plan(state, {"text": "Use a 10-week disruption instead"})
+
+    def test_refine_accepts_a_framework_within_the_proposed_options(self):
+        state = chat.start("Assess how a port disruption affects inventory policy.",
+                           subject="any")
+        updated = chat.refine_plan(state, {"framework": "none"})
+        self.assertEqual(updated["framework"], "none")
+        self.assertEqual(updated["stage"], "clarify")
+
+
 class PlanTest(unittest.TestCase):
     def test_the_plan_lists_the_six_dimensions_and_what_pestel_misses(self):
         state = answer_all(chat.start(BRIEF, framework="pestel"))
