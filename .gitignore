@@ -95,3 +95,7 @@ business_pipeline_v0.12/business_pipeline/intake/
 # refuses any blob over 100 MB, so a stray `git add -A` would fail the push
 # outright. None of it is source: it is the working evidence of a build session.
 .scratch/
+
+# Cloudflare's local cache (the account id and the project name, nothing else).
+# It is a cache of the deployment tool, not source.
+.wrangler/

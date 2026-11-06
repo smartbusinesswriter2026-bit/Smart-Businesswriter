@@ -19,7 +19,7 @@ ROOT = os.path.dirname(HERE)
 sys.path.insert(0, os.path.join(ROOT, "src"))
 
 from bp import methods, schedule_math, statement_plan  # noqa: E402
-from bp.product import schedules, statements  # noqa: E402
+from bp.product import schedule_routes as schedules, statements  # noqa: E402
 
 
 def attach():
