@@ -150,23 +150,36 @@ def generate_problems(instruction, count=5, difficulty="medium"):
 def solve_problems(problems):
     """Solve a list of problems through the pipeline.
 
+    Attempts to solve each problem using the statements solver.
     Returns (results: list[dict], error: str or None).
     Each result: {problem, status, answer, error, gaps}.
     """
-    from .. import methods
     results = []
     for problem in problems:
         result = {"problem": problem, "status": "unknown", "answer": None, "error": None, "gaps": []}
         try:
-            # Try to detect the method from the problem text
-            # For now, log the problem and mark as "needs manual solve"
-            result["status"] = "logged"
-            result["answer"] = "Problem logged for pipeline solve (manual step required)"
-            _ops_log.log_run("chat", "solve", "logged", problem_text=problem)
+            from . import statements as stmt_mod
+            record = stmt_mod.solve(str(problem))
+            if isinstance(record, dict):
+                if record.get("solved"):
+                    result["status"] = "ok"
+                    result["answer"] = "Solved"
+                    result["gaps"] = record.get("working", {}).get("missing", []) or []
+                else:
+                    result["status"] = "error"
+                    result["error"] = str(record.get("refusal") or record.get("error") or "not solved")[:200]
+                    result["gaps"] = record.get("working", {}).get("missing", []) or []
+                    # Log to error log so it appears in Self-Healing panel
+                    _ops_log.log_error("statements", result["error"], problem_text=problem,
+                                       gap_label=result["error"][:80])
+            else:
+                result["status"] = "error"
+                result["error"] = "unexpected result type"
+                _ops_log.log_error("statements", "unexpected result type", problem_text=problem)
         except Exception as e:
             result["status"] = "error"
             result["error"] = str(e)[:200]
-            _ops_log.log_error("chat", str(e), problem_text=problem)
+            _ops_log.log_error("statements", str(e)[:200], problem_text=problem)
         results.append(result)
     return results, None
 
