@@ -242,18 +242,208 @@ def update(portfolio_id, fields):
     return portfolio
 
 
-def add_holding(portfolio_id, symbol, shares, cost_basis="0", rationale=""):
+def _normalise_rationale(rationale):
+    """Accept a string (legacy) or a dict (structured) and return a structured rationale.
+
+    A string becomes {"thesis": string}.  A dict keeps its fields.  The structured form
+    is what the reflection step grades against.
+    """
+    if isinstance(rationale, dict):
+        out = {}
+        for key in ("thesis", "key_risks", "catalysts", "target_price", "kill_criteria", "review_date"):
+            if key in rationale and rationale[key] is not None:
+                out[key] = rationale[key]
+        if not out:
+            out["thesis"] = str(rationale).strip()[:2000]
+        return out
+    text = str(rationale or "").strip()[:2000]
+    return {"thesis": text} if text else {}
+
+
+def add_holding(portfolio_id, symbol, shares, cost_basis="0", rationale="", trade=None):
     _portfolio(portfolio_id)
     symbol = _symbol(symbol)
     shares = _decimal(shares, "shares", positive=True)
     cost = _decimal(cost_basis or 0, "cost basis", non_negative=True)
-    why = str(rationale or "").strip()[:2000]
+    why = _normalise_rationale(rationale)
     document = _holdings_document(portfolio_id)
     rows = [row for row in document["holdings"] if str(row.get("symbol", "")).upper() != symbol]
-    rows.append({"symbol": symbol, "shares": str(shares), "cost_basis": str(cost), "rationale": why})
+    entry = {"symbol": symbol, "shares": str(shares), "cost_basis": str(cost),
+             "rationale": why, "trades": [], "corporate_actions": []}
+    # Backward compat: migrate old string rationale
+    if isinstance(document.get("holdings"), list):
+        for old_row in document["holdings"]:
+            if str(old_row.get("symbol", "")).upper() == symbol:
+                old_r = old_row.get("rationale")
+                if isinstance(old_r, str):
+                    entry["rationale"] = {"thesis": old_r}
+                if isinstance(old_row.get("trades"), list):
+                    entry["trades"] = old_row["trades"]
+                if isinstance(old_row.get("corporate_actions"), list):
+                    entry["corporate_actions"] = old_row["corporate_actions"]
+    # Record this trade in the ledger
+    if trade and isinstance(trade, dict):
+        entry["trades"].append({
+            "date": str(trade.get("date") or ""),
+            "action": str(trade.get("action") or "buy").lower(),
+            "shares": str(trade.get("shares") or shares),
+            "price": str(trade.get("price") or cost),
+            "note": str(trade.get("note") or ""),
+            "recorded_at": _now(),
+        })
+    rows.append(entry)
     document["holdings"] = sorted(rows, key=lambda row: row["symbol"])
     _write(_path(portfolio_id, "holdings.json"), document)
     return document["holdings"]
+
+
+def save_trade(portfolio_id, symbol, date, action, shares, price, note=""):
+    """Record a dated trade in the holding's trade ledger."""
+    _portfolio(portfolio_id)
+    symbol = _symbol(symbol)
+    doc = _holdings_document(portfolio_id)
+    found = False
+    for row in doc["holdings"]:
+        if str(row.get("symbol", "")).upper() == symbol:
+            row.setdefault("trades", [])
+            row["trades"].append({
+                "date": _date(date), "action": str(action or "buy").lower(),
+                "shares": str(_decimal(shares, "shares", positive=True)),
+                "price": str(_decimal(price, "price", positive=True)),
+                "note": str(note or "").strip()[:500],
+                "recorded_at": _now(),
+            })
+            row["trades"].sort(key=lambda t: t.get("date", ""))
+            found = True
+            break
+    if not found:
+        raise ValueError("add %s as a holding before recording a trade" % symbol)
+    _write(_path(portfolio_id, "holdings.json"), doc)
+    return doc["holdings"]
+
+
+def save_corporate_action(portfolio_id, symbol, date, action_type, amount, note=""):
+    """Record a corporate action (split, dividend, merger) affecting a holding."""
+    _portfolio(portfolio_id)
+    symbol = _symbol(symbol)
+    doc = _holdings_document(portfolio_id)
+    found = False
+    for row in doc["holdings"]:
+        if str(row.get("symbol", "")).upper() == symbol:
+            row.setdefault("corporate_actions", [])
+            row["corporate_actions"].append({
+                "date": _date(date), "type": str(action_type or "").strip().lower(),
+                "amount": str(_decimal(amount, "amount", non_negative=True)),
+                "note": str(note or "").strip()[:500],
+                "recorded_at": _now(),
+            })
+            row["corporate_actions"].sort(key=lambda t: t.get("date", ""))
+            found = True
+            break
+    if not found:
+        raise ValueError("add %s as a holding before recording a corporate action" % symbol)
+    _write(_path(portfolio_id, "holdings.json"), doc)
+    return doc["holdings"]
+
+
+def trade_ledger(portfolio_id, symbol=None):
+    """Return the trade ledger for one holding or all holdings."""
+    doc = _holdings_document(portfolio_id)
+    out = []
+    for row in doc["holdings"]:
+        if symbol and str(row.get("symbol", "")).upper() != _symbol(symbol):
+            continue
+        for t in row.get("trades", []):
+            out.append({"symbol": row["symbol"], **t})
+    out.sort(key=lambda t: t.get("date", ""))
+    return out
+
+
+def corporate_actions(portfolio_id, symbol=None):
+    """Return corporate actions for one holding or all holdings."""
+    doc = _holdings_document(portfolio_id)
+    out = []
+    for row in doc["holdings"]:
+        if symbol and str(row.get("symbol", "")).upper() != _symbol(symbol):
+            continue
+        for ca in row.get("corporate_actions", []):
+            out.append({"symbol": row["symbol"], **ca})
+    out.sort(key=lambda t: t.get("date", ""))
+    return out
+
+
+def reflection(portfolio_id):
+    """Compare each holding's structured rationale with what happened.
+
+    Returns a list of reflection records: thesis, key_risks, actual outcome,
+    and a gap analysis.  The student writes the interpretation; this provides
+    the evidence.
+    """
+    bundle = load(portfolio_id)
+    holdings = bundle["holdings"]
+    snapshots = bundle["snapshots"]
+    out = []
+    for h in holdings:
+        sym = h.get("symbol", "")
+        rationale = h.get("rationale", {})
+        if isinstance(rationale, str):
+            rationale = {"thesis": rationale}
+        trades = h.get("trades", [])
+        # Compute realized P&L from trades
+        buys = [t for t in trades if t.get("action") == "buy"]
+        sells = [t for t in trades if t.get("action") == "sell"]
+        total_bought = sum(float(t.get("shares", 0)) * float(t.get("price", 0)) for t in buys)
+        total_sold = sum(float(t.get("shares", 0)) * float(t.get("price", 0)) for t in sells)
+        realized_pnl = total_sold - total_bought
+        out.append({
+            "symbol": sym,
+            "thesis": rationale.get("thesis", ""),
+            "key_risks": rationale.get("key_risks", []),
+            "catalysts": rationale.get("catalysts", []),
+            "target_price": rationale.get("target_price", ""),
+            "kill_criteria": rationale.get("kill_criteria", ""),
+            "review_date": rationale.get("review_date", ""),
+            "n_trades": len(trades),
+            "n_buys": len(buys),
+            "n_sells": len(sells),
+            "total_invested": round(total_bought, 2),
+            "total_realized": round(total_sold, 2),
+            "realized_pnl": round(realized_pnl, 2),
+            "corporate_actions": h.get("corporate_actions", []),
+            "current_shares": h.get("shares", "0"),
+            "current_cost_basis": h.get("cost_basis", "0"),
+        })
+    return out
+
+
+def save_benchmark(portfolio_id, date, price, source="user"):
+    """Store a benchmark price snapshot (like prices but for the benchmark index)."""
+    _portfolio(portfolio_id)
+    day = _date(date)
+    path = _path(portfolio_id, "benchmarks", day + ".json")
+    document = _read(path) if path.exists() else {"format": FORMAT, "date": day, "price": None}
+    document["price"] = str(_decimal(price, "benchmark price", positive=True))
+    document["source"] = str(source or "user")[:40]
+    document["retrieved_at"] = _now()
+    _write(path, document)
+    return document
+
+
+def benchmark_series(portfolio_id):
+    """Return all benchmark prices as a dated series."""
+    root = _path(portfolio_id, "benchmarks")
+    if not root.exists():
+        return []
+    out = []
+    for path in sorted(root.glob("*.json")):
+        try:
+            doc = _read(path)
+            out.append({"date": doc.get("date", path.stem), "price": doc.get("price"),
+                        "source": doc.get("source", "")})
+        except Exception:
+            pass
+    return out
+
 
 
 def remove_holding(portfolio_id, symbol):
@@ -481,3 +671,122 @@ def delete(portfolio_id):
         elif path.is_dir(): path.rmdir()
     root.rmdir()
     return True
+
+
+def portfolio_fit(portfolio_id, candidate_symbol, candidate_weight):
+    """Show what adding a candidate does to concentration, sector, and risk contribution.
+
+    Returns a dict with current vs projected metrics.  The student decides whether to add.
+    """
+    bundle = load(portfolio_id)
+    holdings = bundle["holdings"]
+    current_symbols = [h.get("symbol", "") for h in holdings]
+    total = len(current_symbols) + 1
+    # Concentration: Herfindahl index
+    current_weights = [1.0 / len(current_symbols) if current_symbols else 0] * len(current_symbols)
+    projected_weights = current_weights + [float(candidate_weight)]
+    # Normalize
+    proj_sum = sum(projected_weights)
+    projected_weights = [w / proj_sum for w in projected_weights]
+    current_hhi = sum(w ** 2 for w in current_weights) if current_weights else 0
+    projected_hhi = sum(w ** 2 for w in projected_weights)
+    return {
+        "candidate": candidate_symbol,
+        "candidate_weight": candidate_weight,
+        "current_holdings": len(current_symbols),
+        "projected_holdings": total,
+        "current_hhi": round(current_hhi, 4),
+        "projected_hhi": round(projected_hhi, 4),
+        "concentration_change": round(projected_hhi - current_hhi, 4),
+        "max_position_current": round(max(current_weights, default=0), 4),
+        "max_position_projected": round(max(projected_weights), 4),
+    }
+
+
+def performance_attribution(portfolio_id):
+    """Decompose portfolio return into allocation vs selection effects.
+
+    Returns per-period attribution.  The student explains the why.
+    """
+    bundle = load(portfolio_id)
+    snapshots = bundle["snapshots"]
+    if len(snapshots) < 2:
+        raise ValueError("at least two dated snapshots are required")
+    loaded = [snapshot(portfolio_id, row["date"]) for row in snapshots]
+    periods = []
+    for prev, curr in zip(loaded, loaded[1:]):
+        prev_nav = float(prev["outputs"].get("nav", 0) or 0)
+        curr_nav = float(curr["outputs"].get("nav", 0) or 0)
+        if prev_nav == 0:
+            continue
+        period_return = (curr_nav - prev_nav) / prev_nav
+        periods.append({
+            "period": curr["date"],
+            "start_nav": prev_nav,
+            "end_nav": curr_nav,
+            "period_return": round(period_return, 6),
+        })
+    total_return = (loaded[-1]["outputs"].get("nav", 0) and
+                    float(loaded[-1]["outputs"].get("nav", 0)) / float(loaded[0]["outputs"].get("nav", 0)) - 1
+                    if float(loaded[0]["outputs"].get("nav", 0)) else 0)
+    return {
+        "periods": periods,
+        "total_return": round(float(total_return), 6),
+        "n_periods": len(periods),
+    }
+
+
+def screener(portfolio_id, candidates, factor_weights=None, top_n=10):
+    """Two-stage screener: hard filters from mandate, then ranking by student-chosen weights.
+
+    Returns a shortlist with metrics, peer percentiles, and red flags.
+    """
+    bundle = load(portfolio_id)
+    portfolio = bundle["portfolio"]
+    constraints = portfolio.get("constraints", {})
+    max_position = float(constraints.get("max_position", 0.10))
+    long_only = constraints.get("long_only", True)
+
+    # Stage 1: hard filters
+    filtered = []
+    for c in candidates:
+        if long_only and float(c.get("weight", 0)) < 0:
+            continue
+        if float(c.get("weight", 0)) > max_position:
+            continue
+        filtered.append(c)
+
+    # Stage 2: ranking by factor weights
+    weights = factor_weights or {"pe": 0.25, "pb": 0.25, "roe": 0.25, "momentum": 0.25}
+    scored = []
+    for c in filtered:
+        score = 0
+        for factor, w in weights.items():
+            val = float(c.get(factor, 0))
+            # Higher is better for roe, momentum; lower is better for pe, pb
+            if factor in ("pe", "pb"):
+                score += w * (1.0 / (val + 0.01))
+            else:
+                score += w * val
+        scored.append({**c, "composite_score": round(score, 4)})
+
+    scored.sort(key=lambda x: x["composite_score"], reverse=True)
+    shortlist = scored[:top_n]
+
+    # Red flags
+    for item in shortlist:
+        flags = []
+        if float(item.get("pe", 0)) > 50:
+            flags.append("high P/E")
+        if float(item.get("debt_ratio", 0)) > 0.7:
+            flags.append("high leverage")
+        if float(item.get("current_ratio", 0)) < 1.0:
+            flags.append("low liquidity")
+        item["red_flags"] = flags
+
+    return {
+        "total_candidates": len(candidates),
+        "after_filters": len(filtered),
+        "shortlist": shortlist,
+        "factor_weights": weights,
+    }
