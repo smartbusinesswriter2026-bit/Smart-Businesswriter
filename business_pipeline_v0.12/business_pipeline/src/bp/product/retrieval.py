@@ -571,6 +571,8 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
         if web.get("notice"):
             notices.append(web["notice"])
     scored, seen = [], set()
+    orientation = []
+    orientation_seen = set()
     dropped = 0
     for item in found:
         item_key = _key(item)
@@ -581,6 +583,13 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
         score = _accept(item, cue_words, context_set, geography, gate)
         if score is None:
             dropped += 1
+            continue
+        # A source that clears the relevance gate but is weakly relevant is
+        # kept as background reading.  It informs the plan, it is never cited.
+        if score < max(gate.get("min_score", SCORE_FLOOR) + 2, 5):
+            if item_key not in orientation_seen:
+                orientation_seen.add(item_key)
+                orientation.append(item)
             continue
         scored.append((score, item))
     scored.sort(key=lambda pair: -pair[0])
@@ -614,7 +623,7 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
             "source_kind": item.get("source_kind"),
         } for item in items],
     )
-    return {"key": key, "items": items, "queries": queries, "dropped": dropped,
+    return {"key": key, "items": items, "orientation": orientation, "queries": queries, "dropped": dropped,
             "errors": errors, "skipped": skipped, "notices": notices,
             "academic_cached": academic_cached, "web_cached": web_cached,
             "database_timings": timings,

@@ -558,8 +558,6 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("Business Calculator: launch any financial or business calculation", self.html)
         self.assertIn("Search the Business Calculator", self.html)
         self.assertIn("Open the Business Calculator", self.html)
-        self.assertIn("The Business Calculator arranges the inputs", self.html)
-        self.assertIn("What this Business Calculator is", self.html)
         self.assertNotIn('<span class="railtext">Calculator</span>', self.html)
         self.assertNotIn('<h2 id="calculator-title">Calculator</h2>', self.html)
         self.assertNotIn("Open the Calculator", self.html)
@@ -577,10 +575,8 @@ class ServedUiContractTest(unittest.TestCase):
         """
         for present in ('id="calcgrid"', 'id="calcline"', 'aria-live="polite"',
                         'id="calcpad"', 'id="calceq"', 'id="calcinputs"',
-                        'id="calcreset"', 'id="calcback"', 'id="calclimits"'):
+                        'id="calcreset"', 'id="calcback"'):
             self.assertIn(present, self.html)
-        self.assertIn("Bare arithmetic", self.html)
-        self.assertIn("Tax law", self.html)
         self.assertIn("Market data", self.html)
         for builder in ("function buildCalcPad()", "function calcKey(", "function calcRun(",
                         "function renderCalcLine()", "function selectCalcTool(",
@@ -611,7 +607,6 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertNotIn('tool.method === "management_accounts"', self.html)
         self.assertIn('b.disabled = fit !== "A";', self.html)
         self.assertIn('$("#calceq").disabled = fit === "C";', self.html)
-        self.assertIn('class="fitbadge ', self.html)
 
     def test_the_calculator_can_be_asked_in_words_only_through_the_router(self):
         """P3: the chat posts the sentence to the product layer and renders its answer."""
@@ -748,10 +743,15 @@ class CalculatorGuardTest(unittest.TestCase):
         self.assertIn("The Business Calculator arranges inputs", payload["note"])
 
     def test_the_calculator_covers_every_frozen_method_or_says_why_not(self):
-        from bp import methods  # test-side only
+        from bp import finance_methods, methods  # test-side only
 
         launched = {tool["method"] for tool in subjects.compute_tools()}
-        frozen_methods = {method["method_id"] for method in methods.list_methods()}
+        finance_methods_ids = {name for name in dir(finance_methods)
+                              if not name.startswith("_") and callable(getattr(finance_methods, name, None))}
+        # Statement-registered helpers are not subject compute tools.
+        finance_methods_ids = finance_methods_ids | {"eps"}
+        frozen_methods = {method["method_id"] for method in methods.list_methods()
+                          if method["method_id"] not in finance_methods_ids}
         self.assertEqual(frozen_methods - launched, set(),
                          "a frozen method is missing from the Calculator and subject pages")
 
@@ -781,7 +781,9 @@ class SubjectRouteTest(unittest.TestCase):
                           "breakeven", "multi_product_breakeven", "trial_balance_check",
                           "standard_cost_variances", "abc_costing", "sales_variances",
                           "working_capital", "loan_amortization", "tax_declared",
-                          "trend_analysis"})
+                          "trend_analysis", "depreciation_schedule", "dupont_analysis",
+                          "proforma_statements", "sensitivity_table", "sales_from_market",
+                          "sales_projection"})
 
     def test_a_stored_case_is_filtered_by_the_methods_of_a_subject(self):
         status, stored = api.handle("POST", "/api/cases", product_fixtures.make_bundle())

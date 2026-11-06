@@ -59,9 +59,27 @@ def flatten(sections):
     return [[item["heading"], item["lines"]] for item in sections]
 
 
+def _contract_missing(state):
+    """Required sections from the paper contract that the draft does not carry."""
+    contract = (state or {}).get("paper_contract")
+    if not isinstance(contract, dict) or not contract.get("approved"):
+        return []
+    required = [str(item).strip() for item in (contract.get("required_sections") or []) if str(item).strip()]
+    if not required:
+        return []
+    draft = (state or {}).get("draft") or {}
+    headings = set()
+    for item in (draft.get("sections") or draft.get("outline") or []):
+        if isinstance(item, dict):
+            headings.add(str(item.get("heading") or "").strip())
+        elif isinstance(item, (list, tuple)) and item:
+            headings.add(str(item[0]).strip())
+    return ["the " + section.lower() + " section" for section in required if section not in headings]
+
+
 def missing(state, implications=""):
     """What must be supplied before export.  Evidence gaps are not blockers."""
-    base = _missing_base(state, implications)
+    base = _missing_base(state, implications) + _contract_missing(state)
     # A figure that no longer reproduces from its own inputs or a sentence that
     # claims more than a method licenses blocks export.
     return list(base) + list(state.get("recompute_problems") or []) \
@@ -224,7 +242,7 @@ def check(sections, framework="pestel", implications="", answers=None, state=Non
     if not any(item.get("heading") == "Conclusion" for item in sections):
         issues.append({"type": "missing_conclusion", "severity": "high",
                        "detail": "The paper has no Conclusion."})
-    if not any(item.get("heading") in ("References", "Bibliography") for item in sections):
+    if not any(item.get("heading") in ("References", "Bibliography", "Works Cited") for item in sections):
         issues.append({"type": "missing_references", "severity": "high",
                        "detail": "The paper has no reference list."})
     target = state if isinstance(state, dict) else {"framework": framework, "answers": answers or {}}

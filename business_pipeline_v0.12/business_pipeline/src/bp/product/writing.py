@@ -10,6 +10,8 @@ The output is deliberately a draft for the student to read, edit and submit.
 
 import re
 
+from . import citation_styles
+
 from . import drafting, docx
 
 MAX_LINE = 900
@@ -107,7 +109,16 @@ def _family(name):
     return _split_name(name)[0]
 
 
-def _in_text(source, style):
+def _in_text(source, style, numbers=None):
+    from . import citation_styles
+    style = str(style or "apa").strip().lower()
+    if citation_styles.is_numbered(style):
+        number = None
+        if isinstance(numbers, dict):
+            number = numbers.get(source.get("id") or source.get("doi") or source.get("title"))
+        if number is None:
+            return "[?]"
+        return "[" + str(number) + "]"
     names = _names(source)
     year = source.get("year") or "n.d."
     if not names:
@@ -117,13 +128,15 @@ def _in_text(source, style):
     if len(families) == 1:
         who = families[0]
     elif len(families) == 2:
-        who = families[0] + (" & " if style == "apa" else " and ") + families[1]
+        sep = " & " if style == "apa" else " and "
+        who = families[0] + sep + families[1]
     else:
         who = families[0] + " et al."
     return "(" + who + ", " + str(year) + ")"
 
 
-def _reference(source, style):
+def _reference(source, style, numbers=None):
+    from . import citation_styles
     names = _names(source)
     year = str(source.get("year")) if source.get("year") else "n.d."
     title = _clean(source.get("title"), 220)
@@ -133,6 +146,31 @@ def _reference(source, style):
     pages = _clean(source.get("pages"), 40)
     publisher = _clean(source.get("publisher"), 120)
     link = _clean(source.get("doi") or source.get("url"), 260)
+    style = str(style or "apa").strip().lower()
+    if style not in citation_styles.STYLES:
+        style = "apa"
+    if citation_styles.is_numbered(style):
+        number = None
+        if isinstance(numbers, dict):
+            number = numbers.get(source.get("id") or source.get("doi") or source.get("title"))
+        prefix = ("[" + str(number) + "] ") if number is not None else ""
+        authors = _join_names([_harvard_name(name) for name in names], "harvard")
+        lead = prefix + (authors or venue or title) + " (" + year + ") "
+        body = "\"" + title + "\"" if title else ""
+        if venue:
+            body += (", " if body else "") + venue
+            if volume:
+                body += ", " + volume
+            if issue:
+                body += "(" + issue + ")"
+            if pages:
+                body += ", pp. " + pages
+            body += "."
+        elif publisher:
+            body += ". " + publisher + "."
+        if link:
+            body += (" " if body else "") + link
+        return _clean(lead + body, 700)
     if style == "apa":
         authors = _join_names([_apa_name(name) for name in names], "apa")
         lead = authors + " (" + year + "). " if authors else title + ". (" + year + "). "
@@ -170,14 +208,24 @@ def _reference(source, style):
     return _clean(lead + body, 700)
 
 
-def in_text(source, style="apa"):
-    """Public author-date citation for one source."""
-    return _in_text(source, "harvard" if str(style).lower().startswith("harv") else "apa")
+def in_text(source, style="apa", numbers=None):
+    """Public in-text citation for one source."""
+    style = str(style or "apa").strip().lower()
+    if style not in citation_styles.STYLES:
+        style = "apa"
+    if citation_styles.is_numbered(style):
+        return _in_text(source, style, numbers)
+    if style == "apa":
+        return _in_text(source, "apa")
+    return _in_text(source, "harvard")
 
 
-def reference(source, style="apa"):
+def reference(source, style="apa", numbers=None):
     """Public reference-list entry for one source."""
-    return _reference(source, "harvard" if str(style).lower().startswith("harv") else "apa")
+    style = str(style or "apa").strip().lower()
+    if style not in citation_styles.STYLES:
+        style = "apa"
+    return _reference(source, style, numbers)
 
 
 def _source_map(sources):

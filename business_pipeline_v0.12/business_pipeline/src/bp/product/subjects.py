@@ -2165,17 +2165,19 @@ STUDENT_NOTES.update(ACCOUNTING_OPERATIONS_NOTES)
 #: Topic groups for the Finance page, in the order a student should meet them.  Only Finance uses
 #: these; the Economics page keeps its intro/intermediate/advanced grouping.
 FINANCE_GROUPS = {
-    "tvm": "Foundations", "loan": "Foundations", "dupont": "Foundations",
-    "trendanalysis": "Foundations",
-    "workingcapital": "Foundations", "ratios": "Foundations", "breakeven": "Foundations",
-    "multibreakeven": "Foundations", "unitecon": "Foundations", "forecast": "Foundations",
-    "descriptive": "Foundations",
+    "tvm": "Time value and instruments", "loan": "Time value and instruments", "bond": "Time value and instruments",
+    "dupont": "Statement analysis", "trendanalysis": "Statement analysis",
+    "workingcapital": "Statement analysis", "ratios": "Statement analysis",
+    "breakeven": "Cost-volume-profit", "multibreakeven": "Cost-volume-profit",
+    "unitecon": "Cost-volume-profit",
+    "descriptive": "Quantitative", "forecast": "Quantitative",
+    "pearson": "Quantitative", "ols": "Quantitative", "ols_robust": "Quantitative",
     "npv": "Corporate finance", "irr": "Corporate finance", "dpayback": "Corporate finance",
-    "projectmetrics": "Corporate finance", "wacc": "Corporate finance", "capm": "Corporate finance",
+    "projectmetrics": "Corporate finance", "capm": "Corporate finance",
     "leverage": "Corporate finance", "scenario": "Corporate finance", "case_decision": "Corporate finance",
-    "dcf": "Valuation", "dcfmid": "Valuation", "equitybridge": "Valuation", "multiples": "Valuation",
-    "bond": "Investments", "portfolio": "Investments", "portfolioval": "Investments", "portfolioperf": "Investments", "pearson": "Investments",
-    "ols": "Investments", "ols_robust": "Investments",
+    "wacc": "Valuation", "dcf": "Valuation", "dcfmid": "Valuation",
+    "equitybridge": "Valuation", "multiples": "Valuation",
+    "portfolio": "Investments", "portfolioval": "Investments", "portfolioperf": "Investments",
     "risk": "Risk & derivatives", "options": "Risk & derivatives",
     "fx": "International", "currency": "International",
 }
@@ -2263,11 +2265,11 @@ ECONOMICS_GROUPS = {
     "optimalpollution": "welfare_policy",
     "comparative": "international", "tariff": "international", "ppp": "international",
     "irp": "international", "bop": "international", "hdi": "international",
-    "expectedutility": "behavioural_evidence", "prospect": "behavioural_evidence",
-    "labour": "behavioural_evidence", "did": "behavioural_evidence",
-    "iv": "behavioural_evidence", "panel": "behavioural_evidence",
-    "rdd": "behavioural_evidence", "probit": "behavioural_evidence",
-    "forecast": "impact_evaluation", "currency": "impact_evaluation",
+    "expectedutility": "behavioural_economics", "prospect": "behavioural_economics",
+    "labour": "behavioural_economics",
+    "did": "econometrics", "iv": "econometrics", "panel": "econometrics",
+    "rdd": "econometrics", "probit": "econometrics",
+    "forecast": "quantitative_core", "currency": "quantitative_core",
     "pricing": "quantitative_core", "demandcurve": "quantitative_core",
     "cba": "quantitative_core", "cea": "quantitative_core", "sroi": "quantitative_core",
     "npv": "quantitative_core", "dcf": "quantitative_core",
@@ -2313,6 +2315,7 @@ MARKETING_GROUPS = {
     "marketsize": "Market size and demand", "demandcurve": "Market size and demand",
     "elasticity": "Market size and demand", "purchaseintent": "Market size and demand",
     "forecast": "Market size and demand", "marketshare": "Market size and demand",
+    "pricing": "Market size and demand",
     "unitecon": "Customer economics and retention", "multibreakeven": "Customer economics and retention",
     "cohort": "Customer economics and retention", "rfm": "Customer economics and retention",
     "clv": "Customer economics and retention", "custprofit": "Customer economics and retention",
@@ -2333,6 +2336,7 @@ MARKETING_GROUPS = {
 MARKETING_PERIODS = {
     "marketsize": "annual", "demandcurve": "per observation", "elasticity": "per observation",
     "purchaseintent": "per observation", "forecast": "per period", "marketshare": "annual",
+    "pricing": "per period",
     "unitecon": "per period", "multibreakeven": "per period", "cohort": "per period",
     "rfm": "point in time", "clv": "per period", "custprofit": "per period",
     "campaign": "per period", "attribution": "per period", "channelecon": "per period",
@@ -2539,21 +2543,37 @@ STUDENT_NOTES.update(MARKETING_NOTES)
 
 #: Accounting groups, in the order a course usually teaches them.
 ACCOUNTING_GROUPS = {
-    "accounts": "Bookkeeping and statements", "tbcheck": "Bookkeeping and statements",
-    "ratios": "Bookkeeping and statements",
+    "accounts": "Bookkeeping", "tbcheck": "Bookkeeping",
+    "ratios": "Statement analysis", "dupont": "Statement analysis",
+    "trendanalysis": "Statement analysis",
+    "depreciation": "Adjustments and depreciation",
     "scv": "Cost and variance analysis", "breakeven": "Cost and variance analysis",
     "multibreakeven": "Cost and variance analysis",
     "abc": "Cost and variance analysis", "salesvar": "Cost and variance analysis",
     "workingcapital": "Working capital and financing", "loan": "Working capital and financing",
-    "trendanalysis": "Working capital and financing",
+    "proforma": "Planning and projection", "sensitivity": "Planning and projection",
+    "frommarket": "Planning and projection", "salesprojection": "Planning and projection",
     "tax": "Tax and reporting",
 }
+#: Which tile each Accounting catalogue record belongs to.  A record with no
+#: worksheet yet is shown in its tile as something to read and cite, not
+#: as a button that cannot work.  A record is a statement of what a method
+#: computes, so it sits with the calculators of its own group.
+ACCOUNTING_RECORD_GROUPS = {
+    "QNT-FIN-02": "Cost and variance analysis",   # cost and profitability
+    "QNT-FIN-03": "Statement analysis",            # financial performance
+    "QNT-FIN-05": "Bookkeeping",                   # management accounting
+}
+
 ACCOUNTING_PERIODS = {
     "accounts": "annual", "tbcheck": "annual", "ratios": "annual", "scv": "annual",
     "breakeven": "per period", "multibreakeven": "per period",
     "abc": "annual", "salesvar": "annual",
     "workingcapital": "annual", "loan": "annual", "trendanalysis": "annual",
     "tax": "annual",
+    "depreciation": "annual", "dupont": "annual",
+    "proforma": "annual", "sensitivity": "annual",
+    "frommarket": "annual", "salesprojection": "per period",
 }
 
 #: Operations groups: the process, the inventory feeding it, and the evidence on quality.
@@ -2634,16 +2654,25 @@ ACCOUNTING_TILES = [
              "statements, with the full working behind one toggle.",
      "need": "The question as it was set, or the trial balance. One instruction, no fields to fill.",
      "note": "The tile does the bookkeeping and shows its working; it never asks you to balance anything."},
-    {"key": "Bookkeeping and statements", "label": "Bookkeeping and statements",
+    {"key": "Bookkeeping", "label": "Bookkeeping",
      "what": "Prepare the management accounts from a declared engagement, or check a trial balance "
              "against your own journal.",
      "need": "The chart, the opening balances and the entries, or the trial balance and its journal."},
+    {"key": "Statement analysis", "label": "Statement analysis",
+     "what": "Financial statement ratios, DuPont analysis and common-size and trend analysis.",
+     "need": "The statement figures you have declared."},
+    {"key": "Adjustments and depreciation", "label": "Adjustments and depreciation",
+     "what": "Depreciation schedule at a declared rate.",
+     "need": "The cost, residual value and useful life."},
     {"key": "Cost and variance analysis", "label": "Cost and variance analysis",
      "what": "Standard cost variances, activity-based costing, sales variances and break-even.",
      "need": "The standards, the actuals, or the cost and price structure."},
     {"key": "Working capital and financing", "label": "Working capital and financing",
      "what": "The cash conversion cycle, loan amortisation and the trend across declared periods.",
      "need": "The working-capital balances, the loan terms, or two declared periods."},
+    {"key": "Planning and projection", "label": "Planning and projection",
+     "what": "Projected statements, price and volume sensitivity, sales from market share and sales projection.",
+     "need": "The declared drivers, price and volume changes, or market size and share."},
     {"key": "Tax and reporting", "label": "Tax and reporting",
      "what": "Income tax at a declared rate.",
      "need": "The taxable income and the declared rate."},
@@ -2666,12 +2695,15 @@ RESEARCH_GROUPS = {
     "missing": "Check the design", "alpha": "Check the design",
 }
 
+#: Strategy groups: the one calculator on the shelf, placed in the tile it belongs to.
+STRATEGY_GROUPS = {"case_decision": "portfolio_growth"}
+
 SUBJECT_GROUPS = {"finance": FINANCE_GROUPS, "entrepreneurship": ENTREPRENEURSHIP_GROUPS,
                   "marketing": MARKETING_GROUPS, "accounting": ACCOUNTING_GROUPS,
                   "operations": OPERATIONS_GROUPS, "supply-chain": SUPPLY_CHAIN_GROUPS,
                   "project-management": PROJECT_MANAGEMENT_GROUPS,
                   "people": PEOPLE_GROUPS, "economics": ECONOMICS_GROUPS,
-                  "research": RESEARCH_GROUPS}
+                  "research": RESEARCH_GROUPS, "management": STRATEGY_GROUPS}
 SUBJECT_PERIODS = {"finance": FINANCE_PERIODS, "entrepreneurship": ENTREPRENEURSHIP_PERIODS,
                    "marketing": MARKETING_PERIODS, "accounting": ACCOUNTING_PERIODS,
                    "operations": OPERATIONS_PERIODS, "supply-chain": SUPPLY_CHAIN_PERIODS,
@@ -2728,15 +2760,15 @@ ECONOMICS_TILES = [
     {"key": "international", "label": "International economics",
      "what": "Comparative advantage, tariff welfare, purchasing-power parity, interest-rate parity, balance of payments, Human Development Index.",
      "need": "Unit labour requirements for comparative advantage, a tariff rate, two interest rates for interest-rate parity."},
-    {"key": "behavioural_evidence", "label": "Behavioural and evidence",
-     "what": "Expected utility, prospect theory, labour market, difference-in-differences, instrumental variables, panel regression, regression discontinuity, probit.",
-     "need": "A gamble for prospect theory, four means for difference-in-differences, an instrument and endogenous variable for IV."},
-    {"key": "impact_evaluation", "label": "Impact evaluation",
-     "what": "Trend forecast and currency conversion.",
-     "need": "Your own series for the trend forecast, and an amount plus a declared rate for currency conversion."},
+    {"key": "behavioural_economics", "label": "Behavioural economics",
+     "what": "Expected utility, prospect theory, labour market.",
+     "need": "A gamble for prospect theory, or the wage, price index and productivity for the labour market."},
+    {"key": "econometrics", "label": "Econometrics and impact evaluation",
+     "what": "Difference-in-differences, instrumental variables, panel regression, regression discontinuity, probit.",
+     "need": "Four means for difference-in-differences, an instrument and endogenous variable for IV."},
     {"key": "quantitative_core", "label": "Quantitative core",
-     "what": "Pricing and demand, cost-benefit and cost-effectiveness, discounting, social return on investment, difference-in-differences, break-even, multi-product break-even, unit economics, descriptive statistics, Pearson correlation, linear regression, Welch t-test, one-way ANOVA, chi-square, power analysis.",
-     "need": "Price, variable and fixed cost for pricing and break-even; costs and benefits per period for cost-benefit; options with cost and effect for cost-effectiveness; investment and benefits for SROI; two-period group means for difference-in-differences; observations for statistics; two groups for t-test; three groups for ANOVA."},
+     "what": "Pricing and demand, cost-benefit and cost-effectiveness, discounting, social return on investment, break-even, multi-product break-even, unit economics, descriptive statistics, Pearson correlation, linear regression, Welch t-test, one-way ANOVA, chi-square, power analysis, trend forecast and currency conversion.",
+     "need": "Price, variable and fixed cost for pricing and break-even; costs and benefits per period for cost-benefit; options with cost and effect for cost-effectiveness; investment and benefits for SROI; observations for statistics; two groups for t-test; three groups for ANOVA."},
 ]
 
 #: Which tile each Economics catalogue record belongs to.  A record
@@ -3072,7 +3104,8 @@ SUBJECT_WORKSHEET_GROUPS = {"people": PEOPLE_WORKSHEET_GROUPS,
 SUBJECT_RECORD_GROUPS = {"people": PEOPLE_RECORD_GROUPS, "economics": ECONOMICS_RECORD_GROUPS,
                          "operations": OPERATIONS_RECORD_GROUPS,
                          "marketing": MARKETING_RECORD_GROUPS,
-                         "research": RESEARCH_RECORD_GROUPS}
+                         "research": RESEARCH_RECORD_GROUPS,
+                         "accounting": ACCOUNTING_RECORD_GROUPS}
 SUBJECT_TILES = {"people": PEOPLE_TILES, "economics": ECONOMICS_TILES,
                  "management": STRATEGY_TILES, "accounting": ACCOUNTING_TILES,
                  "project-management": PROJECT_MANAGEMENT_TILES,
@@ -3599,7 +3632,8 @@ SUBJECT_DEFS = [
         "disciplines": ["finance, accounting and managerial economics"],
         "cross_cutting": False,
         "tools": ["accounts", "tbcheck", "ratios", "scv", "abc", "salesvar",
-                  "breakeven", "multibreakeven", "workingcapital", "loan", "trendanalysis", "tax"],
+                  "breakeven", "multibreakeven", "workingcapital", "loan", "trendanalysis", "tax",
+                  "depreciation", "dupont", "proforma", "sensitivity", "frommarket", "salesprojection"],
         "worksheets": [],
         "catalogue_ids": ["QNT-FIN-02", "QNT-FIN-03", "QNT-FIN-05"],
     },
@@ -3893,6 +3927,7 @@ SUBJECT_DEFS = [
         "disciplines": ["marketing and customers", "market and customer analytics", "digital marketing"],
         "cross_cutting": False,
         "tools": ["marketsize", "marketshare", "demandcurve", "elasticity", "purchaseintent", "forecast",
+                  "pricing",
                   "unitecon", "multibreakeven", "cohort", "rfm", "clv", "custprofit",
                   "campaign", "attribution", "channelecon", "email", "social", "web", "mediaplan",
                   "funnel", "abtest", "alpha", "chi_square", "power"],

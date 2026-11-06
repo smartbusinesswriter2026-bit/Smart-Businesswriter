@@ -22,7 +22,7 @@ import json
 import os
 import re
 
-from . import prose, verify
+from . import paper_families, prose, verify
 
 FORMAT = "bp-council/1"
 MAX_READINGS = 3
@@ -41,6 +41,7 @@ READING_JSON = """{
   "why": "one or two sentences: what the brief asks and why these frameworks answer it",
   "anchors": [{"quote": "an exact sentence or phrase from the brief", "answers": "decision|scope|period|geography"}],
   "frameworks": ["framework ids from the closed list"],
+  "archetype": "one paper-family archetype id from the closed list",
   "capabilities": [{"key": "capability key from the closed catalogue", "because": "what this computation answers"}],
   "figures": [{"input": "declared input name", "written": "the figure as the brief writes it",
                "kind": "amount|rate|count", "quote": "the exact text the figure came from"}],
@@ -115,6 +116,7 @@ def _reading_prompt(stance_text, brief, entries, frameworks, currency):
         "the text it came from; say what is missing; do not claim causation, forecasts or recommendations "
         "in your rationale.\n"
         "Closed frameworks: " + ", ".join(frameworks) + "\n"
+        "Closed archetypes: " + ", ".join(sorted(paper_families.ARCHETYPES)) + "\n"
         "Closed capabilities (key | label | paper slot | applicable frameworks):\n" + catalogue_lines(entries)
         + "\nAnswer in this shape:\n" + READING_JSON)
     user = ("Stance: " + stance_text + "\n"
@@ -148,7 +150,8 @@ def advise(brief, entries, frameworks, currency=None, provider=None, quoted=None
         except CouncilError as error:
             rejected.append({"stance": name, "reasons": [{"check": "answer", "detail": str(error)}]})
             continue
-        problems = verify.verify_reading(reading, entries, frameworks, brief, currency, quoted)
+        problems = verify.verify_reading(reading, entries, frameworks, brief, currency, quoted,
+                                        archetypes=list(paper_families.ARCHETYPES))
         if problems:
             rejected.append({"stance": name, "reading": reading, "reasons": problems})
             continue

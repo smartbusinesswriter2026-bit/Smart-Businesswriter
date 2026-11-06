@@ -47,7 +47,7 @@ def answer_all(state, style="harvard"):
 
 class StartTest(unittest.TestCase):
     def test_a_pestel_brief_starts_with_one_question_and_defaults_from_the_text(self):
-        state = chat.start(BRIEF)
+        state = chat.start(BRIEF, framework="pestel")
         self.assertEqual(state["stage"], "clarify")
         self.assertEqual(state["answers"]["geography"], "Middle East")
         self.assertEqual(state["answers"]["style"], "apa")
@@ -66,7 +66,7 @@ class StartTest(unittest.TestCase):
 
 class PlanTest(unittest.TestCase):
     def test_the_plan_lists_the_six_dimensions_and_what_pestel_misses(self):
-        state = answer_all(chat.start(BRIEF))
+        state = answer_all(chat.start(BRIEF, framework="pestel"))
         self.assertEqual(state["stage"], "plan")
         plan = state["plan"]
         self.assertEqual(plan["framework"], "PESTEL")
@@ -76,7 +76,7 @@ class PlanTest(unittest.TestCase):
         self.assertTrue(plan["checkpoints"])
 
     def test_an_invalid_choice_is_refused(self):
-        state = chat.start(BRIEF)
+        state = chat.start(BRIEF, framework="pestel")
         chat.answer(state, "decision", "Should we enter?")
         with self.assertRaises(chat.ChatError):
             chat.answer(state, "geography", "Atlantis")
@@ -88,7 +88,7 @@ class ResearchTest(unittest.TestCase):
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", side_effect=academic)
     def test_research_fills_six_dimensions_and_records_sources(self, _a, _w):
-        state = answer_all(chat.start(BRIEF))
+        state = answer_all(chat.start(BRIEF, framework="pestel"))
         state = chat.confirm_plan(state)
         state = chat.research(state)
         self.assertEqual(state["stage"], "evidence")
@@ -106,13 +106,13 @@ class ResearchTest(unittest.TestCase):
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", return_value={"results": [], "errors": [], "skipped": []})
     def test_a_dimension_with_no_evidence_is_a_gap(self, _a, _w):
-        state = answer_all(chat.start(BRIEF))
+        state = answer_all(chat.start(BRIEF, framework="pestel"))
         state = chat.research(chat.confirm_plan(state))
         self.assertEqual(len(state["gaps"]), 6)
         self.assertEqual(state["evidence"], [])
 
     def test_research_requires_a_confirmed_plan(self):
-        state = answer_all(chat.start(BRIEF))
+        state = answer_all(chat.start(BRIEF, framework="pestel"))
         with self.assertRaises(chat.ChatError):
             chat.research(state)
 
@@ -128,7 +128,7 @@ class ResearchTest(unittest.TestCase):
                     "web_cached": False, "database_timings": {}}
 
         research_one.side_effect = slow
-        state = chat.research(chat.confirm_plan(answer_all(chat.start(BRIEF))))
+        state = chat.research(chat.confirm_plan(answer_all(chat.start(BRIEF, framework="pestel"))))
         self.assertEqual(len(state["gaps"]), 6)
         self.assertTrue(all("timed out" in gap["reason"] for gap in state["gaps"]))
         self.assertTrue(any("stopped after" in note for note in state["notes"]))
@@ -139,7 +139,7 @@ class DraftTest(unittest.TestCase):
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", side_effect=academic)
     def prepared(self, _a, _w):
-        state = answer_all(chat.start(BRIEF))
+        state = answer_all(chat.start(BRIEF, framework="pestel"))
         state = chat.research(chat.confirm_plan(state))
         return state
 
@@ -262,6 +262,7 @@ class SwotTest(unittest.TestCase):
 
     def test_a_country_brief_puts_the_country_into_every_query(self):
         state = chat.start("Apple is considering market entry into Iran and needs analysis.")
+        state = chat.answer(state, "framework", "pestel")
         state = chat.answer(state, "decision", "Should Apple enter the Iranian market?")
         state = chat.answer(state, "geography", "Middle East")
         state = chat.answer(state, "period", "5")
@@ -391,7 +392,7 @@ class RouteTest(unittest.TestCase):
         shutil.rmtree(self.root, ignore_errors=True)
 
     def test_the_chat_route_creates_answers_and_exports(self):
-        status, state = api.handle("POST", "/api/cases/chat", {"brief": BRIEF})
+        status, state = api.handle("POST", "/api/cases/chat", {"brief": BRIEF, "framework": "pestel"})
         self.assertEqual(status, 201)
         case_id = state["id"]
         status, state = api.handle("GET", "/api/cases/chat/" + case_id)

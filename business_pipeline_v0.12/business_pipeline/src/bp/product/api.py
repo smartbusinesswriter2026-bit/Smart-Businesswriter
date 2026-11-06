@@ -705,7 +705,8 @@ def handle(method, path, body=None):
                                              mode=body.get("mode") or "strict",
                                              words=body.get("words"),
                                              rubric=body.get("rubric"),
-                                             archetype=body.get("archetype"))
+                                             archetype=body.get("archetype"),
+                                             frameworks=body.get("frameworks"))
                 state = chat_store.save(state)
             except chat_conductor.ChatError as error:
                 return _error(error)

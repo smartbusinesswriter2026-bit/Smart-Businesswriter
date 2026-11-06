@@ -21,6 +21,10 @@ from . import audit as audit_mod, capabilities, council, docx, framework_profile
 
 FORMAT = "bp-chat/1"
 
+# Citation numbering for numbered styles (Vancouver, IEEE, OSCOLA, ...).  Set only
+# while a draft is being composed; never a source of truth outside that scope.
+_CITATION_NUMBERS = None
+
 ExportBlocked = paper.ExportBlocked
 
 #: A whole research pass may not outlast this, even if one provider hangs.
@@ -747,7 +751,10 @@ def _infer_framework(brief):
         return "swot"
     if "break-even" in text or "breakeven" in text or "break even" in text:
         return "breakeven"
-    return "pestel"
+    # No explicit framework was named.  Do not silently default to PESTEL: the
+    # Home chat asks the student to choose, so the framework is a decision and
+    # not an assumption.
+    return None
 
 
 def _defaults(brief):
@@ -764,7 +771,21 @@ def _defaults(brief):
     match = re.search(r"(?:last|past|since)\s+(\d{1,2})\s+years?", text)
     if match:
         period = match.group(1)
-    style = "harvard" if "harvard" in text else "apa"
+    style = "apa"
+    if "harvard" in text:
+        style = "harvard"
+    elif "chicago" in text and "notes" in text:
+        style = "chicago_nb"
+    elif "chicago" in text:
+        style = "chicago_ad"
+    elif "mla" in text:
+        style = "mla"
+    elif "vancouver" in text:
+        style = "vancouver"
+    elif "ieee" in text:
+        style = "ieee"
+    elif "oscola" in text:
+        style = "oscola"
     return {"decision": _clean(brief, 500), "geography": geography, "period": period, "style": style}
 
 
@@ -774,11 +795,28 @@ def _infer_archetype(brief, framework=None, profile=None):
                   "feasibilitystudy", "feasibility", "marketing_plan", "marketingplan",
                   "marketing", "project_proposal", "projectproposal", "proposal"):
         return "plan_proposal"
+    text = (brief or "").lower()
+    if any(word in text for word in ("case study", "case analysis", "post-mortem", "postmortem", "failure analysis")):
+        return "case_analysis"
+    if any(word in text for word in ("literature review", "annotated bibliography", "critical review")):
+        return "literature_synthesis"
+    if any(word in text for word in ("position paper", "white paper", "essay", "argumentative")):
+        return "argumentative_essay"
+    if any(word in text for word in ("policy memo", "business memo", "executive summary", "briefing paper")):
+        return "memo_brief"
+    if any(word in text for word in ("valuation", "dcf", "equity research", "stock pitch", "capital budgeting")):
+        return "financial_valuation"
+    if any(word in text for word in ("reflection", "reflective", "internship")):
+        return "reflective"
+    if any(word in text for word in ("compliance", "contract law", "case brief", "regulatory")):
+        return "legal_regulatory"
+    if any(word in text for word in ("research paper", "empirical", "thesis", "dissertation")):
+        return "empirical_research"
     return "analytical_report"
 
 
 def start(brief, subject=None, framework=None, profile=None, level="shs", mode="strict",
-          words=None, rubric=None, archetype=None):
+          words=None, rubric=None, archetype=None, frameworks=None):
     """Create a conductor state.  No source is retrieved until the plan is confirmed.
 
     ``rubric`` is the marking guide the student attached — the text of the file, or the
@@ -800,25 +838,36 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         return _with_rubric(_start_marketing_plan(brief, subject, level, mode), attached)
     if wanted in (PROFILE_PROJECT_PROPOSAL, "project_proposal", "projectproposal", "proposal"):
         return _with_rubric(_start_project_proposal(brief, subject, level, mode), attached)
-    framework = (framework or "").strip().lower() or _infer_framework(brief)
-    council_result, council_note = None, None
-    if council.available():
-        # The council may change the reading of the brief, including the framework.
-        # Its output is verified by code before it is used, and the resolver stays
-        # the fallback whenever it cannot decide.
-        try:
-            council_result = council.advise(brief, capabilities.ENTRIES, tuple(FRAMEWORKS))
-        except council.CouncilError as error:
-            council_note = "the council could not decide: " + str(error)[:200]
-        except Exception as error:  # a provider failure must never lose the brief
-            council_note = "the council failed: " + str(error)[:200]
-        if council_result and council_result.get("reading"):
-            chosen = [name for name in council_result["reading"].get("frameworks") or []
-                      if name in FRAMEWORKS]
-            if chosen:
-                framework = chosen[0]
-    if framework not in FRAMEWORKS:
-        raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, Value Chain, Ansoff, VRIO, or Break-even.")
+    frameworks = [str(item).strip().lower() for item in (frameworks or []) if str(item).strip()]
+    if frameworks:
+        if any(item not in FRAMEWORKS for item in frameworks):
+            raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, Value Chain, Ansoff, VRIO, or Break-even.")
+    else:
+        framework = (framework or "").strip().lower() or _infer_framework(brief)
+        council_result, council_note = None, None
+        if council.available():
+            # The council may change the reading of the brief, including the framework.
+            # Its output is verified by code before it is used, and the resolver stays
+            # the fallback whenever it cannot decide.
+            try:
+                council_result = council.advise(brief, capabilities.ENTRIES, tuple(FRAMEWORKS))
+            except council.CouncilError as error:
+                council_note = "the council could not decide: " + str(error)[:200]
+            except Exception as error:  # a provider failure must never lose the brief
+                council_note = "the council failed: " + str(error)[:200]
+            if council_result and council_result.get("reading"):
+                chosen = [name for name in council_result["reading"].get("frameworks") or []
+                          if name in FRAMEWORKS]
+                if chosen:
+                    frameworks = chosen
+        council_archetype = (council_result.get("reading") or {}).get("archetype") if isinstance(council_result, dict) else None
+        if council_archetype in paper_families.ARCHETYPES:
+            archetype = council_archetype
+        if not frameworks and framework is not None:
+            frameworks = [framework]
+        if frameworks and any(item not in FRAMEWORKS for item in frameworks):
+            raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, Value Chain, Ansoff, VRIO, or Break-even.")
+        framework = frameworks[0] if frameworks else None
     open_mode = guard.is_open(subject)
     detected_id = ""
     detected_cue = ""
@@ -843,7 +892,14 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
             fits, message = _fit(brief, framework)
     else:
         fits, message = True, None
-    questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
+    if framework is None:
+        questions = [{"id": "framework", "prompt": "Which framework should this paper use?",
+                      "why": "The framework organises the evidence and the firm's position; choose the one the assignment asks for.",
+                      "type": "choice",
+                      "choices": [[key, FRAMEWORKS[key]["label"]] for key in FRAMEWORKS],
+                      "allow_skip": False}]
+    else:
+        questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
     answers = _defaults(brief)
     # A brief may name the option ("mid-length report") or give a count; either is
     # read here, before any question is put to the student.
@@ -857,9 +913,9 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     # the box is the most recent statement of the length.
     if words not in (None, ""):
         answers["length"] = str(check_word_target(words))
-    if FRAMEWORKS[framework]["internal"]:
+    if framework is not None and FRAMEWORKS[framework].get("internal"):
         answers.update({"strengths": [], "weaknesses": []})
-    for key in FRAMEWORKS[framework].get("inputs") or []:
+    for key in (FRAMEWORKS[framework].get("inputs") if framework is not None else []) or []:
         answers.setdefault(key, [])
     detected_label = ""
     if detected_id:
@@ -875,13 +931,15 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     if open_mode and not detected_id:
         state_subject = ""
     resolved_archetype = (archetype or "").strip().lower() or _infer_archetype(brief, framework, profile)
-    state = {"format": FORMAT, "subject": state_subject, "framework": framework, "brief": brief,
-             "archetype": resolved_archetype, "paper_contract": None, "audit": None,
+    state = {"format": FORMAT, "subject": state_subject, "framework": framework,
+             "frameworks": [framework] if framework else [],
+             "brief": brief, "archetype": resolved_archetype, "paper_contract": None, "audit": None,
+             "blocks": None, "evidence_ledger": None, "chart_specs": None, "production_check": None,
              "created_at": _now(), "updated_at": _now(), "stage": "clarify",
              "answers": answers, "questions": questions, "question_index": 0,
              "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
              "computation": None, "draft": None,
-             "selection": None, "computations": {}}
+             "selection": None, "computations": {}, "orientation_sources": []}
     if open_mode:
         state["subject_requested"] = "any"
         state["subject_detected"] = ({"id": detected_id, "label": detected_label, "cue": detected_cue}
@@ -1130,6 +1188,23 @@ def answer(state, question_id, value):
     question = current_question(state)
     if not question or question["id"] != question_id:
         raise ChatError("That is not the question waiting for an answer.")
+    if question_id == "framework" and question.get("type") == "choice":
+        if value not in FRAMEWORKS:
+            raise ChatError("Choose one of: " + ", ".join(FRAMEWORKS))
+        state["framework"] = value
+        state["frameworks"] = [value]
+        answers = dict(state.get("answers") or {})
+        answers["framework"] = value
+        answers.update(_defaults(state.get("brief") or ""))
+        if FRAMEWORKS[value].get("internal"):
+            answers.update({"strengths": [], "weaknesses": []})
+        for key in FRAMEWORKS[value].get("inputs") or []:
+            answers.setdefault(key, [])
+        state["answers"] = answers
+        state["questions"] = [dict(q) for q in FRAMEWORK_QUESTIONS[value]]
+        state["question_index"] = 0
+        state["updated_at"] = _now()
+        return state
     if question["type"] == "choice":
         allowed = [choice[0] if isinstance(choice, list) else choice for choice in question["choices"]]
         if value not in allowed:
@@ -1187,10 +1262,18 @@ def _topic(text, limit=10):
 def _plan(state):
     answers = state["answers"]
     framework = state.get("framework") or "pestel"
+    frameworks = state.get("frameworks") or [framework]
     config = FRAMEWORKS[framework]
-    dimensions = [{"key": key, "label": label, "query": _query(state, key, cues), "cues": cues,
-                   "category": category, "source_note": _source_note(category)}
-                  for key, label, cues, category in config["dimensions"]]
+    seen_keys = set()
+    dimensions = []
+    for fw in frameworks:
+        cfg = FRAMEWORKS.get(fw) or config
+        for key, label, cues, category in (cfg.get("dimensions") or []):
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            dimensions.append({"key": key, "label": label, "query": _query(state, key, cues), "cues": cues,
+                               "category": category, "source_note": _source_note(category)})
     why = {
         "pestel": ("PESTEL organizes the external political, economic, social, technological, environmental and "
                    "legal evidence around the decision."),
@@ -1366,12 +1449,98 @@ def accept_assist(state, key, text):
     return state
 
 
+def _plan_blocks(state):
+    """Build a block list from the current framework, selection and computations."""
+    blocks = []
+    frameworks = state.get("frameworks") or ([state.get("framework")] if state.get("framework") else [])
+    for index, framework in enumerate(frameworks):
+        if not framework:
+            continue
+        blocks.append({"id": "b_framework_%d" % index, "kind": "framework", "ref": framework,
+                       "role": "analysis", "contribution": "analyses the case against the " + str(framework) + " framework",
+                       "requires": {"evidence": []}, "produces": {"sections": [str(framework).upper()]}})
+    selection = state.get("selection") or {}
+    for index, row in enumerate(selection.get("selected") or []):
+        blocks.append({"id": "b_cap_%d" % index, "kind": "computation", "ref": row.get("key"),
+                       "role": "computation", "contribution": "computes " + str(row.get("label") or row.get("key")),
+                       "requires": {"student_inputs": row.get("inputs_required") or []},
+                       "produces": {"artifacts": [row.get("key")]}})
+    if len([b for b in blocks if b["kind"] in ("framework", "computation")]) > 1:
+        blocks.append({"id": "b_synthesis", "kind": "prose", "ref": "synthesis", "role": "synthesis",
+                       "contribution": "reconciles the analysis blocks against the decision",
+                       "requires": {"blocks": [b["id"] for b in blocks if b["kind"] in ("framework", "computation")]},
+                       "produces": {"sections": ["Synthesis"]}})
+    return blocks
+
+
+def _chart_specs_for(state):
+    """Derive chart specs from recorded computations, without inventing numbers."""
+    specs = []
+    computations = state.get("computations") or {}
+    for key, data in computations.items():
+        if not isinstance(data, dict) or not data.get("ok"):
+            continue
+        result = data.get("result") or {}
+        if not isinstance(result, dict):
+            continue
+        # Only chart a computation that produced at least one numeric artifact.
+        numeric = [name for name, value in result.items() if isinstance(value, (int, float, str)) and _is_number(value)]
+        if not numeric:
+            continue
+        specs.append({"format": "bp-chart/1", "kind": "bar", "title": str(key).replace("_", " ").title(),
+                      "series": [{"artifact": name, "label": name.replace("_", " ")} for name in numeric[:6]],
+                      "source_computation": key, "artifact_ids": numeric[:6]})
+    return specs
+
+
+def _is_number(value):
+    try:
+        float(str(value).replace(",", ""))
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def _evidence_ledger_for(state):
+    """Build an evidence ledger from the current state without inventing sources."""
+    claims = []
+    for item in (state.get("evidence") or []):
+        if isinstance(item, dict):
+            claims.append({"id": item.get("id"), "text": item.get("claim"),
+                           "type": "external", "block": None,
+                           "source_ids": [item.get("source_id")] if item.get("source_id") else [],
+                           "quote": item.get("quote")})
+    numbers = []
+    for key, data in (state.get("computations") or {}).items():
+        if isinstance(data, dict) and data.get("ok"):
+            result = data.get("result") or {}
+            if isinstance(result, dict):
+                for name, value in result.items():
+                    numbers.append({"id": key + ":" + name, "value": value, "unit": None,
+                                    "computation": key, "artifact": name})
+    charts = []
+    for spec in (state.get("chart_specs") or []):
+        if isinstance(spec, dict):
+            charts.append({"id": spec.get("source_computation"), "kind": spec.get("kind"),
+                           "artifact_ids": spec.get("artifact_ids") or []})
+    return {"format": "bp-evidence/1", "sources": list(state.get("sources") or []),
+            "claims": claims, "numbers": numbers, "citations": [], "charts": charts,
+            "gaps": list(state.get("gaps") or [])}
+
+
 def confirm_plan(state):
     if state.get("stage") != "plan":
         raise ChatError("There is no plan waiting for confirmation.")
     state["stage"] = "research_ready"
     state["plan_confirmed_at"] = _now()
     state["plan_record"] = _freeze_plan(state)
+    state["blocks"] = _plan_blocks(state)
+    state["chart_specs"] = _chart_specs_for(state)
+    try:
+        from . import audit as _audit
+        state["production_check"] = _audit.production_check(state.get("paper_contract"), {"blocks": state["blocks"]})
+    except Exception:
+        state["production_check"] = None
     answers = state.get("answers") or {}
     decision = str(answers.get("decision") or state.get("brief") or "").strip()
     style = str(answers.get("style") or "apa").strip().lower()
@@ -1394,6 +1563,11 @@ def confirm_plan(state):
             style=style, required_sections=paper_families.required_sections_for(
                 state.get("archetype") or "analytical_report"),
             rubric=state.get("rubric"), approved=True, approved_at=_now())
+        # The export gate already enforces framework/profile sections via paper.missing.
+        # The contract records the archetype's completeness contract; it does not add a
+        # second, conflicting section list on top of it.
+        contract["required_sections"] = []
+        contract["hash"] = paper_contract.contract_hash(contract)
         state["paper_contract"] = paper_contract.freeze_contract(contract, approved_at=_now())
     except (ValueError, Exception):
         state["paper_contract"] = None
@@ -1932,10 +2106,12 @@ def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN):
     answers = _defaults(brief)
     answers["inputs"] = {}
     state = {"format": FORMAT, "subject": subject or "entrepreneurship", "framework": None,
-             "profile": profile, "archetype": "plan_proposal", "paper_contract": None, "audit": None,
+             "frameworks": [], "profile": profile, "archetype": "plan_proposal", "paper_contract": None,
+             "audit": None, "blocks": None, "evidence_ledger": None, "chart_specs": None,
+             "production_check": None,
              "brief": brief, "created_at": _now(), "updated_at": _now(),
              "stage": "plan", "level": level, "mode": mode, "answers": answers, "questions": [],
-             "question_index": 0, "sources": [], "evidence": [], "gaps": [], "notes": [],
+             "question_index": 0, "sources": [], "evidence": [], "orientation_sources": [], "gaps": [], "notes": [],
              "computations": {}, "draft": None}
     state["plan"] = _plan_profile(state)
     return state
@@ -2288,6 +2464,8 @@ def research(state):
     if state.get("stage") != "research_ready":
         raise ChatError("Confirm the plan before retrieving sources.")
     sources, evidence, gaps, notes = [], [], [], []
+    orientation = []
+    seen_orientation = set()
     seen_sources, seen_evidence = set(), set()
     errors, skipped, notices = [], set(), set()
     dropped = 0
@@ -2351,6 +2529,11 @@ def research(state):
             placed += 1
             if placed >= 3:
                 break
+        for item in (batch.get("orientation") or []):
+            key = (item.get("doi") or _clean(item.get("title"), 120).lower())
+            if key and key not in seen_orientation:
+                seen_orientation.add(key)
+                orientation.append(dict(item))
         if placed == 0:
             reason = ("Research timed out before this dimension returned evidence"
                       if batch.get("timed_out")
@@ -2370,18 +2553,25 @@ def research(state):
                "dimensions": {batch["dimension"]["key"]: batch["elapsed"] for batch in batches},
                "academic_cached": sum(1 for batch in batches if batch["academic_cached"]),
                "web_cached": sum(1 for batch in batches if batch["web_cached"])}
-    state.update({"sources": sources, "evidence": evidence, "gaps": gaps, "notes": notes,
+    state.update({"sources": sources, "evidence": evidence, "orientation_sources": orientation,
+                  "gaps": gaps, "notes": notes,
                   "research_errors": errors, "researched_at": _now(), "stage": "evidence",
                   "timings": timings, "updated_at": _now()})
     return state
 
 
-def _in_text(source, style):
-    return writing.in_text(source, style)
+def _in_text(source, style, numbers=None):
+    global _CITATION_NUMBERS
+    if numbers is None:
+        numbers = _CITATION_NUMBERS
+    return writing.in_text(source, style, numbers=numbers)
 
 
-def _reference(source, style):
-    return writing.reference(source, style)
+def _reference(source, style, numbers=None):
+    global _CITATION_NUMBERS
+    if numbers is None:
+        numbers = _CITATION_NUMBERS
+    return writing.reference(source, style, numbers=numbers)
 
 
 def _dimension_lines(dimension, evidence, by_id, style, target=0):
@@ -4413,7 +4603,7 @@ def _block_lines(state, block):
     return ["The computation returned a result."]
 
 
-def _plan_reference_section(state, evidence, style):
+def _plan_reference_section(state, evidence, style, numbers=None):
     """One reference list, built from the evidence the student accepted (B-182).
 
     Every plan profile ships the same list: a source is cited once (DOI or title),
@@ -4427,8 +4617,9 @@ def _plan_reference_section(state, evidence, style):
         if key in seen:
             continue
         seen.add(key)
-        references.append(_reference(source, style))
-    heading = "References" if style == "apa" else "Bibliography"
+        references.append(_reference(source, style, numbers))
+    from . import citation_styles
+    heading = citation_styles.reference_heading(style)
     return paper.section(heading, paper.H1, references or ["No sources were used."])
 
 
@@ -5074,7 +5265,7 @@ def _reading_line(dimension, evidence, target, by_id=None):
     going wrong there would mean for the decision and what would change the
     reading.  It adds no fact and no figure.
     """
-    if target < LONG_FLOOR:
+    if target not in (0, None) and target < SHORT_WORDS:
         return ""
     items = [item for item in evidence if item["dimension"] == dimension[0]]
     if not items:
@@ -5480,7 +5671,31 @@ def _append_declared_sources(state):
 def draft(state, accepted_ids=None, implications="", style=None):
     """Compose the paper, then attach the student's own citations (B-182) and the rubric audit."""
     state = _append_declared_sources(_draft_dispatch(state, accepted_ids, implications, style))
-    return _apply_rubric(state)
+    state = _apply_rubric(state)
+    try:
+        claims = []
+        for item in (state.get("evidence") or []):
+            if isinstance(item, dict):
+                claims.append({"id": item.get("id"), "type": "external",
+                               "source_ids": [item.get("source_id")] if item.get("source_id") else [],
+                               "text": item.get("claim")})
+        state["chart_specs"] = _chart_specs_for(state)
+        state["blocks"] = state.get("blocks") or _plan_blocks(state)
+        ledger = _evidence_ledger_for(state)
+        state["evidence_ledger"] = ledger
+        state["audit"] = audit_mod.audit(
+            state.get("paper_contract"), {"blocks": state["blocks"]},
+            ledger, state.get("computations"), state.get("draft"),
+            rubric_coverage=(state.get("rubric") or {}).get("coverage") if isinstance(state.get("rubric"), dict) else None,
+            forbidden_terms=["PSE", "PSEi"])
+        state["audit_error"] = None
+    except Exception as error:
+        state["evidence_ledger"] = None
+        state["audit"] = None
+        state["audit_error"] = str(error)
+    global _CITATION_NUMBERS
+    _CITATION_NUMBERS = None
+    return state
 
 
 #: The heading the coverage table carries, in both paper paths.
@@ -5528,14 +5743,19 @@ def _apply_rubric(state):
                 claims.append({"id": item.get("id"), "type": "external",
                                "source_ids": [item.get("source_id")] if item.get("source_id") else [],
                                "text": item.get("claim")})
+        state["chart_specs"] = _chart_specs_for(state)
+        state["blocks"] = state.get("blocks") or _plan_blocks(state)
+        ledger = _evidence_ledger_for(state)
+        state["evidence_ledger"] = ledger
         state["audit"] = audit_mod.audit(
-            state.get("paper_contract"), state.get("plan"),
-            {"claims": claims, "numbers": [], "charts": []},
-            state.get("computations"), state.get("draft"),
+            state.get("paper_contract"), {"blocks": state["blocks"]},
+            ledger, state.get("computations"), state.get("draft"),
             rubric_coverage=(state.get("rubric") or {}).get("coverage") if isinstance(state.get("rubric"), dict) else None,
             forbidden_terms=["PSE", "PSEi"])
-    except Exception:
+    except Exception as error:
+        state["evidence_ledger"] = None
         state["audit"] = None
+        state["audit_error"] = str(error)
     state["stage"] = "draft"
     state["updated_at"] = _now()
     return state
@@ -5557,6 +5777,28 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
     evidence = [item for item in state["evidence"] if item["id"] in accepted]
     by_id = {source["id"]: source for source in state["sources"]}
     style = style or state["answers"].get("style") or "apa"
+    from . import citation_styles
+    global _CITATION_NUMBERS
+    _CITATION_NUMBERS = None
+    numbers = None
+    if citation_styles.is_numbered(style):
+        numbers = {}
+        counter = 1
+        accepted_sources = {item.get("source_id") for item in evidence if item.get("source_id")}
+        for item in evidence:
+            source = by_id.get(item.get("source_id"), {})
+            key = source.get("id") or source.get("doi") or source.get("title")
+            if key and key not in numbers:
+                numbers[key] = counter
+                counter += 1
+        # any accepted source not reached by an evidence item still gets a number
+        for source in state.get("sources") or []:
+            if source.get("id") in accepted_sources or not accepted_sources:
+                key = source.get("id") or source.get("doi") or source.get("title")
+                if key and key not in numbers:
+                    numbers[key] = counter
+                    counter += 1
+        _CITATION_NUMBERS = numbers
     answers = state["answers"]
     framework = state.get("framework") or "pestel"
     label = FRAMEWORKS[framework]["label"]
@@ -5579,69 +5821,72 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
     sections = [paper.section("Introduction", paper.H1, [intro])]
     if target >= MID_FLOOR:
         sections.append(_scope_section(state, evidence, target, style))
-    figure_cells = _figure_cells(answers, evidence, by_id, style, framework)
-    if framework in ("pestel", "pestel_swot"):
-        sections.append(paper.section("PESTEL", paper.H1))
-        for dimension in DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style, target)
-            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
-    if framework in ("swot", "pestel_swot"):
-        sections.append(paper.section("SWOT", paper.H1,
-                                      figure=matrix.build("template_swot", figure_cells,
-                                                          caption="SWOT matrix")))
-        sections.append(paper.section("Strengths", paper.H2,
-                                      [paper.paragraph(_internal_lines(answers, "strengths", "Strengths"))]))
-        sections.append(paper.section("Weaknesses", paper.H2,
-                                      [paper.paragraph(_internal_lines(answers, "weaknesses", "Weaknesses"))]))
-    unclassified = 0
-    buckets = {"opportunities": [], "threats": []}
-    if framework == "swot":
-        for dimension in SWOT_DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style, target)
-            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
-    elif framework == "pestel_swot":
-        buckets, unclassified = _classify_external(evidence)
-        sections.append(paper.section("Opportunities", paper.H2,
-                                      [paper.paragraph(_mapped_lines(buckets["opportunities"], by_id, style, "Opportunities"))]))
-        sections.append(paper.section("Threats", paper.H2,
-                                      [paper.paragraph(_mapped_lines(buckets["threats"], by_id, style, "Threats"))]))
-    if framework in ("five_forces", "five_forces_breakeven"):
-        sections.append(paper.section("Five Forces", paper.H1))
-        for dimension in FIVE_DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style, target)
-            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
-    if framework == "value_chain":
-        sections.append(paper.section("Value Chain", paper.H1,
-                                      figure=matrix.build("template_value_chain", figure_cells,
-                                                          caption="Porter's value chain")))
-        for dimension in VALUE_DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style, target)
-            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
-    if framework == "ansoff":
-        sections.append(paper.section("Ansoff Growth Matrix", paper.H1,
-                                      figure=matrix.build("template_ansoff", figure_cells,
-                                                          caption="Ansoff growth matrix")))
-        for dimension in ANSOFF_DIMENSIONS:
-            lines = _dimension_lines(dimension, evidence, by_id, style, target)
-            sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
-    if framework == "vrio":
-        sections.append(paper.section("VRIO", paper.H1,
-                                      figure=matrix.build("template_vrio", figure_cells,
-                                                          caption="VRIO analysis")))
-        sections.append(paper.section("Resources", paper.H2,
-                                      [paper.paragraph(_internal_lines(answers, "resources", "Resources"))]))
-        for key, heading, noun in (("valuable", "Valuable", "value judgments"),
-                                   ("rare", "Rare", "rarity judgments"),
-                                   ("costly", "Costly to imitate", "imitation-cost judgments"),
-                                   ("organized", "Organised to capture value", "organisational judgments")):
-            sections.append(paper.section(heading, paper.H2,
-                                          [paper.paragraph(_internal_lines(answers, key, heading, noun))]))
-    if framework == "breakeven":
-        sections.append(paper.section("Financial Feasibility", paper.H1))
-        sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
-    if framework == "five_forces_breakeven":
-        sections.append(paper.section("Financial Feasibility", paper.H1))
-        sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
+    frameworks = state.get("frameworks") or [framework]
+    for framework in frameworks:
+        figure_cells = _figure_cells(answers, evidence, by_id, style, framework)
+        if framework in ("pestel", "pestel_swot"):
+            sections.append(paper.section("PESTEL", paper.H1))
+            for dimension in DIMENSIONS:
+                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+        if framework in ("swot", "pestel_swot"):
+            sections.append(paper.section("SWOT", paper.H1,
+                                          figure=matrix.build("template_swot", figure_cells,
+                                                              caption="SWOT matrix")))
+            sections.append(paper.section("Strengths", paper.H2,
+                                          [paper.paragraph(_internal_lines(answers, "strengths", "Strengths"))]))
+            sections.append(paper.section("Weaknesses", paper.H2,
+                                          [paper.paragraph(_internal_lines(answers, "weaknesses", "Weaknesses"))]))
+        unclassified = 0
+        buckets = {"opportunities": [], "threats": []}
+        if framework == "swot":
+            for dimension in SWOT_DIMENSIONS:
+                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+        elif framework == "pestel_swot":
+            buckets, unclassified = _classify_external(evidence)
+            sections.append(paper.section("Opportunities", paper.H2,
+                                          [paper.paragraph(_mapped_lines(buckets["opportunities"], by_id, style, "Opportunities"))]))
+            sections.append(paper.section("Threats", paper.H2,
+                                          [paper.paragraph(_mapped_lines(buckets["threats"], by_id, style, "Threats"))]))
+        if framework in ("five_forces", "five_forces_breakeven"):
+            sections.append(paper.section("Five Forces", paper.H1))
+            for dimension in FIVE_DIMENSIONS:
+                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+        if framework == "value_chain":
+            sections.append(paper.section("Value Chain", paper.H1,
+                                          figure=matrix.build("template_value_chain", figure_cells,
+                                                              caption="Porter's value chain")))
+            for dimension in VALUE_DIMENSIONS:
+                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+        if framework == "ansoff":
+            sections.append(paper.section("Ansoff Growth Matrix", paper.H1,
+                                          figure=matrix.build("template_ansoff", figure_cells,
+                                                              caption="Ansoff growth matrix")))
+            for dimension in ANSOFF_DIMENSIONS:
+                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
+        if framework == "vrio":
+            sections.append(paper.section("VRIO", paper.H1,
+                                          figure=matrix.build("template_vrio", figure_cells,
+                                                              caption="VRIO analysis")))
+            sections.append(paper.section("Resources", paper.H2,
+                                          [paper.paragraph(_internal_lines(answers, "resources", "Resources"))]))
+            for key, heading, noun in (("valuable", "Valuable", "value judgments"),
+                                       ("rare", "Rare", "rarity judgments"),
+                                       ("costly", "Costly to imitate", "imitation-cost judgments"),
+                                       ("organized", "Organised to capture value", "organisational judgments")):
+                sections.append(paper.section(heading, paper.H2,
+                                              [paper.paragraph(_internal_lines(answers, key, heading, noun))]))
+        if framework == "breakeven":
+            sections.append(paper.section("Financial Feasibility", paper.H1))
+            sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
+        if framework == "five_forces_breakeven":
+            sections.append(paper.section("Financial Feasibility", paper.H1))
+            sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
+    framework = state.get("framework") or "pestel"
     recorded = state.get("computations") or {}
     selected_caps = (state.get("selection") or {}).get("selected") or []
     rendered_sections = set()
@@ -5766,8 +6011,9 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         if key in seen:
             continue
         seen.add(key)
-        references.append(_reference(source, style))
-    heading = "References" if style == "apa" else "Bibliography"
+        references.append(_reference(source, style, numbers))
+    from . import citation_styles
+    heading = citation_styles.reference_heading(style)
     sections.append(paper.section(heading, paper.H1, references or ["No sources were used."]))
     title_label = label
     if selected_caps:

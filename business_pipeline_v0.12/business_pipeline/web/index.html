@@ -1094,7 +1094,13 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         </div>
         <div class="actionrow">
           <button class="btn" id="attachbtn" type="button" title="Attach files for this analysis">Attach files</button>
+          <button class="btn" id="sourcesbtn" type="button" title="Upload source documents">Sources</button>
+          <button class="btn" id="databtn" type="button" title="Upload data files (CSV, XLSX)">Data</button>
+          <button class="btn" id="rubricbtn" type="button" title="Upload a marking guide">Rubric</button>
           <input type="file" id="attachfile" multiple hidden>
+          <input type="file" id="sourcesfile" multiple hidden>
+          <input type="file" id="datafile" multiple hidden>
+          <input type="file" id="rubricfile" multiple hidden>
           <!-- Legacy hooks, never shown. The framework is inferred from the brief; the
                strings are kept only because the pinned UI test asserts these two ids
                (tests/** is the computation owner's lane). Retire them together. -->
@@ -1115,6 +1121,10 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
       </div>
       <div class="card" id="chatcard" hidden>
         <div id="chatout" aria-live="polite"></div>
+      </div>
+      <div class="card" id="storedpapers">
+        <h2>Stored papers</h2>
+        <div id="storedpapersout" aria-live="polite"></div>
       </div>
     </section>
 
@@ -2550,7 +2560,13 @@ RENDERERS.home = function () {
       "</div>" +
       '<div class="actionrow">' +
         '<button class="btn" id="attachbtn" type="button" title="Attach files for this analysis">Attach files</button>' +
+        '<button class="btn" id="sourcesbtn" type="button" title="Upload source documents">Sources</button>' +
+        '<button class="btn" id="databtn" type="button" title="Upload data files (CSV, XLSX)">Data</button>' +
+        '<button class="btn" id="rubricbtn" type="button" title="Upload a marking guide">Rubric</button>' +
         '<input type="file" id="attachfile" multiple hidden>' +
+        '<input type="file" id="sourcesfile" multiple hidden>' +
+        '<input type="file" id="datafile" multiple hidden>' +
+        '<input type="file" id="rubricfile" multiple hidden>' +
         /* Legacy hooks, never shown: the pinned UI test asserts these ids. The
            framework is inferred from the brief, so nothing here reaches the user. */
         '<select id="chatframework" hidden aria-hidden="true" tabindex="-1">' +
@@ -2568,7 +2584,8 @@ RENDERERS.home = function () {
       "</div>" +
       '<div id="attachments" class="attachments" aria-live="polite"></div>' +
     "</div>" +
-    '<div class="card" id="chatcard" hidden><div id="chatout" aria-live="polite"></div></div>';
+    '<div class="card" id="chatcard" hidden><div id="chatout" aria-live="polite"></div></div>' +
+    '<div class="card" id="storedpapers"><h2>Stored papers</h2><div id="storedpapersout" aria-live="polite"></div></div>';
   $("#run").onclick = startChat;
   const legacy = $("#chatstart");
   if (legacy) legacy.onclick = startChat;
@@ -2578,6 +2595,7 @@ RENDERERS.home = function () {
   bindAttachments(p);
   loadAttachments();
   renderChat();
+  loadStoredPapers();
 };
 
 /* ---------- the deterministic conductor, rendered on the Home page ---------- */
@@ -2664,6 +2682,7 @@ function renderChat() {
     const plan = c.plan;
     html += '<div class="card"><h3>Proposed plan</h3>' +
       '<p><strong>' + esc(plan.framework) + ".</strong> " + esc(plan.why) + "</p>" +
+      (c.archetype ? '<p class="muted">Paper type: ' + esc(c.archetype.replace(/_/g, " ")) + "</p>" : "") +
       (c.subject_detected ? '<p class="muted">Read as: ' + esc(c.subject_detected.label) + ' (detected from your brief)</p>' : "") +
       '<p><strong>What it misses.</strong> ' + esc(plan.misses) + "</p>" +
       '<p class="muted">Decision: ' + esc(plan.decision) + " · Region: " + esc(plan.geography) +
@@ -2677,7 +2696,14 @@ function renderChat() {
       (plan.framework_id === "pestel_swot" ? '<p class="muted">The six PESTEL dimensions are researched; opportunities and threats are mapped from the accepted evidence by keyword.</p>' : "") +
       '<p class="muted">' + esc(plan.output) + "</p>" +
       reportLengthRow(plan) +
-      capabilityPanel(c, plan);
+      capabilityPanel(c, plan) +
+      blockGraphHtml(c) +
+      evidenceLedgerHtml(c) +
+      (Array.isArray(c.chart_specs) && c.chart_specs.length
+        ? '<h4 class="levelhead" style="margin-top:10px">Charts this paper carries</h4><ul class="guidesteps">' +
+          c.chart_specs.map((spec) => "<li>" + esc(spec.title || spec.kind || "Chart") + " (" + esc(spec.kind || "chart") + ")</li>").join("") +
+          "</ul>"
+        : "");
     if (c.stage === "plan") {
       html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatconfirm">Confirm plan</button></div>';
     } else {
@@ -2732,8 +2758,14 @@ function renderChat() {
       'In one or two sentences, what does this evidence suggest for your decision? <span class="muted">(your analysis)</span></label>' +
       '<textarea id="chatimplications" rows="3" style="width:100%" placeholder="Your implications, not the system\'s."></textarea>' +
       '<div class="row"><label class="field" for="chatstyle" style="margin:0">Citation style</label>' +
-      '<select id="chatstyle"><option value="apa"' + (c.plan.style === "apa" ? " selected" : "") + '>APA 7</option>' +
-      '<option value="harvard"' + (c.plan.style === "harvard" ? " selected" : "") + '>Harvard</option></select>' +
+      '<select id="chatstyle">' +
+      ['apa','harvard','chicago_ad','mla','vancouver','ieee','oscola','chicago_nb'].map((style) =>
+        '<option value="' + style + '"' + (c.plan.style === style ? " selected" : "") + '>' +
+        (style === "apa" ? "APA 7" : style === "harvard" ? "Harvard" :
+         style === "chicago_ad" ? "Chicago author-date" : style === "mla" ? "MLA 9" :
+         style === "vancouver" ? "Vancouver" : style === "ieee" ? "IEEE" :
+         style === "oscola" ? "OSCOLA" : "Chicago notes-bibliography") + "</option>").join("") +
+      "</select>" +
       '<button class="btn primary" id="chatdraft">Draft the section</button></div></div>' +
       capabilityPanel(c, c.plan) + "</div>";
     out.innerHTML = html;
@@ -2855,6 +2887,37 @@ async function setReportLength() {
     const again = $("#chatout");
     if (again) again.insertAdjacentHTML("afterbegin", errorBanner(error));
   }
+}
+
+function blockGraphHtml(c) {
+  const blocks = (c && Array.isArray(c.blocks)) ? c.blocks : [];
+  if (!blocks.length) return "";
+  return '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
+    '<h4 class="levelhead" style="margin-top:0">Plan blocks</h4>' +
+    '<ul class="guidesteps">' + blocks.map((block) =>
+      "<li><strong>" + esc(block.id || "") + "</strong> - " + esc(block.kind || "") + " - " +
+      esc(block.ref || "") + (block.role ? " (" + esc(block.role) + ")" : "") +
+      (block.contribution ? ": " + esc(block.contribution) : "") + "</li>").join("") +
+    "</ul></div>";
+}
+
+function evidenceLedgerHtml(c) {
+  const ledger = (c && c.evidence_ledger) ? c.evidence_ledger : null;
+  if (!ledger) return "";
+  const claims = Array.isArray(ledger.claims) ? ledger.claims : [];
+  const numbers = Array.isArray(ledger.numbers) ? ledger.numbers : [];
+  const charts = Array.isArray(ledger.charts) ? ledger.charts : [];
+  const gaps = Array.isArray(ledger.gaps) ? ledger.gaps : [];
+  let html = '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
+    '<h4 class="levelhead" style="margin-top:0">Evidence ledger</h4>' +
+    '<p class="muted" style="margin:0 0 6px">' + esc(String(claims.length)) + " claim(s), " +
+    esc(String(numbers.length)) + " number(s), " + esc(String(charts.length)) + " chart(s), " +
+    esc(String(gaps.length)) + " gap(s).</p>";
+  if (gaps.length) {
+    html += '<ul class="guidesteps">' + gaps.map((gap) =>
+      "<li>" + esc((gap && (gap.reason || gap.id)) || "gap") + "</li>").join("") + "</ul>";
+  }
+  return html + "</div>";
 }
 
 function capabilityPanel(c, plan) {
@@ -4008,12 +4071,74 @@ async function removeAttachment(id) {
   loadAttachments();
 }
 
+async function uploadRoleFiles(files, role) {
+  const list = Array.from(files || []);
+  if (!list.length) return;
+  const box = $("#attachments");
+  if (box) box.innerHTML = loading("Storing " + list.length + " " + role + " file" + (list.length === 1 ? "" : "s"));
+  let stored = 0;
+  for (const file of list) {
+    try {
+      const content_base64 = await readAsBase64(file);
+      const row = await post("/api/intake", { filename: file.name, content_base64: content_base64 });
+      stored += 1;
+      const id = row && row.id;
+      if (id && role === "rubric") await useAsRubric(id);
+      if (id && role === "data") await ingestAttachment(id);
+    } catch (error) {
+      toast(file.name + ": " + (error.message || String(error)));
+    }
+  }
+  if (stored) toast(stored === 1 ? (role + " file attached.") : (stored + " " + role + " files attached."));
+  loadAttachments();
+}
+
+function bindRoleUpload(buttonId, inputId, role) {
+  const button = $(buttonId), input = $(inputId);
+  if (button && input) {
+    button.onclick = () => input.click();
+    input.onchange = (event) => { uploadRoleFiles(event.target.files, role); event.target.value = ""; };
+  }
+}
+
+async function loadStoredPapers() {
+  const box = $("#storedpapersout");
+  if (!box) return;
+  try {
+    const data = await api("/api/cases");
+    const rows = (data && data.cases) || [];
+    if (!rows.length) {
+      box.innerHTML = '<div class="empty"><h3>No papers stored yet</h3><p>Start an analysis above and press "Save as case".</p></div>';
+      return;
+    }
+    box.innerHTML = '<div class="stack">' + rows.map((row) =>
+      '<div class="attachrow"><div class="attachmeta"><strong>' + esc(row.title || row.id) + '</strong>' +
+      '<div class="muted">' + esc(row.created_at || "") + (row.method ? " - " + esc(row.method) : "") + '</div></div>' +
+      '<div class="row"><button class="btn sm" type="button" data-openpaper="' + esc(row.id) + '">Open</button>' +
+      '<button class="btn sm" type="button" data-deletepaper="' + esc(row.id) + '" title="Delete this paper">x</button></div></div>'
+    ).join("") + "</div>";
+    $$("[data-openpaper]", box).forEach((b) => { b.onclick = () => openCase(b.dataset.openpaper); });
+    $$("[data-deletepaper]", box).forEach((b) => {
+      b.onclick = async () => {
+        try { await api("/api/cases/" + encodeURIComponent(b.dataset.deletepaper), { method: "DELETE" }); }
+        catch (error) { toast(error.message || String(error)); }
+        loadStoredPapers();
+      };
+    });
+  } catch (error) {
+    box.innerHTML = errorBanner(error);
+  }
+}
+
 function bindAttachments(panel) {
   const button = $("#attachbtn"), input = $("#attachfile"), box = panel && panel.querySelector(".actionbox");
   if (button && input) {
     button.onclick = () => input.click();
     input.onchange = (event) => { uploadAttachments(event.target.files); event.target.value = ""; };
   }
+  bindRoleUpload("#sourcesbtn", "#sourcesfile", "sources");
+  bindRoleUpload("#databtn", "#datafile", "data");
+  bindRoleUpload("#rubricbtn", "#rubricfile", "rubric");
   if (!box) return;
   ["dragenter", "dragover"].forEach((name) => box.addEventListener(name, (event) => {
     event.preventDefault(); box.classList.add("dragging");

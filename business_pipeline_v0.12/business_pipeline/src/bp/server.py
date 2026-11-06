@@ -928,7 +928,8 @@ class H(BaseHTTPRequestHandler):
                 body = self._body()
                 instruction = body.get("instruction", "") if isinstance(body, dict) else ""
                 count = int(body.get("count", 5)) if isinstance(body, dict) else 5
-                problems, error = product_chat_heal.generate_problems(instruction, count)
+                difficulty = body.get("difficulty", "medium") if isinstance(body, dict) else "medium"
+                problems, error = product_chat_heal.generate_problems(instruction, count, difficulty=difficulty)
                 if error:
                     return self._send(422, {"error": error, "problems": problems})
                 return self._send(200, {"problems": problems, "count": len(problems)})
@@ -951,7 +952,8 @@ class H(BaseHTTPRequestHandler):
                 body = self._body()
                 error_text = body.get("error", "") if isinstance(body, dict) else ""
                 count = int(body.get("count", 5)) if isinstance(body, dict) else 5
-                problems, instruction, error = product_chat_heal.generate_problems_from_error(error_text, count)
+                difficulty = body.get("difficulty", "medium") if isinstance(body, dict) else "medium"
+                problems, instruction, error = product_chat_heal.generate_problems_from_error(error_text, count, difficulty=difficulty)
                 if error:
                     return self._send(422, {"error": error, "problems": problems})
                 return self._send(200, {"problems": problems, "instruction": instruction, "count": len(problems)})

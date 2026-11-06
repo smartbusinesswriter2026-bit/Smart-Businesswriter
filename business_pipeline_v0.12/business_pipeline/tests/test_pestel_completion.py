@@ -202,7 +202,7 @@ class SameEvidenceTest(unittest.TestCase):
                  "political, economic, social, technological, environmental and legal context.")
         with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
                 mock.patch("bp.product.sources.search_web", side_effect=web):
-            state = chat.start(brief)
+            state = chat.start(brief, framework="pestel")
             for question_id, value in (("decision", "Should the chain enter Iran?"),
                                        ("geography", "Middle East"), ("period", "10"), ("style", "apa")):
                 state = chat.answer(state, question_id, value)
