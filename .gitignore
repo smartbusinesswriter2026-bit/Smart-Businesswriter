@@ -36,6 +36,7 @@ DATABASE/
 corpus-db/corpus.sqlite
 corpus-db/pdfs/
 corpus-db/meili/
+corpus-db/data.ms/
 
 # Word lock files
 ~$*.docx
