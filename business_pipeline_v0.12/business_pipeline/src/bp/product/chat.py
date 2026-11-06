@@ -18,7 +18,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import audit as audit_mod, capabilities, council, docx, framework_profiles, guard, instruction_reading, matrix, paper, paper_contract, paper_families, plan_proposal, prose, retrieval, rubric as rubric_reader, verify, writing
+from . import audit as audit_mod, capabilities, council, docx, framework_profiles, framework_registry, guard, instruction_reading, matrix, paper, paper_contract, paper_families, plan_proposal, prose, retrieval, rubric as rubric_reader, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -733,7 +733,7 @@ def _fit(brief, framework="none"):
         # rather than wrap a trial balance in a PESTEL paper.
         return False, ("This looks like an accounting or finance computation, not a strategic analysis. "
                        "Use the Accounting or Finance shelf instead.")
-    if framework == "pestel" and not any(hint in text for hint in EXTERNAL_HINTS):
+    if framework_registry.needs_probe(framework) and not any(hint in text for hint in EXTERNAL_HINTS):
         return False, ("This brief does not yet name an external question. Add the market, industry, country "
                        "or decision the analysis should support.")
     return True, None
@@ -2602,11 +2602,17 @@ def _research_one(state, dimension, corpus_doc_counts=None):
     context = set(country.lower().split()) if country else retrieval.specific_words(topic_words)
     geography = state["answers"].get("geography") or "Global"
     gate = _gate_for(state)
+    # The paper's own words are a better topic signal than the shelf: a
+    # management paper on business ethics must still reach the ethics sources.
+    topic = (state["answers"].get("decision") or state.get("brief")
+             or state.get("subject") or "")
+    if topic == "any":
+        topic = ""
     found = retrieval.retrieve(
         key=dimension["key"], cues=dimension.get("cues") or "", queries=[dimension["query"]],
         context=sorted(context), geography=geography, year_from=_year_from(state),
         category=dimension.get("category"), gate=gate, max_items=3, academic_limit=4, web_limit=3,
-        corpus_doc_cap=3, corpus_doc_counts=corpus_doc_counts)
+        corpus_doc_cap=3, corpus_doc_counts=corpus_doc_counts, topic=topic)
     notice = "; ".join(found.get("notices") or []) or None
     return {"dimension": dimension, "found": found.get("items") or [],
             "orientation": found.get("orientation") or [],

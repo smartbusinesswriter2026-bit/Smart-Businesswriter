@@ -374,7 +374,9 @@ class CorpusAdapterTest(unittest.TestCase):
                     "databases": databases or [], "timings": {}, "cached": False}
 
         counts = {}
-        with mock.patch.object(sources, "search_academic", side_effect=fake_search):
+        with mock.patch.object(sources, "search_academic", side_effect=fake_search), \
+                mock.patch.object(sources, "search_web",
+                                  return_value={"results": [], "cached": False}):
             r = retrieval.retrieve(
                 key="d1", cues="five forces rivalry",
                 queries=["five forces rivalry"], context=["industry"], geography="Global",
@@ -445,6 +447,130 @@ class CorpusAdapterTest(unittest.TestCase):
         self.assertEqual([item["title"] for item in r["orientation"]],
                          ["Porter's five forces"])
         self.assertEqual(r["source_plan"], "none")
+
+
+class TopicSiteTest(unittest.TestCase):
+    def domains(self, topic, limit=10):
+        return [site["domain"] for site in sources.sites_for(topic, limit=limit)]
+
+    def test_ethics_starts_with_the_philosophy_references(self):
+        domains = self.domains("business ethics")
+        self.assertIn("plato.stanford.edu", domains)
+        self.assertIn("iep.utm.edu", domains)
+        self.assertIn("scu.edu", domains)
+        self.assertEqual(domains[0], "plato.stanford.edu")
+
+    def test_culture_starts_with_hofstede_and_globe(self):
+        domains = self.domains("culture")
+        self.assertIn("geerthofstede.com", domains)
+        self.assertIn("globeproject.com", domains)
+        self.assertIn("worldvaluessurvey.org", domains)
+
+    def test_finance_reaches_the_primary_standards_bodies(self):
+        domains = self.domains("finance")
+        for expected in ("sec.gov", "fasb.org", "ifrs.org", "cfainstitute.org"):
+            self.assertIn(expected, domains)
+
+    def test_marketing_prefers_marketing_sources_over_a_general_regulator(self):
+        domains = self.domains("marketing")
+        self.assertIn("ama.org", domains)
+        self.assertIn("nielsen.com", domains)
+        self.assertNotIn("ftc.gov", domains)
+
+    def test_supply_chain_is_not_misread_as_technology(self):
+        # The first pass matched "ai" inside "chain" and returned technology.
+        self.assertEqual(sources.topic_for_text("supply chain"), "supply_chain")
+        domains = self.domains("supply chain")
+        self.assertIn("ascm.org", domains)
+        self.assertIn("cscmp.org", domains)
+        self.assertIn("ctl.mit.edu", domains)
+
+    def test_a_business_ethics_brief_reaches_the_ethics_sources(self):
+        topic = sources.topic_for_text(
+            "Assess the ethical implications of a supplier code of conduct")
+        self.assertEqual(topic, "ethics")
+        self.assertIn("plato.stanford.edu", self.domains("business ethics"))
+        self.assertEqual(sources.topic_label("business ethics"),
+                         "Business ethics and governance")
+
+    def test_a_no_framework_paper_retries_the_web_with_the_topic_label(self):
+        calls = []
+
+        def fake_web(query, region="Global", limit=10, category=None, fast=False,
+                     sites=None, providers=None, topic=None):
+            calls.append((query, topic))
+            if len(calls) == 1:
+                return {"results": [], "cached": False}
+            return {"results": [{
+                "title": "Business Ethics", "url": "https://plato.stanford.edu/entries/ethics-business/",
+                "description": "Stakeholder theory and the ethics of business conduct.",
+                "site": "Stanford Encyclopedia of Philosophy", "tier": "research"}],
+                "cached": False}
+
+        with mock.patch.object(sources, "search_academic",
+                               return_value={"results": [], "errors": [], "skipped": []}), \
+                mock.patch.object(retrieval, "_web", side_effect=fake_web):
+            found = retrieval.retrieve(
+                key="evidence", cues="market industry evidence",
+                queries=["assess ethical implications of a supplier code"],
+                context=["stakeholder"], topic="business ethics")
+        self.assertEqual(len(calls), 2)
+        self.assertIn("Business ethics", calls[1][0])
+        self.assertEqual(found["source_plan"], "web")
+        self.assertEqual(found["items"][0]["url"],
+                         "https://plato.stanford.edu/entries/ethics-business/")
+
+    def test_a_market_entry_brief_is_marketing_not_finance(self):
+        topic = sources.topic_for_text(
+            "Should we enter the grocery retail market in Saudi Arabia?")
+        self.assertEqual(topic, "marketing")
+
+    def test_project_management_is_its_own_topic(self):
+        self.assertEqual(sources.topic_for_text("project management"), "project")
+        self.assertIn("pmi.org", self.domains("project management"))
+
+    def test_health_law_and_accounting_have_their_primary_sources(self):
+        self.assertIn("who.int", self.domains("health"))
+        self.assertIn("cdc.gov", self.domains("health"))
+        self.assertIn("congress.gov", self.domains("law"))
+        self.assertIn("eur-lex.europa.eu", self.domains("law"))
+        self.assertIn("fasb.org", self.domains("accounting"))
+        self.assertIn("ifrs.org", self.domains("accounting"))
+
+    def test_a_free_source_ranks_before_a_paywalled_one(self):
+        domains = self.domains("management", limit=20)
+        free = min(domains.index(domain) for domain in ("mckinsey.com", "bcg.com")
+                   if domain in domains)
+        paid = [domains.index(domain) for domain in ("hbr.org", "gartner.com")
+                if domain in domains]
+        self.assertTrue(paid)
+        self.assertLess(free, min(paid))
+
+    def test_no_domain_is_repeated(self):
+        domains = self.domains("management", limit=30)
+        self.assertEqual(len(domains), len(set(domains)))
+
+    def test_the_registry_route_accepts_a_topic(self):
+        status, payload = api.handle("GET", "/api/cases/sources/sites?topic=ethics")
+        self.assertEqual(status, 200)
+        self.assertIn("plato.stanford.edu", [site["domain"] for site in payload["sites"]])
+        self.assertIn("ethics", payload["topics"])
+
+    def test_retrieval_passes_the_topic_to_the_web_layer(self):
+        seen = {}
+
+        def fake_web(query, region="Global", limit=10, category=None, fast=False,
+                     sites=None, providers=None, topic=None):
+            seen["topic"] = topic
+            return {"results": [], "notice": None, "sites": []}
+
+        with mock.patch.object(sources, "search_academic",
+                               return_value={"results": [], "errors": [], "skipped": []}), \
+                mock.patch.object(sources, "search_web", side_effect=fake_web):
+            retrieval.retrieve(key="legal", cues="regulation compliance",
+                               queries=["regulation compliance"], context=["industry"],
+                               category="legal", topic="ethics")
+        self.assertEqual(seen.get("topic"), "ethics")
 
 
 class RouteTest(unittest.TestCase):

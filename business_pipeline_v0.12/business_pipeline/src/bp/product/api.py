@@ -621,8 +621,10 @@ def handle(method, path, body=None):
             category = query.get("category")
             if category and category not in source_finder.CATEGORIES:
                 return _error("unknown category %r" % category)
+            topic = query.get("topic")
             return 200, {"regions": source_finder.REGIONS, "categories": source_finder.CATEGORIES,
-                         "sites": source_finder.vetted_sites(region, category=category)}
+                         "topics": {key: row["label"] for key, row in source_finder.TOPICS.items()},
+                         "sites": source_finder.vetted_sites(region, category=category, topic=topic)}
         if segments == ["sources", "search"]:
             if verb != "POST":
                 return 405, {"error": "method %s is not allowed on source search" % verb}

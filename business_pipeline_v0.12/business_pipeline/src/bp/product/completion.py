@@ -26,7 +26,7 @@ from . import docx, framework_profiles, guard, matrix, paper, prose, retrieval, 
 from . import rubric as rubric_reader
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?%?")
-FRAMEWORK_WORDS = {"porter", "forces", "five", "swot", "pestel", "break", "even", "analysis", "pestel analysis"}
+from .framework_registry import WORDS as FRAMEWORK_WORDS
 PROPER = re.compile(r"(?<![.!?]\s)(?<!^)\b[A-Z][a-z]{2,}\b")
 CITATION = re.compile(r"\([^()]{1,140}?,\s*(?:n\.d\.|no date|\d{4}[a-z]?)\)")
 URL = re.compile(r"https?://|doi:", re.I)
@@ -256,7 +256,8 @@ def _one_block(profile, block, context, region, year_from, country="", corpus_do
             context=retrieval.context_words(context), geography=region, year_from=year_from,
             category=block.get("category"), gate=profile.get("gate"),
             sites=_sites(profile), providers=profile.get("providers"),
-            corpus_doc_cap=3, corpus_doc_counts=corpus_doc_counts)
+            corpus_doc_cap=3, corpus_doc_counts=corpus_doc_counts,
+            topic=context or profile.get("subject") or "")
     except Exception as error:
         found = {"items": [], "queries": _queries(block, context, region, country), "dropped": 0,
                  "errors": [{"database": "retrieval", "error": str(error)[:160]}],

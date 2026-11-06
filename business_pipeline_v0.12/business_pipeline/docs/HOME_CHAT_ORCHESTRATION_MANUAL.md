@@ -425,6 +425,9 @@ The conductor retrieves in three layers, cheapest first:
 - The evidence view shows the query and the per-layer counts (`Corpus / web / journal
   APIs`) under **What was searched**, so "no results" and "irrelevant results" are
   distinguishable.
+- The web layer is not an open web search. `sources.sites_for(topic)` selects a ranked
+  vetted list from the paper's subject (or from the query when the subject is absent);
+  see `docs/VETTED_SOURCES.md`.
 
 
 ---

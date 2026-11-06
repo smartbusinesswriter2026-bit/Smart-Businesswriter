@@ -165,6 +165,627 @@ VETTED_SITES = [
 REGIONS = ["Global", "US", "Europe", "Middle East", "China"]
 CATEGORIES = ["legal", "economic", "social", "company", "news"]
 
+#: The topics a paper can carry.  The pipeline's subject ids are the spine;
+#: the cross-cutting topics are what a brief actually names ("business ethics",
+#: "culture", "health").  `keywords` are used only to infer a topic from free
+#: text; a site's own `topics` list is the authority on where it belongs.
+TOPICS = {
+    "ethics": {"label": "Business ethics and governance",
+               "keywords": ["ethic", "moral", "csr", "corporate social responsibility",
+                            "integrity", "corruption", "bribery", "stakeholder theory"]},
+    "culture": {"label": "Culture and cross-cultural management",
+                "keywords": ["culture", "cultural", "hofstede", "globe project",
+                             "cross-cultural", "values survey", "national culture"]},
+    "law": {"label": "Law, regulation and policy",
+            "keywords": ["law", "legal", "regulation", "regulatory", "compliance",
+                         "sanction", "legislation", "court", "policy"]},
+    "health": {"label": "Health and healthcare",
+               "keywords": ["health", "healthcare", "hospital", "patient", "medical",
+                            "pharma", "disease", "public health"]},
+    "environment": {"label": "Environment and sustainability",
+                    "keywords": ["environment", "climate", "emission", "carbon",
+                                 "sustainability", "esg", "energy", "renewable", "green"]},
+    "technology": {"label": "Technology and innovation",
+                   "keywords": ["technology", "digital", "innovation", "ai", "artificial intelligence",
+                                "automation", "software", "platform", "patent"]},
+    "accounting": {"label": "Accounting and reporting",
+                   "keywords": ["accounting", "ledger", "ifrs", "gaap", "audit",
+                                "financial statement", "trial balance", "reporting"]},
+    "finance": {"label": "Finance and markets",
+                "keywords": ["finance", "financial", "valuation", "wacc", "capital",
+                             "investment", "bank", "portfolio", "stock", "bond"]},
+    "economics": {"label": "Economics and public policy",
+                  "keywords": ["economics", "economic", "gdp", "inflation", "monetary",
+                               "fiscal", "trade", "labour market", "labor market", "productivity"]},
+    "marketing": {"label": "Marketing and customers",
+                  "keywords": ["marketing", "brand", "customer", "consumer", "advertising",
+                               "campaign", "segment", "pricing", "retail", "channel",
+                               "market entry", "market size"]},
+    "operations": {"label": "Operations and quality",
+                   "keywords": ["operations", "process", "quality", "lean", "six sigma",
+                                "capacity", "inventory", "production", "service"]},
+    "supply_chain": {"label": "Supply chain and logistics",
+                     "keywords": ["supply chain", "logistics", "procurement", "supplier",
+                                  "distribution", "warehouse", "freight", "sourcing"]},
+    "people": {"label": "People, work and organisation",
+               "keywords": ["human resource", "hr", "employee", "workforce", "talent",
+                            "leadership", "motivation", "organisational behaviour",
+                            "organizational behavior", "training"]},
+    "entrepreneurship": {"label": "Entrepreneurship and ventures",
+                         "keywords": ["entrepreneur", "startup", "start-up", "venture",
+                                      "sme", "msme", "incubator", "founder"]},
+    "management": {"label": "Management and strategy",
+                   "keywords": ["management", "strategy", "strategic", "competitive",
+                                "governance", "change", "organisation", "organization"]},
+    "project": {"label": "Project and programme management",
+                "keywords": ["project", "programme", "program", "portfolio", "pmo",
+                             "schedule", "milestone", "charter"]},
+    "research": {"label": "Research methods and evidence",
+                 "keywords": ["research", "method", "methodology", "statistics",
+                              "sample", "survey", "regression", "evidence", "meta-analysis"]},
+    "industry": {"label": "Industry and market structure",
+                 "keywords": ["industry", "sector", "market share", "competitor",
+                              "competitive intensity", "five forces", "market size"]},
+    "company": {"label": "Company and filing data",
+                "keywords": ["company", "firm", "annual report", "filing", "listed",
+                             "subsidiary", "shareholder"]},
+    "country": {"label": "Country and regional data",
+                "keywords": ["country", "region", "national", "economy of", "market entry"]},
+    "news": {"label": "Business press",
+             "keywords": ["news", "current", "recent", "announcement", "press"]},
+}
+
+#: Pipeline subject ids are not always the topic id (`project-management`,
+#: `supply-chain`).  One alias table keeps both surfaces honest.
+SUBJECT_ALIASES = {"project-management": "project", "supply-chain": "supply_chain",
+                   "strategy": "management", "organisation": "people",
+                   "organization": "people", "project management": "project",
+                   "supply chain": "supply_chain", "human resources": "people",
+                   "human resource": "people"}
+
+#: Sites whose domain was already in the registry before topics existed.
+#: `vetted_sites` merges these into the site dict, so the long list above does
+#: not have to be rewritten.
+SITE_TOPICS = {
+    "sec": ["finance", "accounting", "company", "law"],
+    "fed": ["economics", "finance", "country"],
+    "fred": ["economics", "finance", "country"],
+    "bls": ["economics", "people", "country"],
+    "bea": ["economics", "country"],
+    "census": ["economics", "people", "country"],
+    "ustr": ["economics", "law", "country"],
+    "ftc": ["law", "management"],
+    "gao": ["law", "economics", "management"],
+    "cbo": ["economics", "law", "country"],
+    "ecb": ["economics", "finance", "country"],
+    "eurostat": ["economics", "country", "people"],
+    "oecd": ["economics", "finance", "management", "environment", "health", "country"],
+    "eib": ["finance", "economics", "environment"],
+    "ebrd": ["finance", "economics", "country"],
+    "bis": ["finance", "economics", "law"],
+    "wto": ["economics", "law", "country"],
+    "ons": ["economics", "country", "people"],
+    "destatis": ["economics", "country"],
+    "insee": ["economics", "country"],
+    "worldbank": ["economics", "country", "environment", "health", "management"],
+    "imf": ["economics", "finance", "country"],
+    "un": ["country", "law", "environment", "people"],
+    "unctad": ["economics", "country", "law"],
+    "gcc": ["country", "law", "economics"],
+    "amf": ["finance", "economics", "country"],
+    "uae-stat": ["country", "economics"],
+    "saudi-stat": ["country", "economics"],
+    "qatar-stat": ["country", "economics"],
+    "israel-cbs": ["country", "economics"],
+    "turkey-tuik": ["country", "economics"],
+    "china-nbs": ["country", "economics"],
+    "china-customs": ["country", "economics", "law"],
+    "pboc": ["finance", "economics", "country"],
+    "china-mof": ["economics", "law", "country"],
+    "ndrc": ["economics", "law", "environment", "country"],
+    "gov-cn": ["law", "country", "economics"],
+    "sse": ["company", "finance"],
+    "szse": ["company", "finance"],
+    "hkex": ["company", "finance", "law"],
+    "reuters": ["news", "company", "finance", "economics", "management"],
+    "ft": ["news", "company", "finance", "economics", "management"],
+    "bloomberg": ["news", "company", "finance", "economics"],
+    "wsj": ["news", "company", "finance", "economics"],
+    "economist": ["news", "economics", "management", "country"],
+    "scmp": ["news", "company", "country", "economics"],
+    "caixin": ["news", "finance", "company", "country"],
+    "arabnews": ["news", "company", "country"],
+    "thenational": ["news", "company", "country"],
+    "congress": ["law"], "federalregister": ["law"], "ecfr": ["law"],
+    "ofac": ["law", "finance"], "law-cornell": ["law"],
+    "supremecourt": ["law"], "uscourts": ["law"], "legislation-uk": ["law"],
+    "supremecourt-uk": ["law"], "eurlex": ["law"], "eu-sanctions": ["law"],
+    "curia": ["law"], "wipo": ["law", "technology"], "uncitral": ["law"],
+    "icj": ["law"], "icsid": ["law", "finance"], "npc": ["law", "country"],
+    "china-court": ["law"], "saudi-laws": ["law"], "uae-laws": ["law"],
+    "iran-cbi": ["economics", "finance", "country"],
+    "iran-sci": ["economics", "country"], "iran-un": ["country", "people"],
+    "imf-data": ["economics", "finance", "country"],
+    "worldbank-data": ["economics", "country", "environment"],
+    "oecd-library": ["economics", "management", "environment", "health"],
+    "ilo": ["people", "law", "country"],
+    "unesco": ["culture", "people", "country"],
+    "undp": ["country", "people", "environment"],
+    "hdr": ["country", "people", "research"],
+    "who": ["health", "country"],
+    "pew": ["culture", "people", "marketing", "research"],
+    "wvs": ["culture", "people", "country", "research"],
+    "arabbarometer": ["culture", "people", "country", "research"],
+    "un-data": ["country", "economics", "people"],
+}
+
+#: Topic-specific sites added after the first registry.  A site may carry more
+#: than one topic; the selection is a ranking, not a hard filter, so a data
+#: source that belongs to no exact topic can still appear below the matches.
+#: `access` is honest: a paywalled source is still a vetted source, but it is
+#: ranked below a free one and its snippet is orientation, not citable text.
+TOPIC_SITES = [
+    # Business ethics and philosophy
+    {"id": "sep", "label": "Stanford Encyclopedia of Philosophy", "domain": "plato.stanford.edu",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["ethics", "management", "law"],
+     "use": "philosophical foundations of ethics and stakeholder theory"},
+    {"id": "iep", "label": "Internet Encyclopedia of Philosophy", "domain": "iep.utm.edu",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["ethics", "management"],
+     "use": "peer-reviewed philosophy reference"},
+    {"id": "markkula", "label": "Markkula Center for Applied Ethics", "domain": "scu.edu",
+     "region": "US", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["ethics", "management"],
+     "use": "applied business and organisational ethics"},
+    {"id": "ibe", "label": "Institute of Business Ethics", "domain": "ibe.org.uk",
+     "region": "Europe", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["ethics", "management"],
+     "use": "business ethics research and guidance"},
+    {"id": "transparency", "label": "Transparency International", "domain": "transparency.org",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["ethics", "law", "management", "country"],
+     "use": "corruption and integrity indexes"},
+    {"id": "unglobalcompact", "label": "UN Global Compact", "domain": "unglobalcompact.org",
+     "region": "Global", "tier": "official", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["ethics", "environment", "management"],
+     "use": "corporate responsibility principles"},
+    {"id": "carnegiecouncil", "label": "Carnegie Council for Ethics in International Affairs",
+     "domain": "carnegiecouncil.org", "region": "Global", "tier": "research",
+     "category": "social", "academic_fit": "research", "access": "free",
+     "topics": ["ethics", "law"], "use": "ethics and international affairs"},
+    # Culture and cross-cultural management
+    {"id": "hofstede", "label": "Geert Hofstede", "domain": "geerthofstede.com",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["culture", "people", "management"],
+     "use": "the six dimensions of national culture"},
+    {"id": "hofstede-insights", "label": "Hofstede Insights / The Culture Factor",
+     "domain": "hofstede-insights.com", "region": "Global", "tier": "research",
+     "category": "social", "academic_fit": "research", "access": "mixed",
+     "topics": ["culture", "people", "management"],
+     "use": "country culture profiles and comparisons"},
+    {"id": "globe", "label": "GLOBE Project", "domain": "globeproject.com",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["culture", "people", "management"],
+     "use": "GLOBE cultural dimensions and leadership"},
+    {"id": "afrobarometer", "label": "Afrobarometer", "domain": "afrobarometer.org",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["culture", "people", "country", "research"],
+     "use": "African public opinion data"},
+    {"id": "latinobarometro", "label": "Latinobarometro", "domain": "latinobarometro.org",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["culture", "people", "country", "research"],
+     "use": "Latin American public opinion data"},
+    # Management, strategy and the practice literature
+    {"id": "hbr", "label": "Harvard Business Review", "domain": "hbr.org",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "paywalled", "topics": ["management", "marketing", "people", "technology"],
+     "use": "practice literature and management ideas"},
+    {"id": "sloanreview", "label": "MIT Sloan Management Review", "domain": "sloanreview.mit.edu",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "mixed", "topics": ["management", "technology", "people"],
+     "use": "management research for practice"},
+    {"id": "mckinsey", "label": "McKinsey Insights", "domain": "mckinsey.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "free", "topics": ["management", "operations", "marketing", "technology"],
+     "use": "industry and strategy analysis"},
+    {"id": "bcg", "label": "BCG Insights", "domain": "bcg.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "free", "topics": ["management", "technology", "operations"],
+     "use": "strategy and industry analysis"},
+    {"id": "bain", "label": "Bain Insights", "domain": "bain.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "free", "topics": ["management", "marketing", "operations"],
+     "use": "strategy and customer analysis"},
+    {"id": "deloitte", "label": "Deloitte Insights", "domain": "deloitte.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "free", "topics": ["management", "finance", "operations", "technology"],
+     "use": "industry and functional research"},
+    {"id": "pwc", "label": "PwC Research", "domain": "pwc.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "free", "topics": ["management", "finance", "accounting", "people"],
+     "use": "industry, tax and governance research"},
+    {"id": "accenture", "label": "Accenture Research", "domain": "accenture.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "free", "topics": ["management", "technology", "operations"],
+     "use": "technology and operating-model research"},
+    {"id": "strategy-business", "label": "Strategy+Business", "domain": "strategy-business.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "free", "topics": ["management", "people"],
+     "use": "strategy and leadership analysis"},
+    {"id": "gartner", "label": "Gartner", "domain": "gartner.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "paywalled", "topics": ["technology", "management", "operations", "marketing"],
+     "use": "technology and market research"},
+    {"id": "forrester", "label": "Forrester", "domain": "forrester.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "paywalled", "topics": ["technology", "management", "marketing"],
+     "use": "technology and customer research"},
+    # Marketing and customer data
+    {"id": "ama", "label": "American Marketing Association", "domain": "ama.org",
+     "region": "US", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["marketing"], "use": "marketing practice and definitions"},
+    {"id": "marketingweek", "label": "Marketing Week", "domain": "marketingweek.com",
+     "region": "Europe", "tier": "news", "category": "economic", "academic_fit": "background",
+     "access": "mixed", "topics": ["marketing"], "use": "marketing practice and campaigns"},
+    {"id": "warc", "label": "WARC", "domain": "warc.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "paywalled", "topics": ["marketing"], "use": "advertising and media effectiveness"},
+    {"id": "emarketer", "label": "eMarketer", "domain": "emarketer.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "paywalled", "topics": ["marketing", "technology"], "use": "digital marketing data"},
+    {"id": "nielsen", "label": "Nielsen", "domain": "nielsen.com",
+     "region": "Global", "tier": "data", "category": "economic", "academic_fit": "primary",
+     "access": "mixed", "topics": ["marketing", "industry"], "use": "consumer and media measurement"},
+    {"id": "kantar", "label": "Kantar", "domain": "kantar.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "primary",
+     "access": "mixed", "topics": ["marketing", "culture"], "use": "brand, media and consumer research"},
+    {"id": "statista", "label": "Statista", "domain": "statista.com",
+     "region": "Global", "tier": "data", "category": "economic", "academic_fit": "background",
+     "access": "mixed", "topics": ["marketing", "industry", "company", "economics"],
+     "use": "market and consumer statistics"},
+    {"id": "ibisworld", "label": "IBISWorld", "domain": "ibisworld.com",
+     "region": "Global", "tier": "data", "category": "economic", "academic_fit": "background",
+     "access": "paywalled", "topics": ["industry", "management", "strategy"],
+     "use": "industry reports and market structure"},
+    {"id": "euromonitor", "label": "Euromonitor", "domain": "euromonitor.com",
+     "region": "Global", "tier": "data", "category": "economic", "academic_fit": "background",
+     "access": "paywalled", "topics": ["industry", "marketing", "economics"],
+     "use": "consumer markets and industry data"},
+    {"id": "mintel", "label": "Mintel", "domain": "mintel.com",
+     "region": "Global", "tier": "data", "category": "economic", "academic_fit": "background",
+     "access": "paywalled", "topics": ["marketing", "industry"], "use": "consumer and market research"},
+    # Finance, accounting and company filings
+    {"id": "fasb", "label": "FASB", "domain": "fasb.org",
+     "region": "US", "tier": "official", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["accounting", "finance"],
+     "use": "US GAAP standards and projects"},
+    {"id": "ifrs", "label": "IFRS Foundation / IASB", "domain": "ifrs.org",
+     "region": "Global", "tier": "official", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["accounting", "finance", "environment"],
+     "use": "IFRS and ISSB standards"},
+    {"id": "aicpa", "label": "AICPA", "domain": "aicpa.org",
+     "region": "US", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["accounting", "finance"], "use": "accounting profession and audit"},
+    {"id": "cfainstitute", "label": "CFA Institute", "domain": "cfainstitute.org",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["finance", "accounting"], "use": "investment and ethics research"},
+    {"id": "annualreports", "label": "AnnualReports.com", "domain": "annualreports.com",
+     "region": "Global", "tier": "data", "category": "company", "academic_fit": "primary",
+     "access": "free", "topics": ["company", "finance", "accounting"],
+     "use": "listed-company annual reports"},
+    {"id": "companieshouse", "label": "UK Companies House", "domain": "companieshouse.gov.uk",
+     "region": "Europe", "tier": "official", "category": "company", "academic_fit": "primary",
+     "access": "free", "topics": ["company", "finance", "law"],
+     "use": "UK company filings"},
+    # Economics and think tanks
+    {"id": "nber", "label": "NBER", "domain": "nber.org",
+     "region": "US", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["economics", "finance", "research"],
+     "use": "working papers and economic research"},
+    {"id": "cepr", "label": "CEPR", "domain": "cepr.org",
+     "region": "Europe", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["economics", "research"], "use": "economic policy research"},
+    {"id": "voxeu", "label": "VoxEU", "domain": "voxeu.org",
+     "region": "Europe", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "free", "topics": ["economics", "research"], "use": "economic policy commentary"},
+    {"id": "brookings", "label": "Brookings Institution", "domain": "brookings.edu",
+     "region": "US", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "free", "topics": ["economics", "law", "management", "country"],
+     "use": "policy and economic research"},
+    {"id": "piie", "label": "Peterson Institute for International Economics", "domain": "piie.com",
+     "region": "US", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "free", "topics": ["economics", "law", "country"],
+     "use": "trade and international economics"},
+    {"id": "bruegel", "label": "Bruegel", "domain": "bruegel.org",
+     "region": "Europe", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "free", "topics": ["economics", "country"], "use": "European economic policy"},
+    {"id": "ourworldindata", "label": "Our World in Data", "domain": "ourworldindata.org",
+     "region": "Global", "tier": "data", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["economics", "health", "environment", "country", "research"],
+     "use": "long-run country and development data"},
+    {"id": "gapminder", "label": "Gapminder", "domain": "gapminder.org",
+     "region": "Global", "tier": "data", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["economics", "country", "research"],
+     "use": "country development data"},
+    {"id": "icpsr", "label": "ICPSR (University of Michigan)", "domain": "icpsr.umich.edu",
+     "region": "Global", "tier": "data", "category": "social", "academic_fit": "research",
+     "access": "mixed", "topics": ["research", "people", "economics", "country"],
+     "use": "social-science data archive"},
+    {"id": "datagov", "label": "Data.gov", "domain": "data.gov",
+     "region": "US", "tier": "data", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["country", "economics", "research"],
+     "use": "US open government data"},
+    {"id": "unstats", "label": "UN Statistics Division", "domain": "unstats.un.org",
+     "region": "Global", "tier": "data", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["country", "economics", "people"],
+     "use": "cross-national official statistics"},
+    # Operations and supply chain
+    {"id": "ascm", "label": "ASCM (APICS)", "domain": "ascm.org",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["supply_chain", "operations"],
+     "use": "supply-chain standards and research"},
+    {"id": "cscmp", "label": "CSCMP", "domain": "cscmp.org",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["supply_chain", "operations"],
+     "use": "logistics and supply-chain research"},
+    {"id": "ism", "label": "Institute for Supply Management", "domain": "ism.ws",
+     "region": "US", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["supply_chain", "operations"],
+     "use": "purchasing and supply management"},
+    {"id": "mitctl", "label": "MIT Center for Transportation and Logistics", "domain": "ctl.mit.edu",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "free", "topics": ["supply_chain", "operations", "research"],
+     "use": "logistics and supply-chain research"},
+    {"id": "lpi", "label": "World Bank Logistics Performance Index", "domain": "lpi.worldbank.org",
+     "region": "Global", "tier": "data", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["supply_chain", "operations", "country"],
+     "use": "country logistics performance"},
+    # People and organisation
+    {"id": "shrm", "label": "SHRM", "domain": "shrm.org",
+     "region": "US", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "mixed", "topics": ["people", "management"], "use": "HR practice and research"},
+    {"id": "cipd", "label": "CIPD", "domain": "cipd.org",
+     "region": "Europe", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "mixed", "topics": ["people", "management"], "use": "people profession research"},
+    {"id": "gallup", "label": "Gallup", "domain": "gallup.com",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "mixed", "topics": ["people", "research", "marketing"],
+     "use": "workplace and public-opinion research"},
+    # Entrepreneurship
+    {"id": "kauffman", "label": "Kauffman Foundation", "domain": "kauffman.org",
+     "region": "US", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "free", "topics": ["entrepreneurship", "research"],
+     "use": "entrepreneurship research"},
+    {"id": "cbinsights", "label": "CB Insights", "domain": "cbinsights.com",
+     "region": "Global", "tier": "data", "category": "company", "academic_fit": "background",
+     "access": "mixed", "topics": ["entrepreneurship", "technology", "company", "industry"],
+     "use": "startup and venture data"},
+    {"id": "crunchbase", "label": "Crunchbase", "domain": "crunchbase.com",
+     "region": "Global", "tier": "data", "category": "company", "academic_fit": "background",
+     "access": "mixed", "topics": ["entrepreneurship", "technology", "company"],
+     "use": "startup funding and company data"},
+    {"id": "pitchbook", "label": "PitchBook", "domain": "pitchbook.com",
+     "region": "Global", "tier": "data", "category": "company", "academic_fit": "background",
+     "access": "paywalled", "topics": ["entrepreneurship", "finance", "company"],
+     "use": "private-market and venture data"},
+    {"id": "startupgenome", "label": "Startup Genome", "domain": "startupgenome.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["entrepreneurship", "technology", "country"],
+     "use": "startup ecosystems"},
+    # Technology and innovation
+    {"id": "uspto", "label": "USPTO", "domain": "uspto.gov",
+     "region": "US", "tier": "official", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["technology", "law", "research"],
+     "use": "patents and trademarks"},
+    {"id": "epo", "label": "European Patent Office", "domain": "epo.org",
+     "region": "Europe", "tier": "official", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["technology", "law", "research"],
+     "use": "patents and innovation data"},
+    {"id": "nist", "label": "NIST", "domain": "nist.gov",
+     "region": "US", "tier": "official", "category": "economic", "academic_fit": "primary",
+     "access": "free", "topics": ["technology", "operations", "research"],
+     "use": "standards and measurement"},
+    {"id": "technologyreview", "label": "MIT Technology Review", "domain": "technologyreview.com",
+     "region": "Global", "tier": "news", "category": "economic", "academic_fit": "background",
+     "access": "mixed", "topics": ["technology", "management", "research"],
+     "use": "technology analysis"},
+    {"id": "stanfordhai", "label": "Stanford HAI", "domain": "hai.stanford.edu",
+     "region": "US", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "free", "topics": ["technology", "research", "management"],
+     "use": "AI policy and research"},
+    # Environment and sustainability
+    {"id": "ipcc", "label": "IPCC", "domain": "ipcc.ch",
+     "region": "Global", "tier": "official", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["environment", "research", "country"],
+     "use": "climate science assessments"},
+    {"id": "unep", "label": "UN Environment Programme", "domain": "unep.org",
+     "region": "Global", "tier": "official", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["environment", "country"], "use": "environmental policy and data"},
+    {"id": "iea", "label": "International Energy Agency", "domain": "iea.org",
+     "region": "Global", "tier": "official", "category": "economic", "academic_fit": "primary",
+     "access": "mixed", "topics": ["environment", "economics", "country"],
+     "use": "energy data and policy"},
+    {"id": "epa", "label": "US EPA", "domain": "epa.gov",
+     "region": "US", "tier": "official", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["environment", "health", "law"],
+     "use": "US environmental regulation and data"},
+    {"id": "wri", "label": "World Resources Institute", "domain": "wri.org",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "research",
+     "access": "free", "topics": ["environment", "country", "research"],
+     "use": "environment and development research"},
+    {"id": "cdp", "label": "CDP", "domain": "cdp.net",
+     "region": "Global", "tier": "data", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["environment", "finance", "company"],
+     "use": "corporate climate disclosure"},
+    {"id": "gri", "label": "Global Reporting Initiative", "domain": "globalreporting.org",
+     "region": "Global", "tier": "research", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["environment", "accounting", "company"],
+     "use": "sustainability reporting standards"},
+    # Health
+    {"id": "cdc", "label": "US CDC", "domain": "cdc.gov",
+     "region": "US", "tier": "official", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["health", "research"],
+     "use": "public health data and guidance"},
+    {"id": "nih", "label": "US National Institutes of Health", "domain": "nih.gov",
+     "region": "US", "tier": "official", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["health", "research"], "use": "biomedical and health research"},
+    {"id": "ihme", "label": "Institute for Health Metrics and Evaluation", "domain": "healthdata.org",
+     "region": "Global", "tier": "data", "category": "social", "academic_fit": "primary",
+     "access": "free", "topics": ["health", "country", "research"],
+     "use": "global health burden data"},
+    # Law and governance
+    {"id": "unodc", "label": "UN Office on Drugs and Crime", "domain": "unodc.org",
+     "region": "Global", "tier": "official", "category": "legal", "academic_fit": "primary",
+     "access": "free", "topics": ["law", "ethics", "management"],
+     "use": "corruption, crime and justice data"},
+    {"id": "worldjustice", "label": "World Justice Project", "domain": "worldjusticeproject.org",
+     "region": "Global", "tier": "research", "category": "legal", "academic_fit": "research",
+     "access": "free", "topics": ["law", "country", "management"],
+     "use": "rule-of-law index"},
+    # Project and programme management
+    {"id": "pmi", "label": "Project Management Institute", "domain": "pmi.org",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["project", "management"],
+     "use": "project management standards and research"},
+    {"id": "ipma", "label": "IPMA", "domain": "ipma.world",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "research",
+     "access": "mixed", "topics": ["project", "management"],
+     "use": "project management competence"},
+    {"id": "axelos", "label": "AXELOS", "domain": "axelos.com",
+     "region": "Global", "tier": "research", "category": "economic", "academic_fit": "background",
+     "access": "mixed", "topics": ["project", "management", "technology"],
+     "use": "PRINCE2 and ITIL practice"},
+]
+
+
+#: Canonical sources come first within a topic.  The number is not a
+#: credibility claim; it is the order a researcher would try them: the primary
+#: standards body before a regional bank, the encyclopedia before a consultancy.
+SITE_PRIORITY = {
+    "sep": 10, "iep": 9, "markkula": 8, "ibe": 8, "transparency": 8,
+    "unglobalcompact": 7, "carnegiecouncil": 7,
+    "hofstede": 10, "globe": 10, "hofstede-insights": 8, "afrobarometer": 8,
+    "latinobarometro": 8, "worldvaluessurvey": 8, "unesco": 8, "pewresearch": 7,
+    "sec": 10, "fasb": 10, "ifrs": 10, "cfainstitute": 8, "aicpa": 8,
+    "annualreports": 7, "companieshouse": 8, "federalreserve": 9, "ecb": 9,
+    "imf": 8, "worldbank": 8, "oecd": 7, "bis": 7,
+    "congress": 9, "eurlex": 9, "curia": 8, "supremecourt": 8, "legislation-uk": 8,
+    "who": 10, "cdc": 10, "nih": 9, "ihme": 8,
+    "ipcc": 10, "unep": 9, "iea": 9, "epa": 9, "wri": 8, "cdp": 8, "gri": 8,
+    "nber": 8, "cepr": 7, "voxeu": 7, "brookings": 7, "piie": 7, "bruegel": 7,
+    "ourworldindata": 7, "gapminder": 6,
+    "hbr": 8, "sloanreview": 7, "mckinsey": 7, "bcg": 7, "bain": 7,
+    "deloitte": 6, "pwc": 6, "accenture": 6, "gartner": 7, "forrester": 7,
+    "ama": 9, "nielsen": 8, "kantar": 8, "statista": 7, "ibisworld": 8,
+    "euromonitor": 8, "mintel": 8, "warc": 7, "emarketer": 7,
+    "ascm": 9, "cscmp": 9, "ism": 8, "mitctl": 9, "lpi": 8,
+    "shrm": 9, "cipd": 8, "gallup": 7,
+    "kauffman": 9, "cbinsights": 8, "crunchbase": 8, "pitchbook": 7, "startupgenome": 7,
+    "uspto": 9, "epo": 9, "nist": 8, "technologyreview": 7, "stanfordhai": 8,
+    "unodc": 8, "worldjustice": 8,
+    "pmi": 9, "ipma": 8, "axelos": 7,
+}
+
+
+#: Existing news sites whose access was not recorded in the first registry.
+SITE_ACCESS = {
+    "reuters": "mixed", "ft": "paywalled", "bloomberg": "paywalled",
+    "wsj": "paywalled", "economist": "paywalled", "scmp": "mixed",
+    "caixin": "mixed", "arabnews": "free", "thenational": "mixed",
+}
+
+
+def _all_sites():
+    """The full registry with defaults filled, one dict per site."""
+    for site in list(VETTED_SITES) + list(TOPIC_SITES):
+        item = dict(site)
+        item.setdefault("topics", list(SITE_TOPICS.get(item["id"], [])))
+        item.setdefault("access", SITE_ACCESS.get(item["id"], "free"))
+        item.setdefault("category", SITE_CATEGORY.get(item["id"], "economic"))
+        item.setdefault("priority", SITE_PRIORITY.get(item["id"], 0))
+        item.setdefault("academic_fit", "background" if item["tier"] == "news"
+                        else "research" if item["tier"] == "research" else "primary")
+        yield item
+
+
+#: A few strong cues per topic, used only where the dimension is generic
+#: (`none` framework, key `evidence`).  They do not loosen a named dimension:
+#: a PESTEL legal block still requires legal evidence, not ethics vocabulary.
+TOPIC_CUES = {
+    "ethics": ["ethic", "moral", "stakeholder", "integrity", "corruption", "csr"],
+    "culture": ["culture", "cultural", "hofstede", "values", "cross-cultural"],
+    "finance": ["finance", "financial", "valuation", "investment", "capital"],
+    "accounting": ["accounting", "audit", "ifrs", "gaap", "reporting"],
+    "marketing": ["marketing", "customer", "consumer", "brand", "retail"],
+    "operations": ["operations", "process", "quality", "capacity", "inventory"],
+    "supply_chain": ["supply", "logistics", "procurement", "supplier", "distribution"],
+    "people": ["employee", "workforce", "leadership", "motivation", "training"],
+    "entrepreneurship": ["entrepreneur", "startup", "venture", "sme", "founder"],
+    "technology": ["technology", "digital", "innovation", "patent", "automation"],
+    "environment": ["environment", "climate", "carbon", "sustainability", "emission"],
+    "health": ["health", "healthcare", "patient", "medical", "hospital"],
+    "law": ["law", "legal", "regulation", "compliance", "court"],
+    "economics": ["economics", "economic", "gdp", "inflation", "trade"],
+    "project": ["project", "programme", "pmo", "schedule", "milestone"],
+    "industry": ["industry", "sector", "market", "competitor", "competition"],
+    "company": ["company", "firm", "annual", "filing", "shareholder"],
+    "country": ["country", "national", "region"],
+    "research": ["research", "method", "statistics", "survey", "evidence"],
+    "management": ["management", "strategy", "competitive", "governance", "change"],
+    "news": ["news", "announcement", "press"],
+}
+
+
+def topic_cues(topic):
+    """The strong cues of a topic, or an empty set for an unknown one."""
+    key = SUBJECT_ALIASES.get(str(topic or "").lower().strip(), str(topic or "").lower().strip())
+    if key not in TOPIC_CUES:
+        key = topic_for_text(topic) or ""
+    return set(TOPIC_CUES.get(key, []))
+
+
+def topic_label(topic):
+    """The readable label of a topic, or an empty string."""
+    key = SUBJECT_ALIASES.get(str(topic or "").lower().strip(), str(topic or "").lower().strip())
+    if key not in TOPICS:
+        key = topic_for_text(topic) or ""
+    row = TOPICS.get(key) or {}
+    return row.get("label") or ""
+
+
+def _keyword_hit(keyword, value):
+    """A short token (`ai`, `hr`, `esg`) must be a whole word, not a substring.
+
+    The first pass matched `ai` inside `chain`, so a supply-chain brief was
+    classified as technology.  Longer phrases stay substring matches.
+    """
+    if len(keyword) <= 3:
+        return re.search(r"\b%s\b" % re.escape(keyword), value) is not None
+    return keyword in value
+
+
+def topic_for_text(text):
+    """The best topic for a brief or query, or None.
+
+    The first topic with the most keyword hits wins.  The map is deliberately
+    small and explicit: an unknown brief returns None and the caller falls back
+    to the whole registry, never to a guessed subject.
+    """
+    value = str(text or "").lower()
+    if not value:
+        return None
+    key = SUBJECT_ALIASES.get(value.strip(), value.strip())
+    if key in TOPICS:
+        return key
+    best, best_hits = None, 0
+    for topic, row in TOPICS.items():
+        hits = sum(1 for keyword in row["keywords"] if _keyword_hit(keyword, value))
+        if hits > best_hits:
+            best, best_hits = topic, hits
+    return best
+
+
 #: Category for the registry entries written before the category field existed.
 SITE_CATEGORY = {
     "sec": "company", "sse": "company", "szse": "company", "hkex": "company",
@@ -179,20 +800,86 @@ def databases(enabled_only=False):
     return [dict(item) for item in DATABASES if item["enabled"] or not enabled_only]
 
 
-def vetted_sites(region=None, tier=None, category=None, academic_fit=None):
-    sites = []
-    for site in VETTED_SITES:
-        item = dict(site)
-        item.setdefault("category", SITE_CATEGORY.get(item["id"], "economic"))
-        item.setdefault("academic_fit", "background" if item["tier"] == "news"
-                        else "research" if item["tier"] == "research" else "primary")
-        sites.append(item)
+def sites_for(topic=None, region=None, category=None, limit=15):
+    """The vetted sites most relevant to a topic, best first.
+
+    A topic is a pipeline subject id (`marketing`, `finance`) or a free-text
+    brief (`business ethics`, `national culture`).  Sites that carry the topic
+    are ranked first, then free before paywalled, then official/data over
+    research over news.  The list is capped because a web search over fifty
+    domains is slower and no more precise than one over fifteen.
+    """
+    wanted = set()
+    value = str(topic or "").strip()
+    if value:
+        key = SUBJECT_ALIASES.get(value.lower(), value.lower())
+        if key in TOPICS:
+            wanted.add(key)
+        else:
+            inferred = topic_for_text(value)
+            if inferred:
+                wanted.add(inferred)
+
+    def score(item):
+        item_topics = item.get("topics") or []
+        overlap = len(set(item_topics) & wanted)
+        value = 40 + 5 * overlap if overlap else 0
+        if item_topics and item_topics[0] in wanted:
+            value += 6          # the site's own primary topic, not a side tag
+        value += {"official": 6, "data": 6, "research": 5, "news": 2}.get(item["tier"], 1)
+        value += {"free": 6, "mixed": 3, "paywalled": 0}.get(item.get("access", "free"), 0)
+        value += int(item.get("priority") or 0)
+        if region and region != "Global":
+            if item["region"] == region:
+                value += 4
+            elif item["region"] == "Global":
+                value += 1
+        if category and item["category"] == category:
+            value += 3
+        return value
+
+    sites = list(_all_sites())
     if region and region != "Global":
         sites = [site for site in sites if site["region"] in (region, "Global")]
+    if wanted:
+        matched = [site for site in sites if set(site.get("topics") or []) & wanted]
+        # A well-covered topic is the list.  A thin one keeps the core data
+        # sources below the matches so the paper still has country and market
+        # evidence to fall back on.
+        if len(matched) >= 5:
+            sites = matched
+    sites.sort(key=lambda item: (-score(item), item["domain"]))
+    seen, out = set(), []
+    for item in sites:
+        domain = item["domain"].lower()
+        if domain in seen:
+            continue
+        seen.add(domain)
+        out.append(item)
+        if len(out) >= max(1, int(limit)):
+            break
+    return out
+
+
+def vetted_sites(region=None, tier=None, category=None, academic_fit=None,
+                 topic=None, limit=15):
+    """The vetted-site registry, optionally ranked for a topic.
+
+    Without a topic the whole registry is returned and the old filters apply
+    exactly as before.  With a topic the list is the ranked topic selection;
+    category is a ranking signal there, not a hard filter, because an ethics
+    source legitimately sits under `social` even when the block is economic.
+    """
+    if topic:
+        sites = sites_for(topic, region=region, category=category, limit=limit)
+    else:
+        sites = list(_all_sites())
+        if region and region != "Global":
+            sites = [site for site in sites if site["region"] in (region, "Global")]
+        if category:
+            sites = [site for site in sites if site["category"] == category]
     if tier:
         sites = [site for site in sites if site["tier"] == tier]
-    if category:
-        sites = [site for site in sites if site["category"] == category]
     if academic_fit:
         sites = [site for site in sites if site["academic_fit"] == academic_fit]
     return sites
@@ -804,7 +1491,8 @@ INDUSTRY_SITES = [
 ]
 
 
-def search_web(query, region="Global", limit=10, category=None, fast=False, sites=None, providers=None):
+def search_web(query, region="Global", limit=10, category=None, fast=False, sites=None,
+               providers=None, topic=None):
     """Search curated domains: OpenGo, DeepSeek, Brave, Firecrawl.
 
     `fast` skips the headless OpenGo agent for multi-dimension research, where
@@ -817,13 +1505,14 @@ def search_web(query, region="Global", limit=10, category=None, fast=False, site
     if not text:
         return {"query": text, "results": [], "notice": "A search query is required.", "sites": []}
     custom = sites is not None
-    site_list = sites if custom else vetted_sites(region, category=category)
-    filter_sites = sites if custom else vetted_sites(category=category)
+    site_list = sites if custom else vetted_sites(region, category=category, topic=topic)
+    filter_sites = sites if custom else vetted_sites(category=category, topic=topic)
     # Two custom site lists must not share a cached answer, so the directory is
-    # part of the key rather than only the word "custom".
+    # part of the key rather than only the word "custom".  The topic is part of
+    # it too: the same words with a different priority list are a different search.
     directory = tuple((site.get("domain") or site.get("id") or str(site))
                       if isinstance(site, dict) else str(site) for site in site_list)
-    key = ("web", text, region, limit, category, "custom" if custom else "", directory)
+    key = ("web", text, region, limit, category, topic, "custom" if custom else "", directory)
     cached = _cache_get(key)
     if cached is not None:
         cached["cached"] = True

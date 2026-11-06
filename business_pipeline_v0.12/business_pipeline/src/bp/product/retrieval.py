@@ -582,7 +582,7 @@ def _web_item(item):
 def retrieve(key, cues, queries, context, geography="Global", year_from=None, category=None,
              sites=None, providers=None, gate=None, exclude=None, max_items=MAX_ITEMS,
              academic_limit=4, corpus_limit=4, web_limit=3, corpus_doc_cap=3,
-             corpus_doc_counts=None):
+             corpus_doc_counts=None, topic=None):
     """Retrieve, gate and rank the evidence for one dimension.
 
     The order is fixed and cheap first:
@@ -608,6 +608,11 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     exclude = exclude if exclude is not None else set()
     corpus_doc_counts = corpus_doc_counts if corpus_doc_counts is not None else {}
     cue_words = cue_words_of(cues)
+    if topic and key == "evidence":
+        # A no-framework paper has only the generic dimension.  Its cues are
+        # "market industry evidence", which a correct ethics or culture page
+        # cannot match.  The topic supplies the missing vocabulary.
+        cue_words |= source_finder.topic_cues(topic)
     context_set = {word for word in context or [] if word}
     started = time.perf_counter()
     queries = [query for query in queries or [] if query]
@@ -635,13 +640,26 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
         # ── layer 2: the web, only on a corpus miss ─────────────────────────
         web_items = []
         if queries:
-            web = _web(queries[0], geography, web_limit, category, sites, providers)
+            web = _web(queries[0], geography, web_limit, category, sites, providers, topic=topic)
             web_items = [_web_item(item) for item in web.get("results") or []]
             web_cached = bool(web.get("cached"))
             if web.get("notice"):
                 notices.append(web["notice"])
         layers["web"] = len(web_items)
         web_answer = _accepted_any(web_items, cue_words, context_set, geography, gate, exclude)
+        if not web_answer and key == "evidence" and topic:
+            # A no-framework paper has one generic dimension.  Its query is the
+            # decision sentence, which is too long for a topic source; ask the
+            # topic label once so the vetted list (Hofstede, SEP, WHO, ...) is
+            # actually reached.
+            label = source_finder.topic_label(topic)
+            if label:
+                extra = _web(label + " evidence", geography, web_limit, category,
+                             sites, providers, topic=topic)
+                web_items.extend(_web_item(item) for item in extra.get("results") or [])
+                layers["web"] = len(web_items)
+                web_answer = _accepted_any(web_items, cue_words, context_set,
+                                           geography, gate, exclude)
         if web_answer:
             found = web_items
             source_plan = "web"
@@ -754,12 +772,23 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
             "elapsed": round(time.perf_counter() - started, 2)}
 
 
-def _web(query, geography, limit, category, sites, providers):
+def _web(query, geography, limit, category, sites, providers, topic=None):
     """Search the curated web; never raise, and never hold a dimension hostage."""
     try:
+        options = {"providers": providers} if sites else {}
         if sites:
-            return source_finder.search_web(query, geography, limit, category, True,
-                                            sites=sites, providers=providers) or {}
-        return source_finder.search_web(query, geography, limit, category, True) or {}
+            options["sites"] = sites
+        if topic:
+            options["topic"] = topic
+        try:
+            return source_finder.search_web(query, geography, limit, category, True, **options) or {}
+        except TypeError as error:
+            # A custom or older search_web may not know `topic`; the topic is a
+            # ranking hint, not part of the contract, so retry without it.
+            if "topic" in options and "topic" in str(error):
+                options.pop("topic")
+                return source_finder.search_web(query, geography, limit, category,
+                                                True, **options) or {}
+            raise
     except Exception as error:
         return {"results": [], "errors": [], "notice": "Web search failed: " + str(error)[:120]}
