@@ -104,6 +104,23 @@ python -m unittest tests.test_sources
 `GET /api/cases/sources/sites?topic=ethics` returns the ranked list and the
 topic labels, so the UI can show the same selection the pipeline uses.
 
+## Mirror into SQLite
+
+The pipeline reads the code registry, not the database.  For inspection and
+reporting, the registry can be mirrored into the corpus database:
+
+```powershell
+python D:\SMART BUSINESSWRITER\corpus-db\build\sync_vetted_sites.py
+```
+
+It creates `vetted_sites` (one row per site, topics as a JSON array) and
+upserts by `site_id`; `--keep-stale` keeps rows that are no longer in the
+registry.  `--dry-run` prints the rows without touching the database.
+
+Editing that table does **not** change the pipeline.  Change `sources.py`, run
+the script again, and the mirror follows.  This is deliberate: a stopped
+database must never stop the web layer from knowing where to look.
+
 ## What this does not do
 
 - It does not make a paywalled page citable. The page is a pointer; the paper
