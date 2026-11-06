@@ -1,6 +1,6 @@
 # Home Ã¢â‚¬â€ map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.102**, **3899 tests**, 2026-11-06. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.102**, **3933 tests**, 2026-11-06. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -142,6 +142,9 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`DISCUSSION_NOTEBOOK.md`](DISCUSSION_NOTEBOOK.md) | Living, append-only owner-review and design-discussion record; newest entry at the top | Never rewrite an old entry; supersede it; every entry must end with where it could be wrong |
 | [`CONTINUATION_NOTE.md`](CONTINUATION_NOTE.md) | Hand-off note on the coverage findings and their work orders (WO-1Ã¢â‚¬Â¦) | Update when a work order in it is completed or superseded; do not rewrite past findings |
 | [`TAXONOMY_COVERAGE_EVALUATION.md`](TAXONOMY_COVERAGE_EVALUATION.md) | Evaluation of catalogue-vs-build coverage and the routing defects it measured | Historical measurement: describe as "at the time"; supersede, never rewrite |
+| [`DEBUG_MANUAL.md`](DEBUG_MANUAL.md) | Living debugging and improvement guide for the statements pipeline | Read before any debug, fix or improvement work on the financial statements tile |
+| [`HOME_CHAT_ORCHESTRATION_MANUAL.md`](HOME_CHAT_ORCHESTRATION_MANUAL.md) | Living manual — how the chat orchestrates a paper | Read before adding a framework, computation, or model-assisted step |
+| [`MINIMAX_XLSX_FIX.md`](MINIMAX_XLSX_FIX.md) | Living note on the xlsx fix | Update when the xlsx export changes |
 | [`sources/`](sources/) | Supplied authority material | **Read-only** Ã¢â‚¬â€ never edit; amend via decisions |
 
 ## 5. Conventions for this map
