@@ -245,6 +245,25 @@ def mark_error_verified(error_id, note=""):
     return True
 
 
+def log_resolution_attempt(error_id, category, steps, outcome):
+    """Append one in-pipeline resolution attempt (kept even when it fails)."""
+    record = {
+        "ts": _now_iso(),
+        "error_id": error_id,
+        "attempt": True,
+        "category": str(category or "unknown")[:40],
+        "outcome": str(outcome or "unknown")[:40],
+        "steps": [
+            {"strategy": str(s.get("strategy", ""))[:80],
+             "model": str(s.get("model", ""))[:60],
+             "outcome": str(s.get("outcome", ""))[:40],
+             "detail": str(s.get("detail", ""))[:200]}
+            for s in (steps or [])
+        ],
+    }
+    return _append_jsonl(_errors_path(), record)
+
+
 def is_error_resolved(error_id):
     """Check if an error has been marked resolved."""
     errors = list_errors(limit=10000)

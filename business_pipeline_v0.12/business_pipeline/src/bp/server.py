@@ -11,6 +11,7 @@ from .product import api as product_api, ops as product_ops, intake as product_i
 from .product import ops_log as product_ops_log
 from .product import test_runner as product_test_runner
 from .product import chat_heal as product_chat_heal
+from .product import auto_resolve as product_auto_resolve
 from .product import hallucination_check as product_hallucination_check
 from .product import autoresearch as product_autoresearch
 from .product import framework_profiles as product_profiles
@@ -962,24 +963,7 @@ class H(BaseHTTPRequestHandler):
                 error_id = body.get("error_id", "") if isinstance(body, dict) else ""
                 if not error_id:
                     return self._send(400, {"error": "error_id required"})
-                record = product_ops_log.get_error(error_id)
-                if record is None:
-                    return self._send(404, {"error": "unknown error_id"})
-                problem = record.get("problem") or ""
-                if not problem:
-                    return self._send(200, {
-                        "resolved": False, "attempted": False, "verified": False,
-                        "reason": "no replayable problem was stored for this error, so a fix cannot be verified"})
-                results, _err = product_chat_heal.solve_problems([problem])
-                first = results[0] if results else {}
-                if first.get("status") == "ok":
-                    product_ops_log.mark_error_verified(error_id, "replay of the failing problem passed")
-                    return self._send(200, {"resolved": True, "attempted": True, "verified": True,
-                                            "answer": first.get("answer") or "replay passed"})
-                return self._send(200, {
-                    "resolved": False, "attempted": True, "verified": False,
-                    "status": first.get("status") or "error",
-                    "reason": (first.get("error") or "the failing problem still fails")[:200]})
+                return self._send(200, product_auto_resolve.resolve(error_id))
             if self.path == "/api/ops/errors/attend":
                 body = self._body()
                 error_id = body.get("error_id", "") if isinstance(body, dict) else ""

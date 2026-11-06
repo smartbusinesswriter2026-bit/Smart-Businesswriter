@@ -943,21 +943,32 @@ async function genFromError(errorId, errorText, severity) {
 }
 
 async function resolveError(errorId) {
-  toast('Attempting to resolve - replaying the failing problem...');
+  toast('Pipeline is attempting a fix (flash, then pro)...');
+  const wfLog = document.getElementById('workflowLog');
+  wfLog.textContent += '\n[Resolve requested for ' + errorId + ']\n';
   const r = await apiFetch('/api/ops/errors/resolve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ error_id: errorId })
   });
-  if (r.status === 200 && r.data.resolved) {
-    toast(r.data.verified ? 'Resolved and verified - the failing problem now passes' : 'Resolved');
+  const d = r.data || {};
+  (d.steps || []).forEach(s => {
+    wfLog.textContent += '  ' + (s.strategy || '?') + ' on ' + (s.model || '?') + ' -> ' + (s.outcome || '?')
+      + (s.detail ? ' (' + s.detail + ')' : '') + '\n';
+  });
+  if (r.status === 200 && d.resolved) {
+    wfLog.textContent += '[Resolved and verified on ' + (d.model || 'pipeline') + ']\n';
+    toast('Resolved and verified');
     loadErrors();
-  } else if (r.status === 200 && r.data.attempted) {
-    toast('Not resolved - still failing: ' + ((r.data.reason || 'replay failed')).slice(0, 90));
+  } else if (r.status === 200 && d.attempted) {
+    wfLog.textContent += '[Not resolved - ' + ((d.reason || 'still failing')).slice(0, 120) + ']\n';
+    toast('Not resolved - the pipeline could not fix it; the error stays open');
     loadErrors();
   } else {
-    toast('Not resolved - ' + ((r.data && (r.data.reason || r.data.error)) || 'could not attempt a fix'));
+    wfLog.textContent += '[Not resolved - ' + ((d.reason || 'could not attempt a fix')).slice(0, 120) + ']\n';
+    toast('Not resolved - ' + ((d.reason || 'could not attempt a fix')).slice(0, 90));
   }
+  wfLog.scrollTop = wfLog.scrollHeight;
 }
 
 // Workflow actions
