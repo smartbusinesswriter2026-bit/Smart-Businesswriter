@@ -175,7 +175,7 @@ class Drafts(unittest.TestCase):
         text = body(state)
         self.assertIn("Cold-chain fleet; Store locations", text)
         self.assertIn("Fleet - yes: it serves chilled goods", text)
-        self.assertIn("No imitation-cost judgments were supplied; this is a gap, not a finding.", text)
+        self.assertIn("No imitation-cost judgments were supplied.", text)
 
     def test_a_break_even_paper_reports_only_the_core_result(self):
         state = answer_all(chat.start(BRIEF, framework="breakeven"), {

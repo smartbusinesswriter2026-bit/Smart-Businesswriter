@@ -74,7 +74,12 @@ ANSOFF_DIMENSIONS = [
     ("diversification", "Diversification", "diversification new business acquisition unrelated", None),
 ]
 
+GENERIC_DIMENSIONS = [
+    ("evidence", "Evidence", "market industry evidence", None),
+]
+
 FRAMEWORKS = {
+    "none": {"label": "No framework", "dimensions": GENERIC_DIMENSIONS, "internal": False},
     "pestel": {"label": "PESTEL", "dimensions": DIMENSIONS, "internal": False},
     "swot": {"label": "SWOT", "dimensions": SWOT_DIMENSIONS, "internal": True},
     "pestel_swot": {"label": "PESTEL + SWOT", "dimensions": DIMENSIONS, "internal": True},
@@ -333,7 +338,7 @@ def _word_count(sections):
     return total
 
 
-FRAMEWORK_QUESTIONS = {"pestel": QUESTIONS, "swot": INTERNAL_QUESTIONS, "pestel_swot": INTERNAL_QUESTIONS,
+FRAMEWORK_QUESTIONS = {"none": QUESTIONS, "pestel": QUESTIONS, "swot": INTERNAL_QUESTIONS, "pestel_swot": INTERNAL_QUESTIONS,
                        "five_forces": [q for q in FIVE_QUESTIONS if q["id"] != "expected"],
                        "five_forces_breakeven": FIVE_QUESTIONS,
                        "value_chain": VALUE_QUESTIONS, "ansoff": ANSOFF_QUESTIONS,
@@ -801,6 +806,29 @@ def _infer_archetype(brief, framework=None, profile=None):
     return "analytical_report"
 
 
+def _framework_choices(brief, archetype=None):
+    """Suggested frameworks first, then "No framework", then the rest."""
+    reading = instruction_reading.read_frameworks(brief)
+    suggested = []
+    for mention in reading.mentions:
+        if mention.role in ("primary", "contrast") and mention.framework_id not in suggested:
+            suggested.append(mention.framework_id)
+    by_archetype = {
+        "analytical_report": ["pestel", "five_forces", "value_chain", "swot"],
+        "case_analysis": ["swot", "five_forces", "value_chain"],
+        "plan_proposal": ["ansoff", "five_forces"],
+        "financial_valuation": ["breakeven"],
+        "argumentative_essay": [],
+        "memo_brief": [],
+        "literature_synthesis": [],
+        "empirical_research": [],
+    }
+    for key in by_archetype.get(archetype or "analytical_report", []):
+        if key not in suggested:
+            suggested.append(key)
+    return [("none", "No framework")] + [(key, FRAMEWORKS[key]["label"]) for key in suggested if key in FRAMEWORKS]
+
+
 def start(brief, subject=None, framework=None, profile=None, level="shs", mode="strict",
           words=None, rubric=None, archetype=None, frameworks=None):
     """Create a conductor state.  No source is retrieved until the plan is confirmed.
@@ -890,9 +918,9 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
                       "allow_skip": False}]
     elif framework is None:
         questions = [{"id": "framework", "prompt": "Which framework should this paper use?",
-                      "why": "The framework organises the evidence and the firm's position; choose the one the assignment asks for.",
+                      "why": "The framework organises the evidence and the firm's position; choose the one the assignment asks for, or choose no framework.",
                       "type": "choice",
-                      "choices": [[key, FRAMEWORKS[key]["label"]] for key in FRAMEWORKS],
+                      "choices": _framework_choices(brief, archetype or _infer_archetype(brief, framework, profile)),
                       "allow_skip": False}]
     else:
         questions = [dict(question) for question in FRAMEWORK_QUESTIONS[framework]]
@@ -1289,6 +1317,7 @@ def _plan(state):
             dimensions.append({"key": key, "label": label, "query": _query(state, key, cues), "cues": cues,
                                "category": category, "source_note": _source_note(category)})
     why = {
+        "none": ("No named framework is used. The paper organises the retrieved evidence around the decision itself."),
         "pestel": ("PESTEL organizes the external political, economic, social, technological, environmental and "
                    "legal evidence around the decision."),
         "swot": ("SWOT places the strengths and weaknesses you supply against the opportunities and threats the "
@@ -1309,6 +1338,7 @@ def _plan(state):
                       "how much volume that needs."),
     }[framework]
     misses = {
+        "none": ("It does not impose a framework. The paper states the evidence and the limits of the evidence, and it does not invent an analytical structure the assignment did not ask for."),
         "pestel": ("It does not assess internal capabilities, competitors, costs, financial feasibility or a "
                    "recommended action; those need other frameworks or methods."),
         "swot": ("It does not weigh or rank the factors, test financial feasibility, or choose an action; it is a "
@@ -1329,6 +1359,7 @@ def _plan(state):
                       "reached; every input is yours."),
     }[framework]
     output = {
+        "none": "A paper with an introduction, the retrieved evidence, a discussion with implications and limitations, a conclusion and one reference list.",
         "pestel": "A PESTEL paper with an introduction, six dimensions, a discussion with implications and limitations, a conclusion and one reference list.",
         "swot": "A SWOT paper with your strengths and weaknesses, retrieved opportunities and threats, a discussion with implications and limitations, a conclusion and one reference list.",
         "pestel_swot": ("A combined paper with the six PESTEL dimensions, your strengths and weaknesses, opportunities "
