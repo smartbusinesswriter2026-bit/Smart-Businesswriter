@@ -61,10 +61,17 @@ def _models_for(role):
                 os.environ[name] = value
 
 
+#: Backup model when the free model fails (rate limit, bad response shape, error).
+#: Same OpenCode Go provider/key — the paid deepseek flash. Override with BP_LLM_FALLBACK_MODEL.
+FALLBACK_MODEL = "deepseek-v4.1-flash"
+
+
 def _call_model(models, system, user):
     """Call a model and return the raw text, or None on failure.
 
-    Retries up to 3 times on transient failures (rate limits, bad response shape).
+    Order of use: beam (free) first, retried up to 3 times on transient
+    failures; when beam is exhausted (rate limit, error, bad shape), switch
+    to the backup model (deepseek flash, same OpenCode Go key).
     """
     if models is None:
         return None
@@ -77,6 +84,39 @@ def _call_model(models, system, user):
             return str(result)
         except Exception:
             if attempt < 2:
+                time.sleep(1)
+            continue
+    return _call_fallback(system, user)
+
+
+def _call_fallback(system, user, task_label="chat_heal"):
+    """Backup call on the fallback model (paid deepseek flash, OpenCode Go)."""
+    import time
+    from .. import llm
+    fallback = os.environ.get("BP_LLM_FALLBACK_MODEL", FALLBACK_MODEL)
+    if not fallback or fallback == os.environ.get("BP_LLM_MODEL"):
+        return None
+    saved = os.environ.get("BP_LLM_MODEL")
+    try:
+        os.environ["BP_LLM_MODEL"] = fallback
+        backup = llm.from_env()
+    finally:
+        if saved is None:
+            os.environ.pop("BP_LLM_MODEL", None)
+        else:
+            os.environ["BP_LLM_MODEL"] = saved
+    if backup is None:
+        return None
+    backup.config.max_output_tokens = 4000
+    backup.config.max_input_chars = 30000
+    for attempt in range(2):
+        try:
+            result = backup.call("builder", task_label, "v1", system, user, consent=True)
+            if isinstance(result, tuple) and len(result) >= 1:
+                return result[0]
+            return str(result)
+        except Exception:
+            if attempt < 1:
                 time.sleep(1)
             continue
     return None

@@ -304,8 +304,16 @@ def deep_check(prose_text, evidence_items, decision=''):
     }, ensure_ascii=False)
 
     try:
-        result = models.call("builder", "hallucination_check", "v1", system, user, consent=True)
-        raw = result[0] if isinstance(result, tuple) else str(result)
+        raw = None
+        try:
+            result = models.call("builder", "hallucination_check", "v1", system, user, consent=True)
+            raw = result[0] if isinstance(result, tuple) else str(result)
+        except Exception as primary_err:
+            # beam failed (rate limit / error) -> backup model (deepseek flash)
+            from .chat_heal import _call_fallback
+            raw = _call_fallback(system, user, task_label="hallucination_check")
+            if raw is None:
+                return [], str(primary_err)[:200]
         data = json.loads(raw.strip().strip('`').strip())
         findings = data.get('findings', []) if isinstance(data, dict) else []
         return findings, None
