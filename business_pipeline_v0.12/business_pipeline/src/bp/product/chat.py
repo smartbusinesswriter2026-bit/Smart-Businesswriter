@@ -10,6 +10,7 @@ reported as a gap.  Strengths and weaknesses are supplied by the student and are
 never inferred.  The chat never writes a fact, a source or a number of its own.
 """
 
+import dataclasses
 import datetime
 import os
 import re
@@ -814,12 +815,7 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     if len(brief) < 15:
         raise ChatError("Describe the case or assignment in at least one sentence.")
     category_errors = instruction_reading.find_category_errors(brief)
-    if category_errors:
-        error = category_errors[0]
-        options = "; ".join("(" + chr(97 + index) + ") " + row["option"]
-                            for index, row in enumerate(error.repairs))
-        raise ChatError("CATEGORY_ERROR: " + error.why + " Closest valid options: " + options
-                        + ". Tell me what the quantity represents.")
+    instruction_slots = instruction_reading.extract_slots(brief)
     attached = _read_rubric(rubric) if rubric is not None else None
     wanted = (profile or framework or "").strip().lower().replace(" ", "_")
     if wanted in (PROFILE_BUSINESS_PLAN, "business_plan", "businessplan", "plan"):
@@ -884,7 +880,15 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
             fits, message = _fit(brief, framework)
     else:
         fits, message = True, None
-    if framework is None:
+    if category_errors:
+        error = category_errors[0]
+        framework = None
+        questions = [{"id": "category_error", "prompt": "What should the quantity do?",
+                      "why": error.why,
+                      "type": "choice",
+                      "choices": [[row.get("method") or "ignore", row["option"]] for row in error.repairs],
+                      "allow_skip": False}]
+    elif framework is None:
         questions = [{"id": "framework", "prompt": "Which framework should this paper use?",
                       "why": "The framework organises the evidence and the firm's position; choose the one the assignment asks for.",
                       "type": "choice",
@@ -929,6 +933,8 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
              "blocks": None, "evidence_ledger": None, "chart_specs": None, "production_check": None,
              "created_at": _now(), "updated_at": _now(), "stage": "clarify",
              "answers": answers, "questions": questions, "question_index": 0,
+             "category_errors": [dataclasses.asdict(error) for error in category_errors],
+             "slots": [dataclasses.asdict(slot) for slot in instruction_slots],
              "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
              "computation": None, "draft": None,
              "selection": None, "computations": {}, "orientation_sources": []}
@@ -1194,6 +1200,22 @@ def answer(state, question_id, value):
             answers.setdefault(key, [])
         state["answers"] = answers
         state["questions"] = [dict(q) for q in FRAMEWORK_QUESTIONS[value]]
+        state["question_index"] = 0
+        state["updated_at"] = _now()
+        return state
+    if question_id == "category_error" and question.get("type") == "choice":
+        slots = [dict(slot) for slot in (state.get("slots") or [])]
+        for slot in slots:
+            if slot.get("status") == "pending":
+                slot["status"] = "dismissed" if value == "ignore" else "consumed"
+                break
+        state["slots"] = slots
+        state["category_errors"] = []
+        state["questions"] = [{"id": "framework", "prompt": "Which framework should this paper use?",
+                               "why": "The framework organises the evidence and the firm's position.",
+                               "type": "choice",
+                               "choices": [[key, FRAMEWORKS[key]["label"]] for key in FRAMEWORKS],
+                               "allow_skip": False}]
         state["question_index"] = 0
         state["updated_at"] = _now()
         return state
