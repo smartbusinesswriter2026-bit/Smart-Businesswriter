@@ -280,6 +280,8 @@
           <button class="btn" id="valAdd">Add finding</button>
         </div>
         <div id="findingsTable"></div>
+        <h3 style="margin-top:14px;">Proposals</h3>
+        <div id="proposalsTable"></div>
       </div>
     </div>
 
@@ -447,7 +449,7 @@ document.querySelectorAll('.rail button').forEach(btn => {
 
 function loadPanel(name) {
   if (name === 'runs') loadRuns();
-  else if (name === 'validation') loadFindings();
+  else if (name === 'validation') { loadFindings(); loadProposals(); }
   else if (name === 'heal') { loadErrors(); loadHealHistory(); loadTestResults(); }
   else if (name === 'chat') { /* chat panel loaded on demand */ }
   else if (name === 'health') loadHealth();
@@ -503,8 +505,10 @@ function renderFindingsTable(findings, total, container) {
     const sev = f.severity || 'moderate';
     const sevPill = f.resolved ? pill('resolved', 'ok') : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'));
     const resolveBtn = f.resolved ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="resolveFinding(\'' + escapeHtml(fk) + '\')">Resolve</button>';
+    const improveBtn = f.resolved ? '' : '<button class="btn primary" style="font-size:10px;padding:3px 8px;" onclick="improveFinding(\'' + escapeHtml(fk) + '\')">Improve</button>';
+    const codeBtn = f.resolved ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="proposeCodeFix(\'' + escapeHtml(fk) + '\')">Propose code fix</button>';
     const msg = f.message ? '<div style="font-size:10.2px;color:var(--muted);">' + escapeHtml(f.message.slice(0, 100)) + '</div>' : '';
-    html += '<tr><td><b>' + escapeHtml(f.rule) + '</b></td><td>' + escapeHtml(f.subject || '—') + '</td><td>' + escapeHtml(f.feature || '—') + '</td><td style="font-size:10.2px;">' + escapeHtml(f.section || '—') + msg + '</td><td>' + escapeHtml(f.source) + '</td><td>' + sevPill + '</td><td>' + (f.occurrences || 1) + '×</td><td>' + fmtTs(f.ts) + '</td><td>' + resolveBtn + '</td></tr>';
+    html += '<tr><td><b>' + escapeHtml(f.rule) + '</b></td><td>' + escapeHtml(f.subject || '—') + '</td><td>' + escapeHtml(f.feature || '—') + '</td><td style="font-size:10.2px;">' + escapeHtml(f.section || '—') + msg + '</td><td>' + escapeHtml(f.source) + '</td><td>' + sevPill + '</td><td>' + (f.occurrences || 1) + '×</td><td>' + fmtTs(f.ts) + '</td><td>' + improveBtn + ' ' + codeBtn + ' ' + resolveBtn + '</td></tr>';
   });
   html += '</tbody></table><div style="font-size:10.2px;color:var(--muted);margin-top:6px;">Distinct findings ever recorded: ' + (total || findings.length) + '</div>';
   container.innerHTML = html;
@@ -555,6 +559,72 @@ async function resolveFinding(findingKey) {
   });
   if (r.status === 200) { toast('Finding resolved'); loadFindings(); }
   else { toast(r.data.error || 'Could not resolve finding'); }
+}
+
+async function improveFinding(findingKey) {
+  openModal('<h2>Improving ' + escapeHtml(findingKey) + '</h2><div id="impLog" style="font-family:monospace;font-size:11px;white-space:pre-wrap;max-height:300px;overflow:auto;">[Generating problems...]</div>');
+  const r = await apiFetch('/api/ops/findings/' + encodeURIComponent(findingKey) + '/improve', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+  });
+  const log = document.getElementById('impLog');
+  if (r.status === 200) {
+    log.textContent = '[Problems: ' + (r.data.problems||[]).length + ']\n' +
+      (r.data.problems||[]).map((p,i) => '  ' + (i+1) + '. ' + p).join('\n') + '\n' +
+      '[Improvements: ' + (r.data.improvements||[]).length + ']\n' +
+      (r.data.improvements||[]).map(i => '  - [' + (i.type||'') + '] ' + (i.suggestion||'')).join('\n');
+    toast('Improvement proposals created: ' + (r.data.proposal_ids||[]).length);
+    loadProposals(findingKey);
+  } else {
+    log.textContent = '[Error: ' + (r.data.error || 'failed') + ']';
+  }
+}
+async function proposeCodeFix(findingKey) {
+  openModal('<h2>Proposing code fix for ' + escapeHtml(findingKey) + '</h2>' +
+    '<p style="font-size:11px;color:var(--muted);">The code proposer (BP_HEAL_CODE_MODEL) will propose a diff + test. Never auto-applied.</p>' +
+    '<div id="codeLog" style="font-family:monospace;font-size:11px;white-space:pre-wrap;max-height:320px;overflow:auto;">[Proposing...]</div>');
+  const r = await apiFetch('/api/ops/findings/' + encodeURIComponent(findingKey) + '/propose-code', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ files: [] })
+  });
+  const log = document.getElementById('codeLog');
+  if (r.status === 200 && r.data.proposal) {
+    const p = r.data.proposal;
+    log.textContent = (p.summary || '') + '\n\n--- DIFF ---\n' + (p.diff || '(none)') + '\n\n--- TEST ---\n' + (p.test || '(none)');
+    toast('Code proposal created: ' + r.data.proposal_id);
+    loadProposals(findingKey);
+  } else {
+    log.textContent = '[Error: ' + (r.data.error || 'failed') + ']';
+  }
+}
+async function loadProposals(findingKey) {
+  const url = findingKey ? ('/api/ops/findings/proposals?finding_key=' + encodeURIComponent(findingKey)) : '/api/ops/findings/proposals';
+  const r = await apiFetch(url);
+  const container = document.getElementById('proposalsTable');
+  if (!container) return;
+  if (r.status === 200 && Array.isArray(r.data.proposals)) {
+    renderProposalsTable(r.data.proposals, container);
+  } else {
+    container.innerHTML = '<div class="empty">' + escapeHtml(r.data.error || 'No proposals') + '</div>';
+  }
+}
+function renderProposalsTable(proposals, container) {
+  if (!proposals.length) { container.innerHTML = '<div class="empty">No proposals yet.</div>'; return; }
+  let html = '<table><thead><tr><th>Time</th><th>Kind</th><th>Finding</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+  proposals.forEach(p => {
+    const pid = p.proposal_id || '';
+    const st = p.status || 'pending';
+    const approveBtn = st === 'pending' ? '<button class="btn primary" style="font-size:10px;padding:3px 8px;" onclick="decideProposal(\'' + escapeHtml(pid) + '\',\'approve\')">Approve</button>' : '';
+    const rejectBtn = st === 'pending' ? '<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="decideProposal(\'' + escapeHtml(pid) + '\',\'reject\')">Reject</button>' : '';
+    html += '<tr><td>' + fmtTs(p.ts) + '</td><td>' + escapeHtml(p.kind) + '</td><td style="font-size:10.2px;">' + escapeHtml(p.finding_key) + '</td><td>' + pill(st, st === 'approved' ? 'ok' : (st === 'rejected' ? 'err' : 'warn')) + '</td><td>' + approveBtn + ' ' + rejectBtn + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+async function decideProposal(pid, action) {
+  const r = await apiFetch('/api/ops/findings/proposals/' + encodeURIComponent(pid) + '/' + action, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+  });
+  if (r.status === 200) { toast('Proposal ' + r.data.status); loadProposals(); }
+  else { toast(r.data.error || 'Could not decide proposal'); }
 }
 
 /* ── Errors (unified self-healing) ── */

@@ -693,6 +693,12 @@ class H(BaseHTTPRequestHandler):
                 _limit = int((_qs.get("limit") or ["200"])[0])
                 return self._send(200, {"findings": product_ops_log.list_findings(limit=_limit, source=_source, status=_status),
                                         "total": product_ops_log.finding_count()})
+            if urlparse(self.path).path == "/api/ops/findings/proposals":
+                _qs = parse_qs(_ops_url.query)
+                _fk = (_qs.get("finding_key") or [""])[0] or None
+                _st = (_qs.get("status") or [""])[0] or None
+                _limit = int((_qs.get("limit") or ["100"])[0])
+                return self._send(200, {"proposals": product_ops_log.list_proposals(finding_key=_fk, status=_st, limit=_limit)})
             if _ops_url.path == "/api/ops/tests/results":
                 _qs = parse_qs(_ops_url.query)
                 _limit = int((_qs.get("limit") or ["20"])[0])
@@ -986,6 +992,50 @@ class H(BaseHTTPRequestHandler):
                 if error:
                     return self._send(500, {"error": error})
                 return self._send(200, {"finding_key": fkey})
+            # improve a finding: generate problems, solve, suggest data fixes
+            _improve_m = __import__("re").fullmatch(r"/api/ops/findings/([^/]+)/improve", self.path)
+            if _improve_m:
+                fk = _improve_m.group(1)
+                matches = [f for f in product_ops_log.list_findings(limit=10000) if f.get("finding_key") == fk]
+                if not matches:
+                    return self._send(404, {"error": "finding not found"})
+                finding = matches[0]
+                text = "%s: %s" % (finding.get("rule"), finding.get("message") or finding.get("section") or "")
+                problems, instruction, gerr = product_chat_heal.generate_problems_from_error(text, 5)
+                solutions, _ = product_chat_heal.solve_problems(problems)
+                failures = [{"problem": r.get("problem"), "error": r.get("error")} for r in (solutions or []) if r.get("status") != "ok"]
+                improvements, ierr = product_chat_heal.write_improvements(failures if failures else [{"problem": text}])
+                created = []
+                for imp in (improvements or []):
+                    pid = product_ops_log.log_proposal(fk, "data", imp, status="pending")
+                    if pid:
+                        created.append(pid)
+                return self._send(200, {"finding_key": fk, "problems": problems,
+                                        "solutions": solutions, "improvements": improvements,
+                                        "proposal_ids": created, "error": gerr or ierr})
+            # propose a code fix for a finding
+            _propose_m = __import__("re").fullmatch(r"/api/ops/findings/([^/]+)/propose-code", self.path)
+            if _propose_m:
+                fk = _propose_m.group(1)
+                matches = [f for f in product_ops_log.list_findings(limit=10000) if f.get("finding_key") == fk]
+                if not matches:
+                    return self._send(404, {"error": "finding not found"})
+                body = self._body()
+                files = body.get("files") if isinstance(body, dict) else None
+                proposal, perr = product_chat_heal.propose_code_fix(matches[0], files)
+                if perr:
+                    return self._send(422, {"error": perr})
+                pid = product_ops_log.log_proposal(fk, "code", proposal, status="pending")
+                return self._send(200, {"finding_key": fk, "proposal_id": pid, "proposal": proposal})
+            # approve / reject a proposal
+            _appr_m = __import__("re").fullmatch(r"/api/ops/findings/proposals/([^/]+)/(approve|reject)", self.path)
+            if _appr_m:
+                pid, action = _appr_m.group(1), _appr_m.group(2)
+                status = "approved" if action == "approve" else "rejected"
+                ok = product_ops_log.update_proposal_status(pid, status)
+                if not ok:
+                    return self._send(404, {"error": "proposal not found"})
+                return self._send(200, {"proposal_id": pid, "status": status})
             self._send(404, {"error": "not found"})
         except KeyError: self._send(404, {"error": "unknown session"})
         except (ValueError, TypeError) as e: self._send(400, {"error": str(e)})
