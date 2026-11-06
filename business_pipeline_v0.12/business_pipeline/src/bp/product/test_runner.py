@@ -218,6 +218,11 @@ SUITES = {
         "tests/test_worksheet_reachability.py",
         "tests/test_worksheet_export.py",
     ],
+    # ── Hallucination ──
+    "hallucination": [
+        "tests/test_prose.py",
+        "tests/test_plan_verifier.py",
+    ],
     # ── All (run everything) ──
     "all": None,  # special: runs all test files
 }

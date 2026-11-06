@@ -107,13 +107,23 @@ def classify_severity(error_text):
     Returns 'light', 'moderate', or 'severe'.
     """
     text = str(error_text or "").lower()
-    severe_keywords = ["crash", "exception", "traceback", "500", "fatal", "refused", "cannot", "unable"]
-    moderate_keywords = ["fail", "missing", "invalid", "wrong", "incorrect", "mismatch", "refusal"]
+    severe_keywords = ["crash", "exception", "traceback", "500", "fatal", "refused", "cannot", "unable", "hallucination", "invented"]
+    moderate_keywords = ["fail", "missing", "invalid", "wrong", "incorrect", "mismatch", "refusal", "untraceable", "irrelevant"]
     if any(kw in text for kw in severe_keywords):
         return "severe"
     if any(kw in text for kw in moderate_keywords):
         return "moderate"
     return "light"
+
+
+def log_hallucination(lane, finding, problem_text=None):
+    """Log a hallucination finding as an error.
+
+    Returns True when written.
+    """
+    error_text = "[hallucination:%s] %s" % (finding.get('type', 'unknown'), finding.get('reason', ''))
+    return log_error(lane, error_text, problem_text=problem_text,
+                     gap_label=finding.get('type'), count=1)
 
 
 def severity_count(severity):

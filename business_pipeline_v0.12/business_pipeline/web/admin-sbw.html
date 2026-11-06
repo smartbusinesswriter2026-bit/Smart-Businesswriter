@@ -360,6 +360,26 @@
         </div>
       </div>
 
+      <!-- Hallucination checker -->
+      <div class="card">
+        <h2>Hallucination checker</h2>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+          Paste generated prose + evidence to check for hallucinations (rule-based + model deep-check).
+        </p>
+        <div class="row">
+          <label style="flex:1;">Prose: <textarea id="hallProse" placeholder="Paste generated paper text…" style="min-height:80px;"></textarea></label>
+        </div>
+        <div class="row">
+          <label style="flex:1;">Evidence (JSON): <textarea id="hallEvidence" placeholder='[{"title":"...","quote":"..."}]' style="min-height:60px;"></textarea></label>
+        </div>
+        <div class="row">
+          <label>Decision: <input type="text" id="hallDecision" placeholder="e.g. Whether to enter the EV charging market in Europe" style="width:300px;"></label>
+          <button class="btn primary" id="hallCheck">Rule check</button>
+          <button class="btn" id="hallDeepCheck">Deep check (model)</button>
+        </div>
+        <div id="hallResults" class="code" style="min-height:60px;max-height:300px;overflow-y:auto;"></div>
+      </div>
+
       <!-- Heal history -->
       <div class="card">
         <h2>Heal history</h2>
@@ -1111,6 +1131,62 @@ async function loadHealth() {
     container.innerHTML = '<div class="empty">Health endpoint not available.</div>';
   }
 }
+
+/* ── Hallucination checker ── */
+document.getElementById('hallCheck').addEventListener('click', async () => {
+  const prose = document.getElementById('hallProse').value.trim();
+  const evidenceStr = document.getElementById('hallEvidence').value.trim();
+  const decision = document.getElementById('hallDecision').value.trim();
+  if (!prose) { toast('Enter prose to check'); return; }
+  let evidence = [];
+  try { if (evidenceStr) evidence = JSON.parse(evidenceStr); } catch(e) { toast('Invalid evidence JSON'); return; }
+  const res = document.getElementById('hallResults');
+  res.textContent = '[Running rule-based check…]\n';
+  const r = await apiFetch('/api/ops/hallucination/check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prose, evidence, decision })
+  });
+  if (r.status === 200) {
+    const s = r.data.summary || {};
+    res.textContent = '[Results: ' + (s.total_findings||0) + ' findings in ' + (s.total_sentences||0) + ' sentences (' + Math.round((s.hallucination_rate||0)*100) + '%)\n';
+    res.textContent += 'By type: ' + JSON.stringify(s.by_type||{}) + '\n';
+    res.textContent += 'By severity: ' + JSON.stringify(s.by_severity||{}) + '\n';
+    (r.data.findings||[]).forEach((f,i) => {
+      res.textContent += '\n' + (i+1) + '. [' + (f.type||'?') + '/' + (f.severity||'?') + '] ' + (f.sentence||'').slice(0,100) + '\n   Reason: ' + (f.reason||'') + '\n';
+    });
+    if (!(r.data.findings||[]).length) res.textContent += '\nNo hallucinations detected by rule-based check.\n';
+  } else {
+    res.textContent += '[Error: ' + (r.data.error||'failed') + ']\n';
+  }
+  res.scrollTop = res.scrollHeight;
+});
+
+document.getElementById('hallDeepCheck').addEventListener('click', async () => {
+  const prose = document.getElementById('hallProse').value.trim();
+  const evidenceStr = document.getElementById('hallEvidence').value.trim();
+  const decision = document.getElementById('hallDecision').value.trim();
+  if (!prose) { toast('Enter prose to check'); return; }
+  let evidence = [];
+  try { if (evidenceStr) evidence = JSON.parse(evidenceStr); } catch(e) { toast('Invalid evidence JSON'); return; }
+  const res = document.getElementById('hallResults');
+  res.textContent = '[Running deep check (model)…]\n';
+  const r = await apiFetch('/api/ops/hallucination/deep-check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prose, evidence, decision })
+  });
+  if (r.status === 200) {
+    res.textContent = '[Deep check: ' + (r.data.count||0) + ' hallucinations found]\n';
+    (r.data.findings||[]).forEach((f,i) => {
+      res.textContent += '\n' + (i+1) + '. [' + (f.type||'?') + '] ' + (f.sentence||'').slice(0,100) + '\n   Reason: ' + (f.reason||'') + '\n';
+    });
+    if (!(r.data.findings||[]).length) res.textContent += '\nNo hallucinations detected by deep check.\n';
+  } else {
+    res.textContent = '[Error: ' + (r.data.error||'failed') + ']\n';
+  }
+  res.scrollTop = res.scrollHeight;
+});
 
 /* ── Init ── */
 loadHealth();

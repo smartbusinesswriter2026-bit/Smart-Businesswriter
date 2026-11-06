@@ -11,6 +11,7 @@ from .product import api as product_api, ops as product_ops, intake as product_i
 from .product import ops_log as product_ops_log
 from .product import test_runner as product_test_runner
 from .product import chat_heal as product_chat_heal
+from .product import hallucination_check as product_hallucination_check
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -954,6 +955,32 @@ class H(BaseHTTPRequestHandler):
                     return self._send(400, {"error": "error_id required"})
                 ok = product_ops_log.mark_error_resolved(error_id)
                 return self._send(200, {"resolved": ok})
+            if self.path == "/api/ops/hallucination/check":
+                body = self._body()
+                prose = body.get("prose", "") if isinstance(body, dict) else ""
+                evidence = body.get("evidence", []) if isinstance(body, dict) else []
+                decision = body.get("decision", "") if isinstance(body, dict) else ""
+                findings, summary = product_hallucination_check.check(prose, evidence, decision)
+                for f in findings:
+                    product_ops_log.log_hallucination("prose", f, problem_text=prose[:200])
+                return self._send(200, {"findings": findings, "summary": summary})
+            if self.path == "/api/ops/hallucination/deep-check":
+                body = self._body()
+                prose = body.get("prose", "") if isinstance(body, dict) else ""
+                evidence = body.get("evidence", []) if isinstance(body, dict) else []
+                decision = body.get("decision", "") if isinstance(body, dict) else ""
+                findings, error = product_hallucination_check.deep_check(prose, evidence, decision)
+                if error:
+                    return self._send(422, {"error": error, "findings": findings})
+                for f in findings:
+                    product_ops_log.log_hallucination("prose", f, problem_text=prose[:200])
+                return self._send(200, {"findings": findings, "count": len(findings)})
+            if self.path == "/api/ops/hallucination/check-relevance":
+                body = self._body()
+                sources = body.get("sources", []) if isinstance(body, dict) else []
+                topic = body.get("topic", "") if isinstance(body, dict) else ""
+                results = product_hallucination_check.check_relevance_batch(sources, topic)
+                return self._send(200, {"results": results})
             # ── Validation findings (admin Validation tab) ──
             if self.path == "/api/ops/findings/ingest":
                 body = self._body()
