@@ -40,6 +40,16 @@ def _errors_path():
     return _log_dir() / "errors.jsonl"
 
 
+def _findings_path():
+    return _log_dir() / "findings.jsonl"
+
+
+def finding_key(rule, subject="", feature="", section=""):
+    """Stable identity of a validation finding: rule+subject+feature+section."""
+    raw = "|".join(str(x or "") for x in (rule, subject, feature, section))
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
 def _now_iso():
     return datetime.datetime.now(datetime.timezone.utc).isoformat()
 
@@ -219,3 +229,153 @@ def merge_resolved(errors):
     for e in errors:
         e["resolved"] = e.get("error_id") in resolved_ids
     return errors
+
+
+# ── Validation findings ────────────────────────────────────────────────────
+# Findings come from three feeders: the validation harness (manifest.json),
+# failing pipeline runs, and the manual "Add finding" form.  Identity is
+# rule+subject+feature+section (finding_key); repeats bump first/last_seen.
+# Resolution is append-only, same pattern as errors.jsonl.
+
+def log_finding(rule, subject="", feature="", section="", source="manual",
+                severity=None, message="", paper="", run_id="", build=""):
+    """Append (or update) one validation finding. Returns (finding_key, error)."""
+    rule = str(rule or "").strip()
+    if not rule:
+        return None, "rule is required"
+    fkey = finding_key(rule, subject, feature, section)
+    existing = {f.get("finding_key"): f for f in _read_jsonl(_findings_path(), limit=100000)}
+    prior = existing.get(fkey)
+    record = {
+        "ts": _now_iso(),
+        "finding_key": fkey,
+        "rule": str(rule)[:120],
+        "subject": str(subject or "")[:60],
+        "feature": str(feature or "")[:120],
+        "section": str(section or "")[:160],
+        "source": str(source or "manual")[:40],
+        "message": str(message or "")[:500],
+        "paper": str(paper or "")[:80],
+        "run_id": str(run_id or "")[:40],
+        "build": str(build or "")[:40],
+        "severity": severity or classify_severity(message),
+    }
+    if prior:
+        record["first_seen"] = prior.get("first_seen") or prior.get("ts")
+        record["occurrences"] = int(prior.get("occurrences") or 1) + 1
+    else:
+        record["first_seen"] = record["ts"]
+        record["occurrences"] = 1
+    ok = _append_jsonl(_findings_path(), record)
+    return fkey, (None if ok else "could not write findings.jsonl")
+
+
+def list_findings(limit=200, source=None, status=None):
+    """Latest record per finding_key, newest first, with resolution merged."""
+    all_records = _read_jsonl(_findings_path(), limit=100000)
+    latest = {}
+    resolved = set()
+    for r in reversed(all_records):  # chronological, so the latest record wins
+        fkey = r.get("finding_key")
+        if not fkey:
+            continue
+        if "rule" in r:
+            latest[fkey] = r
+            resolved.discard(fkey)  # a newer record re-opened it
+        elif r.get("resolved"):
+            resolved.add(fkey)
+    findings = []
+    for f in latest.values():
+        f = dict(f)
+        f["resolved"] = f["finding_key"] in resolved
+        if source and f.get("source") != source:
+            continue
+        if status == "open" and f.get("resolved"):
+            continue
+        if status == "resolved" and not f.get("resolved"):
+            continue
+        findings.append(f)
+    findings.sort(key=lambda f: f.get("ts") or "", reverse=True)
+    return findings[:limit]
+
+
+def resolve_findings_on_pass(current_keys):
+    """Auto-resolve findings that a later harness pass no longer reports.
+
+    `current_keys` is the set of finding_keys found failing in the newest pass.
+    Everything previously seen that is absent is marked resolved. Returns the
+    number of findings resolved.
+    """
+    all_records = _read_jsonl(_findings_path(), limit=100000)
+    already = {r.get("finding_key") for r in all_records if r.get("resolved")}
+    known = {r.get("finding_key"): r for r in all_records
+             if r.get("finding_key") and r.get("source") == "validation-harness"}
+    to_resolve = (set(known) - set(current_keys)) - already
+    for fkey in to_resolve:
+        mark_finding_resolved(fkey)
+    return len(to_resolve)
+
+
+def mark_finding_resolved(finding_key):
+    """Append a resolution record for a finding. Returns True if it was open."""
+    all_records = _read_jsonl(_findings_path(), limit=100000)
+    if finding_key in {r.get("finding_key") for r in all_records if r.get("resolved")}:
+        return False
+    if finding_key not in {r.get("finding_key") for r in all_records}:
+        return False
+    _append_jsonl(_findings_path(), {"ts": _now_iso(), "finding_key": finding_key,
+                                     "resolved": True, "resolution_ts": _now_iso()})
+    return True
+
+
+def finding_count():
+    """Number of distinct findings ever recorded."""
+    keys = {r.get("finding_key") for r in _read_jsonl(_findings_path(), limit=100000) if r.get("finding_key")}
+    return len(keys)
+
+
+def ingest_validation_manifest(manifest_path=None):
+    """Feed the validation harness's manifest.json findings into the store.
+
+    Manifest shape (per docs/VALIDATION_HARNESS.md Stage 1): a JSON object with
+    "results": a list of {unit, kind, subject, paper, status, failures:[{rule,
+    section, message}]}.  A compute deliverable failure without an explicit rule
+    is recorded as rule "D-EXPORT".  Findings a later pass no longer reports are
+    auto-resolved. Returns (opened, resolved, errors).
+    """
+    if manifest_path:
+        path = Path(manifest_path)
+    else:  # default: <business_pipeline repo root>/validation_out/manifest.json
+        path = Path(__file__).resolve().parents[3] / "validation_out" / "manifest.json"
+    if not path.is_file():
+        return 0, 0, ["manifest not found: %s" % path]
+    try:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        return 0, 0, ["cannot read manifest: %s" % e]
+    errs = []
+    current_keys = set()
+    opened = 0
+    results = manifest.get("results", manifest if isinstance(manifest, list) else [])
+    for res in results:
+        paper = str(res.get("paper") or res.get("unit") or "")
+        subject = str(res.get("subject") or "")
+        for f in res.get("failures", []) or []:
+            fkey, err = log_finding(
+                rule=f.get("rule") or res.get("rule") or "D-EXPORT",
+                subject=subject,
+                feature=str(f.get("feature") or res.get("feature") or ""),
+                section=str(f.get("section") or ""),
+                source="validation-harness",
+                message=str(f.get("message") or ""),
+                paper=paper,
+                run_id=str(res.get("run_id") or ""),
+                build=str(manifest.get("build") or ""),
+            )
+            if err:
+                errs.append(err)
+            elif fkey:
+                current_keys.add(fkey)
+                opened += 1
+    resolved = resolve_findings_on_pass(current_keys)
+    return opened, resolved, errs

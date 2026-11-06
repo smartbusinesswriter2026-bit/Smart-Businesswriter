@@ -19,9 +19,9 @@ The measured surface (2026-11-02, build 1.56, 2553 tests):
 | Capability papers (computed sections) | 126 | `chat.run_capability()` → `chat.docx_bytes()` |
 | Conductor framework papers | 9 | `chat.start()` → … → `chat.docx_bytes()` |
 | Paper profiles (business plan, feasibility, FOR, marketing plan, proposal) | 5 | conductor, `profile=` |
-| Compute-tool deliverables (xlsx/docx/pdf/md) | 148 | `POST /api/sessions` → confirm → `deliverables.write_export()` |
+| Compute-tool deliverables (xlsx/docx/pdf/md) | 154 | `POST /api/sessions` → confirm → `deliverables.write_export()` |
 
-**364 distinct validation targets.** Worksheets are *entry points* onto framework profiles, not extra units: 86 subject→worksheet links resolve to 55 distinct worksheets, and every one of the 76 profiles already has a worksheet binding.
+**370 distinct validation targets.** Worksheets are *entry points* onto framework profiles, not extra units: 86 subject→worksheet links resolve to 55 distinct worksheets, and every one of the 76 profiles already has a worksheet binding. The accounting shelf grew from 12 to 18 compute tools (depreciation, DuPont, projected statements, price/volume sensitivity, sales from market share, sales projection) with 7 tile groups, hence 148 → 154.
 
 At ten minutes a target that is roughly **60 hours** of repetitive reading to re-check rules that never change.
 
@@ -126,7 +126,7 @@ The harness judges papers against this registry. It is seeded from [`CONDUCTOR_M
 - value-chain block-key naming mismatch (`firm_infrastructure` vs `inbound`)
 - `firm_infrastructure` produced zero sourced items
 
-The unit tests detect these by asserting on internals. **The harness detects the same defects by asserting on the finished `.docx`, for all 364 targets instead of the 43 that happen to have a fixture.**
+The unit tests detect these by asserting on internals. **The harness detects the same defects by asserting on the finished `.docx`, for all 370 targets instead of the 43 that happen to have a fixture.**
 
 ### 5.1 What the harness finds — and finds better than a manual pass
 
@@ -171,9 +171,9 @@ The harness can only enforce rules that are **written down**. A paper can pass a
 
 So the harness is **not a replacement for reading. It is a replacement for checking.** A manual pass produces two things — "this feature is broken" and "this paper is good". The harness produces the first, exhaustively and reliably, and produces nothing for the second.
 
-The asymmetry is what makes it worth doing: a manual pass over 364 targets is **fatigue-bound**. Nobody checks the eighth rule of the twenty on paper 200. The harness checks all of them, on every run, with no fatigue — and the proof that manual passes miss things is that **96 tests are failing right now**, and the notebook records that **131 of 158 catalogue records have neither a worksheet template nor a linked method**.
+The asymmetry is what makes it worth doing: a manual pass over 370 targets is **fatigue-bound**. Nobody checks the eighth rule of the twenty on paper 200. The harness checks all of them, on every run, with no fatigue — and the proof that manual passes miss things is that **96 tests are failing right now**, and the notebook records that **131 of 158 catalogue records have neither a worksheet template nor a linked method**.
 
-**The workflow this implies.** The harness runs first and produces the failure list. The owner then reads **the failures plus a random sample of the passes** — the failures because they must be fixed, the sample because a green run is not evidence of a good paper. If the harness reports 14 failures out of 364, the reading is 14 papers and a sample, not 364.
+**The workflow this implies.** The harness runs first and produces the failure list. The owner then reads **the failures plus a random sample of the passes** — the failures because they must be fixed, the sample because a green run is not evidence of a good paper. If the harness reports 14 failures out of 370, the reading is 14 papers and a sample, not 370.
 
 **One design rule follows from this.** The harness must never emit a verdict like "bad". It emits `V-12 failed at H2 Consideration` — a named rule and a location — so that every finding can be argued with. The authority stays with the reader.
 
@@ -395,7 +395,7 @@ Papers: `validation_out/marketing/`
 | 1 | Framework walker → 76 papers, `manifest.json`, `INDEX.html` | reuses `completion.draft_bytes`; `paper.check` verdicts only |
 | 2 | Full rule engine → every `enforced`/`proposed` rule with a code backing | the §5 registry becomes live |
 | 3 | Capability walker → 126 conductor papers | seeds from `PRESETS` (125 of 126 already) |
-| 4 | Compute-tool walker → 148 deliverables | via `SessionManager` + `deliverables.write_export` |
+| 4 | Compute-tool walker → 154 deliverables | via `SessionManager` + `deliverables.write_export` |
 | 5 | The relaxation loop | measure noise, propose downgrades, update §6.3 |
 
 Stage 1 alone already replaces most of the owner's reading, because the framework papers are the bulk of it.
@@ -415,6 +415,7 @@ Stage 1 alone already replaces most of the owner's reading, because the framewor
 
 | Date | Change |
 |---|---|
+| 2026-11-06 | Re-measured the surface after the accounting shelf grew: 12 → 18 compute tools (depreciation, DuPont, projected statements, price/volume sensitivity, sales from market share, sales projection) with 7 tile groups (Bookkeeping, Statement analysis, Adjustments and depreciation, Cost and variance analysis, Working capital and financing, Planning and projection, Tax and reporting). Compute-tool deliverables 148 → 154; distinct validation targets 364 → 370. Finance groups reorganised, Economics tiles renamed/merged, Marketing gained `pricing`, Management gained `STRATEGY_GROUPS`. Validation harness manual counts updated; harness itself still unbuilt. |
 | 2026-11-03 | §7.2 re-measured by the management session: **17** profiles are reachable from no subject page (not the 22 recorded on 2026-11-02), and 12 are still not `draftable`. The count is now asserted by `tests/test_subject_management_acceptance.py::test_E_mgt_043` so this paragraph cannot drift again. `change_organization` is named as the one unreachable profile that works when called but has no worksheet row (G-mgt-02). |
 | 2026-11-02 | Document created from the owner's request to automate validation subject by subject. Measured the surface (364 targets), recorded what already exists, fixed the architecture at three layers, seeded the rule registry from `CONDUCTOR_MANUAL.md` §4/§8, recorded the rule-relaxation procedure (§6), the subject crosswalk gap (§7), the evidence-fixture plan (§8) and the owner's model instruction (OpenCode or OpenRouter, not the DeepSeek direct API, §9). Nothing built. |
 | 2026-11-02 | Made discoverable: a row in `HOME.md` §1 (Read in 30 seconds), §1 (By task) and §4 (the documentation spine); a pointer in `CONDUCTOR_MANUAL.md` §12; an entry in `WORKLOG.md` tagged `[design]`; an entry in `DISCUSSION_NOTEBOOK.md`; an entry in `CHANGELOG.md`. No product file, source file or test was changed. |

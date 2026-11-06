@@ -686,6 +686,13 @@ class H(BaseHTTPRequestHandler):
                     by_lane[lane]["errors"] += 1
                 return self._send(200, {"total_runs": len(runs), "total_errors": len(errors),
                                         "by_lane": by_lane})
+            if urlparse(self.path).path == "/api/ops/findings":
+                _qs = parse_qs(_ops_url.query)
+                _source = (_qs.get("source") or [""])[0] or None
+                _status = (_qs.get("status") or [""])[0] or None
+                _limit = int((_qs.get("limit") or ["200"])[0])
+                return self._send(200, {"findings": product_ops_log.list_findings(limit=_limit, source=_source, status=_status),
+                                        "total": product_ops_log.finding_count()})
             if _ops_url.path == "/api/ops/tests/results":
                 _qs = parse_qs(_ops_url.query)
                 _limit = int((_qs.get("limit") or ["20"])[0])
@@ -941,6 +948,44 @@ class H(BaseHTTPRequestHandler):
                     return self._send(400, {"error": "error_id required"})
                 ok = product_ops_log.mark_error_resolved(error_id)
                 return self._send(200, {"resolved": ok})
+            # ── Validation findings (admin Validation tab) ──
+            if self.path == "/api/ops/findings/ingest":
+                body = self._body()
+                path = body.get("manifest_path") if isinstance(body, dict) else None
+                opened, resolved, errs = product_ops_log.ingest_validation_manifest(path)
+                if errs:
+                    return self._send(422, {"error": "; ".join(errs[:3]), "opened": opened, "resolved": resolved})
+                return self._send(200, {"opened": opened, "resolved": resolved})
+            if self.path == "/api/ops/findings/resolve":
+                body = self._body()
+                finding_key = body.get("finding_key", "") if isinstance(body, dict) else ""
+                if not finding_key:
+                    return self._send(400, {"error": "finding_key required"})
+                ok = product_ops_log.mark_finding_resolved(str(finding_key))
+                if not ok:
+                    return self._send(404, {"error": "finding not found or already resolved"})
+                return self._send(200, {"resolved": True})
+            if self.path == "/api/ops/findings":
+                body = self._body()
+                if not isinstance(body, dict):
+                    return self._send(400, {"error": "json body required"})
+                rule = str(body.get("rule") or "").strip()
+                if not rule:
+                    return self._send(400, {"error": "rule required (e.g. V-14)"})
+                fkey, error = product_ops_log.log_finding(
+                    rule=rule,
+                    subject=str(body.get("subject") or ""),
+                    feature=str(body.get("feature") or ""),
+                    section=str(body.get("section") or ""),
+                    source="manual",
+                    message=str(body.get("message") or ""),
+                    paper=str(body.get("paper") or ""),
+                    run_id=str(body.get("run_id") or ""),
+                    build=str(body.get("build") or ""),
+                )
+                if error:
+                    return self._send(500, {"error": error})
+                return self._send(200, {"finding_key": fkey})
             self._send(404, {"error": "not found"})
         except KeyError: self._send(404, {"error": "unknown session"})
         except (ValueError, TypeError) as e: self._send(400, {"error": str(e)})
