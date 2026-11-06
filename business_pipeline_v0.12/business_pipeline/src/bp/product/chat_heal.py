@@ -187,6 +187,42 @@ def generate_problems(instruction, count=5, difficulty="medium"):
 
 # ── Solver ──────────────────────────────────────────────────────────────────
 
+def _looks_rate_limited(text):
+    """Whether an error message looks like a rate limit / transient provider failure."""
+    low = str(text).lower()
+    return ("429" in low or "rate limit" in low or "too many requests" in low
+            or "provider returned http" in low or "could not reach the provider" in low
+            or "unexpected response shape" in low)
+
+
+def _solve_with_fallback(problem):
+    """Re-solve after a rate-limit failure, using the backup model (deepseek flash).
+
+    The statements core reads BP_LLM_MODEL per call, so swapping the env for the
+    retry sends the model reader to the paid fallback on the same provider.
+    """
+    import os as _os
+    from .. import llm as _llm
+    from . import statements as stmt_mod
+    fallback = _os.environ.get("BP_LLM_FALLBACK_MODEL", FALLBACK_MODEL)
+    if not fallback or fallback == _os.environ.get("BP_LLM_MODEL"):
+        return None
+    saved = (_os.environ.get("BP_LLM_MODEL"), _os.environ.get("BP_LLM_MODEL_TIER2"))
+    try:
+        _os.environ["BP_LLM_MODEL"] = fallback
+        _os.environ["BP_LLM_MODEL_TIER2"] = fallback
+        _llm.from_env(tier=1)  # validates the fallback model is configured
+        return stmt_mod.solve(str(problem))
+    except Exception:
+        return None
+    finally:
+        for name, value in zip(("BP_LLM_MODEL", "BP_LLM_MODEL_TIER2"), saved):
+            if value is None:
+                _os.environ.pop(name, None)
+            else:
+                _os.environ[name] = value
+
+
 def solve_problems(problems):
     """Solve a list of problems through the pipeline.
 
@@ -199,7 +235,16 @@ def solve_problems(problems):
         result = {"problem": problem, "status": "unknown", "answer": None, "error": None, "gaps": []}
         try:
             from . import statements as stmt_mod
-            record = stmt_mod.solve(str(problem))
+            try:
+                record = stmt_mod.solve(str(problem))
+            except Exception as first_err:
+                if _looks_rate_limited(first_err):
+                    # Rate limit on beam -> retry once on the backup model (deepseek flash)
+                    record = _solve_with_fallback(problem)
+                    if record is None:
+                        raise first_err
+                else:
+                    raise
             if isinstance(record, dict):
                 if record.get("solved"):
                     result["status"] = "ok"
@@ -208,7 +253,13 @@ def solve_problems(problems):
                 else:
                     result["status"] = "error"
                     result["error"] = str(record.get("refusal") or record.get("error") or "not solved")[:200]
-                    result["gaps"] = record.get("working", {}).get("missing", []) or []
+                    if _looks_rate_limited(rl_error := (record.get("error") or result["error"])):
+                        retry = _solve_with_fallback(problem)
+                        if isinstance(retry, dict) and retry.get("solved"):
+                            result["status"] = "ok"
+                            result["answer"] = "Solved"
+                            result["gaps"] = retry.get("working", {}).get("missing", []) or []
+                    result["gaps"] = result["gaps"] or record.get("working", {}).get("missing", []) or []
                     # Log to error log so it appears in Self-Healing panel
                     _ops_log.log_error("statements", result["error"], problem_text=problem,
                                        gap_label=result["error"][:80])
