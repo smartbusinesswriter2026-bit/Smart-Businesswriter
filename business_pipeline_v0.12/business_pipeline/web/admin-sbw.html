@@ -835,32 +835,7 @@ document.getElementById('healFreeGen').addEventListener('click', async () => {
     log.textContent += '[Generated ' + problems.length + ' problems]\n';
     problems.forEach((p,i) => log.textContent += '  ' + (i+1) + '. ' + p + '\n');
 
-    // Auto-solve: run problems through pipeline
-    log.textContent += '\n[Running problems through pipeline…]\n';
-    const solveR = await apiFetch('/api/ops/chat/solve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ problems })
-    });
-    if (solveR.status === 200) {
-      const results = solveR.data.results || [];
-      let passCount = 0;
-      results.forEach((res, i) => {
-        const status = res.status || 'unknown';
-        const icon = (status === 'ok' || status === 'solved') ? '✅ PASS' : (status === 'error' ? '❌ FAIL' : '⚠️ ' + status.toUpperCase());
-        if (status === 'ok' || status === 'solved') passCount++;
-        log.textContent += '  ' + (i+1) + '. ' + icon + ' — ' + (res.problem || '').slice(0, 60) + '\n';
-        if (res.error) log.textContent += '     Error: ' + res.error + '\n';
-      });
-      log.textContent += '\n[Result: ' + passCount + '/' + results.length + ' passed]\n';
-      if (passCount === results.length) {
-        log.textContent += '[All passed ✅]\n';
-      } else {
-        log.textContent += '[' + (results.length - passCount) + ' failed — click "Propose fix" to improve]\n';
-      }
-    } else {
-      log.textContent += '[Solve failed: ' + (solveR.data.error || 'unknown') + ']\n';
-    }
+    await solveOneByOne(problems, log);
   } else {
     log.textContent += '[Error: ' + (r.data.error || 'failed') + ']\n';
   }
@@ -870,6 +845,61 @@ document.getElementById('healFreeGen').addEventListener('click', async () => {
   btn.textContent = origText;
   btn.style.opacity = '1';
 });
+
+async function solveOneByOne(problems, logEl) {
+  // Solve one problem at a time so progress shows immediately and the error
+  // log fills in as each problem finishes, instead of one long silent batch.
+  logEl.textContent += '\n[Running problems through pipeline...]\n';
+  logEl.scrollTop = logEl.scrollHeight;
+  const results = [];
+  const startedAt = Date.now();
+  for (let i = 0; i < problems.length; i++) {
+    const p = problems[i];
+    if (Date.now() - startedAt > 600000) {
+      logEl.textContent += '  ' + (i+1) + '. SKIPPED - run budget reached\n';
+      results.push({ problem: p, status: 'skipped', error: 'run budget reached' });
+      continue;
+    }
+    logEl.textContent += '  ' + (i+1) + '. solving: ' + String(p).slice(0, 60) + '...\n';
+    logEl.scrollTop = logEl.scrollHeight;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 120000);
+    let res = { problem: p, status: 'timeout', error: 'no answer within 120s' };
+    try {
+      const r = await fetch('/api/ops/chat/solve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problems: [p] }),
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      if (r.ok) {
+        const data = await r.json();
+        res = (data.results && data.results[0]) || res;
+      } else {
+        res = { problem: p, status: 'error', error: 'HTTP ' + r.status };
+      }
+    } catch (e) {
+      clearTimeout(timer);
+      res = { problem: p, status: 'timeout', error: String((e && e.message) || e) };
+    }
+    results.push(res);
+    const st = res.status || 'unknown';
+    const icon = (st === 'ok' || st === 'solved') ? 'PASS' : (st === 'error' ? 'FAIL' : st.toUpperCase());
+    logEl.textContent += '     ' + icon + (res.error ? ' - ' + res.error : '') + '\n';
+    logEl.scrollTop = logEl.scrollHeight;
+    if (typeof loadErrors === 'function') loadErrors();
+  }
+  const passed = results.filter(r => r.status === 'ok' || r.status === 'solved').length;
+  logEl.textContent += '\n[Result: ' + passed + '/' + results.length + ' passed]\n';
+  if (passed === results.length && results.length) {
+    logEl.textContent += '[All passed]\n';
+  } else {
+    logEl.textContent += '[' + (results.length - passed) + ' failed - click "Propose fix" to improve]\n';
+  }
+  logEl.scrollTop = logEl.scrollHeight;
+  return results;
+}
 
 async function genFromError(errorId, errorText, severity) {
   // Auto-set problem count based on severity
@@ -900,32 +930,7 @@ async function genFromError(errorId, errorText, severity) {
     wfLog.textContent += '[Generated ' + workflowProblems.length + ' problems]\n';
     workflowProblems.forEach((p, i) => wfLog.textContent += '  ' + (i+1) + '. ' + p + '\n');
 
-    // Auto-solve: run problems through pipeline
-    wfLog.textContent += '\n[Running problems through pipeline…]\n';
-    const solveR = await apiFetch('/api/ops/chat/solve', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ problems: workflowProblems })
-    });
-    if (solveR.status === 200) {
-      const results = solveR.data.results || [];
-      let passCount = 0;
-      results.forEach((res, i) => {
-        const status = res.status || 'unknown';
-        const icon = (status === 'ok' || status === 'solved') ? '✅ PASS' : (status === 'error' ? '❌ FAIL' : '⚠️ ' + status.toUpperCase());
-        if (status === 'ok' || status === 'solved') passCount++;
-        wfLog.textContent += '  ' + (i+1) + '. ' + icon + ' — ' + (res.problem || '').slice(0, 60) + '\n';
-        if (res.error) wfLog.textContent += '     Error: ' + res.error + '\n';
-      });
-      wfLog.textContent += '\n[Result: ' + passCount + '/' + results.length + ' passed]\n';
-      if (passCount === results.length) {
-        wfLog.textContent += '[All passed ✅]\n';
-      } else {
-        wfLog.textContent += '[' + (results.length - passCount) + ' failed — click "Propose fix" to improve]\n';
-      }
-    } else {
-      wfLog.textContent += '[Solve failed: ' + (solveR.data.error || 'unknown') + ']\n';
-    }
+    await solveOneByOne(workflowProblems, wfLog);
 
     loadErrors();
     wfLog.scrollTop = wfLog.scrollHeight;
