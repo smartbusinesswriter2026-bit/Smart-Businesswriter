@@ -286,6 +286,8 @@ def deep_check(prose_text, evidence_items, decision=''):
     models = llm.from_env()
     if models is None:
         return [], "no model configured"
+    models.config.max_output_tokens = 4000
+    models.config.max_input_chars = 30000
 
     evidence_text = _extract_evidence_text(evidence_items)
     system = (

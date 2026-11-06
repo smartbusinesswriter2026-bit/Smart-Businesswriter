@@ -72,8 +72,13 @@ class OpenAICompatProvider(Provider):
         except (urllib.error.URLError, TimeoutError, OSError) as e: raise ProviderError(f"could not reach the provider: {type(e).__name__}")
         except ValueError: raise ProviderError("provider returned a response that is not JSON")
         try:
-            text = data["choices"][0]["message"]["content"]
-            if not isinstance(text, str): raise KeyError
+            msg = data["choices"][0]["message"]
+            text = msg.get("content")
+            if not text:
+                # Reasoning models (e.g. beam-free) may put output in reasoning_content
+                text = msg.get("reasoning_content")
+            if not text or not isinstance(text, str):
+                raise KeyError
         except (KeyError, IndexError, TypeError): raise ProviderError("unexpected response shape from the provider")
         u = data.get("usage", {}); return LLMResult(text, data.get("model", self.model), self.name, u.get("prompt_tokens"), u.get("completion_tokens"))
 

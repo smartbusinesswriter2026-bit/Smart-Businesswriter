@@ -48,7 +48,11 @@ def _models_for(role):
                 os.environ["BP_LLM_PROVIDER"] = override_provider
             if override_model:
                 os.environ["BP_LLM_MODEL"] = override_model
-        return llm.from_env()
+        models = llm.from_env()
+        if models is not None:
+            models.config.max_output_tokens = 4000
+            models.config.max_input_chars = 30000
+        return models
     finally:
         for name, value in zip(("BP_LLM_PROVIDER", "BP_LLM_MODEL"), saved):
             if value is None:
@@ -58,21 +62,29 @@ def _models_for(role):
 
 
 def _call_model(models, system, user):
-    """Call a model and return the raw text, or None on failure."""
+    """Call a model and return the raw text, or None on failure.
+
+    Retries up to 3 times on transient failures (rate limits, bad response shape).
+    """
     if models is None:
         return None
-    try:
-        result = models.call("builder", "chat_heal", "v1", system, user, consent=True)
-        if isinstance(result, tuple) and len(result) >= 1:
-            return result[0]
-        return str(result)
-    except Exception:
-        return None
+    import time
+    for attempt in range(3):
+        try:
+            result = models.call("builder", "chat_heal", "v1", system, user, consent=True)
+            if isinstance(result, tuple) and len(result) >= 1:
+                return result[0]
+            return str(result)
+        except Exception:
+            if attempt < 2:
+                time.sleep(1)
+            continue
+    return None
 
 
 # ── Problem generator ───────────────────────────────────────────────────────
 
-def generate_problems_from_error(error_text, count=5):
+def generate_problems_from_error(error_text, count=5, difficulty="medium"):
     """Reframe an error into an instruction and generate problems.
 
     Returns (problems: list[str], instruction: str, error: str or None).
@@ -82,27 +94,40 @@ def generate_problems_from_error(error_text, count=5):
         "Create " + str(count) + " realistic test problems that exercise the "
         "scenario described by this error. Include edge cases and variations."
     )
-    problems, err = generate_problems(instruction, count)
+    problems, err = generate_problems(instruction, count, difficulty=difficulty)
     return problems, instruction, err
 
 
-def generate_problems(instruction, count=5):
+def generate_problems(instruction, count=5, difficulty="medium"):
     """Generate N test problems from an instruction.
+
+    difficulty: easy, medium, hard, expert (stress test)
 
     Returns (problems: list[str], error: str or None).
     """
     models = _models_for("gen")
     if models is None:
         return [], "no model configured (set BP_LLM_PROVIDER / BP_LLM_MODEL)"
+
+    diff_instructions = {
+        "easy": "Make problems simple and clear with all values given explicitly.",
+        "medium": "Make problems moderately complex, combining 2-3 concepts.",
+        "hard": "Make problems complex with missing information, edge cases, and multi-step reasoning.",
+        "expert": "Make problems expert-level stress tests: contradictory data, multiple periods, unusual account placements, tricky adjustments, boundary values, and scenarios designed to break the pipeline. Include malformed inputs, ambiguous wording, and edge cases.",
+    }
+    diff_note = diff_instructions.get(difficulty, diff_instructions["medium"])
+
     system = (
         "You are a test-problem generator for a business analysis pipeline. "
         "Given an instruction and a count, create that many distinct test problems "
         "that exercise the pipeline. Each problem should be a realistic business "
-        "analysis question or scenario. "
+        "analysis question or scenario. " + diff_note + " "
+        "Vary the format: some as word problems, some as trial balances, some as journal entries, "
+        "some as narrative instructions. "
         "Return ONLY a JSON object: {\"problems\": [\"problem 1\", \"problem 2\", ...]}. "
-        "No markdown, no extra text."
+        "No markdown, no extra text. Do not include reasoning or thinking. Output only the JSON."
     )
-    user = json.dumps({"instruction": instruction, "count": count}, ensure_ascii=False)
+    user = json.dumps({"instruction": instruction, "count": count, "difficulty": difficulty}, ensure_ascii=False)
     raw = _call_model(models, system, user)
     if raw is None:
         return [], "model call failed"
