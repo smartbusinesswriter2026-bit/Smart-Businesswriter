@@ -2866,10 +2866,17 @@ function blockGraphHtml(c) {
   if (!blocks.length) return "";
   return '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
     '<h4 class="levelhead" style="margin-top:0">Plan blocks</h4>' +
-    '<ul class="guidesteps">' + blocks.map((block) =>
-      "<li><strong>" + esc(block.id || "") + "</strong> - " + esc(block.kind || "") + " - " +
-      esc(block.ref || "") + (block.role ? " (" + esc(block.role) + ")" : "") +
-      (block.contribution ? ": " + esc(block.contribution) : "") + "</li>").join("") +
+    '<ul class="guidesteps">' + blocks.map((block) => {
+      const kind = String(block.kind || "").toLowerCase();
+      const label = kind === "framework" ? (block.ref || "Framework")
+        : kind === "computation" ? (block.ref || "Computation")
+        : kind === "chart" ? "Chart"
+        : kind === "prose" ? "Synthesis"
+        : "Step";
+      const shown = String(label).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+      return "<li><strong>" + esc(shown) + "</strong>" +
+        (block.contribution ? ": " + esc(block.contribution) : "") + "</li>";
+    }).join("") +
     "</ul></div>";
 }
 
@@ -3839,7 +3846,7 @@ async function uploadAttachments(files) {
       toast(file.name + ": " + (error.message || String(error)));
     }
   }
-  if (stored) toast(stored === 1 ? "File attached." : stored + " files attached.");
+  if (stored) toast(stored === 1 ? "File added." : stored + " files added.");
   loadAttachments();
 }
 
@@ -4027,7 +4034,7 @@ async function useAsRubric(id) {
 async function ingestAttachment(id) {
   try {
     await post("/api/intake/" + encodeURIComponent(id) + "/ingest", {});
-    toast("File read into a typed table.");
+    toast("Data file read.");
   } catch (error) {
     toast(error.message || String(error));
   }

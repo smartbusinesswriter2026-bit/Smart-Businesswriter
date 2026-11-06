@@ -1499,11 +1499,12 @@ def _plan_blocks(state):
     blocks = []
     frameworks = state.get("frameworks") or ([state.get("framework")] if state.get("framework") else [])
     for index, framework in enumerate(frameworks):
-        if not framework:
+        if not framework or framework == "none":
             continue
+        label = FRAMEWORKS.get(framework, {}).get("label") or str(framework).replace("_", " ")
         blocks.append({"id": "b_framework_%d" % index, "kind": "framework", "ref": framework,
-                       "role": "analysis", "contribution": "analyses the case against the " + str(framework) + " framework",
-                       "requires": {"evidence": []}, "produces": {"sections": [str(framework).upper()]}})
+                       "role": "analysis", "contribution": "analyses the case with " + label,
+                       "requires": {"evidence": []}, "produces": {"sections": [label]}})
     selection = state.get("selection") or {}
     for index, row in enumerate(selection.get("selected") or []):
         blocks.append({"id": "b_cap_%d" % index, "kind": "computation", "ref": row.get("key"),
