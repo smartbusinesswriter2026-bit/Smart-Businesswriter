@@ -40,6 +40,14 @@ for var in ("BP_LLM_PROVIDER", "BP_LLM_MODEL", "OPENAI_API_KEY",
     os.environ.pop(var, None)
 
 from bp.product import completion, framework_profiles, paper, verify  # noqa: E402
+try:
+    from .rules import judge_paper, by_rule as _by_rule
+except ImportError:
+    from rules import judge_paper, by_rule as _by_rule
+try:
+    from .rules import judge_paper, by_rule as _by_rule
+except ImportError:
+    from rules import judge_paper, by_rule as _by_rule
 import bp.product.sources as sources                                   # noqa: E402
 
 SHARED_PACK = os.path.join(HERE, "evidence", "shared.json")
@@ -136,72 +144,6 @@ def freeze_retrieval(pack):
     return sources
 
 
-def judge(result, report):
-    """Return (verdict, findings) for one paper.
-
-    V-12 is judged on the paper's rendered content: every dimension the
-    profile declares must appear as a section carrying either an accepted item
-    or a named gap.  The deterministic Draft always prints the named-gap
-    wording for a dimension with no accepted item, so an empty (or missing)
-    dimension section is the only real V-12 defect.  The export gate
-    (completion.missing) is a separate, advisory signal: it records that the
-    student has not yet acknowledged the gap, which is the student's next step,
-    not a defect in the paper the harness produced.
-    """
-    findings = []
-    sections = report.get("sections") or []
-    by_heading = {}
-    for s in sections:
-        by_heading.setdefault((s.get("heading") or "").strip().lower(), s)
-    for block in (result.get("blocks") or []):
-        label = (block.get("label") or block.get("key") or "").strip()
-        sec = by_heading.get(label.lower())
-        if sec is None or not (sec.get("lines") or []):
-            findings.append({"rule": "V-12", "severity": "high",
-                             "detail": "dimension %r has no section carrying an item or a named gap" % label,
-                             "where": label, "source": "paper.content"})
-    absent = completion.missing(result)
-    if absent:
-        findings.append({"rule": "V-07", "severity": "low", "advisory": True,
-                         "detail": "export gate would block: %s" % ", ".join(str(a) for a in absent),
-                         "where": "", "source": "completion.missing"})
-    issues = paper.check(report["sections"], framework=report.get("template") or "pestel",
-                         implications="", answers=None)
-    check_issues = (issues.get("issues") if isinstance(issues, dict) else issues) or []
-    for issue in check_issues:
-        if isinstance(issue, str):
-            issue = {"type": None, "severity": "medium", "detail": issue, "heading": ""}
-        rule, severity = CHECK_TO_RULE.get(issue.get("type"), (None, issue.get("severity") or "medium"))
-        if rule:
-            findings.append({"rule": rule, "severity": severity,
-                             "detail": issue.get("detail", ""), "where": issue.get("heading") or "",
-                             "source": "paper.check"})
-        else:
-            advisory_only = issue.get("type") == "missing_input"
-            findings.append({"rule": None if advisory_only else "V-00-unassigned",
-                             "severity": issue.get("severity") or "medium",
-                             "detail": issue.get("detail", ""), "where": issue.get("heading") or "",
-                             "source": "paper.check", "type": issue.get("type"),
-                             "advisory": advisory_only})
-    text = "\n".join(" ".join(item.get("lines") or []) for item in report["sections"])
-    for claim in verify.overclaims(text):
-        if isinstance(claim, dict):
-            detail = "%s: %s" % (claim.get("claim", ""), claim.get("sentence", ""))
-        else:
-            detail = str(claim)
-        findings.append({"rule": "V-17", "severity": "high", "detail": detail,
-                         "where": "", "source": "verify.overclaims"})
-    band = report.get("length_range") or ""
-    band_match = re.match(r"([0-9,]+)\s*-\s*([0-9,]+)", str(band))
-    lo, hi = ((int(band_match.group(1).replace(",", "")), int(band_match.group(2).replace(",", "")))
-              if band_match else (0, 10 ** 6))
-    words = report.get("words") or 0
-    if band_match and report.get("length_applies_to") != "full" and (words < lo or words > hi):
-        findings.append({"rule": "V-19", "advisory": True, "severity": "low",
-                         "detail": "word count %d is outside the band %s..%s" % (words, lo, hi),
-                         "where": "", "source": "length"})
-    blocking = [f for f in findings if f.get("rule") and f.get("severity") == "high" and not f.get("advisory")]
-    return ("fail" if blocking else "pass"), findings
 
 def _finding_names(entries, limit=2):
     names = []
@@ -297,7 +239,7 @@ def main(argv=None):
             result = completion.complete(t, instruction, industry="consumer goods",
                                          country=country, unit_value=declared)
             report = completion.draft(result, "apa", "draft", "mid")
-            verdict, findings = judge(result, report)
+            verdict, findings = judge_paper(result, report, kind="framework")
             data = completion.draft_bytes(result, "apa", report=report, length="mid")
             fname = "%s__apa.docx" % t
             os.makedirs(os.path.join(out, subject), exist_ok=True)
