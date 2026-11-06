@@ -107,7 +107,7 @@ def handle(verb, path, body):
                 "SELECT * FROM candidates WHERE candidate_id = ?", (candidate_id,)).fetchone()
             if not row:
                 return 404, {"error": "no such candidate"}
-            outcome = enrich.fetch_one(connection, row)
+            outcome = enrich.fetch_one(connection, row, approved=True)
             return 200, {"status": outcome}
 
         if parts == ["candidates", "reject"] and verb == "POST":

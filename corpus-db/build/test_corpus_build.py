@@ -108,6 +108,15 @@ class TimestampTest(TempCorpusTest):
         gaps = enrich.unanswered_queries(self.connection, since_days=30, min_times=1)
         self.assertEqual(gaps, [], "an expired row is not an unanswered question")
 
+    def test_a_framework_seed_is_not_researched_a_second_time(self):
+        for index in range(2):
+            self.connection.execute(
+                "INSERT INTO search_log (search_id, searched_at, query, subject, dimension,"
+                " corpus_hits) VALUES (?, ?, 'PESTEL framework', 'management',"
+                " 'framework_seed', 0)", ("seed%d" % index, lib.days_ago(1)))
+        self.connection.commit()
+        self.assertEqual(enrich.unanswered_queries(self.connection, min_times=1), [])
+
 
 class CandidateTest(TempCorpusTest):
     def test_a_candidate_seen_twice_rises_and_keeps_one_row(self):
@@ -207,6 +216,35 @@ class CandidateTest(TempCorpusTest):
             enrich.fetch(self.connection)
         self.assertEqual(fetch_one.call_count, 1,
                          "a transient failure must be retried next cycle")
+
+    def test_an_unknown_licence_waits_for_the_owner_and_the_owner_can_approve_it(self):
+        lib.upsert_candidate(self.connection,
+                             {"title": "Pricing in emerging markets",
+                              "doi": "10.1234/emerging.1", "source": "openalex"})
+        candidate = self.connection.execute("SELECT * FROM candidates").fetchone()
+        work = {"id": "https://openalex.org/W1", "title": "Pricing in emerging markets",
+                "doi": "https://doi.org/10.1234/emerging.1",
+                "publication_year": 2020, "primary_location": {},
+                "has_content": {"pdf": True},
+                "best_oa_location": {"license": None}}
+        with mock.patch.object(enrich, "work_by_doi", return_value=work), \
+                mock.patch.object(enrich, "open_access_pdf",
+                                  return_value=("https://example.org/paper.pdf", None)):
+            self.assertEqual(enrich.fetch_one(self.connection, candidate), "needs_decision")
+            row = self.connection.execute(
+                "SELECT * FROM candidates WHERE candidate_id = ?",
+                (candidate["candidate_id"],)).fetchone()
+            self.assertEqual(row["status"], "needs_decision")
+            self.assertIn("approve", row["reason"])
+
+        with mock.patch.object(enrich, "work_by_doi", return_value=work), \
+                mock.patch.object(enrich, "open_access_pdf",
+                                  return_value=("https://example.org/paper.pdf", None)), \
+                mock.patch.object(enrich, "_get_bytes", return_value=b"%PDF-1.4 fake"), \
+                mock.patch.object(lib, "ingest_pdf",
+                                  return_value=("ingested", "doc-1", "ingested")):
+            self.assertEqual(enrich.fetch_one(self.connection, candidate, approved=True),
+                             "ingested")
 
 
 class WebSourceTest(TempCorpusTest):

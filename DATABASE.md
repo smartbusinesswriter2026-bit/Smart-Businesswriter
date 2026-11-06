@@ -422,6 +422,49 @@ stopped machine does not break a paper run; the corpus simply learns more slowly
 (HTTP 429). When that happens the journal-API fallback and title resolution are unavailable and
 the pipeline says so; set a free `BP_OPENALEX_API_KEY` to give the corpus its own budget.
 
+## 10b. Step 6b — Seed every framework and theory
+
+The pipeline knows its own lenses: 71 frameworks, 24 models and 7 theory bundles in
+`src/bp/data/registry_v0_2.json`, plus the worksheet profiles. `seed_frameworks.py` reads
+that list, asks the journal APIs once per lens, and stores every work it finds in the
+demand queue. It is the deliberate version of the self-enrichment loop: instead of waiting
+for a student to need a lens, it asks for every lens the product can name.
+
+```powershell
+# Look before spending an API call: the lens list and the exact query for each.
+python D:\SMART BUSINESSWRITER\corpus-db\build\seed_frameworks.py --dry-run
+
+# Discover and store metadata for every framework, model and theory.
+python D:\SMART BUSINESSWRITER\corpus-db\build\seed_frameworks.py --fetch 10
+
+# The six a business paper is most likely to name, with 20 open full texts.
+python D:\SMART BUSINESSWRITER\corpus-db\build\seed_frameworks.py ^
+  --frameworks "Porter,Ansoff,PESTEL,SWOT,VRIO" --limit 4 --max-queries 1 --fetch 20
+```
+
+What it reads and writes:
+
+| | |
+|---|---|
+| Lenses | `registry_v0_2.json` (`F`, `M`, `T`; `Q` methods only with `--include-methods`) and `framework_profiles.PROFILES` |
+| Query | the lens name plus its kind (`framework`, `model`, `theory`), and the first dimension query the worksheet already uses |
+| APIs | OpenAlex, Crossref, Semantic Scholar and DOAJ, through the pipeline's own adapters |
+| Queue | `candidates`, with `framework = '<lens>'` and `reason = 'framework seed: <lens>'`; duplicates are one row and `seen_count` rises. The lens survives a later fetch that rewrites the status reason. |
+| Learning log | one `search_log` + `seen_sources` row per query, so the dashboard shows the demand |
+| Full text | `--fetch N` calls the same licence-gated `enrich.fetch_one` the nightly cycle uses |
+| Report | `corpus-state/framework_seed_report.json` |
+
+**Metadata is not a citation.** A paywalled work is stored as a candidate and is never cited
+from the corpus. Only a work whose full text is ingested into `documents` + `pages` can answer
+a later search. `--fetch` ingests an open licence automatically; a restrictive or unknown
+licence becomes `needs_decision`, and the owner can approve it in the admin page. The approve
+button is an explicit owner decision and skips the licence refusal for that one work; the
+nightly worker never does.
+
+The script is safe to run again. A work already in the corpus is skipped; a work already in
+the queue is not duplicated; a lens with no result is a report row, not an invented source.
+
+
 
 ## 11. Step 7 — The owner upload UI
 

@@ -295,7 +295,7 @@ def register_functions(connection):
 MIGRATIONS = {
     "documents": {"work_key": "TEXT", "added_by": "TEXT", "enrichen_at": "TEXT",
                   "owner_approved_at": "TEXT"},
-    "candidates": {"work_key": "TEXT"},
+    "candidates": {"work_key": "TEXT", "framework": "TEXT"},
     "ingest_log": {"reason": "TEXT"},
 }
 
@@ -316,6 +316,12 @@ def migrate(connection):
         for column, kind in columns.items():
             if column not in existing:
                 connection.execute("ALTER TABLE %s ADD COLUMN %s %s" % (table, column, kind))
+    if "candidates" in tables:
+        # The first seeded rows recorded their lens only in `reason`.  The new
+        # column makes the lens survive a fetch that rewrites the reason.
+        connection.execute(
+            "UPDATE candidates SET framework = substr(reason, 17)"
+            " WHERE framework IS NULL AND reason LIKE 'framework seed:%'")
     connection.commit()
     backfill_work_keys(connection)
 
@@ -916,20 +922,22 @@ def upsert_candidate(connection, item):
             connection.execute(
                 "UPDATE candidates SET last_seen_at = ?, seen_count = seen_count + 1,"
                 " doi = COALESCE(doi, ?), url = COALESCE(url, ?),"
-                " title = COALESCE(title, ?), year = COALESCE(year, ?)"
+                " title = COALESCE(title, ?), year = COALESCE(year, ?),"
+                " framework = COALESCE(framework, ?)"
                 " WHERE candidate_id = ?",
                 (now(), norm_doi(item.get("doi")) or None, norm_url(item.get("url")) or None,
-                 item.get("title"), item.get("year"), existing))
+                 item.get("title"), item.get("year"), item.get("framework"), existing))
             connection.commit()
             return existing
         candidate_id = hashlib.sha1(key.encode("utf-8")).hexdigest()[:16]
         connection.execute(
             "INSERT INTO candidates (candidate_id, first_seen_at, last_seen_at, title, doi, url,"
-            " source, year, venue, seen_count, priority, status, reason, work_key)"
-            " VALUES (?,?,?,?,?,?,?,?,?,1,0,'new',?,?)",
+            " source, year, venue, seen_count, priority, status, reason, framework, work_key)"
+            " VALUES (?,?,?,?,?,?,?,?,?,1,0,'new',?,?,?)",
             (candidate_id, now(), now(), item.get("title"), norm_doi(item.get("doi")) or None,
              norm_url(item.get("url")) or None, item.get("source"), item.get("year"),
-             item.get("venue"), "seen in a pipeline search", key))
+             item.get("venue"), item.get("reason") or "seen in a pipeline search",
+             item.get("framework"), key))
         connection.commit()
         return candidate_id
     except Exception:
@@ -1037,6 +1045,10 @@ def stats(connection):
     by_subject = connection.execute(
         "SELECT subject, COUNT(*) AS documents FROM documents GROUP BY subject ORDER BY documents DESC"
     ).fetchall()
+    by_framework = connection.execute(
+        "SELECT framework, COUNT(*) AS candidates FROM candidates"
+        " WHERE framework IS NOT NULL AND framework != ''"
+        " GROUP BY framework ORDER BY candidates DESC").fetchall()
     searches = scalar("SELECT COUNT(*) FROM search_log")
     answered = scalar("SELECT COUNT(*) FROM search_log WHERE corpus_hits > 0")
     # The size on disk, not a page count. The 10 GB ceiling (C-01) is measured
@@ -1060,6 +1072,8 @@ def stats(connection):
         "used_sources": scalar("SELECT COUNT(*) FROM seen_sources WHERE used = 1"),
         "web_sources": scalar("SELECT COUNT(*) FROM web_sources"),
         "by_subject": [{"subject": row["subject"], "documents": row["documents"]} for row in by_subject],
+        "by_framework": [{"framework": row["framework"], "candidates": row["candidates"]}
+                         for row in by_framework],
         "thin_subjects": thin_subjects(connection),
         "meili": meili_available(),
         "database": DB_PATH,

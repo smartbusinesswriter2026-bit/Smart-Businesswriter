@@ -37,6 +37,8 @@ corpus-db/corpus.sqlite
 corpus-db/pdfs/
 corpus-db/meili/
 corpus-db/data.ms/
+corpus-state/enrich.log
+corpus-state/framework_seed_report.json
 
 # Word lock files
 ~$*.docx

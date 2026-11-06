@@ -130,6 +130,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   status        TEXT NOT NULL DEFAULT 'new',  -- new | fetching | fetched | ingested | rejected | needs_decision
   reason        TEXT,
   doc_id        TEXT,
+  framework     TEXT,                    -- the lens that asked for it ('Ansoff Matrix')
   work_key      TEXT                     -- the identity of the WORK; see the end of this file
 );
 CREATE INDEX IF NOT EXISTS idx_cand_status ON candidates(status, priority);

@@ -207,10 +207,15 @@ def score(connection):
 # ── step 3: research ────────────────────────────────────────────────────────
 
 def unanswered_queries(connection, since_days=30, min_times=2):
-    """Queries the corpus could not answer, and that came up more than once."""
+    """Queries the corpus could not answer, and that came up more than once.
+
+    The framework seeds are excluded: that worker has already asked the journal
+    APIs for every lens, so re-researching the same query would only repeat it.
+    """
     rows = connection.execute(
         "SELECT query, subject, COUNT(*) AS times, MAX(searched_at) AS last_at"
         "  FROM search_log WHERE corpus_hits = 0"
+        "   AND (dimension IS NULL OR dimension != 'framework_seed')"
         "   AND searched_at >= ?"
         " GROUP BY query, subject HAVING times >= ? ORDER BY times DESC",
         (lib.days_ago(since_days), min_times)).fetchall()
@@ -265,7 +270,14 @@ def fetch(connection, limit=10):
     return outcomes
 
 
-def fetch_one(connection, candidate):
+def fetch_one(connection, candidate, approved=False):
+    """Fetch one candidate.
+
+    `approved` is the owner's explicit decision: it skips the licence refusal
+    for that one work.  The nightly `fetch` never sets it, so an unattended run
+    still obeys the licence gate; the admin approve button does, because the
+    owner has seen the work and accepted it.
+    """
     candidate_id = candidate["candidate_id"]
     doi = lib.norm_doi(candidate["doi"])
     url = candidate["url"]
@@ -333,16 +345,16 @@ def fetch_one(connection, candidate):
             ("no open full text at the API content endpoint", candidate_id))
         connection.commit()
         return "rejected"
-    if not licence:
+    if not licence and not approved:
         # A PDF that carries no licence is not automatically open.  The gate is
         # the whole safety mechanism, so an unknown licence waits for the owner
         # instead of being treated as permission.
         connection.execute(
             "UPDATE candidates SET status = 'needs_decision', reason = ? WHERE candidate_id = ?",
-            ("no licence recorded; the owner must decide whether to ingest it", candidate_id))
+            ("no licence recorded; approve it in the admin page to ingest", candidate_id))
         connection.commit()
         return "needs_decision"
-    if licence not in OPEN_LICENCES:
+    if licence and licence not in OPEN_LICENCES and not approved:
         status = "needs_decision" if licence in NEEDS_DECISION else "rejected"
         reason = ("licence %s needs an owner decision" % licence) if status == "needs_decision" \
             else ("licence %s is not an open licence" % licence)
