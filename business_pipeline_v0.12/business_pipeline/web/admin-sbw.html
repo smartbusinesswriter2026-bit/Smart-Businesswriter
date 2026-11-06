@@ -303,6 +303,12 @@
             <option value="5" selected>5 (moderate)</option>
             <option value="10">10 (severe)</option>
           </select></label>
+          <label>Difficulty: <select id="healDifficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+            <option value="expert">Expert (stress test)</option>
+          </select></label>
         </div>
         <div class="row">
           <label style="flex:1;">Free-form instruction: <input type="text" id="healInstruction" placeholder="Describe what to test or improve…" style="width:100%;"></label>
@@ -790,21 +796,59 @@ document.getElementById('healFreeGen').addEventListener('click', async () => {
   // If instruction is blank, construct one from subject + tile
   if (!instruction) {
     if (!subjectSel.value) { toast('Select a subject or enter an instruction'); return; }
-    instruction = 'Generate ' + count + ' varied and diverse case studies or problems about ' + (tileLabel || subjectLabel) +
+    const diff = document.getElementById('healDifficulty').value;
+    const diffDesc = {
+      easy: 'simple, single-concept problems with clear given values',
+      medium: 'moderate problems combining 2-3 concepts with some ambiguity',
+      hard: 'complex multi-step problems with missing information and edge cases',
+      expert: 'expert-level stress-test problems with contradictory data, multiple periods, unusual account placements, and tricky adjustments designed to break the pipeline'
+    }[diff] || 'moderate problems';
+    instruction = 'Generate ' + count + ' ' + diff + '-difficulty, highly varied and complex case studies or problems about ' + (tileLabel || subjectLabel) +
       (tileWhat ? ' (' + tileWhat + ')' : '') +
-      ' in the ' + subjectLabel + ' domain. Make them realistic, varied in difficulty, and covering different aspects.';
+      ' in the ' + subjectLabel + ' domain. Difficulty: ' + diffDesc + '.' +
+      ' Make them realistic but challenging. Include edge cases, unusual values, multi-period scenarios, and tricky placements.' +
+      ' Vary the format: some as word problems, some as trial balances, some as journal entries, some as narrative instructions.';
   }
 
   const log = document.getElementById('healFreeLog');
   log.textContent = '[Generating ' + count + ' problems…]\n';
+  const difficulty = document.getElementById('healDifficulty').value || 'medium';
   const r = await apiFetch('/api/ops/chat/problems', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ instruction, count })
+    body: JSON.stringify({ instruction, count, difficulty })
   });
   if (r.status === 200) {
-    log.textContent += '[Generated ' + (r.data.problems||[]).length + ' problems]\n';
-    (r.data.problems||[]).forEach((p,i) => log.textContent += '  ' + (i+1) + '. ' + p + '\n');
+    const problems = r.data.problems || [];
+    log.textContent += '[Generated ' + problems.length + ' problems]\n';
+    problems.forEach((p,i) => log.textContent += '  ' + (i+1) + '. ' + p + '\n');
+
+    // Auto-solve: run problems through pipeline
+    log.textContent += '\n[Running problems through pipeline…]\n';
+    const solveR = await apiFetch('/api/ops/chat/solve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ problems })
+    });
+    if (solveR.status === 200) {
+      const results = solveR.data.results || [];
+      let passCount = 0;
+      results.forEach((res, i) => {
+        const status = res.status || 'unknown';
+        const icon = (status === 'ok' || status === 'solved') ? '✅ PASS' : (status === 'error' ? '❌ FAIL' : '⚠️ ' + status.toUpperCase());
+        if (status === 'ok' || status === 'solved') passCount++;
+        log.textContent += '  ' + (i+1) + '. ' + icon + ' — ' + (res.problem || '').slice(0, 60) + '\n';
+        if (res.error) log.textContent += '     Error: ' + res.error + '\n';
+      });
+      log.textContent += '\n[Result: ' + passCount + '/' + results.length + ' passed]\n';
+      if (passCount === results.length) {
+        log.textContent += '[All passed ✅]\n';
+      } else {
+        log.textContent += '[' + (results.length - passCount) + ' failed — click "Propose fix" to improve]\n';
+      }
+    } else {
+      log.textContent += '[Solve failed: ' + (solveR.data.error || 'unknown') + ']\n';
+    }
   } else {
     log.textContent += '[Error: ' + (r.data.error || 'failed') + ']\n';
   }
@@ -824,12 +868,40 @@ async function genFromError(errorId, errorText, severity) {
   const r = await apiFetch('/api/ops/chat/problems-from-error', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ error: errorText, count })
+    body: JSON.stringify({ error: errorText, count, difficulty: document.getElementById('healDifficulty').value || 'medium' })
   });
   if (r.status === 200) {
     workflowProblems = r.data.problems || [];
     wfLog.textContent += '[Generated ' + workflowProblems.length + ' problems]\n';
     workflowProblems.forEach((p, i) => wfLog.textContent += '  ' + (i+1) + '. ' + p + '\n');
+
+    // Auto-solve: run problems through pipeline
+    wfLog.textContent += '\n[Running problems through pipeline…]\n';
+    const solveR = await apiFetch('/api/ops/chat/solve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ problems: workflowProblems })
+    });
+    if (solveR.status === 200) {
+      const results = solveR.data.results || [];
+      let passCount = 0;
+      results.forEach((res, i) => {
+        const status = res.status || 'unknown';
+        const icon = (status === 'ok' || status === 'solved') ? '✅ PASS' : (status === 'error' ? '❌ FAIL' : '⚠️ ' + status.toUpperCase());
+        if (status === 'ok' || status === 'solved') passCount++;
+        wfLog.textContent += '  ' + (i+1) + '. ' + icon + ' — ' + (res.problem || '').slice(0, 60) + '\n';
+        if (res.error) wfLog.textContent += '     Error: ' + res.error + '\n';
+      });
+      wfLog.textContent += '\n[Result: ' + passCount + '/' + results.length + ' passed]\n';
+      if (passCount === results.length) {
+        wfLog.textContent += '[All passed ✅]\n';
+      } else {
+        wfLog.textContent += '[' + (results.length - passCount) + ' failed — click "Propose fix" to improve]\n';
+      }
+    } else {
+      wfLog.textContent += '[Solve failed: ' + (solveR.data.error || 'unknown') + ']\n';
+    }
+
     wfLog.scrollTop = wfLog.scrollHeight;
     document.getElementById('workflowActions').style.display = 'flex';
   } else {
@@ -1162,10 +1234,11 @@ document.getElementById('chatGenerate').addEventListener('click', async () => {
   const count = parseInt(document.getElementById('chatCount').value) || 5;
   if (!instruction) { toast('Enter an instruction first'); return; }
   appendChat('[Model A — problem generator] Creating ' + count + ' problems…');
+  const difficulty = document.getElementById('healDifficulty').value || 'medium';
   const r = await apiFetch('/api/ops/chat/problems', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ instruction, count })
+    body: JSON.stringify({ instruction, count, difficulty })
   });
   if (r.status === 200) {
     chatProblems = r.data.problems || [];
