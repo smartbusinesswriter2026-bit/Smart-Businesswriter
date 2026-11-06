@@ -371,13 +371,18 @@ def case_document(bundle):
     figures = []
 
     sections = [
-        _section("The question", paragraphs=[_text(objective)]),
-        _section("What you declared", paragraphs=[
+        _section("1. Problem", paragraphs=[_text(objective)]),
+        _section("4. Solution Roadmap", paragraphs=[
+            "Method: " + label + " (" + (contract.get("tier") or "recorded") + " method).",
+            "The frozen method performed the arithmetic. These are the values it recorded; "
+            "this document quotes them and does not recalculate them.",
+        ]),
+        _section("2. Given Data", paragraphs=[
             "These are the figures the run used. They are the values the bundle records; nothing was "
             "defaulted or rounded in this document."],
             table=_table(["Figure", "What it means", "Recorded value", "Where it came from"],
                          _input_rows(contract, inputs, provenance))),
-        _section("Why this method", paragraphs=[
+        _section("3. Concepts, Formulas, and Assumptions", paragraphs=[
             contract.get("intended_use") or (info or {}).get("what")
             or "The method is the frozen method recorded for this run.",
             "It is a " + (contract.get("tier") or appendix.get("tier") or "recorded")
@@ -388,18 +393,18 @@ def case_document(bundle):
     steps = notes.get("steps") or []
     mistakes = notes.get("common_mistakes") or []
     sections.append(_section(
-        "The method, in plain language",
+        "3. Concepts, Formulas, and Assumptions",
         paragraphs=[("Declared formula: " + formula) if formula else None,
                     (info or {}).get("what") or None],
         bullets=([("Step %d. %s" % (index + 1, step)) for index, step in enumerate(steps)]
                  if steps else None),
     ))
     if mistakes:
-        sections.append(_section("Common mistakes", bullets=mistakes))
+        sections.append(_section("3. Concepts, Formulas, and Assumptions", bullets=mistakes))
 
     output_rows = _output_rows(artifacts, outputs)
     sections.append(_section(
-        "What the engine returned",
+        "5. Explanation",
         paragraphs=[
             "The frozen method performed the arithmetic. These are the values it recorded; this document "
             "quotes them and does not recalculate them.",
@@ -408,7 +413,7 @@ def case_document(bundle):
     ))
     report = delivery.get("report")
     if isinstance(report, str) and report.strip():
-        sections.append(_section("What the result means", paragraphs=report.splitlines()))
+        sections.append(_section("5. Explanation", paragraphs=report.splitlines()))
 
     accounts = appendix.get("accounts") or {}
     if accounts:
@@ -425,22 +430,22 @@ def case_document(bundle):
     limitations = list(appendix.get("limitations") or []) or list(contract.get("limitations") or [])
     defaults = list(contract.get("defaults") or [])
     if assumptions:
-        sections.append(_section("Assumptions (as recorded)", bullets=assumptions))
+        sections.append(_section("3. Concepts, Formulas, and Assumptions", bullets=assumptions))
     if defaults:
         sections.append(_section(
-            "Defaults the method applied",
+            "3. Concepts, Formulas, and Assumptions",
             bullets=["%s: %s Impact: %s" % (item.get("question"), item.get("default_chosen"),
                                             item.get("impact"))
                      for item in defaults if isinstance(item, dict)]))
     if limitations:
-        sections.append(_section("Limits and what this does not prove", bullets=limitations))
+        sections.append(_section("6. Interpretation", bullets=limitations))
     unsupported = contract.get("unsupported_use")
     if unsupported:
-        sections.append(_section("What this method is not for", paragraphs=[unsupported]))
+        sections.append(_section("6. Interpretation", paragraphs=[unsupported]))
 
     headline = _headline(outputs, artifacts)
     sections.append(_section(
-        "If your professor asks",
+        "6. Interpretation",
         bullets=[
             "What was the question? " + _text(objective),
             "Why this method? " + (contract.get("intended_use") or "It is the method recorded for this run."),
@@ -458,7 +463,7 @@ def case_document(bundle):
         ],
     ))
     record = _record(bundle)
-    sections.append(_section("For the record", table=_table(
+    sections.append(_section("2. Given Data", table=_table(
         ["Field", "Recorded value"],
         [[_humanise(name), _text(value)] for name, value in record.items() if value not in (None, "", {})])))
 
