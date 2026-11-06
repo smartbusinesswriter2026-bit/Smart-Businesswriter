@@ -296,12 +296,16 @@
         </p>
         <!-- Free-form problem generation -->
         <div class="row">
-          <label style="flex:1;">Free-form instruction: <input type="text" id="healInstruction" placeholder="Describe what to test or improve…" style="width:100%;"></label>
+          <label>Subject: <select id="healSubject"><option value="">— select subject —</option></select></label>
+          <label>Tile: <select id="healTile"><option value="">— select tile —</option></select></label>
           <label>Problems: <select id="healCount">
             <option value="3">3 (light)</option>
             <option value="5" selected>5 (moderate)</option>
             <option value="10">10 (severe)</option>
           </select></label>
+        </div>
+        <div class="row">
+          <label style="flex:1;">Free-form instruction: <input type="text" id="healInstruction" placeholder="Describe what to test or improve…" style="width:100%;"></label>
           <button class="btn" id="healFreeGen">Generate</button>
         </div>
         <div id="healFreeLog" class="code" style="min-height:40px;max-height:200px;overflow-y:auto;margin-bottom:12px;"></div>
@@ -729,6 +733,51 @@ function renderErrorsTable(errors, container) {
 document.getElementById('errRefresh').addEventListener('click', loadErrors);
 
 // Free-form problem generation
+
+// Populate subject dropdown from API
+async function loadHealSubjects() {
+  const r = await apiFetch('/api/cases/subjects');
+  const sel = document.getElementById('healSubject');
+  if (r.status === 200 && r.data.subjects) {
+    sel.innerHTML = '<option value="">— select subject —</option>';
+    r.data.subjects.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.label;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+document.getElementById('healSubject').addEventListener('change', async () => {
+  const subjectId = document.getElementById('healSubject').value;
+  const tileSel = document.getElementById('healTile');
+  tileSel.innerHTML = '<option value="">— select tile —</option>';
+  if (!subjectId) return;
+  const r = await apiFetch('/api/cases/subjects/' + encodeURIComponent(subjectId));
+  if (r.status === 200) {
+    const detail = r.data;
+    const tiles = (detail.tiles || []).concat(detail.tools || []);
+    tiles.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.key || t.id || '';
+      opt.textContent = t.label || t.name || t.key || '';
+      opt.dataset.what = t.what || t.label || '';
+      tileSel.appendChild(opt);
+    });
+  }
+});
+
+document.getElementById('healTile').addEventListener('change', () => {
+  const tileSel = document.getElementById('healTile');
+  const selected = tileSel.options[tileSel.selectedIndex];
+  if (selected && selected.dataset.what) {
+    document.getElementById('healInstruction').value = 'Generate problems about: ' + selected.dataset.what;
+  }
+});
+
+loadHealSubjects();
+
 document.getElementById('healFreeGen').addEventListener('click', async () => {
   const instruction = document.getElementById('healInstruction').value.trim();
   const count = parseInt(document.getElementById('healCount').value) || 5;
