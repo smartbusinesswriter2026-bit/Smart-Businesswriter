@@ -193,7 +193,7 @@ class DraftTest(unittest.TestCase):
         state = self.prepared()
         state = chat.draft(state, accepted_ids=[], implications="")
         text = "\n".join(line for _h, lines in state["draft"]["sections"] for line in lines)
-        self.assertIn("did not cover this dimension", text)
+        self.assertIn("No retrieved evidence covered this dimension", text)
         self.assertIn("implications", state["draft"]["missing"])
 
     @mock.patch("bp.product.sources.search_web", side_effect=web)

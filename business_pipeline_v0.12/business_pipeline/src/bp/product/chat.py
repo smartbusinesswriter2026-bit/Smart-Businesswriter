@@ -2592,7 +2592,7 @@ def _dimension_lines(dimension, evidence, by_id, style, target=0):
     key = dimension[0]
     items = [item for item in evidence if item["dimension"] == key]
     if not items:
-        return ["The retrieved evidence did not cover this dimension; this is a gap, not a finding."]
+        return ["No retrieved evidence covered this dimension."]
     lines = []
     for item in items:
         source = by_id.get(item["source_id"], {})
@@ -2607,7 +2607,7 @@ def _internal_lines(answers, key, label, noun=None):
     items = answers.get(key) or []
     thing = noun or label.lower()
     if not items:
-        return ["No " + thing + " were supplied; this is a gap, not a finding."]
+        return ["No " + thing + " were supplied."]
     return ["The case identifies the following " + thing + ": " + "; ".join(items) + "."]
 
 
@@ -2624,7 +2624,7 @@ def _figure_cells(answers, evidence, by_id, style, framework):
             items = answers.get(key) or []
             cells[key] = {"label": label, "bullets": list(items),
                           "gap": None if items else
-                          "No " + label.lower() + " were supplied; this is a gap, not a finding."}
+                          "No " + label.lower() + " were supplied."}
         if framework == "swot":
             external = {"opportunities": [], "threats": []}
             for item in evidence:
@@ -2642,7 +2642,7 @@ def _figure_cells(answers, evidence, by_id, style, framework):
                     bullets.append(title + " " + _in_text(source, style) + ".")
             cells[key] = {"label": label, "bullets": bullets,
                           "gap": None if bullets else
-                          "The retrieved evidence did not cover this quadrant; this is a gap, "
+                          "No retrieved evidence covered this quadrant. "
                           "not a finding."}
     if framework == "ansoff":
         for dimension in ANSOFF_DIMENSIONS:
@@ -2657,7 +2657,7 @@ def _figure_cells(answers, evidence, by_id, style, framework):
                     bullets.append(title + " " + _in_text(source, style) + ".")
             cells[key] = {"label": label, "bullets": bullets,
                           "gap": None if bullets else
-                          "The retrieved evidence did not cover this option; this is a gap, "
+                          "No retrieved evidence covered this option. "
                           "not a finding."}
     if framework == "value_chain":
         for dimension in VALUE_DIMENSIONS:
@@ -2672,7 +2672,7 @@ def _figure_cells(answers, evidence, by_id, style, framework):
                     bullets.append(title + " " + _in_text(source, style) + ".")
             cells[key] = {"label": label, "bullets": bullets,
                           "gap": None if bullets else
-                          "The retrieved evidence did not cover this activity; this is a gap, "
+                          "No retrieved evidence covered this activity. "
                           "not a finding."}
     if framework == "vrio":
         for key, label, noun in (("valuable", "Valuable", "value judgments"),
@@ -2682,7 +2682,7 @@ def _figure_cells(answers, evidence, by_id, style, framework):
             items = answers.get(key) or []
             cells[key] = {"label": label, "bullets": list(items),
                           "gap": None if items else
-                          "No " + noun + " were supplied; this is a gap, not a finding."}
+                          "No " + noun + " were supplied."}
     return cells
 
 
@@ -2710,7 +2710,7 @@ def _classify_external(evidence):
 
 def _mapped_lines(items, by_id, style, label):
     if not items:
-        return ["The accepted evidence did not support this part of the matrix; this is a gap, not a finding."]
+        return ["The accepted evidence did not support this part of the matrix."]
     labels = {key: name for key, name, _cues, _category in DIMENSIONS}
     lines = []
     for item in items[:5]:
@@ -4771,7 +4771,7 @@ def _draft_plan(state, accepted_ids=None, style=None):
                                       [paper.paragraph(_block_lines(state, sensitivity))]))
     risks = (state["answers"].get("inputs") or {}).get("risks") or []
     risk_lines = (["The owner names the following risks: " + "; ".join(risks) + "."] if risks
-                  else ["No risks were supplied; this is a gap, not a finding."])
+                  else ["No risks were supplied."])
     sections.append(paper.section("Risks Named by the Owner", paper.H2, [paper.paragraph(risk_lines)]))
 
     gaps = [gap["label"] for gap in state.get("gaps") or []]
@@ -4789,8 +4789,6 @@ def _draft_plan(state, accepted_ids=None, style=None):
         limits.append("Tax follows the declared rates, not a jurisdiction's tax law.")
     if any(block["key"] == "impact" for block in plan.get("blocks") or []):
         limits.append("The impact ratio compares declared options; it is not a recommendation.")
-    if state.get("notes"):
-        limits.append(state["notes"][0])
     sections.append(paper.section("Limitations", paper.H2, [paper.paragraph(limits)]))
 
     # -- conclusion (integration, no new evidence)
@@ -5989,10 +5987,7 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
                "The paper quotes sources; it does not verify the claims inside them.",
                "No financial figure is computed in this paper."
                if framework not in ("breakeven", "five_forces_breakeven") and not selected_caps
-               else "Every financial figure is the frozen method's result from the inputs the student declared.",
-               state.get("notes")[0] if state.get("notes")
-               else ("The search may be incomplete." if (state.get("plan") or {}).get("evidence", True)
-                     else "No search was run for this paper.")]
+               else "Every financial figure is the frozen method's result from the inputs the student declared."]
     sections.append(paper.section("Limitations", paper.H2, [paper.paragraph(limits)]))
     if position:
         asked = _clean(decision, 500).rstrip()

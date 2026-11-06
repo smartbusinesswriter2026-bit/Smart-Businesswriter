@@ -2727,12 +2727,7 @@ function renderChat() {
         });
       }
     });
-    if (c.notes && c.notes.length) {
-      html += '<p class="muted">' + c.notes.map(esc).join(" · ") + "</p>";
-    }
-    if (c.timings && c.timings.total_s !== undefined) {
-      html += '<p class="muted">Research finished in ' + esc(c.timings.total_s) + " s.</p>";
-    }
+
     html += '<div class="stack" style="margin-top:10px"><label class="field" for="chatimplications">' +
       'In one or two sentences, what does this evidence suggest for your decision? <span class="muted">(your analysis)</span></label>' +
       '<textarea id="chatimplications" rows="3" style="width:100%" placeholder="Your implications, not the system\'s."></textarea>' +
