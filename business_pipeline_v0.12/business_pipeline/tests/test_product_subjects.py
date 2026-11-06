@@ -556,6 +556,10 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('id="chatrefinego"', self.html)
         self.assertIn("/refine", self.html)
         self.assertIn("Original instruction", self.html)
+        self.assertIn('id="chatrunplan"', self.html)
+        self.assertIn('id="chatframeworkpick"', self.html)
+        self.assertIn("Run the Plan", self.html)
+        self.assertNotIn("Status: ' + esc((p.reading", self.html)
 
     def test_the_removed_panels_have_not_come_back(self):
         for gone in ('id="panel-frames"', 'id="panel-assistant"', 'data-panel="frames"', 'data-panel="assistant"'):

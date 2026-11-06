@@ -79,7 +79,10 @@ def _decision_from_brief(brief):
         text = match.group(1).strip()
     else:
         text = re.split(r"(?<=[.?!])\s+", text, maxsplit=1)[0]
-    return text.rstrip(" .?!")
+    # The objective sentence often continues with a handling instruction
+    # ("Treat ...", "Use ...", "Do not ...").  That is not the decision.
+    text = re.split(r"\b(?:Treat|Use|Do not|Ensure|Label|Analy[sz]e|Output)\b", text, maxsplit=1)[0].strip()
+    return text[:300].rstrip(" .?!")
 
 
 def _claims(decision, framework):
@@ -109,7 +112,7 @@ def _structure(archetype):
 def build(brief, reading, slots, archetype, framework, choices, answers=None):
     """Build the proposal dict stored on the chat state."""
     answers = answers or {}
-    decision = str(answers.get("decision") or "").strip() or _decision_from_brief(brief)
+    decision = _decision_from_brief(answers.get("decision") or brief)
     selected = list(reading.selected)
     framework = framework or (selected[0] if selected else None)
     computations = _computations(brief, framework)

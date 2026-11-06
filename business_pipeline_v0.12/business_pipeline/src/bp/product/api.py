@@ -745,6 +745,12 @@ def handle(method, path, body=None):
                 state = chat_conductor.customise(state, data)
             elif action == "refine":
                 state = chat_conductor.refine_plan(state, data)
+            elif action == "accept-plan":
+                state = chat_conductor.accept_plan(state, data.get("framework"),
+                                                   data.get("words"), data.get("style"))
+            elif action == "run-plan":
+                state = chat_conductor.run_plan(state, data.get("framework"),
+                                                data.get("words"), data.get("style"))
             elif action == "inputs":
                 state = chat_conductor.set_inputs(state, data.get("values") or data.get("inputs") or {})
             elif action == "compute":

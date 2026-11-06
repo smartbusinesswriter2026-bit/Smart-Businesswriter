@@ -2630,6 +2630,12 @@ function renderChat() {
   if (c.stage === "clarify") {
     const q = c.questions[c.question_index];
     html += proposalHtml(c);
+    if (q && q.id === "framework" && c.proposal) {
+      out.innerHTML = html;
+      $("#chatreset").onclick = resetChat;
+      bindProposalControls(c);
+      return;
+    }
     html += '<div class="card"><h3>Before I plan</h3>';
     c.questions.slice(0, c.question_index).forEach((answered) => {
       const value = c.answers[answered.id];
@@ -2894,16 +2900,22 @@ function proposalHtml(c) {
   const evidence = (p.evidence_needs || []).map((row) => '<span class="badge mute">' + esc(row.label) + "</span>").join(" ");
   const gaps = (p.gaps || []).map((row) => "<li>" + esc(row) + "</li>").join("");
   const structure = (p.structure || []).map((row) => '<span class="badge mute">' + esc(row) + "</span>").join(" ");
+  const selected = p.selected_framework || ((p.framework_options || []).find((row) => row.suggested) || {}).id || "none";
+  const frameworkSelect = '<select id="chatframeworkpick">' + (p.framework_options || []).map((row) =>
+    '<option value="' + esc(row.id) + '"' + (row.id === selected ? " selected" : "") + ">" + esc(row.label) + "</option>").join("") + "</select>";
   return '<div class="card" style="margin-bottom:12px">' +
     '<h3 style="margin-top:0">Proposed plan</h3>' +
     '<p class="sub">How I read your instruction: <strong>' + esc((p.reading || {}).decision || c.brief) + "</strong></p>" +
-    '<p class="muted">Status: ' + esc((p.reading || {}).status || "") + "</p>" +
     '<h4 class="levelhead">Frameworks</h4><div class="row" style="flex-wrap:wrap">' + frameworks + "</div>" +
     '<h4 class="levelhead">Computations</h4>' + computations +
     '<h4 class="levelhead">Proposed argument</h4><ul class="guidesteps">' + claims + "</ul>" +
     '<h4 class="levelhead">Evidence needed</h4><div class="row" style="flex-wrap:wrap">' + evidence + "</div>" +
     (structure ? '<h4 class="levelhead">Structure</h4><div class="row" style="flex-wrap:wrap">' + structure + "</div>" : "") +
     (gaps ? '<h4 class="levelhead">Gaps</h4><ul class="guidesteps">' + gaps + "</ul>" : "") +
+    '<div class="row" style="margin-top:10px;align-items:center;gap:8px">' +
+      '<label class="field" for="chatframeworkpick" style="margin:0">Framework</label>' + frameworkSelect +
+      '<button class="btn primary" type="button" id="chatrunplan">Run the Plan</button>' +
+    "</div>" +
     '<div class="row" style="margin-top:10px;align-items:flex-start;gap:8px">' +
       '<input id="chatrefinetext" type="text" style="flex:1;min-width:220px" placeholder="Add a clarification or edit within the instruction">' +
       '<button class="btn" type="button" id="chatrefinego">Refine plan</button>' +
@@ -2911,6 +2923,20 @@ function proposalHtml(c) {
 }
 
 function bindProposalControls(c) {
+  const run = $("#chatrunplan"), pick = $("#chatframeworkpick");
+  if (run && pick) {
+    run.onclick = async () => {
+      run.disabled = true;
+      try {
+        state.chat = await post("/api/cases/chat/" + encodeURIComponent(c.id) + "/run-plan",
+          { framework: pick.value });
+        RENDERERS.home();
+      } catch (error) {
+        run.disabled = false;
+        toast(error.message || String(error));
+      }
+    };
+  }
   const button = $("#chatrefinego"), input = $("#chatrefinetext");
   if (!button || !input) return;
   button.onclick = async () => {

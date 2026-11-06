@@ -88,6 +88,15 @@ class PlanProposalTest(unittest.TestCase):
         with self.assertRaises(chat.ChatError):
             chat.refine_plan(state, {"text": "Use a 10-week disruption instead"})
 
+    def test_accept_plan_builds_the_plan_without_another_question_round(self):
+        state = chat.start("Assess how a 6-week port disruption affects inventory policy.",
+                           subject="any")
+        updated = chat.accept_plan(state, framework="none")
+        self.assertEqual(updated["stage"], "plan")
+        self.assertEqual(updated["framework"], "none")
+        self.assertTrue(updated["plan"])
+        self.assertEqual(updated["questions"], [])
+
     def test_refine_accepts_a_framework_within_the_proposed_options(self):
         state = chat.start("Assess how a port disruption affects inventory policy.",
                            subject="any")

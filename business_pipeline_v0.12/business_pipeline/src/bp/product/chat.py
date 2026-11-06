@@ -905,6 +905,46 @@ def refine_plan(state, changes):
     return state
 
 
+def accept_plan(state, framework=None, words=None, style=None):
+    """Accept the proposal and build the plan without another question round."""
+    proposal = state.get("proposal") or {}
+    if framework is None:
+        framework = state.get("framework") or proposal.get("selected_framework") or "none"
+    framework = str(framework).strip().lower()
+    if framework not in FRAMEWORKS:
+        raise ChatError("Choose one of: " + ", ".join(FRAMEWORKS))
+    state["framework"] = framework
+    state["frameworks"] = [] if framework == "none" else [framework]
+    answers = dict(state.get("answers") or {})
+    decision = ((proposal.get("reading") or {}).get("decision") or state.get("brief") or "").strip()
+    answers["decision"] = decision
+    answers.setdefault("geography", "Global")
+    answers.setdefault("period", "10")
+    answers["style"] = str(style or answers.get("style") or "apa").strip().lower()
+    if words not in (None, ""):
+        answers["length"] = str(check_word_target(words))
+    if framework != "none" and FRAMEWORKS[framework].get("internal"):
+        answers.setdefault("strengths", [])
+        answers.setdefault("weaknesses", [])
+    for key in (FRAMEWORKS[framework].get("inputs") if framework != "none" else []) or []:
+        answers.setdefault(key, [])
+    state["answers"] = answers
+    state["plan"] = _plan(state)
+    state["stage"] = "plan"
+    state["questions"] = []
+    state["question_index"] = 0
+    state["updated_at"] = _now()
+    return state
+
+
+def run_plan(state, framework=None, words=None, style=None):
+    """Accept, confirm and research the plan in one action."""
+    state = accept_plan(state, framework=framework, words=words, style=style)
+    state = confirm_plan(state)
+    state = research(state)
+    return state
+
+
 def start(brief, subject=None, framework=None, profile=None, level="shs", mode="strict",
           words=None, rubric=None, archetype=None, frameworks=None):
     """Create a conductor state.  No source is retrieved until the plan is confirmed.
