@@ -16,7 +16,7 @@ import urllib.error
 import urllib.request
 
 ENDPOINT = os.environ.get("BP_PROSE_URL") or "https://opencode.ai/inference/go/openai/v1/chat/completions"
-DEFAULT_MODEL = "deepseek-v4.1-flash"
+DEFAULT_MODEL = "beam-free"
 META = ("(your analysis)", "not supplied yet", "further research is needed")
 CITATION = re.compile(r"\([^()]{1,140}?,\s*(?:n\.d\.|no date|\d{4}[a-z]?)\)")
 NUMBER = re.compile(r"\d+(?:\.\d+)?%?")

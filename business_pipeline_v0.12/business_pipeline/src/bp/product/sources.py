@@ -711,7 +711,7 @@ def _opengo_web(text, sites, limit):
     executable = _opencode_exe()
     if not executable:
         return [], {"provider": "opengo", "skipped": "opencode is not on PATH"}
-    model = os.environ.get("BP_LLM_MODEL", "deepseek-v4.1-flash")
+    model = os.environ.get("BP_LLM_MODEL", "beam-free")
     count = min(max(limit * 3, 5), 10)
     prompt = ("Use the websearch tool with the query: %s. Return the top %d results. "
               "Do not answer from memory. Do not add commentary." % (text, count))
