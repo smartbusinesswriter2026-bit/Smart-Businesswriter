@@ -1101,17 +1101,6 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
           <input type="file" id="sourcesfile" multiple hidden>
           <input type="file" id="datafile" multiple hidden>
           <input type="file" id="rubricfile" multiple hidden>
-          <!-- Legacy hooks, never shown. The framework is inferred from the brief; the
-               strings are kept only because the pinned UI test asserts these two ids
-               (tests/** is the computation owner's lane). Retire them together. -->
-          <select id="chatframework" hidden aria-hidden="true" tabindex="-1">
-            <option value="">Infer from the brief</option>
-            <option value="pestel">PESTEL</option>
-            <option value="swot">SWOT</option>
-            <option value="pestel_swot">PESTEL + SWOT</option>
-            <option value="five_forces">Five Forces</option>
-            <option value="five_forces_breakeven">Five Forces + Break-even</option>
-          </select>
           <button type="button" id="chatstart" hidden tabindex="-1">Start the analysis</button>
           <button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
@@ -2567,16 +2556,6 @@ RENDERERS.home = function () {
         '<input type="file" id="sourcesfile" multiple hidden>' +
         '<input type="file" id="datafile" multiple hidden>' +
         '<input type="file" id="rubricfile" multiple hidden>' +
-        /* Legacy hooks, never shown: the pinned UI test asserts these ids. The
-           framework is inferred from the brief, so nothing here reaches the user. */
-        '<select id="chatframework" hidden aria-hidden="true" tabindex="-1">' +
-          '<option value="">Infer from the brief</option>' +
-          '<option value="pestel">PESTEL</option>' +
-          '<option value="swot">SWOT</option>' +
-          '<option value="pestel_swot">PESTEL + SWOT</option>' +
-          '<option value="five_forces">Five Forces</option>' +
-          '<option value="five_forces_breakeven">Five Forces + Break-even</option>' +
-        "</select>" +
         '<button type="button" id="chatstart" hidden tabindex="-1">Start the analysis</button>' +
         '<button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>' +
@@ -2827,14 +2806,12 @@ async function startChat() {
   const box = $("#objective");
   const brief = (box ? box.value : "").trim();
   if (!brief) { toast("Describe the case first."); if (box) box.focus(); return; }
-  const picked = ($("#chatframework") || {}).value || "";
   const out = $("#chatout");
   if (out) out.innerHTML = loading("Starting the analysis");
   const body = { brief: brief, subject: "any" };
   const lengthBox = $("#homelength");
   const lengthChoice = lengthBox ? String(lengthBox.value || "").trim() : "";
   if (lengthChoice) body.words = lengthChoice;
-  if (picked) body.framework = picked;
   try {
     state.chat = await post("/api/cases/chat", body);
     /* The conversation now carries the brief, so the composer starts empty: a

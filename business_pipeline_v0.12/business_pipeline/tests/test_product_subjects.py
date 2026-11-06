@@ -530,8 +530,8 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn('id="chatstart"', self.html)
         self.assertIn("/api/cases/chat", self.html)
         self.assertIn("function renderChat", self.html)
-        self.assertIn('id="chatframework"', self.html)
-        self.assertIn("PESTEL + SWOT", self.html)
+        self.assertNotIn('id="chatframework"', self.html)
+        self.assertNotIn("PESTEL + SWOT", self.html)
 
     def test_worksheets_never_show_raw_json_to_the_user(self):
         """A student fills a guided form; the page never exposes the input object."""
