@@ -259,7 +259,7 @@ def research(connection, limit=10):
 
 # ── step 4: fetch ───────────────────────────────────────────────────────────
 
-def fetch(connection, limit=10, pause=1.5, retries=1):
+def fetch(connection, limit=10, pause=1.5, retries=1, include_decisions=False, log=None):
     """Pull the open full text of the top candidates and ingest them.
 
     A `failed` candidate is retried: the failure may have been a rate limit or a
@@ -268,22 +268,32 @@ def fetch(connection, limit=10, pause=1.5, retries=1):
 
     The content endpoint answers 429 when a burst of PDFs is requested even
     with an API key, so downloads are spaced and a 429 gets one longer retry.
+
+    `include_decisions=True` is the owner's explicit drain: a `needs_decision`
+    row is fetched with the owner's approval instead of waiting.
     """
+    where = "status IN ('new', 'failed')"
+    if include_decisions:
+        where = "(status IN ('new', 'failed') OR status = 'needs_decision')"
     candidates = connection.execute(
-        "SELECT * FROM candidates WHERE status IN ('new', 'failed')"
+        "SELECT * FROM candidates WHERE " + where +
         " ORDER BY status = 'failed', priority DESC, seen_count DESC LIMIT ?",
         (limit,)).fetchall()
     outcomes = {"ingested": 0, "duplicate": 0, "needs_decision": 0, "rejected": 0, "failed": 0}
     for index, candidate in enumerate(candidates):
-        outcome = fetch_one(connection, candidate)
+        approved = include_decisions and candidate["status"] == "needs_decision"
+        outcome = fetch_one(connection, candidate, approved=approved)
         if outcome == "failed" and retries:
             reason = connection.execute(
                 "SELECT reason FROM candidates WHERE candidate_id = ?",
                 (candidate["candidate_id"],)).fetchone()
             if reason and "HTTP 429" in (reason["reason"] or ""):
                 time.sleep(max(5.0, pause * 5))
-                outcome = fetch_one(connection, candidate)
+                outcome = fetch_one(connection, candidate, approved=approved)
         outcomes[outcome] = outcomes.get(outcome, 0) + 1
+        if log:
+            log("[%d/%d] %-58s -> %s" % (
+                index + 1, len(candidates), str(candidate["title"] or "")[:58], outcome))
         if pause and index + 1 < len(candidates):
             time.sleep(pause)
     return outcomes
@@ -452,7 +462,8 @@ def run(connection):
 
 def main():
     parser = argparse.ArgumentParser(description="The self-enriching corpus worker.")
-    parser.add_argument("job", choices=["collect", "score", "research", "fetch", "run", "status"])
+    parser.add_argument("job", choices=["collect", "score", "research", "fetch", "drain", "run",
+                                        "status"])
     parser.add_argument("--limit", type=int, default=10)
     args = parser.parse_args()
 
@@ -475,6 +486,12 @@ def main():
         print("%d new candidates" % research(connection, args.limit))
     elif args.job == "fetch":
         print(fetch(connection, args.limit))
+    elif args.job == "drain":
+        # The owner's one command: every queued work, including the licence
+        # decisions, then the index so the new pages are searchable.
+        print(fetch(connection, limit=10_000_000, include_decisions=True,
+                    log=lambda line: print(line, flush=True)))
+        print("indexed %d pages" % lib.index_pages(connection))
     elif args.job == "status":
         print(json.dumps(lib.stats(connection), indent=2))
     else:

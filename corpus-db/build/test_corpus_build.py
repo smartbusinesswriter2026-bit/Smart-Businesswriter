@@ -231,6 +231,17 @@ class CandidateTest(TempCorpusTest):
         self.assertEqual(fetch_one.call_count, 1,
                          "a transient failure must be retried next cycle")
 
+    def test_the_owner_s_drain_approves_a_licence_decision(self):
+        lib.upsert_candidate(self.connection,
+                             {"title": "Pricing in emerging markets",
+                              "doi": "10.1234/emerging.1", "source": "openalex"})
+        self.connection.execute("UPDATE candidates SET status = 'needs_decision'")
+        self.connection.commit()
+        with mock.patch.object(enrich, "fetch_one", return_value="ingested") as fetch_one:
+            outcomes = enrich.fetch(self.connection, include_decisions=True, pause=0)
+        self.assertEqual(outcomes["ingested"], 1)
+        self.assertTrue(fetch_one.call_args.kwargs.get("approved"))
+
     def test_an_unknown_licence_waits_for_the_owner_and_the_owner_can_approve_it(self):
         lib.upsert_candidate(self.connection,
                              {"title": "Pricing in emerging markets",
