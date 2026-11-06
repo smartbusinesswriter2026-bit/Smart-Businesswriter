@@ -244,6 +244,11 @@ def overclaims(text):
                 continue
             if NEGATED.search(_clause_before(clean, match.start())):
                 continue
+            # negation may also follow the claim: "proves nothing", "guarantees no X"
+            following = clean[match.end():].lstrip().split()
+            if following and following[0].lower().rstrip(".,;:!?") in (
+                    "nothing", "no", "not", "none", "neither", "never", "nobody", "nowhere"):
+                continue
             problems.append({"claim": match.group(0).lower(), "sentence": clean[:300]})
             break
     return problems
