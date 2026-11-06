@@ -72,6 +72,7 @@ import re
 
 from . import calc_router
 from . import billing as billing_module
+from . import audit as audit_mod
 from . import cases as case_store
 from . import chat as chat_conductor
 from . import chat_store
@@ -703,7 +704,8 @@ def handle(method, path, body=None):
                                              level=body.get("level") or "shs",
                                              mode=body.get("mode") or "strict",
                                              words=body.get("words"),
-                                             rubric=body.get("rubric"))
+                                             rubric=body.get("rubric"),
+                                             archetype=body.get("archetype"))
                 state = chat_store.save(state)
             except chat_conductor.ChatError as error:
                 return _error(error)
@@ -773,6 +775,12 @@ def handle(method, path, body=None):
                 draft = state.get("draft") or {}
                 if not draft:
                     return _error("draft the section before exporting it")
+                audit_report = state.get("audit")
+                if isinstance(audit_report, dict) and not audit_report.get("passed", True):
+                    missing = [str(f.get("message") or f.get("code")) for f in (audit_report.get("findings") or [])
+                               if f.get("severity") == "blocking"]
+                    if missing:
+                        raise chat_conductor.ExportBlocked(missing)
                 data_bytes = chat_conductor.docx_bytes(state)
                 paper_name = writing.filename({"title": draft.get("title")})
                 if explain.has_chat_computation(state):

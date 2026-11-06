@@ -365,6 +365,23 @@ def _sheet_name(name, used):
 STATEMENT_SHEETS = (("IS", "Income statement"), ("RE", "Changes in equity"),
                     ("BS", "Balance sheet"), ("CF", "Cash flow"))
 
+#: The appendix key that carries each statement's typed figures.  A record without it
+#: does not hold that statement's figures as values, and a renderer cannot invent them.
+STATEMENT_SOURCES = {"IS": "income_groups", "RE": "equity_statement",
+                     "BS": "balance_sheet_groups", "CF": "cash_flow"}
+
+
+def holds_statement(accounts, code):
+    """Whether the appendix carries this statement's typed figures.
+
+    The balance sheet is carried either by its groups or by the record's flat
+    projection, so both count.
+    """
+    source = STATEMENT_SOURCES.get(code)
+    if source and accounts.get(source):
+        return True
+    return code == "BS" and bool(accounts.get("statements"))
+
 #: The working sheet's columns: date, description, account, debit, credit.
 WORKING_WIDTHS = (12, 46, 28, 18, 18)
 
@@ -721,7 +738,7 @@ def _notes_rows(accounts):
     return rows
 
 
-def _label_width(rows):
+def label_width(rows):
     """Column A is as wide as the longest label it holds, within a readable bound."""
     longest = 0
     for row in rows:
@@ -732,7 +749,7 @@ def _label_width(rows):
     return min(60, max(24, longest + 2))
 
 
-def _accounting_rows(accounts, bundle=None):
+def statement_sheets(accounts, bundle=None):
     """The sheets a statements record becomes: one per requested statement, then the working, then the notes."""
     sheets = []
     requested = _requested(accounts, bundle)
@@ -742,7 +759,7 @@ def _accounting_rows(accounts, bundle=None):
         rows = _statement_rows(code, accounts)
         if not rows:
             continue
-        widths = [_label_width(rows), 18]
+        widths = [label_width(rows), 18]
         if any(len(row) > 2 for row in rows):
             widths.append(52)
         sheets.append((name, rows, {"widths": widths, "freeze": 2}))
@@ -773,7 +790,7 @@ def to_xlsx(bundle):
     appendix = delivery.get("appendix") if isinstance(delivery, dict) else None
     accounts = appendix.get("accounts") if isinstance(appendix, dict) else None
     if isinstance(accounts, dict):
-        sheets.extend(_accounting_rows(accounts, bundle))
+        sheets.extend(statement_sheets(accounts, bundle))
     artifacts = [[(label, True) for label in CSV_HEADER]] + [
         ["" if row.get(key) is None else str(row.get(key)) for key in ROW_KEYS]
         for row in artifact_rows(bundle)]
@@ -787,22 +804,40 @@ def to_xlsx(bundle):
 
     used = set()
     named = [(_sheet_name(name, used), rows, options) for name, rows, options in sheets]
+    places = ((accounts or {}).get("engagement") or {}).get("places", 2)
+    return write_xlsx(named, places)
+
+
+def write_xlsx(sheets, places=2):
+    """The workbook as .xlsx bytes, from the sheets it is to carry.
+
+    `sheets` is a list of `(name, rows, options)`: the name, the rows of the sheet
+    (a cell is a value, or a `(value, style)` pair) and the sheet's own options
+    (`widths`, `freeze`).
+
+    **The OOXML facts live here.**  One writer, so there is one package structure to
+    get right: a part declared once, a relationship that resolves, a sheet name that
+    is unique, the children of a worksheet in the order `CT_Worksheet` requires, and
+    a fixed timestamp so two exports of the same content are byte-identical.  Excel
+    enforces all of that and refuses the workbook otherwise, even though every part
+    of it is valid XML; `to_xlsx` (a case bundle) and `bp.product.xlsx` (the
+    statements tile) are the two callers.
+    """
     overrides = "".join(
         '<Override PartName="/xl/worksheets/sheet%d.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' % i
-        for i in range(1, len(named) + 1))
+        for i in range(1, len(sheets) + 1))
     workbook = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
                 '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
                 'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
                 + "".join('<sheet name="%s" sheetId="%d" r:id="rId%d"/>' % (escape(name, {'"': "&quot;"}), i, i)
-                          for i, (name, _rows, _options) in enumerate(named, start=1))
+                          for i, (name, _rows, _options) in enumerate(sheets, start=1))
                 + "</sheets></workbook>")
     rels = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
             + "".join('<Relationship Id="rId%d" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet%d.xml"/>' % (i, i)
-                      for i in range(1, len(named) + 1))
-            + '<Relationship Id="rId%d" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' % (len(named) + 1)
+                      for i in range(1, len(sheets) + 1))
+            + '<Relationship Id="rId%d" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' % (len(sheets) + 1)
             + "</Relationships>")
-    places = ((accounts or {}).get("engagement") or {}).get("places", 2)
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         parts = [("[Content_Types].xml", _XLSX_CONTENT_TYPES % overrides),
@@ -812,7 +847,7 @@ def to_xlsx(bundle):
                  ("xl/styles.xml", _styles_xml(places))]
         parts.extend(("xl/worksheets/sheet%d.xml" % i,
                       _xlsx_sheet(rows, options.get("widths"), options.get("freeze")))
-                     for i, (_name, rows, options) in enumerate(named, start=1))
+                     for i, (_name, rows, options) in enumerate(sheets, start=1))
         for name, text in parts:
             # a fixed timestamp keeps two exports of the same content byte-identical
             archive.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), text)

@@ -1,3 +1,24 @@
+## 2026-11-06 - [statements] The tile's workbook opens in Excel
+
+**Ask.** The statements tile's `.xlsx` download came back as a file Excel would not open - "empty content" - while the API answered with a valid base64 payload of a valid zip of valid XML, and openpyxl read it without complaint. The export had to be fixed so that the student receives a workbook Excel opens, carrying the statements the render brief asks for.
+
+**Did.**
+
+- **The three defects Excel was refusing, named.** `/xl/theme/theme1.xml`, `/docProps/core.xml` and `/docProps/app.xml` were declared **twice** in `[Content_Types].xml` - a part carries one content type, not two. The `Notes` sheet was written **twice** - Excel refuses a duplicate sheet name. And `<cols>` was written **after** `</sheetData>` in every worksheet, while `CT_Worksheet` requires `cols` before `sheetData`. The package was also not byte-stable: `writestr` without a timestamp writes the current time into the zip, so two exports of one record differed.
+- **One writer, not two.** `spreadsheets.py` already wrote a workbook Excel accepts; `xlsx.py` wrote a second, broken one, and it was the only workbook writer in the tree that no test covered. The packaging now lives in one place, `spreadsheets.write_xlsx(sheets, places)`, and `xlsx.py` is the statements tile's adapter over it. **The case bundle's workbook is byte-identical to before** (sha256 `801218277774fd0f...`), so nothing a student already downloaded moved.
+- **The workbook the student receives is the one the brief asks for.** One sheet per requested statement - `Income statement`, `Changes in equity`, `Balance sheet`, `Cash flow` - then `Working`, then `Notes`, the names the render brief gives (`docs/MINIMAX_STATEMENT_RENDER.md` section 9), so the tile's download and the case bundle's workbook agree. The amounts are **numbers** in the record's decimal places (`#,##0.00;(#,##0.00)`), so Excel totals and sorts them; the header row is frozen; column A is sized to the longest label; no cell is merged. The statement of changes in equity now carries its movement figures as numbers with the note beside them, where the old writer left the whole line as text, and the period line reads the record's period instead of `Period:  to `.
+- **A figure the record only renders is not re-typed.** A record whose appendix cannot supply a statement's typed figures - the thinner record shapes the tile also stores - gets that statement as the record rendered it, verbatim. Re-reading a rendered line is how a figure stops being the record's, so the line stays text rather than becoming a number the record does not hold as a value.
+- **The package is guarded now.** `tests/test_statements_xlsx_export.py` (24 tests) checks the rules Excel enforces - a part declared once, a relationship that resolves, a unique legal sheet name, the worksheet children in order - and the workbook itself: the sheet set, typed amounts, the record's places, the frozen header, no merged cell, byte-stability, and no figure the record does not hold. `qa/manual/audit_xlsx_structure.py` runs the same audit as a probe against an openpyxl reference, and `qa/manual/excel_open_check.ps1` opens the file in Excel itself.
+
+**Did not move.** No method, preset, input, check, computed number or frozen-core entry changed. The statements, their figures and the request contract are exactly what they were; only the file the student downloads is different.
+
+**Verified.**
+
+- **Excel opens it.** `qa/manual/excel_open_check.ps1` opens the rendered workbook in Excel 16.0: six sheets, each with its data, and no repair. The same script on the pre-repair file fails outright - Excel refuses to open it - which is the symptom the owner reported. Excel reads an amount cell as a `Double` (a number, not text), showing `200,000.00` under the format `#,##0.00;(#,##0.00)`.
+- **The audit is clean.** `qa/manual/audit_xlsx_structure.py` reports "no structural problem found": no part declared twice, every part with a content type, every relationship resolving, unique legal sheet names, and every worksheet's children in the order `CT_Worksheet` requires.
+- **Byte-stability.** Two renders of the same record are the same bytes (sha256 `c250877dd61f01be...`).
+- **The suite is 3899 tests.** The failures that remain are the ones recorded in `docs/OPEN_ISSUES.md` item 18 (`schedules.py` shadowing a frozen core module, and `tier1_tables.py` importing `bp.product`); they are in files this increment does not touch, and both changed files pass the product-boundary rules themselves.
+
 ## 2026-11-06 — [deploy] The site is published, and it stands on its own without the backend
 
 **Ask.** The deployment has to be one line and one working URL: the whole project on `main`, published by Cloudflare

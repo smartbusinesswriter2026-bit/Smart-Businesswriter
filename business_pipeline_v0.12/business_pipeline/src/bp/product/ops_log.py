@@ -356,18 +356,25 @@ def ingest_validation_manifest(manifest_path=None):
     errs = []
     current_keys = set()
     opened = 0
-    results = manifest.get("results", manifest if isinstance(manifest, list) else [])
+    # Two accepted shapes:
+    #   §10 of the design: {"features": [{subject, kind, id, verdict, findings:[{rule, status, severity, detail, where}]}]}
+    #   Stage-1 interim:   {"results": [{unit, subject, paper, failures: [{rule, section, message}]}]}
+    results = manifest.get("results") or manifest.get("features") or \
+        (manifest if isinstance(manifest, list) else [])
     for res in results:
-        paper = str(res.get("paper") or res.get("unit") or "")
+        paper = str(res.get("paper") or res.get("id") or res.get("unit") or "")
         subject = str(res.get("subject") or "")
-        for f in res.get("failures", []) or []:
+        failures = res.get("failures") or res.get("findings") or []
+        for f in failures:
+            if res.get("verdict") and res.get("verdict") != "fail":
+                continue  # §10 entries carry every paper; only failures are findings
             fkey, err = log_finding(
                 rule=f.get("rule") or res.get("rule") or "D-EXPORT",
                 subject=subject,
-                feature=str(f.get("feature") or res.get("feature") or ""),
-                section=str(f.get("section") or ""),
+                feature=str(f.get("feature") or res.get("kind") or ""),
+                section=str(f.get("section") or f.get("where") or ""),
                 source="validation-harness",
-                message=str(f.get("message") or ""),
+                message=str(f.get("message") or f.get("detail") or ""),
                 paper=paper,
                 run_id=str(res.get("run_id") or ""),
                 build=str(manifest.get("build") or ""),

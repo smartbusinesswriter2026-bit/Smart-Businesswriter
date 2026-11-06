@@ -17,7 +17,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import capabilities, council, docx, framework_profiles, guard, matrix, paper, prose, retrieval, rubric as rubric_reader, verify, writing
+from . import audit as audit_mod, capabilities, council, docx, framework_profiles, guard, matrix, paper, paper_contract, paper_families, prose, retrieval, rubric as rubric_reader, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -768,8 +768,17 @@ def _defaults(brief):
     return {"decision": _clean(brief, 500), "geography": geography, "period": period, "style": style}
 
 
+def _infer_archetype(brief, framework=None, profile=None):
+    wanted = (profile or "").strip().lower().replace(" ", "_")
+    if wanted in ("business_plan", "businessplan", "plan", "feasibility_study",
+                  "feasibilitystudy", "feasibility", "marketing_plan", "marketingplan",
+                  "marketing", "project_proposal", "projectproposal", "proposal"):
+        return "plan_proposal"
+    return "analytical_report"
+
+
 def start(brief, subject=None, framework=None, profile=None, level="shs", mode="strict",
-          words=None, rubric=None):
+          words=None, rubric=None, archetype=None):
     """Create a conductor state.  No source is retrieved until the plan is confirmed.
 
     ``rubric`` is the marking guide the student attached — the text of the file, or the
@@ -865,7 +874,9 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     state_subject = (detected_id if open_mode else (subject or "management"))
     if open_mode and not detected_id:
         state_subject = ""
+    resolved_archetype = (archetype or "").strip().lower() or _infer_archetype(brief, framework, profile)
     state = {"format": FORMAT, "subject": state_subject, "framework": framework, "brief": brief,
+             "archetype": resolved_archetype, "paper_contract": None, "audit": None,
              "created_at": _now(), "updated_at": _now(), "stage": "clarify",
              "answers": answers, "questions": questions, "question_index": 0,
              "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
@@ -1361,6 +1372,31 @@ def confirm_plan(state):
     state["stage"] = "research_ready"
     state["plan_confirmed_at"] = _now()
     state["plan_record"] = _freeze_plan(state)
+    answers = state.get("answers") or {}
+    decision = str(answers.get("decision") or state.get("brief") or "").strip()
+    style = str(answers.get("style") or "apa").strip().lower()
+    if style not in ("apa", "harvard"):
+        style = "apa"
+    length = str(state.get("answers", {}).get("length") or "mid").strip().lower()
+    if length not in ("short", "mid", "long"):
+        length = "mid"
+    scope = {
+        "object": str(state.get("brief") or "")[:120],
+        "period": str(answers.get("period") or "10"),
+        "geography": str(answers.get("geography") or "Global"),
+        "currency": "USD",
+        "unit_of_analysis": str(state.get("subject") or "case"),
+    }
+    try:
+        contract = paper_contract.make_contract(
+            state.get("brief"), state.get("archetype") or "analytical_report",
+            thesis=decision, decision=decision, scope=scope, length=length,
+            style=style, required_sections=paper_families.required_sections_for(
+                state.get("archetype") or "analytical_report"),
+            rubric=state.get("rubric"), approved=True, approved_at=_now())
+        state["paper_contract"] = paper_contract.freeze_contract(contract, approved_at=_now())
+    except (ValueError, Exception):
+        state["paper_contract"] = None
     state["updated_at"] = _now()
     return state
 
@@ -1896,7 +1932,8 @@ def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN):
     answers = _defaults(brief)
     answers["inputs"] = {}
     state = {"format": FORMAT, "subject": subject or "entrepreneurship", "framework": None,
-             "profile": profile, "brief": brief, "created_at": _now(), "updated_at": _now(),
+             "profile": profile, "archetype": "plan_proposal", "paper_contract": None, "audit": None,
+             "brief": brief, "created_at": _now(), "updated_at": _now(),
              "stage": "plan", "level": level, "mode": mode, "answers": answers, "questions": [],
              "question_index": 0, "sources": [], "evidence": [], "gaps": [], "notes": [],
              "computations": {}, "draft": None}
@@ -5484,6 +5521,21 @@ def _apply_rubric(state):
     # The table is the paper's own sentence now, so the claim guard reads it too.
     state["claim_problems"] = _claim_scan(outline)
     draft["missing"] = paper.missing(state, draft.get("implications", ""))
+    try:
+        claims = []
+        for item in (state.get("evidence") or []):
+            if isinstance(item, dict):
+                claims.append({"id": item.get("id"), "type": "external",
+                               "source_ids": [item.get("source_id")] if item.get("source_id") else [],
+                               "text": item.get("claim")})
+        state["audit"] = audit_mod.audit(
+            state.get("paper_contract"), state.get("plan"),
+            {"claims": claims, "numbers": [], "charts": []},
+            state.get("computations"), state.get("draft"),
+            rubric_coverage=(state.get("rubric") or {}).get("coverage") if isinstance(state.get("rubric"), dict) else None,
+            forbidden_terms=["PSE", "PSEi"])
+    except Exception:
+        state["audit"] = None
     state["stage"] = "draft"
     state["updated_at"] = _now()
     return state

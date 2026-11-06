@@ -6,9 +6,7 @@ time. No float, no mid-computation rounding.
 
 from __future__ import annotations
 
-from decimal import Decimal, ROUND_HALF_UP, getcontext
-
-getcontext().prec = 28
+from decimal import Decimal, ROUND_HALF_UP
 
 MONEY = Decimal("0.01")
 

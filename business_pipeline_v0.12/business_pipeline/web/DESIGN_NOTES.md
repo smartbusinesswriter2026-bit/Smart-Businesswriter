@@ -12,6 +12,9 @@ The workbench front end is a single self-contained `web/index.html` (no build st
   the file on disk is the same bytes the page carries.
 - Palette sampled from the PNG (not guessed): navy-900 `#02284C`, navy-700 `#0C243E`, green-600 `#02A15E`,
   green-700 `#076B41`, canvas `#FCFCFC`. The brief's approximations (`#143E68`, `#1E9E6B`) are mid-tints.
+  **Section 25 quieted this palette**: the tokens now read navy-900 `#1B3049`, green-600 `#3C8771`,
+  green-900 `#2A463C`, canvas `#FAFBFC` — the same brand ink and the same brand green, pulled down to
+  about half the visual volume. The palette sampled from the PNG is still the source of truth.
 - The logo PNG itself has **no alpha channel** and a solid `#FCFCFC` background, so it must not be
   inlined as it stands — the mark is cut first (Q7 is now answered: the owner's own PNG, cut with
   alpha, not a new owner-supplied asset). A copy of the raw logo pasted into the page shows as a
@@ -20,36 +23,42 @@ The workbench front end is a single self-contained `web/index.html` (no build st
   browser parse the scaffold as the document, which pushes the real `<head>` - and with it the
   four icon links - into the body, where a browser reads no favicon from. The icon links must
   stay inside `<head>`; `tests/test_web_brand_assets.py` holds that.
-- The Home hero mark is 103px tall (74px under 900px) and sits 6px lower. The space between
-  the mark and "Smart Business Writer" is the same as the space between that wordmark and
-  "Your reliable business writing assistant" - 25px on each side, measured on the rendered
-  pixels - so the three read as one lockup. The topbar mark (30px) and the chat button
-  (30px) keep their sizes.
+- The Home hero mark is 58px tall (46px under 900px) and sits 4.8px lower. The three parts of the
+  lockup keep their order and their small even steps, so they still read as one group: the mark's
+  bottom margin to the wordmark is 6.4px and the wordmark to the slogan is 9.6px. The topbar mark
+  (24px) and the chat button's mark (22px) keep their own sizes. All of these were 103px / 30px /
+  30px before section 25.
 - The A1 screenshot was used for **structure only** (narrow fixed left icon rail, centred hero with the logo above
   a short headline, a large central action box with a secondary controls row inside, a row of quick-action chips
   beneath, a floating circular chat button bottom-right). Its text, claims, pricing and social-proof block were not
   copied, and the screenshot is not shipped.
 
-## 2. Rail (left, 49 px collapsed, 272 px expanded)
+## 2. Rail (left, 54 px collapsed, 248 px expanded)
 
 Thirteen items: Home, the eleven subjects, Calculator. Each carries a filled glyph from the Font Awesome
-Free 6.5.2 solid set (CC BY 4.0) in its own colour, drawn straight on the aqua-green strip - no
-tile, no outline. Shape carries the meaning; colour is secondary (greyscale-safe).
+Free 6.5.2 solid set (CC BY 4.0), drawn straight on the deep green strip - no tile, no outline.
+Shape carries the meaning; colour is secondary (greyscale-safe).
+
+**Every subject glyph is one muted steel, `#AFBECC`; Home is white `#FFFFFF`.** The rail used to
+carry thirteen different hues (blue book, teal scales, magenta rocket, coral megaphone …) on the
+green strip. That was the loudest thing on the page, and section 25 took it out: one tone for every
+subject, so the glyphs read as a column of shapes rather than as a colour chart. The catalogue
+still owns the subject colours; they are used on the subject tiles, not on the rail.
 
 | # | Label | Icon | Colour |
 |---|---|---|---|
 | 1 | Home | house | white `#FFFFFF` |
-| 2 | Accounting | book | `#4D9BFF` |
-| 3 | Finance | chart line | `#3DDC84` |
-| 4 | Economics | scales | `#2BD9D9` |
-| 5 | Management & strategy | target | `#B388FF` |
-| 6 | Entrepreneurship | rocket | `#FFC542` |
-| 7 | Operations management | gear | `#7AA7FF` |
-| 8 | Supply chain & logistics | truck | `#38E0C8` |
-| 9 | Marketing & customers | megaphone | `#FF7A6B` |
-| 10 | People & organisation | people | `#C3CEDA` |
-| 11 | Research & statistics | flask | `#8E9BFF` |
-| 12 | Business Calculator | calculator | `#DDD6FE` |
+| 2 | Accounting | book | steel `#AFBECC` |
+| 3 | Finance | chart line | steel `#AFBECC` |
+| 4 | Economics | scales | steel `#AFBECC` |
+| 5 | Management & strategy | target | steel `#AFBECC` |
+| 6 | Entrepreneurship | rocket | steel `#AFBECC` |
+| 7 | Operations management | gear | steel `#AFBECC` |
+| 8 | Supply chain & logistics | truck | steel `#AFBECC` |
+| 9 | Marketing & customers | megaphone | steel `#AFBECC` |
+| 10 | People & organisation | people | steel `#AFBECC` |
+| 11 | Research & statistics | flask | steel `#AFBECC` |
+| 12 | Business Calculator | calculator | steel `#AFBECC` |
 
 Behaviour: collapsed by default (icon only + tooltip), expand/collapse via the top toggle (a
 hamburger when collapsed, a chevron when open), the choice persists in `localStorage`. Active item:
@@ -59,14 +68,17 @@ names, so the rail and the subject pages say the same thing.
 
 Geometry the CSS is built from (keep these three in step or the rail breaks again):
 
-- `--rail-w:49px` is the green strip. The icon column is centred inside it (`--rail-ic-pad`), so
+- `--rail-w:40px` is the green strip. The icon column is centred inside it (`--rail-ic-pad`), so
   narrowing the strip moves the icons with it.
-- `--rail-gap:18px` is the white space between the strip and the label column, so every label
-  starts at the same x (`--rail-text-x`, 67 px) and never crowds the green.
+- `--rail-gap:10px` is the white space between the strip and the label column, so every label
+  starts at the same x (`--rail-text-x`, 50 px) and never crowds the green.
 - The "Subjects" heading uses the same offset, so it sits on the label column instead of under the
   strip.
 - The rail tooltip is one shared box placed over the page (`position:fixed`). The strip is narrow
   and the subject list scrolls, so a tip living inside an item was clipped to 1 px and never seen.
+- The strip is `--rail-w` (40 px) plus the scrollbar's column `--rail-sb` (14 px), so the collapsed
+  rail is 54 px; the open rail is `--rail-w-open` (248 px). The glyph is 16 px in a 22 px column.
+
 
 
 ## 3. Copy options (hero sub-line) — **the owner has chosen**
@@ -491,14 +503,10 @@ asserted in `tests/test_product_subjects.py`):
 
 - `href="#/chat"` - carried by the real subject-page link above, not a stub.
 - `id="panel-chat"` - a hidden, never-rendered empty section with a comment saying why.
-- `id="chatframework"` - a hidden `<select>` in the composer row. It is never shown and nothing
-  picks a framework any more; it exists because the test asserts the id, and it also carries the
-  `PESTEL + SWOT` string the test asserts. `startChat` still reads it if it is ever unhidden, so
-  the hook is functional rather than decorative.
 - `id="chatstart"` - a hidden button wired to `startChat`, for the same reason.
 
-Request: the computation owner drops those assertions, after which the hook and the stub can be
-deleted (see §4).
+The `#chatframework` select and its PESTEL/SWOT/Five Forces options have been removed, along with
+the `picked`/`body.framework` read in `startChat()`. The framework is now inferred from the brief only.
 
 Request: `docs/CHANGELOG.md` build 1.28 and `docs/UI_CLOSURE.md` still describe Home as carrying
 the "Which one do I need?" chooser. The owner has since removed it from Home (it lives in the Help
@@ -1030,3 +1038,75 @@ factual-doc edit, and the build pill is left alone.
 Not done, on purpose: the label column was not moved to keep the glyph-to-word gap at 17.5 px. That
 would mean narrowing the white gutter between the green strip and the labels from 10 px to 4.5 px
 and moving every label 5.5 px left, which the instruction did not ask for.
+
+## 25. The quiet pass — the page reads 90% less loud and 90% less big
+
+The owner's instruction (2026-11-06): *"the website looks loud and too big — reduce the appearance
+of the website 90%."* Read as: take nine tenths of the visual volume out. Everything below is
+presentation. No copy, number, claim, caveat, method, framework, check or export changed, and no
+`src/bp/**` file changed.
+
+**What was loud, in the served page (Chrome, 1280x720, device pixel ratio 1.36):**
+
+- Thirteen different hues on the rail strip, the loudest single thing on the page.
+- A saturated green strip (`--green-900 #0A4632`) carrying them.
+- A green band across the full width of every subject page, and green table heads.
+- Nine gradients: the hero's radial wash, the chat button's navy ramp, the calculator display,
+  the Portfolio Lab's dark hero, its tiles and its value panel, the pricing band bar, the rail's
+  separator.
+- Depth: three shadow tokens from `0 1px 2px` to `0 18px 48px`, a drop-shadow under the hero
+  logo, a glow under the active rail glyph, and a lift (`translateY`) on every card and tile.
+- Scale: a 43 px hero wordmark, a 16.8 px body, an 18 px composer, a 103 px logo, a 22 px-radius
+  composer box, a 56 px chat button, a 56 px top bar, a 61 px rail.
+
+**What changed — type** (every px font-size scaled in bands, so the hierarchy the owner tuned
+survives in proportion; display sizes hardest, body least):
+
+| | before | after |
+|---|---|---|
+| `.hero h1` | 43 px | 24.9 px |
+| `body` | 16.8 px | 14.3 px |
+| composer text | 18 px | 13 px |
+| wordmark | 20.2 px | 14.5 px |
+| `.btn`, `table` | 16.6 px | 14.1 px |
+| top-bar pill | 15.4 px | 13.1 px |
+| tier price / bundle price | 26 px / 30 px | 15.1 px / 17.4 px |
+| Portfolio headline number | 39 px | 22.6 px |
+
+**What changed — space** (padding, margin and gap × 0.8; tap targets kept at 40 px or more):
+hero logo 103 px → 58 px (46 px under 900 px), top bar 56 → 48 px, composer 104 → 72 px, chat
+button 56 → 42 px, run button 40 → 34 px, rail row 42 → 36 px, strip 45 → 40 px, glyph 19 → 16 px,
+page column 1180 → 1080 px, capability icon 34 → 26 px.
+
+**What changed — colour** (the tokens keep the brand; the volume comes out of them):
+navy-900 `#02284C` → `#1B3049`, navy-700 `#0C243E` → `#33506B`, navy-500 `#143E68` → `#5C7691`,
+green-600 `#02A15E` → `#3C8771`, green-700 `#076B41` → `#2F6552`, green-900 `#0A4632` → `#2A463C`,
+canvas `#FCFCFC` → `#FAFBFC`. Every hardcoded hex in the stylesheet was pulled 55% toward a
+neutral slate `#6B7280`. The thirteen rail hues became one steel `#AFBECC`; Home stays white.
+
+**What changed — depth and surfaces:** all nine gradients are gone (the hero wash with them);
+the three shadow tokens became `0 1px 1px`, `0 1px 2px` and `0 4px 14px` at a quarter the
+opacity; the logo's drop-shadow, the active glyph's glow and every hover lift were removed; the
+subject page's green band became a sunken band with navy ink; table heads became grey; the
+pricing tier bars went from 3 px to 2 px; the radii came down (`--r-sm` 6 → 4, `--r-md` 10 → 6,
+`--r-lg` 14 → 8, `--r-pill` 999 → 6, the composer's 22 → 8).
+
+**How it was done.** `qa/manual/quiet_ui_pass.py` applies the whole pass in one deterministic
+run — tokens, type bands, space, colour muting, and about 130 named property edits — so the change
+is auditable and repeatable instead of being 200 hand edits in an 880 KB file. It writes a
+`sbw-quiet-pass v1` marker into the stylesheet and refuses to run again over a file that already
+carries it, because the pass scales and must never scale twice. The same pass quiets
+`web/account.html` and `web/admin-sbw.html`, so the three pages read as one system.
+
+**Verification.** The default page on 8021 was screenshotted in four states (Home, the Accounting
+subject page, the Portfolio Lab, the pricing sheet) and the pre-change build was served on **8022**
+for the side-by-side, per `SERVING.md` — 8021 was never taken away. `tests/test_web_brand_assets.py`,
+`tests/test_web_inline_script.py` and `tests/test_web_static_snapshot.py` pass. The full suite is
+recorded in `docs/CHANGELOG.md` for build 1.102.
+
+**Not done, on purpose:** the brand PNG is untouched — it is the owner's own asset and it carries
+the colour the page has just quieted. `.report` keeps 15.5 px because it previews a document, not
+chrome. The pricing sheet's "Choose" buttons stay filled navy: one filled button is the page's
+one strong signal, and quieting it further would cost the sheet its clearest action. The
+per-subject catalogue colours stay on the subject tiles — only the rail lost its rainbow.
+
