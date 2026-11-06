@@ -315,6 +315,10 @@
           <button class="btn" id="healFreeGen">Generate</button>
         </div>
         <div id="healFreeLog" class="code" style="min-height:40px;max-height:200px;overflow-y:auto;margin-bottom:12px;"></div>
+        <div class="row">
+          <button class="btn" id="healFreeRegen">Regenerate</button>
+          <span style="font-size:12px;color:var(--muted);">Click to generate new problems with same settings</span>
+        </div>
       </div>
 
       <!-- Two-column: errors (left) + workflow (right) -->
@@ -335,6 +339,9 @@
           <div class="card">
             <h2>Problems &amp; Fixes</h2>
             <div id="workflowLog" class="code" style="min-height:60px;max-height:300px;overflow-y:auto;margin-bottom:12px;">Select an error and click "Generate problems" to start.</div>
+            <div class="row">
+              <button class="btn" id="wfRegen">Regenerate</button>
+            </div>
             <div id="workflowActions" class="row" style="display:none;">
               <button class="btn primary" id="wfAutoFix">Auto-fix</button>
               <button class="btn" id="wfProposeFix">Propose fix</button>
@@ -785,6 +792,11 @@ document.getElementById('healTile').addEventListener('change', () => {
 loadHealSubjects();
 
 document.getElementById('healFreeGen').addEventListener('click', async () => {
+  const btn = document.getElementById('healFreeGen');
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  btn.style.opacity = '0.6';
   let instruction = document.getElementById('healInstruction').value.trim();
   const count = parseInt(document.getElementById('healCount').value) || 5;
   const subjectSel = document.getElementById('healSubject');
@@ -853,6 +865,9 @@ document.getElementById('healFreeGen').addEventListener('click', async () => {
     log.textContent += '[Error: ' + (r.data.error || 'failed') + ']\n';
   }
   log.scrollTop = log.scrollHeight;
+  btn.disabled = false;
+  btn.textContent = origText;
+  btn.style.opacity = '1';
 });
 
 async function genFromError(errorId, errorText, severity) {
@@ -1412,6 +1427,21 @@ document.getElementById('arStop').addEventListener('click', async () => {
 });
 
 document.getElementById('arRefresh').addEventListener('click', loadAutoresearch);
+
+
+// Regenerate free-form
+document.getElementById('healFreeRegen').addEventListener('click', () => {
+  document.getElementById('healFreeGen').click();
+});
+
+// Regenerate workflow
+document.getElementById('wfRegen').addEventListener('click', () => {
+  if (currentError) {
+    genFromError(currentError.id, currentError.text, currentError.severity || 'moderate');
+  } else {
+    toast('No error selected');
+  }
+});
 
 /* ── Init ── */
 loadHealth();
