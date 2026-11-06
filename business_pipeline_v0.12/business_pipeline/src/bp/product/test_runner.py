@@ -197,7 +197,7 @@ SUITES = {
     ],
     # ── Supply Chain ──
     "supply_chain": [
-        "tests/test_supply_chain_acceptance.py",
+        "tests/test_subject_supply_chain_acceptance.py",
     ],
     # ── Meta / Product ──
     "meta": [
