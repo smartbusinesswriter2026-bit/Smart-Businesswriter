@@ -3173,15 +3173,7 @@ def explain(record):
 
     # 1. Problem
     instruction = record.get("instruction", "")
-    why = record.get("why", "")
-    problem_lines = []
-    if instruction:
-        problem_lines.append(instruction)
-    if why:
-        problem_lines.append("")
-        problem_lines.append(why)
-    if not problem_lines:
-        problem_lines = ["No problem statement recorded."]
+    problem_lines = [instruction] if instruction else ["No problem statement recorded."]
     sections.append(("1. Problem", problem_lines))
 
     # 2. Given Data
@@ -3197,15 +3189,16 @@ def explain(record):
     concept_lines = []
     checks = record.get("checks") or []
     if checks:
-        concept_lines.append("Verification checks (formulas applied):")
+        concept_lines.append("Formulas applied (from verification checks):")
         for ch in checks:
             if isinstance(ch, dict):
                 name = ch.get("name", "")
                 detail = ch.get("detail", "")
                 if detail:
-                    concept_lines.append(f"  {name}: {detail}")
+                    concept_lines.append(f"  {name}:")
+                    concept_lines.append(f"    {detail}")
                 else:
-                    concept_lines.append(f"  {name}")
+                    concept_lines.append(f"  {name}: PASS" if ch.get("ok") else f"  {name}: FAIL")
             elif isinstance(ch, (list, tuple)) and len(ch) >= 2:
                 concept_lines.append(f"  {ch[0]}: {ch[2] if len(ch) > 2 else ''}")
     reading = record.get("reading") or {}
@@ -3218,15 +3211,6 @@ def explain(record):
                 concept_lines.append(f"  - {a.get('text', str(a))}")
             else:
                 concept_lines.append(f"  - {a}")
-    tier1_gaps = record.get("tier1_gaps") or []
-    if tier1_gaps:
-        concept_lines.append("")
-        concept_lines.append("Tier-1 reading gaps (self-healing):")
-        for g in tier1_gaps:
-            if isinstance(g, dict):
-                concept_lines.append(f"  - {g.get('what', '')}: {g.get('why', '')}")
-            else:
-                concept_lines.append(f"  - {g}")
     if not concept_lines:
         concept_lines = ["No formulas or assumptions recorded."]
     sections.append(("3. Concepts, Formulas, and Assumptions", concept_lines))
@@ -3245,6 +3229,9 @@ def explain(record):
         roadmap.append(f"Statements requested: {', '.join(requested)}")
     if computed:
         roadmap.append(f"Statements computed: {', '.join(computed)}")
+    hidden = record.get("hidden") or []
+    if hidden:
+        roadmap.append(f"Statements computed but not shown: {', '.join(hidden)}")
     sections.append(("4. Solution Roadmap", roadmap))
 
     # 5. Explanation (step-by-step)
@@ -3264,7 +3251,6 @@ def explain(record):
     interp_lines.append("")
     interp_lines.append("All verification checks passed. The statements articulate (debits = credits, "
                        "assets = liabilities + equity).")
-    # Missing items
     missing = (record.get("working") or {}).get("missing") or []
     if missing:
         interp_lines.append("")
@@ -3274,6 +3260,15 @@ def explain(record):
                 interp_lines.append(f"  - {m.get('what', '')}: {m.get('why', '')}")
             else:
                 interp_lines.append(f"  - {m}")
+    tier1_gaps = record.get("tier1_gaps") or []
+    if tier1_gaps:
+        interp_lines.append("")
+        interp_lines.append("Tier-1 reading gaps (self-healing):")
+        for g in tier1_gaps:
+            if isinstance(g, dict):
+                interp_lines.append(f"  - {g.get('what', '')}: {g.get('why', '')}")
+            else:
+                interp_lines.append(f"  - {g}")
     sections.append(("6. Interpretation", interp_lines))
 
     return title, sections
