@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 retrieval_log.jsonl
+
+# validation harness output (regenerable): scripts/validation/walk_frameworks.py
+validation_out/
