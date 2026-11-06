@@ -368,8 +368,11 @@ def ingest_validation_manifest(manifest_path=None):
         for f in failures:
             if res.get("verdict") and res.get("verdict") != "fail":
                 continue  # §10 entries carry every paper; only failures are findings
+            rule = f.get("rule") or res.get("rule")
+            if not rule:
+                continue  # unattributed issues are not findings
             fkey, err = log_finding(
-                rule=f.get("rule") or res.get("rule") or "D-EXPORT",
+                rule=rule,
                 subject=subject,
                 feature=str(f.get("feature") or res.get("kind") or ""),
                 section=str(f.get("section") or f.get("where") or ""),

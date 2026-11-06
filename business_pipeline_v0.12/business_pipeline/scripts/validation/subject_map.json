@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "note": "The harness owns its own subject crosswalk (docs/VALIDATION_HARNESS.md §7, design-lane default). It maps framework profiles to the 11 subject shelves without editing src/bp/**. `overrides` wins over a profile's declared subject; the four H1 slots with no shelf (supply-chain, entrepreneurship, people, management) receive their papers through the profile/worksheet path, and their compute tools are walked as Stage 4, not here.",
+  "shelves": ["accounting", "finance", "economics", "management", "project-management", "entrepreneurship", "operations", "supply-chain", "marketing", "people", "research"],
+  "default_subject": "research",
+  "overrides": {
+    "template_strategy_4": "management",
+    "template_change_organization": "people",
+    "template_pestel": "management",
+    "template_five_forces": "management"
+  }
+}
