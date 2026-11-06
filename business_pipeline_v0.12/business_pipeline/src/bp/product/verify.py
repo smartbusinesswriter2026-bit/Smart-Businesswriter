@@ -135,7 +135,7 @@ def normalise_number(written, kind="amount", currency=None):
     return str(number), steps
 
 
-def verify_reading(reading, entries, frameworks, brief, currency=None, quoted=None):
+def verify_reading(reading, entries, frameworks, brief, currency=None, quoted=None, archetypes=None):
     """Check one reading against the closed catalogue and the brief itself.
 
     `entries` is the capability catalogue, `frameworks` the framework ids the
@@ -152,6 +152,13 @@ def verify_reading(reading, entries, frameworks, brief, currency=None, quoted=No
     for framework in reading.get("frameworks") or []:
         if framework not in frameworks:
             problem("catalogue", "unknown framework " + str(framework))
+    archetype = reading.get("archetype")
+    if archetype is not None:
+        if archetypes is None:
+            from . import paper_families
+            archetypes = list(paper_families.ARCHETYPES)
+        if archetype not in archetypes:
+            problem("catalogue", "unknown archetype " + str(archetype))
     capabilities = reading.get("capabilities") or []
     if not capabilities:
         problem("catalogue", "a reading must name at least one capability or say why none applies")
@@ -249,6 +256,15 @@ def overclaims(text):
             if following and following[0].lower().rstrip(".,;:!?") in (
                     "nothing", "no", "not", "none", "neither", "never", "nobody", "nowhere"):
                 continue
+            # a claim word immediately followed by a number is a label/value
+            # (e.g. "definitely 120" in a purchase-intent table), not an
+            # assertion, so it is not an overclaim
+            if following:
+                try:
+                    float(following[0].rstrip(".,;:!?"))
+                    continue
+                except ValueError:
+                    pass
             problems.append({"claim": match.group(0).lower(), "sentence": clean[:300]})
             break
     return problems

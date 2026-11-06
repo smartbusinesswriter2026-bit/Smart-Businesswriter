@@ -143,12 +143,55 @@ def check_v02(result):
     return out
 
 
+def check_v05(result):
+    """V-05: computations come from the frozen core (capability papers)."""
+    out = []
+    if not result.get("kind") == "capability":
+        return out
+    comps = result.get("computations") or {}
+    if not comps:
+        out.append({"rule": "V-05", "severity": "high",
+                    "detail": "no computation was run for this capability paper",
+                    "where": "", "source": "chat.run_capability"})
+        return out
+    # every computation must have succeeded (ok=True) when the core is attached
+    for key, rec in comps.items():
+        if isinstance(rec, dict) and rec.get("ok") is False:
+            out.append({"rule": "V-05", "severity": "high",
+                        "detail": "computation %r failed: %s" % (key, rec.get("error", "")[:120]),
+                        "where": key, "source": "chat.run_capability"})
+    return out
+
+
+def _normalize_report(report):
+    """Conductor papers store sections as [heading, lines] tuples; framework
+    papers store them as dicts.  Normalize to dicts so the checks are shape-agnostic."""
+    report = dict(report or {})
+    norm = []
+    for s in (report.get("sections") or []):
+        if isinstance(s, (list, tuple)):
+            heading = s[0] if len(s) > 0 else ""
+            lines = s[1] if len(s) > 1 else []
+            level = s[2] if len(s) > 2 else 1
+            norm.append({"heading": heading, "lines": lines, "level": level})
+        elif isinstance(s, dict):
+            norm.append(s)
+        else:
+            norm.append({"heading": str(s), "lines": [], "level": 1})
+    report["sections"] = norm
+    return report
+
+
 def judge_paper(result, report, kind="framework"):
     """Aggregate all code-backed rules.  Returns (verdict, findings)."""
+    report = _normalize_report(report)
+    if kind:
+        result = dict(result or {}); result.setdefault("kind", kind)
     findings = []
     findings += check_v06_v09_v10_v11(report)
     findings += check_v12(result, report)
     findings += check_v07(result)
+    findings += check_v05(result)
     findings += check_v17(report)
     findings += check_v19(report)
     # V-02: named gaps never filled — ensure missing dims carry gap wording
@@ -167,10 +210,13 @@ def judge_paper(result, report, kind="framework"):
             d = dim if not isinstance(dim, dict) else (dim.get("label") or dim.get("where") or "")
             sec = by_heading.get(str(d).strip().lower())
             text = " ".join((sec.get("lines") or []) if sec else [])
-            if ("no evidence was found" not in text.lower()
-                    and "recorded as a gap" not in text.lower()
-                    and "left for you" not in text.lower()
-                    and "only you can state" not in text.lower()):
+            low = text.lower()
+            if ("no evidence was found" not in low
+                    and "recorded as a gap" not in low
+                    and "left for you" not in low
+                    and "only you can state" not in low
+                    and "this is a gap" not in low
+                    and "not a finding" not in low):
                 findings.append({"rule": "V-02", "severity": "high",
                                  "detail": "dimension %r is missing but its section does not name the gap" % d,
                                  "where": str(d), "source": "completion.missing"})
