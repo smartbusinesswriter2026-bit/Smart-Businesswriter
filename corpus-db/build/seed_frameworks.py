@@ -312,7 +312,7 @@ def seed(connection, lenses, search=None, limit=5, since=0, max_queries=2,
     return report
 
 
-def fetch_seeded(connection, limit=10, log=None):
+def fetch_seeded(connection, limit=10, pause=1.5, log=None):
     """Fetch the open full text of the top framework-seeded candidates."""
     rows = connection.execute(
         "SELECT * FROM candidates WHERE status IN ('new', 'failed')"
@@ -321,11 +321,13 @@ def fetch_seeded(connection, limit=10, log=None):
         (int(limit),)).fetchall()
     outcomes = {"ingested": 0, "duplicate": 0, "needs_decision": 0,
                 "rejected": 0, "failed": 0}
-    for row in rows:
+    for index, row in enumerate(rows):
         outcome = enrich.fetch_one(connection, row)
         outcomes[outcome] = outcomes.get(outcome, 0) + 1
         if log:
             log("fetch  %-60s -> %s" % (str(row["title"] or "")[:60], outcome))
+        if pause and index + 1 < len(rows):
+            time.sleep(pause)
     return outcomes
 
 

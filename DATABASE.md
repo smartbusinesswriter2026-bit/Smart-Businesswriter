@@ -422,6 +422,11 @@ stopped machine does not break a paper run; the corpus simply learns more slowly
 (HTTP 429). When that happens the journal-API fallback and title resolution are unavailable and
 the pipeline says so; set a free `BP_OPENALEX_API_KEY` to give the corpus its own budget.
 
+**The content endpoint has its own budget.** `open_access_pdf()` appends the same free key and
+mailto to `content.openalex.org`. Without it, every open-licence PDF answered 429 and the
+failure looked like "the PDF could not be downloaded"; with it, CC-BY works ingest normally.
+The endpoint still rate-limits a burst, so `fetch` spaces downloads and retries a 429 once.
+
 ## 10b. Step 6b — Seed every framework and theory
 
 The pipeline knows its own lenses: 71 frameworks, 24 models and 7 theory bundles in

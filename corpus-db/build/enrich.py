@@ -26,6 +26,7 @@ import json
 import difflib
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -148,7 +149,13 @@ def open_access_pdf(work):
         return None, None
     location = work.get("best_oa_location") or {}
     licence = (location.get("license") or "").lower() or None
-    return "%s/works/%s.pdf" % (OPENALEX_CONTENT, identifier), licence
+    url = "%s/works/%s.pdf" % (OPENALEX_CONTENT, identifier)
+    # The content endpoint has its own budget and answers 429 without a key,
+    # even when the metadata API works.  The same free key/mailto applies.
+    params = _openalex_params()
+    if params:
+        url += "?" + urllib.parse.urlencode(params)
+    return url, licence
 
 
 def authors_of(work):
@@ -252,21 +259,33 @@ def research(connection, limit=10):
 
 # ── step 4: fetch ───────────────────────────────────────────────────────────
 
-def fetch(connection, limit=10):
+def fetch(connection, limit=10, pause=1.5, retries=1):
     """Pull the open full text of the top candidates and ingest them.
 
     A `failed` candidate is retried: the failure may have been a rate limit or a
     dropped download, and the reason is recorded on the row.  A rejection or an
     owner decision is never retried automatically.
+
+    The content endpoint answers 429 when a burst of PDFs is requested even
+    with an API key, so downloads are spaced and a 429 gets one longer retry.
     """
     candidates = connection.execute(
         "SELECT * FROM candidates WHERE status IN ('new', 'failed')"
         " ORDER BY status = 'failed', priority DESC, seen_count DESC LIMIT ?",
         (limit,)).fetchall()
     outcomes = {"ingested": 0, "duplicate": 0, "needs_decision": 0, "rejected": 0, "failed": 0}
-    for candidate in candidates:
+    for index, candidate in enumerate(candidates):
         outcome = fetch_one(connection, candidate)
+        if outcome == "failed" and retries:
+            reason = connection.execute(
+                "SELECT reason FROM candidates WHERE candidate_id = ?",
+                (candidate["candidate_id"],)).fetchone()
+            if reason and "HTTP 429" in (reason["reason"] or ""):
+                time.sleep(max(5.0, pause * 5))
+                outcome = fetch_one(connection, candidate)
         outcomes[outcome] = outcomes.get(outcome, 0) + 1
+        if pause and index + 1 < len(candidates):
+            time.sleep(pause)
     return outcomes
 
 

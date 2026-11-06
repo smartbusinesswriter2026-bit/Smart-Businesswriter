@@ -773,9 +773,14 @@ def index_pages(connection, rebuild=False):
         "subject": row["subject"], "source_kind": row["source_kind"],
         "url": row["source_url"],
     } for row in rows]
-    for start in range(0, len(documents), 500):
-        task = meili_call("POST", "/indexes/%s/documents" % INDEX, documents[start:start + 500])
-        finished = meili_task(task.get("taskUid", 0))
+    tasks = []
+    for start in range(0, len(documents), 2000):
+        task = meili_call("POST", "/indexes/%s/documents" % INDEX, documents[start:start + 2000])
+        tasks.append(task.get("taskUid", 0))
+    # Queue every batch before waiting: the indexer then works continuously
+    # instead of leaving a network round-trip of idle time between batches.
+    for task_id in tasks:
+        finished = meili_task(task_id)
         if finished.get("status") != "succeeded":
             raise RuntimeError("the pages could not be indexed: %s" % finished.get("error"))
     return len(documents)

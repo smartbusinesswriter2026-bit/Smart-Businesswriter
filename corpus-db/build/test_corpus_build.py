@@ -206,6 +206,20 @@ class CandidateTest(TempCorpusTest):
         self.assertIn("HTTP 429", row["reason"])
         self.assertIn("retry", row["reason"])
 
+    def test_the_content_pdf_carries_the_api_key(self):
+        # The content endpoint has its own budget and answers 429 without the
+        # key even when the metadata API works.  A missing key here looked like
+        # "the PDF could not be downloaded" on every open-licence candidate.
+        work = {"id": "https://openalex.org/W1",
+                "has_content": {"pdf": True},
+                "best_oa_location": {"license": "cc-by"}}
+        with mock.patch.dict(os.environ, {"BP_OPENALEX_API_KEY": "test-key",
+                                           "BP_OPENALEX_EMAIL": "test@example.org"}):
+            url, licence = enrich.open_access_pdf(work)
+        self.assertEqual(licence, "cc-by")
+        self.assertIn("api_key=test-key", url)
+        self.assertIn("mailto=test%40example.org", url)
+
     def test_fetch_retries_a_failed_candidate(self):
         lib.upsert_candidate(self.connection,
                              {"title": "Pricing in emerging markets",
