@@ -806,6 +806,35 @@ def _infer_archetype(brief, framework=None, profile=None):
     return "analytical_report"
 
 
+def _refusal_state(brief, error, slots=()):
+    """A short, human refusal for an instruction that cannot be repaired."""
+    if error.code == "CATEGORY_ERROR":
+        title = "Your instruction appears to ask for an attribute a framework does not have."
+        hint = ("Start over and rephrase this as a valuation, a financial instrument, or a framework "
+                "without a rate.")
+    else:
+        title = "Your instruction appears to be outside what this paper can analyse."
+        hint = "Start over and rephrase the decision, the evidence you have, and what the paper should settle."
+    return {
+        "format": FORMAT,
+        "brief": brief,
+        "stage": "refused",
+        "refusal": {
+            "code": error.code,
+            "title": title,
+            "detail": error.why,
+            "hint": hint,
+            "found": error.found,
+            "options": [dict(row) for row in error.repairs],
+        },
+        "questions": [],
+        "answers": _defaults(brief),
+        "slots": [dataclasses.asdict(slot) for slot in slots],
+        "created_at": _now(),
+        "updated_at": _now(),
+    }
+
+
 def _framework_choices(brief, archetype=None):
     """Suggested frameworks first, then "No framework", then the rest."""
     reading = instruction_reading.read_frameworks(brief)
@@ -844,6 +873,8 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         raise ChatError("Describe the case or assignment in at least one sentence.")
     category_errors = instruction_reading.find_category_errors(brief)
     instruction_slots = instruction_reading.extract_slots(brief)
+    if category_errors:
+        return _refusal_state(brief, category_errors[0], instruction_slots)
     attached = _read_rubric(rubric) if rubric is not None else None
     wanted = (profile or framework or "").strip().lower().replace(" ", "_")
     if wanted in (PROFILE_BUSINESS_PLAN, "business_plan", "businessplan", "plan"):

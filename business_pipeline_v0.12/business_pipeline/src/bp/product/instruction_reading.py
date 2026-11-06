@@ -247,8 +247,15 @@ def find_category_errors(brief: str, reading: Optional[FrameworkReading] = None)
                      "method": None, "because": "the framework itself has no rate input"},
                 ]
             if entity_type == "strategy_framework":
-                why = ("the " + str(framework_id or entity_type).replace("_", " ")
-                       + " is a strategy framework, not a financial instrument, so it has no "
+                labels = {
+                    "ansoff": "Ansoff", "five_forces": "Five Forces",
+                    "value_chain": "Value Chain", "vrio": "VRIO",
+                    "pestel": "PESTEL", "swot": "SWOT",
+                    "breakeven": "Break-even", "pestel_swot": "PESTEL + SWOT",
+                    "five_forces_breakeven": "Five Forces + Break-even",
+                }
+                label = labels.get(framework_id or "", str(framework_id or entity_type).replace("_", " "))
+                why = (label + " is a strategy framework, not a financial instrument, so it has no "
                        + attribute.replace("_", " ") + ".")
             else:
                 why = ("the " + entity_text.lower() + " is a " + entity_type.replace("_", " ")

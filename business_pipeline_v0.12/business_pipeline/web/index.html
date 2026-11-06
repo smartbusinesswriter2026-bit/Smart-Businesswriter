@@ -384,6 +384,10 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .banner.honesty{background:var(--amber-bg);border-color:var(--amber-line);color:#7A4A00}
 .banner.honesty strong{color:var(--amber)}
 .banner.limit{background:var(--sunken);border-color:var(--border);color:var(--text-2)}
+.refusalcard{margin-top:10px;border:1px solid var(--amber-line);background:var(--amber-bg);border-radius:var(--r-md);padding:11.2px 12.8px;color:var(--text)}
+.refusalcard p{margin:0 0 6.4px;line-height:1.55}
+.refusalcard p:last-child{margin-bottom:0}
+.refusalcard strong{font-size:14.1px;color:var(--amber)}
 .banner.ok{background:var(--green-100);border-color:#BFE3D3;color:var(--green-700)}
 .banner.ok strong{color:var(--green-700)}
 .banner ul{margin:6px 0 0;padding-left:18px}
@@ -2594,6 +2598,17 @@ function renderChat() {
   let html = '<div class="card" style="margin-bottom:12px"><div class="row" style="justify-content:space-between">' +
     '<strong>Your brief</strong><button class="btn sm" id="chatreset">Start over</button></div>' +
     '<p style="margin:6px 0 0">' + esc(c.brief) + "</p></div>";
+  if (c.stage === "refused") {
+    const refusal = c.refusal || {};
+    html += '<div class="refusalcard">' +
+      '<p><strong>' + esc(refusal.title || "Your instruction appears to be unclear.") + '</strong></p>' +
+      '<p>' + esc(refusal.detail || "") + '</p>' +
+      '<p class="muted">' + esc(refusal.hint || "Start over and rephrase this.") + '</p>' +
+      '</div>';
+    out.innerHTML = html;
+    $("#chatreset").onclick = resetChat;
+    return;
+  }
   if (c.stage === "not_supported") {
     const detected = c.subject_detected;
     const shelfBtn = detected

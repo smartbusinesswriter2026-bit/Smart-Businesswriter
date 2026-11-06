@@ -46,6 +46,13 @@ def answer_all(state, style="harvard"):
 
 
 class StartTest(unittest.TestCase):
+    def test_a_nonsensical_category_error_is_refused_early(self):
+        state = chat.start("What is the interest rate of Ansoff matrix at 6% per annum?")
+        self.assertEqual(state["stage"], "refused")
+        self.assertEqual(state["refusal"]["code"], "CATEGORY_ERROR")
+        self.assertIn("framework", state["refusal"]["detail"])
+        self.assertEqual(state["questions"], [])
+
     def test_a_pestel_brief_starts_with_one_question_and_defaults_from_the_text(self):
         state = chat.start(BRIEF, framework="pestel")
         self.assertEqual(state["stage"], "clarify")

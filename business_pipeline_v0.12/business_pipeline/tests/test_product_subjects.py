@@ -542,6 +542,11 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("Build the grid", self.html)
         self.assertIn("Add another resource", self.html)
 
+    def test_a_nonsensical_brief_has_a_refusal_card_and_start_over(self):
+        self.assertIn('c.stage === "refused"', self.html)
+        self.assertIn("refusalcard", self.html)
+        self.assertIn("Start over", self.html)
+
     def test_the_removed_panels_have_not_come_back(self):
         for gone in ('id="panel-frames"', 'id="panel-assistant"', 'data-panel="frames"', 'data-panel="assistant"'):
             self.assertNotIn(gone, self.html)
