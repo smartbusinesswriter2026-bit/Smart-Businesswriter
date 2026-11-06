@@ -398,6 +398,7 @@ def main(argv=None):
         report = seed(connection, lenses, limit=args.limit, since=args.since,
                       max_queries=args.max_queries, delay=args.delay,
                       log=lambda line: print(line, flush=True))
+        report["ranked"] = lib.rescore_candidates(connection)
         if args.fetch and args.fetch > 0:
             report["fetch"] = fetch_seeded(connection, args.fetch,
                                            log=lambda line: print(line, flush=True))
@@ -415,6 +416,7 @@ def main(argv=None):
                   totals["lenses"], totals["queries"], totals["results"],
                   totals["candidates_new"], totals["candidates_existing"],
                   totals["already_in_corpus"], totals["errors"]))
+        print("%d candidate(s) ranked by demand." % report.get("ranked", 0))
         if "fetch" in report:
             print("fetch: " + json.dumps(report["fetch"]))
         if "indexed_pages" in report:
