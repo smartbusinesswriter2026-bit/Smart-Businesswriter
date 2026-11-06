@@ -17,7 +17,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import audit as audit_mod, capabilities, council, docx, framework_profiles, guard, matrix, paper, paper_contract, paper_families, prose, retrieval, rubric as rubric_reader, verify, writing
+from . import audit as audit_mod, capabilities, council, docx, framework_profiles, guard, instruction_reading, matrix, paper, paper_contract, paper_families, prose, retrieval, rubric as rubric_reader, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -734,36 +734,11 @@ def _items(value, limit=6):
 
 
 def _infer_framework(brief):
-    text = (brief or "").lower()
-    detected = set()
-    if "five forces" in text or "porter's five forces" in text or "porters five forces" in text:
-        detected.add("five_forces")
-    if "value chain" in text:
-        detected.add("value_chain")
-    if "vrio" in text or "resource-based" in text:
-        detected.add("vrio")
-    if "ansoff" in text or "growth matrix" in text:
-        detected.add("ansoff")
-    if "swot" in text:
-        detected.add("swot")
-    if "pestel" in text:
-        detected.add("pestel")
-    if "break-even" in text or "breakeven" in text or "break even" in text:
-        detected.add("breakeven")
-    # A named pair is one paper shape, not two competing frameworks.
-    if "pestel" in detected and "swot" in detected:
-        return "pestel_swot"
-    if "five_forces" in detected and "breakeven" in detected:
-        return "five_forces_breakeven"
-    # More than one framework is an ambiguity, not a choice the system may make
-    # silently.  Ask the student.
-    if len(detected) > 1:
-        return None
-    if detected:
-        return next(iter(detected))
-    # No explicit framework was named.  Do not silently default to PESTEL: the
-    # Home chat asks the student to choose, so the framework is a decision and
-    # not an assumption.
+    reading = instruction_reading.read_frameworks(brief)
+    if reading.status == "resolved" and len(reading.selected) == 1:
+        return reading.selected[0]
+    # Ambiguous, conflicting, absent, or only negated/contrast mentions: the
+    # student chooses.  The system never fills the gap with a default.
     return None
 
 
@@ -838,6 +813,13 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     brief = _clean(brief, 2000)
     if len(brief) < 15:
         raise ChatError("Describe the case or assignment in at least one sentence.")
+    category_errors = instruction_reading.find_category_errors(brief)
+    if category_errors:
+        error = category_errors[0]
+        options = "; ".join("(" + chr(97 + index) + ") " + row["option"]
+                            for index, row in enumerate(error.repairs))
+        raise ChatError("CATEGORY_ERROR: " + error.why + " Closest valid options: " + options
+                        + ". Tell me what the quantity represents.")
     attached = _read_rubric(rubric) if rubric is not None else None
     wanted = (profile or framework or "").strip().lower().replace(" ", "_")
     if wanted in (PROFILE_BUSINESS_PLAN, "business_plan", "businessplan", "plan"):
