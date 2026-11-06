@@ -964,6 +964,13 @@ class H(BaseHTTPRequestHandler):
                     return self._send(400, {"error": "error_id required"})
                 ok = product_ops_log.mark_error_resolved(error_id)
                 return self._send(200, {"resolved": ok})
+            if self.path == "/api/ops/errors/attend":
+                body = self._body()
+                error_id = body.get("error_id", "") if isinstance(body, dict) else ""
+                if not error_id:
+                    return self._send(400, {"error": "error_id required"})
+                ok = product_ops_log.mark_error_attended(error_id)
+                return self._send(200, {"attended": ok})
             if self.path == "/api/ops/hallucination/check":
                 body = self._body()
                 prose = body.get("prose", "") if isinstance(body, dict) else ""

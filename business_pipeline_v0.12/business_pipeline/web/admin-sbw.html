@@ -864,6 +864,7 @@ document.getElementById('healFreeGen').addEventListener('click', async () => {
   } else {
     log.textContent += '[Error: ' + (r.data.error || 'failed') + ']\n';
   }
+  loadErrors();
   log.scrollTop = log.scrollHeight;
   btn.disabled = false;
   btn.textContent = origText;
@@ -879,6 +880,15 @@ async function genFromError(errorId, errorText, severity) {
   const wfLog = document.getElementById('workflowLog');
   wfLog.textContent = '[' + (severity||'moderate').toUpperCase() + '] Generating ' + count + ' problems from error: ' + errorText.slice(0, 60) + '…]\n';
   document.getElementById('workflowActions').style.display = 'none';
+
+  // Mark attended so the background Karpathy loop skips this error while we work it
+  if (errorId) {
+    apiFetch('/api/ops/errors/attend', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error_id: errorId })
+    });
+  }
 
   const r = await apiFetch('/api/ops/chat/problems-from-error', {
     method: 'POST',
@@ -917,6 +927,7 @@ async function genFromError(errorId, errorText, severity) {
       wfLog.textContent += '[Solve failed: ' + (solveR.data.error || 'unknown') + ']\n';
     }
 
+    loadErrors();
     wfLog.scrollTop = wfLog.scrollHeight;
     document.getElementById('workflowActions').style.display = 'flex';
   } else {

@@ -226,18 +226,45 @@ def is_error_resolved(error_id):
     return False
 
 
+def mark_error_attended(error_id):
+    """Mark an error as attended (the owner is working on it).
+
+    The autoresearch loop only picks up errors left unattended, so an error the
+    owner has opened in the Self-Healing panel is skipped until it resolves.
+
+    Returns True if the error was found and marked.
+    """
+    errors = list_errors(limit=10000)
+    for e in errors:
+        if e.get("error_id") == error_id:
+            record = {
+                "ts": _now_iso(),
+                "error_id": error_id,
+                "attended": True,
+                "attended_ts": _now_iso(),
+            }
+            _append_jsonl(_errors_path(), record)
+            return True
+    return False
+
+
 def merge_resolved(errors):
     """Merge resolution records into error list.
 
-    Returns errors with 'resolved' field set based on resolution records.
+    Returns errors with 'resolved' and 'attended' fields set from the
+    append-only resolution/attendance records.
     """
     resolved_ids = set()
+    attended_ids = set()
     all_records = _read_jsonl(_errors_path(), limit=100000)
     for r in all_records:
         if r.get("resolved") and r.get("error_id"):
             resolved_ids.add(r["error_id"])
+        if r.get("attended") and r.get("error_id"):
+            attended_ids.add(r["error_id"])
     for e in errors:
         e["resolved"] = e.get("error_id") in resolved_ids
+        e["attended"] = e.get("error_id") in attended_ids
     return errors
 
 

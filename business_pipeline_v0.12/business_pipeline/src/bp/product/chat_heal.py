@@ -22,6 +22,7 @@ Falls back to the default model for any role not configured.
 """
 import json
 import os
+import re
 from pathlib import Path
 
 from . import ops_log as _ops_log
@@ -124,6 +125,73 @@ def _call_fallback(system, user, task_label="chat_heal"):
 
 # ── Problem generator ───────────────────────────────────────────────────────
 
+#: Reasoning prefixes that leak from a reasoning model into problem text.
+_REASONING_PREFIXES = (
+    "we need", "we must", "we should", "we can", "we'll", "need ", "need craft",
+    "let's", "let me", "okay", "ok,", "i need", "i will", "i'll", "thinking",
+    "plan:", "so ", "now ", "first,", "the user wants", "the instruction asks",
+    "output only", "answer only", "here's", "here is",
+)
+
+
+def _clean_problem(text):
+    """Strip reasoning noise from one generated problem; '' when nothing usable."""
+    s = str(text).strip().strip('"').strip()
+    s = re.sub(r'^(?:\d+[.)]\s*|[-*]\s*)', '', s)
+    changed = True
+    while changed:
+        changed = False
+        low = s.lower()
+        for prefix in _REASONING_PREFIXES:
+            if low.startswith(prefix):
+                m = re.search(r'[.!?:]\s+', s)
+                if m:
+                    s = s[m.end():].strip()
+                    changed = True
+                else:
+                    return ""
+                break
+    if len(s) < 20:
+        return ""
+    return s
+
+
+def _parse_problems(raw, count):
+    """Parse model output into clean problems (JSON first, then numbered lines)."""
+    text = str(raw).strip().strip("`").strip()
+    data = None
+    try:
+        data = json.loads(text)
+    except (json.JSONDecodeError, AttributeError):
+        start, end = text.find("{"), text.rfind("}")
+        if start != -1 and end > start:
+            try:
+                data = json.loads(text[start:end + 1])
+            except json.JSONDecodeError:
+                data = None
+    if not isinstance(data, dict):
+        # retry with a loose brace scan
+        m = re.search(r'\{.*\}', text, re.S)
+        if m:
+            try:
+                data = json.loads(m.group(0))
+            except json.JSONDecodeError:
+                data = None
+    candidates = []
+    if isinstance(data, dict) and isinstance(data.get("problems"), list):
+        candidates = [str(p) for p in data["problems"]]
+    else:
+        candidates = [line for line in text.splitlines()
+                      if line.strip() and not line.strip().startswith(("{", "}", "[", "]"))]
+    problems, seen = [], set()
+    for item in candidates:
+        clean = _clean_problem(item)
+        if clean and clean.lower() not in seen:
+            seen.add(clean.lower())
+            problems.append(clean)
+    return problems[:count]
+
+
 def generate_problems_from_error(error_text, count=5, difficulty="medium"):
     """Reframe an error into an instruction and generate problems.
 
@@ -169,19 +237,20 @@ def generate_problems(instruction, count=5, difficulty="medium"):
     )
     user = json.dumps({"instruction": instruction, "count": count, "difficulty": difficulty}, ensure_ascii=False)
     raw = _call_model(models, system, user)
-    if raw is None:
+    problems = _parse_problems(raw, count) if raw else []
+    if problems:
+        return problems[:count], None
+    # One strict retry: reasoning leaked out and no usable problems came back
+    raw2 = _call_model(
+        models,
+        "You generate test problems. Output ONLY compact JSON like "
+        '{"problems": ["...", "..."]}. No reasoning, no markdown, no commentary.',
+        user)
+    if raw2 is None:
         return [], "model call failed"
-    try:
-        data = json.loads(raw.strip().strip("`").strip())
-        if isinstance(data, dict) and isinstance(data.get("problems"), list):
-            problems = [str(p).strip() for p in data["problems"] if str(p).strip()]
-            return problems[:count], None
-    except (json.JSONDecodeError, AttributeError):
-        pass
-    # Fallback: try to extract lines
-    lines = [line.strip() for line in raw.splitlines() if line.strip() and not line.startswith("{") and not line.startswith("}")]
-    if lines:
-        return lines[:count], None
+    problems = _parse_problems(raw2, count)
+    if problems:
+        return problems[:count], None
     return [], "could not parse model response"
 
 

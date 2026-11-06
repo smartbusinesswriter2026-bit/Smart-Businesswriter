@@ -149,10 +149,15 @@ def _measure_metric():
 # ── Problem generation ─────────────────────────────────────────────────────
 
 def _pick_highest_impact_error():
-    """Pick the most frequent/severe open error."""
+    """Pick the most frequent/severe open error that is left unattended.
+
+    The owner's rule: the Karpathy loop only works on errors nobody is
+    handling. Errors opened in the Self-Healing panel are marked attended and
+    are skipped until resolved.
+    """
     errors = _ops_log.list_errors(limit=100)
     errors = _ops_log.merge_resolved(errors)
-    open_errors = [e for e in errors if not e.get("resolved")]
+    open_errors = [e for e in errors if not e.get("resolved") and not e.get("attended")]
     if not open_errors:
         return None
     # Sort by severity (severe first) then by count
