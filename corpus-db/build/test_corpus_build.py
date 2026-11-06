@@ -42,6 +42,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from http.server import ThreadingHTTPServer
+from unittest import mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -139,6 +140,73 @@ class CandidateTest(TempCorpusTest):
         broken.commit()
         self.assertIsNone(lib.record_search(broken, "q", subject="marketing"))
         broken.close()
+
+    def test_collect_accepts_a_title_only_source(self):
+        # A corpus hit or a web page may carry only a title.  It is still demand
+        # the corpus could not answer, so it must enter the queue.
+        lib.record_search(
+            self.connection, "pricing strategy", subject="marketing",
+            sources=[{"source": "OpenAlex", "title": "Pricing in emerging markets"}])
+        seen, added = enrich.collect(self.connection)
+        self.assertEqual((seen, added), (1, 1))
+        row = self.connection.execute("SELECT * FROM candidates").fetchone()
+        self.assertEqual(row["title"], "Pricing in emerging markets")
+        self.assertIsNone(row["doi"])
+
+    def test_collect_does_not_queue_the_corpus_s_own_pages(self):
+        lib.record_search(
+            self.connection, "five forces", subject="management",
+            sources=[{"source": "Proprietary corpus", "title": "Porter's Five Forces page 1"}])
+        seen, added = enrich.collect(self.connection)
+        self.assertEqual(seen, 1)
+        self.assertEqual(added, 0, "a corpus page is held, not missing")
+
+    def test_collect_does_not_queue_background_reading(self):
+        lib.record_search(
+            self.connection, "five forces", subject="management",
+            sources=[{"source": "orientation web", "title": "Porter's Five Forces",
+                      "url": "https://en.wikipedia.org/wiki/Porter%27s_five_forces"}])
+        seen, added = enrich.collect(self.connection)
+        self.assertEqual(seen, 1)
+        self.assertEqual(added, 0, "orientation is not evidence and is never ingested")
+
+    def test_a_title_only_candidate_that_cannot_be_resolved_needs_a_decision(self):
+        lib.upsert_candidate(self.connection, {"title": "Porter's Five Forces page 1",
+                                                "source": "openalex"})
+        candidate = self.connection.execute("SELECT * FROM candidates").fetchone()
+        with mock.patch.object(enrich, "work_by_title", return_value=None):
+            self.assertEqual(enrich.fetch_one(self.connection, candidate), "needs_decision")
+        row = self.connection.execute(
+            "SELECT * FROM candidates WHERE candidate_id = ?", (candidate["candidate_id"],)).fetchone()
+        self.assertEqual(row["status"], "needs_decision")
+        self.assertIsNone(row["doi"], "a title is never turned into a guessed DOI")
+        self.assertIn("title only", row["reason"])
+
+    def test_a_rate_limit_is_a_retryable_failure_not_a_rejection(self):
+        lib.upsert_candidate(self.connection,
+                             {"title": "Pricing in emerging markets",
+                              "doi": "10.1234/emerging.1", "source": "openalex"})
+        candidate = self.connection.execute("SELECT * FROM candidates").fetchone()
+        error = urllib.error.HTTPError("https://api.openalex.org", 429, "Too Many Requests",
+                                        {}, io.BytesIO(b""))
+        with mock.patch.object(enrich, "work_by_doi", side_effect=error):
+            self.assertEqual(enrich.fetch_one(self.connection, candidate), "failed")
+        row = self.connection.execute(
+            "SELECT * FROM candidates WHERE candidate_id = ?", (candidate["candidate_id"],)).fetchone()
+        self.assertEqual(row["status"], "failed")
+        self.assertIn("HTTP 429", row["reason"])
+        self.assertIn("retry", row["reason"])
+
+    def test_fetch_retries_a_failed_candidate(self):
+        lib.upsert_candidate(self.connection,
+                             {"title": "Pricing in emerging markets",
+                              "doi": "10.1234/emerging.1", "source": "openalex"})
+        self.connection.execute("UPDATE candidates SET status = 'failed'")
+        self.connection.commit()
+        with mock.patch.object(enrich, "fetch_one", return_value="rejected") as fetch_one:
+            enrich.fetch(self.connection)
+        self.assertEqual(fetch_one.call_count, 1,
+                         "a transient failure must be retried next cycle")
 
 
 class WebSourceTest(TempCorpusTest):

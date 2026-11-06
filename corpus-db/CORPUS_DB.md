@@ -376,8 +376,8 @@ All line references are `business_pipeline_v0.12/business_pipeline/src/bp/`.
 | `product/sources.py:364` `ADAPTERS` | `{"openalex": _openalex, "crossref": _crossref, ...}` | Add `"corpus": _corpus`. The adapter signature is `(text, limit, year_from) -> list[item]`. It runs under the shared `_NETWORK` semaphore and the shared response cache, so a local HTTP call to Meilisearch is safe there. |
 | `product/sources.py:239` `_item()` | Builds the dict every downstream consumer expects. | The corpus adapter must return dicts in exactly this shape. |
 | `product/sources.py:223` `_credibility()` | Transparent quality signal, capped 100. | Corpus items should carry a `credibility` value, or they score 0 and lose ties. |
-| `product/retrieval.py:24` `DATABASES` | `["openalex", "semanticscholar", "doaj"]` — which databases the retriever searches. | Add `"corpus"`. |
-| `product/retrieval.py:444` `retrieve()` | Searches, gates, ranks, de-duplicates; returns `{items, dropped, errors, skipped, ...}`. | No change needed if the adapter conforms. The layered order (corpus first) is a change to the **order** this function searches in, not to its contract. |
+| `product/retrieval.py:24` `DATABASES` | `["openalex", "semanticscholar", "doaj"]` — the **last-resort** journal APIs. | The corpus is not in this list any more: it is searched alone as layer 1, so a corpus answer never triggers an API call. |
+| `product/retrieval.py` `retrieve()` | Searches, gates, ranks, de-duplicates; returns `{items, dropped, errors, skipped, orientation, layers, source_plan, ...}`. | **The order is now corpus → web → APIs.** The corpus is searched first and alone. If it answers the dimension, the web and the APIs are not called. On a corpus miss the web runs (vetted pages may be cited; Wikipedia/explainers are orientation only), and the journal APIs run only when neither the corpus nor the vetted web supplied a citable source. |
 | `product/literature.py:26` `Reference` | The citation dataclass. `reference_type` already documents `"journal-article / book"`. | Corpus items map onto this. |
 
 ### 5.2 The `_item()` shape the corpus adapter must return
@@ -570,6 +570,39 @@ See §4.5. The harvest sources (OpenAlex content API, DOAJ, NBER, SSRN, RePEc, O
 are **citable evidence**, not orientation, and they enter layer 1 of the source order
 like any other corpus document.
 
+### 9.3 Built: the fast orientation layer (2026-11-07)
+
+The orientation pass is now wired, and it is deliberately smaller than the practice-press
+design above:
+
+- It runs **only when the corpus missed** the dimension. If a corpus page answers, the
+  whole web layer is skipped.
+- It is **one fast Wikipedia search** (`action=query&list=search`, four-second ceiling),
+  not a set of paywalled practice sites. Wikipedia is broad enough to orient most business
+  topics, free, and keyless; the practice set remains a later option, not a dependency.
+- Its results are stored in `orientation_sources`, shown as **Background reading (not
+  cited)**, and recorded in `web_sources`. They never enter `evidence`, `sources`,
+  references, citations or the claim-to-source map.
+- It never blocks a run: a failure is a notice, not a gap.
+- The query the retriever sends is still built from the decision, the object (industry,
+  company, market) and the geography. Orientation informs the reader; it does not rewrite
+  the query in the same pass.
+
+The pipeline's order is therefore:
+
+```text
+1. corpus / Meilisearch     cited, fastest, searched alone
+2. web (vetted pages cite; Wikipedia/explainers orient only)
+3. OpenAlex / Crossref / Semantic Scholar / DOAJ   last resort, slow
+4. no source -> a named gap, never an invented one
+```
+
+Every source any layer saw — accepted, orientation or rejected — is written to the
+learning log. `enrich.py collect` turns it into a candidate, `score` ranks it by demand,
+`fetch` ingests the open full text, and `index_pages` rebuilds Meilisearch, so the next
+run can answer from the corpus instead of the API.
+
+
 ---
 
 ## 10. Cost model
@@ -702,6 +735,7 @@ Append new rows. Do not edit earlier rows.
 
 | Date | Change |
 |---|---|
+| 2026-11-07 | Tenth pass, after the owner asked whether the database enriches itself and said the journal APIs must be the last resort, not an orientation layer. **(1) The pipeline order is now corpus → web → APIs.** `retrieve()` searches the corpus alone; when it answers, the web and the journal APIs are not called. On a corpus miss it runs the web (vetted pages may be cited, Wikipedia/explainers orient only), and only then the journal APIs. The return carries `layers` and `source_plan` so the evidence view can say which layer answered. **(2) The orientation layer is built, not advisory prose.** A single fast Wikipedia search runs only on a corpus miss; its pages are stored in `orientation_sources`, shown as "Background reading (not cited)", and never enter the reference list. **(3) The silent year filter was found and fixed.** The corpus index carries no year for most books, and `_corpus()` dropped every hit whose year was null when the period filter was set — a corpus with 159 documents and 27,791 pages answered **zero** for every dimension of a Five Forces paper. Unknown year is now a metadata gap, not an old source. **(4) The learning log records every source, not only the accepted ones.** `retrieve()` writes all seen sources with `source` and `used` (evidence / orientation / dropped), and `web_sources` for web pages. **(5) The self-enrichment loop now accepts a title-only source.** `enrich.collect()` no longer requires a DOI or URL; it skips the corpus's own pages and orientation pages, and `fetch_one()` resolves a title through OpenAlex before it gives up, marking an unresolvable title `needs_decision` with a reason instead of inventing an identity. **(6) The learning history was merged into the canonical database.** `corpus-state/corpus.sqlite` now holds the 159 documents, 2,131 search-log rows and 1,660 seen sources; `merge_learning_log.py` is the one command that moves a history without duplicating it. **(7) Operations are explicit.** `start_corpus_services.bat` starts Meilisearch and the admin service only when they are not already answering; `build/enrich_cycle.bat` runs collect/score/fetch/index (or `fast` for collect/score); `build/register_enrich_task.ps1` registers the optional 03:00 Windows task. **(8) The test harness no longer writes fixtures into the real corpus.** `BP_LEARNING_LOG=0` and `BP_ORIENTATION=0` are set for the suite; a full test run had added ~9,000 fake searches to the live history before the guard. **(9) A gap is named, not filled:** with no OpenAlex key the shared free daily budget can be exhausted (HTTP 429), so the API fallback and title resolution are unavailable until a free key is set in `BP_OPENALEX_API_KEY`. |
 | 2026-10-30 | Document created. Captures the first discussion: architecture options for a proprietary PDF corpus, the "bytes vs index" split, R2 vs D1 vs Vectorize vs VPS, the three retrieval-contract traps, and the citation-format gaps. Owner then constrained the corpus to ≤10 GB and required Meilisearch; both were folded in (D-01, and the Meilisearch index design in §4.3). Q-01 remained the blocking item for an end-to-end run. |
 | 2026-10-30 | Second pass, after the owner's answers. (1) **D-10 / B-168**: the title rejection is discarded for full-text sources and recorded in `CONDUCTOR_MANUAL.md` §6.2.3 and §6.3.3, with the abstract-only path explicitly unchanged; Q-01 closes at policy level, leaving the code change and the live run as build steps 4 and G-12. (2) **D-09 / B-168**: the source order is layered — corpus first, live academic APIs second, curated web third — recorded in `CONDUCTOR_MANUAL.md` §9; the corpus layer is marked *not yet wired* in §13 so the manual never claims a behaviour the product lacks. (3) **D-11 / B-168**: the orientation pass over practice and business-press sources is recorded as advisory only. (4) The corpus is mixed books and journals and reuses the pipeline's own 11 subject ids as its taxonomy (D-12, C-07, C-08), so the corpus is usable by every shelf. (5) New risks G-12 to G-15, new questions Q-09 to Q-11, a new §9 on the orientation pass, and the build sequence extended to ten steps. The manual change is recorded in `docs/DECISIONS.md` (B-168) and `docs/WORKLOG.md`; no changelog entry and no build bump, because the build number is in flight in the concurrent lane. |
 | 2026-10-30 | Third pass, after the owner said the non-negotiables were suffocating the pipeline. (1) **D-13 / B-169**: the evidence rules are relaxed in form, not in substance — paraphrase allowed, only substantive gaps printed, framework substitution allowed when declared and recorded. The finding that matters: the suffocation came from the **manual being stricter than the code**; §6.2.8 already had the model write dimension paragraphs from the items with a validator that refuses any number, citation, link or proper noun not in the items, so the guarantee the rule exists to provide was already enforced. (2) **D-14 / B-169**: no page or chapter locator by default in APA or Harvard; a locator only on request or when the pipeline decides the claim needs one — this resolves Q-06 and downgrades G-01 from high to medium. (3) **D-15 / B-169**: the orientation source set is topic-dependent and free-first rather than fixed on Harvard Business Review, with a per-subject map (§9.1, Q-13). (4) **D-16**: the citable corpus is free as well and can be harvested rather than hand-assembled (§4.5) — OpenAlex now serves full text and GROBID XML directly, alongside DOAJ, NBER, SSRN, RePEc and the peer-reviewed OpenStax business textbooks. (5) New risks G-16 to G-19 (the framework substitution and on-request locator are owed in code; the per-title licence, metered downloads and CORE harvesting permission), new questions Q-12 and Q-13, and build steps 7 and 8 re-specified. The manual change is recorded in `docs/DECISIONS.md` (B-169) and `docs/WORKLOG.md`; §13 of the manual now states exactly which of the four relaxations already ship and which are owed in code. |

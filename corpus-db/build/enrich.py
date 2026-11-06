@@ -23,6 +23,7 @@ CORPUS_MEILI_KEY, BP_CORPUS_DB.
 
 import argparse
 import json
+import difflib
 import os
 import sys
 import urllib.error
@@ -39,6 +40,8 @@ OPENALEX_CONTENT = "https://content.openalex.org"
 OPEN_LICENCES = {"cc0", "cc-by", "cc-by-sa", "public-domain", "pd"}
 #: Licences that constrain use or derivatives: the owner decides (G-17).
 NEEDS_DECISION = {"cc-by-nc", "cc-by-nc-sa", "cc-by-nd", "cc-by-nc-nd"}
+#: HTTP statuses that mean "try again later", not "this work does not exist".
+RETRYABLE = {429, 500, 502, 503, 504}
 
 
 def _openalex_params():
@@ -67,12 +70,66 @@ def _get_bytes(url, timeout=120):
 
 
 def work_by_doi(doi):
-    """The OpenAlex record for a DOI, or None."""
+    """The OpenAlex record for a DOI, or None.
+
+    A rate limit or an outage is **raised**, because it is not the same answer
+    as "this DOI is not in OpenAlex": the candidate must stay retryable rather
+    than be rejected for a reason that was never measured.
+    """
     try:
         return _get_json("%s/works/https://doi.org/%s" % (OPENALEX, urllib.parse.quote(doi, safe="")),
                          _openalex_params())
+    except urllib.error.HTTPError as error:
+        if error.code in RETRYABLE:
+            raise
+        return None
     except Exception:
         return None
+
+
+def work_by_title(title, year=None):
+    """The OpenAlex record that best matches a title, or None.
+
+    A source the pipeline saw may carry only a title (a corpus hit, or a web
+    page).  The title is searched here so the candidate can still be resolved
+    to an open full text.  A title that cannot be matched stays a candidate;
+    the corpus never guesses an identity from a partial match.  A rate limit is
+    raised, never mistaken for "no such work".
+    """
+    title = " ".join(str(title or "").split())
+    if len(title) < 8:
+        return None
+    params = {
+        "search": title, "per-page": "5",
+        "select": "id,doi,display_name,title,publication_year,has_content,"
+                  "best_oa_location,authorships,primary_location",
+    }
+    params.update(_openalex_params())
+    try:
+        payload = _get_json("%s/works" % OPENALEX, params)
+    except urllib.error.HTTPError as error:
+        if error.code in RETRYABLE:
+            raise
+        return None
+    except Exception:
+        return None
+    wanted = lib.norm_title(title)
+    best, best_score = None, 0.0
+    for work in payload.get("results") or []:
+        found = lib.norm_title(work.get("title") or work.get("display_name") or "")
+        if not found:
+            continue
+        score = difflib.SequenceMatcher(None, wanted, found).ratio()
+        if year and work.get("publication_year"):
+            try:
+                if abs(int(work["publication_year"]) - int(year)) <= 1:
+                    score += 0.05
+            except (TypeError, ValueError):
+                pass
+        if score > best_score:
+            best, best_score = work, score
+    return best if best_score >= 0.90 else None
+
 
 
 def open_access_pdf(work):
@@ -106,16 +163,34 @@ def authors_of(work):
 # ── step 1: collect ─────────────────────────────────────────────────────────
 
 def collect(connection, since_days=30):
-    """Every source a recent search saw becomes a candidate."""
+    """Every source a recent search saw becomes a candidate.
+
+    A source does not need a DOI or a URL to enter the queue: a corpus hit or
+    a web page may carry only a title, and that title is still something the
+    pipeline needed and the corpus did not hold.  The title is the identity
+    when it is specific enough; `fetch` resolves it to a DOI later.
+    """
     rows = connection.execute(
         "SELECT s.title, s.doi, s.url, s.venue, s.year, s.source, s.abstract,"
         "       l.search_id, l.subject, l.corpus_hits"
         "  FROM seen_sources s JOIN search_log l ON l.search_id = s.search_id"
         " WHERE l.searched_at >= ?"
-        "   AND (s.doi IS NOT NULL AND s.doi != '' OR s.url IS NOT NULL AND s.url != '')",
+        "   AND (COALESCE(s.doi, '') != '' OR COALESCE(s.url, '') != ''"
+        "        OR LENGTH(COALESCE(s.title, '')) >= 12)",
         (lib.days_ago(since_days),)).fetchall()
     added = 0
     for row in rows:
+        source = (row["source"] or "").lower()
+        # The corpus already holds its own pages; background reading is not
+        # evidence and is never ingested.  Neither belongs in the demand queue.
+        if source in ("proprietary corpus", "orientation web"):
+            continue
+        # A source the corpus already holds is not a gap.  It belongs in the
+        # document record, not in the demand queue, so the queue is only what
+        # the pipeline needed and the corpus could not answer.
+        if lib.find_document_for(connection, doi=row["doi"], url=row["url"],
+                                 title=row["title"], year=row["year"]):
+            continue
         item = {"title": row["title"], "doi": row["doi"], "url": row["url"],
                 "venue": row["venue"], "year": row["year"], "source": row["source"]}
         if lib.upsert_candidate(connection, item):
@@ -173,9 +248,15 @@ def research(connection, limit=10):
 # ── step 4: fetch ───────────────────────────────────────────────────────────
 
 def fetch(connection, limit=10):
-    """Pull the open full text of the top candidates and ingest them."""
+    """Pull the open full text of the top candidates and ingest them.
+
+    A `failed` candidate is retried: the failure may have been a rate limit or a
+    dropped download, and the reason is recorded on the row.  A rejection or an
+    owner decision is never retried automatically.
+    """
     candidates = connection.execute(
-        "SELECT * FROM candidates WHERE status = 'new' ORDER BY priority DESC, seen_count DESC LIMIT ?",
+        "SELECT * FROM candidates WHERE status IN ('new', 'failed')"
+        " ORDER BY status = 'failed', priority DESC, seen_count DESC LIMIT ?",
         (limit,)).fetchall()
     outcomes = {"ingested": 0, "duplicate": 0, "needs_decision": 0, "rejected": 0, "failed": 0}
     for candidate in candidates:
@@ -186,12 +267,17 @@ def fetch(connection, limit=10):
 
 def fetch_one(connection, candidate):
     candidate_id = candidate["candidate_id"]
-    doi = candidate["doi"]
+    doi = lib.norm_doi(candidate["doi"])
+    url = candidate["url"]
+    title = candidate["title"]
+    year = candidate["year"]
     # A work the corpus already holds is not fetched again. The corpus is the
     # citation unit: the same paper held twice would be cited twice for one
-    # source, and the download is wasted either way.
-    existing = lib.find_document_for(connection, doi=doi, url=candidate["url"],
-                                      title=candidate["title"], year=candidate["year"])
+    # source, and the download is wasted either way.  This check runs before
+    # any network call, so a duplicate whose DOI is already on the candidate
+    # costs nothing.
+    existing = lib.find_document_for(connection, doi=doi, url=url,
+                                      title=title, year=year)
     if existing:
         message = "the corpus already holds this work as %s" % existing
         connection.execute(
@@ -199,7 +285,47 @@ def fetch_one(connection, candidate):
             (existing, message, candidate_id))
         connection.commit()
         return "duplicate"
-    work = work_by_doi(doi) if doi else None
+    # A candidate may have arrived with only a title (a corpus hit, a web page,
+    # or a session that never saw a DOI).  It is resolved once, here: the title
+    # is searched in OpenAlex and, when it matches, the DOI and landing page are
+    # written back onto the candidate so the next cycle does not search again.
+    try:
+        work = work_by_doi(doi) if doi else None
+        if not work and title:
+            work = work_by_title(title, year)
+    except urllib.error.HTTPError as error:
+        connection.execute(
+            "UPDATE candidates SET status = 'failed', reason = ? WHERE candidate_id = ?",
+            ("OpenAlex is rate-limited or unavailable (HTTP %s); retry next cycle"
+             % error.code, candidate_id))
+        connection.commit()
+        return "failed"
+    if work:
+        doi = lib.norm_doi(work.get("doi")) or doi
+        url = url or ((work.get("primary_location") or {}).get("landing_page_url"))
+        connection.execute(
+            "UPDATE candidates SET doi = COALESCE(doi, ?), url = COALESCE(url, ?)"
+            " WHERE candidate_id = ?", (doi, url, candidate_id))
+        connection.commit()
+        # The resolved work may be one the corpus already holds.
+        existing = lib.find_document_for(connection, doi=doi, url=url,
+                                          title=title, year=year)
+        if existing:
+            message = "the corpus already holds this work as %s" % existing
+            connection.execute(
+                "UPDATE candidates SET status = 'ingested', doc_id = ?, reason = ?"
+                " WHERE candidate_id = ?", (existing, message, candidate_id))
+            connection.commit()
+            return "duplicate"
+    if not doi and not url and not work:
+        # The title-only queue is the point of the learning loop: the work was
+        # needed, but it cannot be resolved to an open full text from a title
+        # alone.  It stays visible for the owner instead of being invented.
+        connection.execute(
+            "UPDATE candidates SET status = 'needs_decision', reason = ? WHERE candidate_id = ?",
+            ("title only: no DOI or URL, and OpenAlex found no matching work", candidate_id))
+        connection.commit()
+        return "needs_decision"
     pdf_url, licence = open_access_pdf(work)
     if not pdf_url:
         connection.execute(
@@ -207,7 +333,16 @@ def fetch_one(connection, candidate):
             ("no open full text at the API content endpoint", candidate_id))
         connection.commit()
         return "rejected"
-    if licence and licence not in OPEN_LICENCES:
+    if not licence:
+        # A PDF that carries no licence is not automatically open.  The gate is
+        # the whole safety mechanism, so an unknown licence waits for the owner
+        # instead of being treated as permission.
+        connection.execute(
+            "UPDATE candidates SET status = 'needs_decision', reason = ? WHERE candidate_id = ?",
+            ("no licence recorded; the owner must decide whether to ingest it", candidate_id))
+        connection.commit()
+        return "needs_decision"
+    if licence not in OPEN_LICENCES:
         status = "needs_decision" if licence in NEEDS_DECISION else "rejected"
         reason = ("licence %s needs an owner decision" % licence) if status == "needs_decision" \
             else ("licence %s is not an open licence" % licence)
@@ -218,6 +353,12 @@ def fetch_one(connection, candidate):
         return status
     try:
         raw = _get_bytes(pdf_url)
+    except urllib.error.HTTPError as error:
+        connection.execute(
+            "UPDATE candidates SET status = 'failed', reason = ? WHERE candidate_id = ?",
+            ("the PDF could not be downloaded (HTTP %s)" % error.code, candidate_id))
+        connection.commit()
+        return "failed"
     except Exception as error:
         connection.execute(
             "UPDATE candidates SET status = 'failed', reason = ? WHERE candidate_id = ?",

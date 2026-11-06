@@ -402,6 +402,31 @@ Rules:
 - Every chart must trace to stored artifacts.
 - Gaps are named, never filled.
 
+### 11.1 Retrieval order (2026-11-07)
+
+The conductor retrieves in three layers, cheapest first:
+
+```text
+1. Corpus / Meilisearch      cited; searched alone; fastest
+2. Web                       only on a corpus miss; vetted pages may be cited,
+                             Wikipedia/explainers are orientation only
+3. Journal APIs              only when neither the corpus nor the vetted web
+                             supplied a citable source; slowest
+```
+
+- If the corpus answers a dimension, the web and the journal APIs are **not called**.
+- Orientation pages never enter `evidence`, `sources`, references, citations or the
+  claim-to-source map. They are stored in `orientation_sources` and shown as
+  **Background reading (not cited)**.
+- Every source any layer saw is written to the corpus learning log, with `used` = 1 only
+  for the items the paper actually cites. The enrichment worker turns the rest into
+  candidates, so a future run can answer from the corpus instead of the API.
+- A dimension with no source is a named gap. No source is invented.
+- The evidence view shows the query and the per-layer counts (`Corpus / web / journal
+  APIs`) under **What was searched**, so "no results" and "irrelevant results" are
+  distinguishable.
+
+
 ---
 
 ## 12. Claim-to-source map

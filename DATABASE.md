@@ -377,10 +377,10 @@ python D:\SMART BUSINESSWRITER\corpus-db\build\enrich.py status      # what the 
 
 | Step | Does | Rule |
 |---|---|---|
-| `collect` | Every source a recent search saw becomes a candidate. A source seen twice is one candidate with `seen_count = 2`, not two candidates. | Never fetches anything. |
+| `collect` | Every source a recent search saw becomes a candidate. A source seen twice is one candidate with `seen_count = 2`, not two candidates. A source needs no DOI or URL: a title of at least 12 characters is enough to enter the queue, which is how a corpus hit or a web page becomes demand. The corpus's own pages and the orientation pages are skipped. | Never fetches anything. |
 | `score` | Priority = `seen_count` × how badly the corpus needs that subject. A subject the corpus answers less than half the time is **thin**, and a thin subject multiplies its candidates' priority. | A hint about need, never a fact. |
 | `research` | Searches the open-access literature for the questions the corpus could not answer, and adds what it finds to the queue. | **Finds only.** Nothing is downloaded yet. |
-| `fetch` | Downloads the full text of the top candidates and ingests them. | **The licence decides.** An open licence (CC0, CC BY, CC BY-SA, public domain) is ingested directly. A restrictive licence (NC, ND, NC-SA) becomes `needs_decision` and waits for the owner. No licence known becomes `rejected` with the reason recorded. Nothing is ever guessed. |
+| `fetch` | Downloads the full text of the top candidates and ingests them. A title-only candidate is resolved through OpenAlex first; when no work matches, it is marked `needs_decision` with the reason, never given a guessed DOI. | **The licence decides.** An open licence (CC0, CC BY, CC BY-SA, public domain) is ingested directly. A restrictive licence (NC, ND, NC-SA) or **no recorded licence** becomes `needs_decision` and waits for the owner. Nothing is ever guessed. |
 
 **The fetch step** is the one that makes the corpus self-enriching, and it is also the one
 that can do damage if it is wrong — it downloads copyrighted work into a library the owner did
@@ -395,6 +395,33 @@ faster and less likely to be rate-limited. Neither is required.
 least one `ingested` or a named `needs_decision` / `rejected` with a reason. A run that reports
 only `rejected` with the reason "no open full text at the API content endpoint" is a correct
 result, not a failure — it means the literature for that question is not open.
+
+**The one database.** Every build tool reads `BP_CORPUS_DB` and falls back to
+`corpus-db/corpus.sqlite`. This machine's canonical database is
+`corpus-state/corpus.sqlite` (set in the environment), and it holds the documents, the search
+history and the candidate queue together. Two databases that each hold half the record are the
+trap: the enrichment worker then learns from a history the pipeline never wrote. To move a
+history into the canonical database without duplicating it:
+
+```powershell
+python D:\SMART BUSINESSWRITER\corpus-db\build\merge_learning_log.py OLD.sqlite NEW.sqlite
+```
+
+**Nightly operations.** The cycle is a batch file, not a scheduler dependency:
+
+```powershell
+D:\SMART BUSINESSWRITER\corpus-db\start_corpus_services.bat   # Meilisearch + admin service, only if down
+D:\SMART BUSINESSWRITER\corpus-db\build\enrich_cycle.bat      # collect + score + research + fetch + index
+D:\SMART BUSINESSWRITER\corpus-db\build\enrich_cycle.bat fast # collect + score only
+```
+
+`build/register_enrich_task.ps1` registers the optional daily 03:00 task. A stopped task or a
+stopped machine does not break a paper run; the corpus simply learns more slowly.
+
+**A gap that must be named.** OpenAlex's shared, keyless daily budget can be exhausted
+(HTTP 429). When that happens the journal-API fallback and title resolution are unavailable and
+the pipeline says so; set a free `BP_OPENALEX_API_KEY` to give the corpus its own budget.
+
 
 ## 11. Step 7 — The owner upload UI
 

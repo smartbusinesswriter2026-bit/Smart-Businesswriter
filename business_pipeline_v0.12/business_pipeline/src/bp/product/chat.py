@@ -1088,7 +1088,7 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
              "slots": [dataclasses.asdict(slot) for slot in instruction_slots],
              "proposal": proposal,
              "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
-             "computation": None, "draft": None,
+             "computation": None, "draft": None, "research_diagnostics": {},
              "selection": None, "computations": {}, "orientation_sources": []}
     if open_mode:
         state["subject_requested"] = "any"
@@ -2282,7 +2282,7 @@ def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN):
              "brief": brief, "created_at": _now(), "updated_at": _now(),
              "stage": "plan", "level": level, "mode": mode, "answers": answers, "questions": [],
              "question_index": 0, "sources": [], "evidence": [], "orientation_sources": [], "gaps": [], "notes": [],
-             "computations": {}, "draft": None}
+             "research_diagnostics": {}, "computations": {}, "draft": None}
     state["plan"] = _plan_profile(state)
     return state
 
@@ -2609,11 +2609,14 @@ def _research_one(state, dimension, corpus_doc_counts=None):
         corpus_doc_cap=3, corpus_doc_counts=corpus_doc_counts)
     notice = "; ".join(found.get("notices") or []) or None
     return {"dimension": dimension, "found": found.get("items") or [],
+            "orientation": found.get("orientation") or [],
             "errors": found.get("errors") or [], "skipped": found.get("skipped") or [],
             "notice": notice, "dropped": found.get("dropped") or 0,
             "elapsed": round(_time.perf_counter() - started, 2),
             "academic_cached": bool(found.get("academic_cached")),
             "web_cached": bool(found.get("web_cached")),
+            "layers": found.get("layers") or {},
+            "source_plan": found.get("source_plan"),
             "database_timings": found.get("database_timings") or {}}
 
 
@@ -2670,8 +2673,16 @@ def research(state):
     order = {d["key"]: index for index, d in enumerate(state["plan"].get("dimensions") or [])}
     batches.sort(key=lambda batch: order.get(batch["dimension"]["key"], 99))
     timed_out = False
+    diagnostics = {}
     for batch in batches:
         dimension = batch["dimension"]
+        diagnostics[dimension["key"]] = {
+            "query": dimension.get("query"),
+            "layers": batch.get("layers") or {},
+            "source_plan": batch.get("source_plan"),
+            "dropped": batch.get("dropped") or 0,
+            "errors": [error.get("database") for error in batch["errors"]],
+        }
         errors.extend({**error, "dimension": dimension["key"]} for error in batch["errors"])
         skipped.update(item.get("database") for item in batch["skipped"] if item.get("database"))
         dropped += batch["dropped"]
@@ -2725,7 +2736,8 @@ def research(state):
                "web_cached": sum(1 for batch in batches if batch["web_cached"])}
     state.update({"sources": sources, "evidence": evidence, "orientation_sources": orientation,
                   "gaps": gaps, "notes": notes,
-                  "research_errors": errors, "researched_at": _now(), "stage": "evidence",
+                  "research_errors": errors, "research_diagnostics": diagnostics,
+                  "researched_at": _now(), "stage": "evidence",
                   "timings": timings, "updated_at": _now()})
     return state
 

@@ -24,6 +24,10 @@ BRIEF = ("A grocery chain is considering entering the Saudi market and needs to 
 
 
 def academic(query, databases=None, limit=20, year_from=None):
+    # The corpus is layer 1 and is searched alone.  These fixtures model a
+    # corpus miss, so the web/API fallback and its notice are exercised.
+    if databases == ["corpus"]:
+        return {"results": [], "errors": [], "skipped": []}
     slug = re.sub(r"[^a-z0-9]+", "-", query.lower())[-60:]
     return {"results": [{
         "title": "Evidence on " + query[:60],

@@ -20,6 +20,7 @@ import os
 import re
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from . import sources as source_finder
@@ -457,16 +458,20 @@ def _key(item):
 #: Where the corpus admin service listens.  Fail-soft: never block a paper run.
 LEARNING_LOG_URL = os.environ.get("CORPUS_LEARNING_LOG_URL",
                                   "http://127.0.0.1:7710/api/corpus/log")
+#: A test run must not write its fixtures into the real corpus history.
+LEARNING_LOG_ENABLED = os.environ.get("BP_LEARNING_LOG", "1") != "0"
 
 
 def _log_learning(query="", subject=None, dimension=None, corpus_hits=0,
-                  live_hits=0, sources=None):
+                  live_hits=0, sources=None, web_sources=None):
     """Write one retrieval to the corpus learning log.  Fail-soft: never raise.
 
     The pipeline writes through one HTTP route on the admin service (D-23),
     never by importing corpus_lib across the repo boundary.  A one-second
     timeout keeps a stopped container from stalling a paper run.
     """
+    if not LEARNING_LOG_ENABLED:
+        return
     payload = {
         "query": query or "",
         "subject": subject,
@@ -476,6 +481,7 @@ def _log_learning(query="", subject=None, dimension=None, corpus_hits=0,
         "live_hits": int(live_hits or 0),
         "corpus_status": "ok",
         "sources": sources or [],
+        "web_sources": web_sources or [],
     }
     body = json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(
@@ -507,20 +513,91 @@ def cue_words_of(cues):
     return {word for word in clean(words, 400).split() if word}
 
 
+#: Background reading.  Wikipedia is free, fast and broad enough to orient most
+#: business topics; it is never cited.
+WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
+ORIENTATION_USER_AGENT = "SmartBusinessWriter/1.0 (background reading)"
+ORIENTATION_ENABLED = os.environ.get("BP_ORIENTATION", "1") != "0"
+
+
+def _orientation(query, limit=3):
+    """A few encyclopedia pages about the topic, or an empty list.
+
+    This is the fast web layer: it runs only when the corpus missed, it never
+    blocks a paper run, and nothing it returns is evidence.  The pipeline uses
+    it to know what the topic looks like; the renderer is never given it.
+    """
+    if not query or not ORIENTATION_ENABLED:
+        return {"results": [], "notice": None}
+    params = {"action": "query", "list": "search", "srsearch": query,
+              "srlimit": str(max(1, int(limit))), "format": "json", "utf8": "1",
+              "srprop": "snippet"}
+    request = urllib.request.Request(
+        WIKIPEDIA_API + "?" + urllib.parse.urlencode(params),
+        headers={"User-Agent": ORIENTATION_USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=4) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except Exception as error:
+        return {"results": [], "notice": "Background reading unavailable: %s" % str(error)[:120]}
+    results = []
+    for row in (payload.get("query") or {}).get("search") or []:
+        title = clean(row.get("title"), 200)
+        if not title:
+            continue
+        results.append({
+            "title": title,
+            "url": "https://en.wikipedia.org/wiki/" + urllib.parse.quote(title.replace(" ", "_")),
+            "abstract": re.sub(r"<[^>]+>", "", row.get("snippet") or ""),
+            "database": "orientation web",
+            "citable": False,
+            "credibility": 0,
+        })
+    return {"results": results, "notice": None}
+
+
+def _accepted_any(found, cue_words, context_set, geography, gate, exclude):
+    """True when at least one candidate clears the relevance gate."""
+    seen = set()
+    for item in found:
+        item_key = _key(item)
+        if not item_key or item_key in seen or item_key in exclude:
+            continue
+        seen.add(item_key)
+        if _accept(item, cue_words, context_set, geography, gate) is not None:
+            return True
+    return False
+
+
+def _web_item(item):
+    """A vetted web result as a retrieval candidate."""
+    return {"title": item.get("title"), "abstract": item.get("description"),
+            "authors": item.get("site"), "authors_list": [item.get("site")],
+            "year": item.get("year"), "venue": item.get("site"), "doi": None,
+            "url": item.get("url"), "database": "vetted web",
+            "tier": item.get("tier"), "credibility": 60,
+            "retrieved_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+
+
 def retrieve(key, cues, queries, context, geography="Global", year_from=None, category=None,
              sites=None, providers=None, gate=None, exclude=None, max_items=MAX_ITEMS,
              academic_limit=4, corpus_limit=4, web_limit=3, corpus_doc_cap=3,
              corpus_doc_counts=None):
     """Retrieve, gate and rank the evidence for one dimension.
 
-    `queries` is one to three phrases; the academic databases are searched with
-    every one of them, and the curated web with the first only, because a second
-    web query costs seconds and returns the same kind of article.  An accepted
-    item's key is added to `exclude`, so a source cannot fill two dimensions.
+    The order is fixed and cheap first:
 
-    The corpus is layer 1: it is searched first with its own limit, and its
-    items are placed ahead of the live academic results so the corpus answers
-    first (D-09 / B-168).
+    1. **The owned corpus.**  It is searched alone.  When it answers the
+       dimension, nothing else is called: a corpus page is citable evidence,
+       and a journal-API call would only duplicate it (D-09 / B-168).
+    2. **The web**, only when the corpus missed.  Vetted pages may be cited;
+       general pages (Wikipedia, explainers) are background reading and are
+       never cited.
+    3. **The journal APIs**, last and slow, only when neither the corpus nor
+       the vetted web supplied a citable source.
+
+    Everything seen, accepted or not, is written to the corpus learning log so
+    the enrichment worker can store it for a future run.
 
     `corpus_doc_cap` limits how many pages one corpus document may contribute
     to a single paper (Q-16).  `corpus_doc_counts` is a shared dict mapping
@@ -533,47 +610,76 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     cue_words = cue_words_of(cues)
     context_set = {word for word in context or [] if word}
     started = time.perf_counter()
-    found, errors, skipped, notices = [], [], [], []
     queries = [query for query in queries or [] if query]
+    errors, skipped, notices = [], [], []
     academic_cached, web_cached, timings = False, False, {}
-    for index, query in enumerate(queries):
-        # corpus first (layer 1), then the live academic APIs (layer 2)
+    layers = {"corpus": 0, "web": 0, "api": 0}
+
+    # ── layer 1: the owned corpus, alone and first ──────────────────────────
+    corpus_found = []
+    for query in queries:
         try:
             corpus = source_finder.search_academic(query, databases=["corpus"],
                                                    limit=corpus_limit, year_from=year_from)
         except Exception as error:  # a corpus outage is a notice, never a failure
             notices.append("corpus search unavailable: %s" % str(error)[:160])
             corpus = {}
-        found.extend(corpus.get("results") or [])
-        try:
-            academic = source_finder.search_academic(query, databases=DATABASES,
-                                                     limit=academic_limit, year_from=year_from)
-        except Exception as error:  # a database outage is reported, not hidden
-            errors.append({"database": "academic", "error": str(error)[:160]})
-            academic = {}
-        found.extend(academic.get("results") or [])
-        errors.extend(academic.get("errors") or [])
-        skipped.extend(academic.get("skipped") or [])
-        academic_cached = academic_cached or bool(academic.get("cached"))
-        if index == 0:
-            timings = dict(academic.get("timings") or {})
-        if index:
-            continue
-        web = _web(query, geography, web_limit, category, sites, providers)
-        for item in web.get("results") or []:
-            found.append({"title": item.get("title"), "abstract": item.get("description"),
-                          "authors": item.get("site"), "authors_list": [item.get("site")],
-                          "year": item.get("year"), "venue": item.get("site"), "doi": None,
-                          "url": item.get("url"), "database": "vetted web",
-                          "tier": item.get("tier"), "credibility": 60,
-                          "retrieved_at": datetime.datetime.now(datetime.timezone.utc).isoformat()})
-        web_cached = bool(web.get("cached"))
-        if web.get("notice"):
-            notices.append(web["notice"])
+        corpus_found.extend(corpus.get("results") or [])
+    layers["corpus"] = len(corpus_found)
+    corpus_answer = _accepted_any(corpus_found, cue_words, context_set, geography, gate, exclude)
+
+    if corpus_answer:
+        found = corpus_found
+        source_plan = "corpus"
+    else:
+        # ── layer 2: the web, only on a corpus miss ─────────────────────────
+        web_items = []
+        if queries:
+            web = _web(queries[0], geography, web_limit, category, sites, providers)
+            web_items = [_web_item(item) for item in web.get("results") or []]
+            web_cached = bool(web.get("cached"))
+            if web.get("notice"):
+                notices.append(web["notice"])
+        layers["web"] = len(web_items)
+        web_answer = _accepted_any(web_items, cue_words, context_set, geography, gate, exclude)
+        if web_answer:
+            found = web_items
+            source_plan = "web"
+        else:
+            # ── layer 3: the journal APIs, last and slow ────────────────────
+            api_items = []
+            for index, query in enumerate(queries):
+                try:
+                    academic = source_finder.search_academic(
+                        query, databases=DATABASES, limit=academic_limit, year_from=year_from)
+                except Exception as error:  # a database outage is reported, not hidden
+                    errors.append({"database": "academic", "error": str(error)[:160]})
+                    academic = {}
+                api_items.extend(academic.get("results") or [])
+                errors.extend(academic.get("errors") or [])
+                skipped.extend(academic.get("skipped") or [])
+                academic_cached = academic_cached or bool(academic.get("cached"))
+                if index == 0:
+                    timings = dict(academic.get("timings") or {})
+            layers["api"] = len(api_items)
+            found = web_items + api_items
+            source_plan = "api" if api_items else "none"
+
     scored, seen = [], set()
     orientation = []
     orientation_seen = set()
     dropped = 0
+    if source_plan != "corpus" and queries:
+        # Background reading: the fast web answer to "what is this about?".
+        # It never enters the evidence list and never reaches a reference.
+        general = _orientation(queries[0])
+        for item in general.get("results") or []:
+            item_key = item.get("url") or _key(item)
+            if item_key and item_key not in orientation_seen:
+                orientation_seen.add(item_key)
+                orientation.append(item)
+        if general.get("notice"):
+            notices.append(general["notice"])
     for item in found:
         item_key = _key(item)
         if not item_key or item_key in seen or item_key in exclude:
@@ -607,26 +713,44 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
         if item.get("database") == "Proprietary corpus":
             doc_id = item.get("doc_id")
             corpus_doc_counts[doc_id] = corpus_doc_counts.get(doc_id, 0) + 1
-    # Learning hook: record this retrieval so the corpus can learn what it is
-    # missing. Fail-soft: a learning-log outage must never break a paper run.
+    # Learning hook: every source this retrieval saw is recorded, not only the
+    # accepted ones.  The candidates the gate refused are exactly the works the
+    # corpus does not hold, so they are the demand the enrichment worker fills.
+    used_keys = {_key(item) for item in items}
+    corpus_used = sum(1 for item in items
+                      if item.get("corpus_key") or item.get("database") == "Proprietary corpus")
+    logged = found + orientation
     _log_learning(
         query=" || ".join(queries) if queries else "",
         subject=geography if geography not in ("Global", "") else None,
         dimension=key,
-        corpus_hits=sum(1 for item in items if item.get("corpus_key")),
-        live_hits=sum(1 for item in items if not item.get("corpus_key")),
+        corpus_hits=corpus_used,
+        live_hits=len(items) - corpus_used,
         sources=[{
             "title": item.get("title"),
             "doi": item.get("doi"),
             "url": item.get("url"),
+            "venue": item.get("venue"),
+            "year": item.get("year"),
+            "abstract": first_sentence(item, 1, 500) or None,
+            "source": item.get("database") or "unknown",
             "database": item.get("database"),
             "source_kind": item.get("source_kind"),
-        } for item in items],
+            "used": 1 if _key(item) in used_keys else 0,
+        } for item in logged],
+        web_sources=[{
+            "url": item.get("url"),
+            "title": item.get("title"),
+            "summary": first_sentence(item, 1, 500) or item.get("abstract"),
+            "domain": item.get("domain"),
+        } for item in logged
+            if item.get("url")
+            and item.get("database") in ("vetted web", "orientation web")],
     )
-    return {"key": key, "items": items, "orientation": orientation, "queries": queries, "dropped": dropped,
-            "errors": errors, "skipped": skipped, "notices": notices,
+    return {"key": key, "items": items, "orientation": orientation, "queries": queries,
+            "dropped": dropped, "errors": errors, "skipped": skipped, "notices": notices,
             "academic_cached": academic_cached, "web_cached": web_cached,
-            "database_timings": timings,
+            "database_timings": timings, "layers": layers, "source_plan": source_plan,
             "elapsed": round(time.perf_counter() - started, 2)}
 
 

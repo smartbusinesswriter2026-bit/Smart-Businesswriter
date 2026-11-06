@@ -304,8 +304,10 @@ class CorpusAdapterTest(unittest.TestCase):
             self.assertEqual(len(corpus_items_2), 0)
             self.assertEqual(counts, {"ja-896de4d5b457": 2})
 
-    def test_live_sources_are_not_capped_by_corpus_doc_cap(self):
-        # Q-16 cap applies to corpus only; live sources are uncapped.
+    def test_a_corpus_answer_stops_the_slow_live_layer(self):
+        # Layer order (B-168): the corpus is searched first and alone.  When a
+        # corpus page answers the dimension, the journal APIs are not called:
+        # the page is citable evidence and an API call would duplicate it.
         corpus_pages = [{
             "id": "ja-896de4d5b457-1", "doc_id": "ja-896de4d5b457",
             "pdf_page": 1, "printed_page": None, "section_path": "Chapter 1",
@@ -325,8 +327,10 @@ class CorpusAdapterTest(unittest.TestCase):
             "item_type": "journalArticle",
             "credibility": 50,
         }]
+        calls = []
 
         def fake_search(query, databases=None, limit=20, year_from=None):
+            calls.append(list(databases or []))
             if databases == ["corpus"] or ("corpus" in (databases or [])):
                 return {"results": corpus_pages, "errors": [], "skipped": [],
                         "databases": ["corpus"], "timings": {}, "cached": False}
@@ -340,14 +344,107 @@ class CorpusAdapterTest(unittest.TestCase):
                 queries=["five forces rivalry"], context=["industry"], geography="Global",
                 academic_limit=4, corpus_limit=4, web_limit=3,
                 corpus_doc_cap=1, corpus_doc_counts=counts)
-            # One corpus page accepted (cap=1), live sources not subject to cap.
-            corpus_items = [it for it in r["items"]
-                            if it.get("database") == "Proprietary corpus"]
-            live_items = [it for it in r["items"]
-                          if it.get("database") not in (None, "Proprietary corpus")]
-            self.assertEqual(len(corpus_items), 1)
-            self.assertEqual(len(live_items), 1)
-            self.assertEqual(counts, {"ja-896de4d5b457": 1})
+        corpus_items = [it for it in r["items"]
+                        if it.get("database") == "Proprietary corpus"]
+        live_items = [it for it in r["items"]
+                      if it.get("database") not in (None, "Proprietary corpus")]
+        self.assertEqual(r["source_plan"], "corpus")
+        self.assertEqual(len(corpus_items), 1)
+        self.assertEqual(live_items, [])
+        self.assertTrue(calls)
+        self.assertTrue(all(databases == ["corpus"] for databases in calls))
+        self.assertEqual(counts, {"ja-896de4d5b457": 1})
+
+    def test_live_sources_are_not_capped_by_corpus_doc_cap_when_the_corpus_misses(self):
+        # Q-16: the cap applies to corpus pages only.  On a corpus miss the live
+        # layer runs, and it is not subject to the corpus document cap.
+        live_pages = [{
+            "title": "Live Paper on Five Forces", "authors": "Author, A.", "year": 2025,
+            "abstract": "Five forces shape industry rivalry in modern markets.",
+            "database": "OpenAlex", "kind": "academic", "doi": "10.1/live",
+            "item_type": "journalArticle",
+            "credibility": 50,
+        }]
+
+        def fake_search(query, databases=None, limit=20, year_from=None):
+            if databases == ["corpus"] or ("corpus" in (databases or [])):
+                return {"results": [], "errors": [], "skipped": [],
+                        "databases": ["corpus"], "timings": {}, "cached": False}
+            return {"results": live_pages, "errors": [], "skipped": [],
+                    "databases": databases or [], "timings": {}, "cached": False}
+
+        counts = {}
+        with mock.patch.object(sources, "search_academic", side_effect=fake_search):
+            r = retrieval.retrieve(
+                key="d1", cues="five forces rivalry",
+                queries=["five forces rivalry"], context=["industry"], geography="Global",
+                academic_limit=4, corpus_limit=4, web_limit=3,
+                corpus_doc_cap=1, corpus_doc_counts=counts)
+        live_items = [it for it in r["items"]
+                      if it.get("database") not in (None, "Proprietary corpus")]
+        self.assertEqual(r["source_plan"], "api")
+        self.assertEqual(len(live_items), 1)
+        self.assertEqual(counts, {})
+
+    def test_every_seen_source_is_logged_with_its_use(self):
+        # The learning loop must see the works the gate refused, not only the
+        # accepted ones: those refused works are the demand the corpus fills.
+        accepted = {
+            "title": "Porter's Five Forces page 1", "doc_id": "ja-896de4d5b457",
+            "pdf_page": 1, "abstract": "Five forces shape industry rivalry.",
+            "authors": "Porter, M. E.", "year": 2025, "doi": None,
+            "database": "Proprietary corpus", "source_kind": "journal-article",
+            "corpus_key": "corpus:ja-896de4d5b457:1",
+        }
+        off_topic = {
+            "title": "A clinical trial of a cancer therapy", "doi": "10.9/medical",
+            "abstract": "Patients in a hospital.", "year": 2024,
+            "database": "OpenAlex",
+        }
+        logged = {}
+
+        def fake_search(query, databases=None, limit=20, year_from=None):
+            if databases == ["corpus"]:
+                return {"results": [accepted, off_topic], "errors": [], "skipped": [],
+                        "databases": ["corpus"], "timings": {}, "cached": False}
+            return {"results": [], "errors": [], "skipped": [], "databases": [], "timings": {}}
+
+        with mock.patch.object(sources, "search_academic", side_effect=fake_search), \
+                mock.patch.object(retrieval, "_log_learning",
+                                  side_effect=lambda **kwargs: logged.update(kwargs)):
+            r = retrieval.retrieve(
+                key="d1", cues="five forces rivalry",
+                queries=["five forces rivalry"], context=["industry"], geography="Global",
+                corpus_doc_cap=3, corpus_doc_counts={})
+        self.assertEqual(len(r["items"]), 1)
+        self.assertEqual(logged["corpus_hits"], 1)
+        by_title = {row["title"]: row for row in logged["sources"]}
+        self.assertEqual(by_title["Porter's Five Forces page 1"]["used"], 1)
+        self.assertEqual(by_title["Porter's Five Forces page 1"]["source"], "Proprietary corpus")
+        self.assertEqual(by_title["A clinical trial of a cancer therapy"]["used"], 0)
+        self.assertEqual(by_title["A clinical trial of a cancer therapy"]["source"], "OpenAlex")
+
+    def test_background_reading_never_becomes_evidence(self):
+        background = {"title": "Porter's five forces", "url": "https://en.wikipedia.org/wiki/Porter",
+                      "abstract": "An encyclopedia overview.", "database": "orientation web",
+                      "citable": False}
+
+        def fake_search(query, databases=None, limit=20, year_from=None):
+            return {"results": [], "errors": [], "skipped": [], "databases": [], "timings": {}}
+
+        with mock.patch.object(sources, "search_academic", side_effect=fake_search), \
+                mock.patch.object(retrieval, "_web",
+                                  return_value={"results": [], "cached": False}), \
+                mock.patch.object(retrieval, "_orientation",
+                                  return_value={"results": [background], "notice": None}), \
+                mock.patch.object(retrieval, "_log_learning"):
+            r = retrieval.retrieve(
+                key="rivalry", cues="five forces rivalry",
+                queries=["five forces rivalry"], context=["industry"], geography="Global")
+        self.assertEqual(r["items"], [])
+        self.assertEqual([item["title"] for item in r["orientation"]],
+                         ["Porter's five forces"])
+        self.assertEqual(r["source_plan"], "none")
 
 
 class RouteTest(unittest.TestCase):

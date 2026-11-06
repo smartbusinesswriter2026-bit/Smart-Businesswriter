@@ -394,7 +394,11 @@ def _corpus(query, limit, year_from):
         return []
     items = []
     for hit in hits:
-        if year_from and (hit.get("year") or 0) < year_from:
+        # A missing year is a metadata gap, not proof that the source is old.
+        # Filtering it out here silently emptied the corpus whenever a period
+        # was set: the page index carries no year for most books, so every
+        # corpus hit was dropped before the relevance gate ever saw it.
+        if year_from and hit.get("year") and (hit.get("year") or 0) < year_from:
             continue
         authors = [name.strip() for name in (hit.get("authors") or "").split(";") if name.strip()]
         item = _item(

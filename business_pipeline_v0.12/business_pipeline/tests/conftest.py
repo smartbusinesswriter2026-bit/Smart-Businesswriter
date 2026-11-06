@@ -20,6 +20,13 @@ os.environ.setdefault("BP_STATEMENT_LIBRARY_DIR",
                       os.path.join(tempfile.gettempdir(), "bp_test_statement_library"))
 os.environ.setdefault("BP_STATEMENT_LIBRARY_ORIGIN", "test")
 
+# Background reading (Wikipedia) is a live web call.  A unit test must not
+# depend on the network or wait on it, so the orientation layer is off.
+os.environ.setdefault("BP_ORIENTATION", "0")
+# The learning log writes to the live corpus service.  A test exercise is not a
+# student's search, so the fixtures never reach the real corpus history.
+os.environ.setdefault("BP_LEARNING_LOG", "0")
+
 import pytest
 
 from bp.product import sources
