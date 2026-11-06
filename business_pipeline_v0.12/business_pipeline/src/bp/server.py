@@ -12,6 +12,7 @@ from .product import ops_log as product_ops_log
 from .product import test_runner as product_test_runner
 from .product import chat_heal as product_chat_heal
 from .product import hallucination_check as product_hallucination_check
+from .product import autoresearch as product_autoresearch
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -687,6 +688,12 @@ class H(BaseHTTPRequestHandler):
                     by_lane[lane]["errors"] += 1
                 return self._send(200, {"total_runs": len(runs), "total_errors": len(errors),
                                         "by_lane": by_lane})
+            if _ops_url.path == "/api/ops/autoresearch/status":
+                return self._send(200, product_autoresearch.status())
+            if _ops_url.path == "/api/ops/autoresearch/experiments":
+                _qs = parse_qs(_ops_url.query)
+                _limit = int((_qs.get("limit") or ["50"])[0])
+                return self._send(200, {"experiments": product_autoresearch.experiments(limit=_limit)})
             if urlparse(self.path).path == "/api/ops/findings":
                 _qs = parse_qs(_ops_url.query)
                 _source = (_qs.get("source") or [""])[0] or None
@@ -981,6 +988,12 @@ class H(BaseHTTPRequestHandler):
                 topic = body.get("topic", "") if isinstance(body, dict) else ""
                 results = product_hallucination_check.check_relevance_batch(sources, topic)
                 return self._send(200, {"results": results})
+            if self.path == "/api/ops/autoresearch/start":
+                ok, msg = product_autoresearch.start()
+                return self._send(200 if ok else 409, {"ok": ok, "message": msg})
+            if self.path == "/api/ops/autoresearch/stop":
+                ok, msg = product_autoresearch.stop()
+                return self._send(200, {"ok": ok, "message": msg})
             # ── Validation findings (admin Validation tab) ──
             if self.path == "/api/ops/findings/ingest":
                 body = self._body()

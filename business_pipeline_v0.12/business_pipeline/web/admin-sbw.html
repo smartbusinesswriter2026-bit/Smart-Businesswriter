@@ -242,7 +242,8 @@
   <nav class="rail" id="rail">
     <button data-panel="runs" class="active">📋 Run log</button>
     <button data-panel="validation">🧪 Validation</button>
-    <button data-panel="heal">🔧 Self-Healing</button>
+    <button data-panel="heal">Self-Healing</button>
+  <button data-panel="autoresearch">Autoresearch</button>
     <button data-panel="chat">💬 Chat box</button>
     <button data-panel="health">💚 Health</button>
   </nav>
@@ -387,6 +388,48 @@
       </div>
     </div>
 
+
+    <!-- ═══ AUTORESEARCH PANEL ═══ -->
+    <div class="panel" id="panel-autoresearch">
+      <div class="card">
+        <h2>Autoresearch Loop</h2>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+          Autonomous self-healing: generates problems from errors, proposes fixes, tests them,
+          keeps improvements, reverts regressions. Runs in background. Stops when all tests pass.
+        </p>
+        <div class="row">
+          <button class="btn primary" id="arStart">Start</button>
+          <button class="btn danger" id="arStop">Stop</button>
+          <button class="btn" id="arRefresh">Refresh status</button>
+        </div>
+        <div id="arStatus" class="code" style="min-height:60px;margin:12px 0;">
+          Status: idle
+        </div>
+        <div class="row">
+          <div class="card" style="flex:1;min-width:120px;">
+            <h3>Current metric</h3>
+            <div id="arMetric" style="font-size:24px;font-weight:700;color:var(--navy);">—</div>
+          </div>
+          <div class="card" style="flex:1;min-width:120px;">
+            <h3>Best metric</h3>
+            <div id="arBest" style="font-size:24px;font-weight:700;color:var(--green);">—</div>
+          </div>
+          <div class="card" style="flex:1;min-width:120px;">
+            <h3>Experiments</h3>
+            <div id="arExps" style="font-size:24px;font-weight:700;color:var(--navy);">0</div>
+          </div>
+          <div class="card" style="flex:1;min-width:120px;">
+            <h3>Kept / Reverted</h3>
+            <div id="arKept" style="font-size:24px;font-weight:700;color:var(--green);">0 / 0</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Experiment history</h2>
+        <div id="arHistory"></div>
+      </div>
+    </div>
+
     <!-- ═══ CHAT PANEL ═══ -->
     <div class="panel" id="panel-chat">
       <div class="card">
@@ -471,6 +514,7 @@ function loadPanel(name) {
   if (name === 'runs') loadRuns();
   else if (name === 'validation') { loadFindings(); loadProposals(); }
   else if (name === 'heal') { loadErrors(); loadHealHistory(); loadTestResults(); }
+  else if (name === 'autoresearch') { loadAutoresearch(); }
   else if (name === 'chat') { /* chat panel loaded on demand */ }
   else if (name === 'health') loadHealth();
 }
@@ -1187,6 +1231,51 @@ document.getElementById('hallDeepCheck').addEventListener('click', async () => {
   }
   res.scrollTop = res.scrollHeight;
 });
+
+
+/* ── Autoresearch ── */
+async function loadAutoresearch() {
+  const r = await apiFetch('/api/ops/autoresearch/status');
+  if (r.status === 200) {
+    const d = r.data;
+    document.getElementById('arStatus').textContent =
+      'Status: ' + (d.status_message || 'unknown') + '\n' +
+      'Running: ' + d.running + ' | Stopped: ' + d.stopped + '\n' +
+      'Last run: ' + (d.last_run || 'never');
+    document.getElementById('arMetric').textContent = d.current_metric !== null ? d.current_metric + '%' : '\u2014';
+    document.getElementById('arBest').textContent = d.best_metric !== null ? d.best_metric + '%' : '\u2014';
+    document.getElementById('arExps').textContent = d.experiments_run || 0;
+    document.getElementById('arKept').textContent = (d.experiments_kept || 0) + ' / ' + (d.experiments_reverted || 0);
+  }
+  const r2 = await apiFetch('/api/ops/autoresearch/experiments?limit=20');
+  const container = document.getElementById('arHistory');
+  if (r2.status === 200 && Array.isArray(r2.data.experiments)) {
+    if (!r2.data.experiments.length) { container.innerHTML = '<div class="empty">No experiments yet.</div>'; return; }
+    let h = '<table><thead><tr><th>Time</th><th>Outcome</th><th>Baseline</th><th>After</th><th>Error</th></tr></thead><tbody>';
+    r2.data.experiments.forEach(e => {
+      const cls = (e.outcome === 'kept' || e.outcome === 'applied') ? 'ok' : 'err';
+      h += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + pill(e.outcome||'?', cls) + '</td><td>' + (e.baseline_metric||'\u2014') + '%</td><td>' + (e.after_metric||'\u2014') + '%</td><td style="font-size:11px;">' + escapeHtml((e.error||'').slice(0,60)) + '</td></tr>';
+    });
+    h += '</tbody></table>';
+    container.innerHTML = h;
+  } else {
+    container.innerHTML = '<div class="empty">No experiment history.</div>';
+  }
+}
+
+document.getElementById('arStart').addEventListener('click', async () => {
+  const r = await apiFetch('/api/ops/autoresearch/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  toast(r.data.message || (r.data.ok ? 'Started' : 'Failed'));
+  loadAutoresearch();
+});
+
+document.getElementById('arStop').addEventListener('click', async () => {
+  const r = await apiFetch('/api/ops/autoresearch/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  toast(r.data.message || 'Stopped');
+  loadAutoresearch();
+});
+
+document.getElementById('arRefresh').addEventListener('click', loadAutoresearch);
 
 /* ── Init ── */
 loadHealth();
