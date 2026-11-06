@@ -587,6 +587,11 @@ Also add a composition corpus: 40–100 briefs with expected archetype and block
 | (pending) | 2026-11-06 | Charts are deterministic specs from artifacts | No generative image for data |
 | (pending) | 2026-11-06 | Baselines, ablations and post-hoc blocks for business papers | Strengthens claims |
 | (pending) | 2026-11-06 | No math by the model | Frozen core computes; model never computes or invents numbers |
+| (pending) | 2026-11-06 | Typed instruction reading with framework roles and slots | Removes silent framework defaults and preserves every quantity |
+| (pending) | 2026-11-06 | Universal metric-to-entity category gate | Refuses cross-domain nonsense without example-specific rules |
+| (pending) | 2026-11-06 | Plan proposal and guarded edit | The student sees and controls the interpretation without drifting |
+| (pending) | 2026-11-06 | No-framework papers are valid | Not every paper has a framework; never force PESTEL/SWOT |
+| (pending) | 2026-11-06 | PESTEL/SWOT only when named or selected | No hardcoded framework, no fallback |
 
 ---
 
@@ -595,20 +600,106 @@ Also add a composition corpus: 40–100 briefs with expected archetype and block
 | Date | Change | Author |
 |---|---|---|
 | 2026-11-06 | Initial manual: paper contract, block graph, evidence ledger, audit/repair, charts, paper families, guardrails, phased build plan, tests | Model session |
+| 2026-11-06 | Added typed instruction reading, universal category gate, no-framework papers, plan proposal, guarded edit, citation styles and the five-instruction stress test | Model session |
 
 ---
 
 ## 20. Placement and findability
 
-In build mode, place this manual in the repo so it is easy to find when working on home chat:
+This manual lives at `business_pipeline_v0.12/business_pipeline/docs/HOME_CHAT_ORCHESTRATION_MANUAL.md`.
 
-1. Copy this file to `business_pipeline_v0.12/business_pipeline/docs/HOME_CHAT_ORCHESTRATION_MANUAL.md`.
-2. Add it to the reading list in `AGENTS.md` under the home chat section, alongside `CONDUCTOR_MANUAL.md` and `HANDOFF.md`.
-3. Add a short pointer in `docs/HOME.md` if the surface changes.
-4. Keep the decision log and change log append-only.
+1. It is linked from `AGENTS.md` under the home chat reading list, alongside `CONDUCTOR_MANUAL.md` and `HANDOFF.md`.
+2. Add a short pointer in `docs/HOME.md` if the surface changes.
+3. Keep the decision log and change log append-only.
 
 ---
 
-## 21. Final instruction to any model
+## 21. Typed instruction reading, plan proposal and guarded edit
+
+This layer was added after the first build. It handles valid instructions and refuses nonsense before the conductor plans anything.
+
+### 21.1 Typed instruction reading
+
+`src/bp/product/instruction_reading.py` returns:
+
+- `FrameworkReading` with status `resolved`, `ambiguous`, `absent` or `conflict`.
+- Every framework mention with a role: `primary`, `negated`, `contrast` or `incidental`.
+- Alias normalisation (`5 forces`, `Porter's model`, `growth matrix`, `PESTLE`, etc.).
+- `Slot` records for quantities: value, span, kind, period, compounding and status `pending`, `consumed` or `dismissed`.
+- `CategoryError` for a metric bound to an entity that cannot carry it.
+- `next_question()` for dependency-ordered clarification.
+
+No framework is inferred by default. PESTEL and SWOT appear only when the instruction names them, the student selects them, or the proposal offers them as an option.
+
+### 21.2 Universal category gate
+
+The category gate is a table, not a list of examples:
+
+- `METRIC_LEXICON` maps each metric to the entity types that may carry it.
+- `ENTITY_LEXICON` maps named frameworks, theories, artefacts and role documents to their type.
+- A metric asked of a framework, theory, artefact or role document is a `CATEGORY_ERROR`.
+
+This catches cross-domain nonsense such as EBITDA margin of a SWOT analysis, beta of the 4Ps, discount rate of Maslow, payback period of a BCG matrix, CPI of a fishbone diagram, and safety stock of a job description. The gate must remain universal; do not add one-off phrase checks.
+
+### 21.3 No-framework papers
+
+`none` is a valid framework:
+
+- The framework question always includes `No framework`.
+- `none` uses a generic evidence dimension.
+- The draft carries no framework sections.
+- PESTEL/SWOT are never inserted as a fallback.
+
+### 21.4 Plan proposal
+
+`src/bp/product/plan_proposal.py` builds a proposal with:
+
+- reading summary (decision, status, mentions, slots);
+- framework options, with suggested ones marked;
+- computations with reasons;
+- proposed claims/arguments, marked proposed or conditional;
+- evidence needs;
+- structure;
+- gaps;
+- scope terms and numbers for the guard.
+
+The UI replaces “Your brief” with **How I read your instruction**; the original instruction is inside a collapsible.
+
+### 21.5 Guarded edit
+
+`chat.refine_plan()` and `POST /api/cases/chat/{id}/refine` enforce:
+
+- no number outside the brief;
+- no framework outside the proposed options;
+- no unknown framework;
+- edits are recorded, not silently applied.
+
+### 21.6 Refusal
+
+A refused instruction returns `stage: "refused"` with:
+
+- `code`;
+- `title`;
+- `detail`;
+- `hint`;
+- `found`;
+- `options`.
+
+The UI shows the brief summary, a **Start over** pill and a human notification below it. No questions, plan, retrieval or computation run for a refused instruction.
+
+### 21.7 Citation styles
+
+Implemented styles: APA 7, Harvard, Chicago author-date, MLA 9, Vancouver, IEEE, OSCOLA and Chicago notes-bibliography. Numbered styles render numbered in-text citations and numbered reference lists; author-date styles render author-date citations.
+
+### 21.8 Tests
+
+- `tests/test_instruction_reading.py` — aliases, roles, negation, comparison, slots, category errors, planner.
+- `tests/test_chat.py` — proposal, refusal, guarded refine, no-framework.
+- `tests/test_product_subjects.py` — proposal/refusal UI.
+- Stress prompts: the five valid instructions in the owner’s test set are accepted; cross-domain nonsense is refused.
+
+---
+
+## 22. Final instruction to any model
 
 Read this manual before touching home chat. Do not improvise a framework, a method, a number, a source, a citation or a chart. Do not do math. If a required input, evidence item or block is missing, ask or name the gap. If a plan does not pass the production check, do not confirm it. If an audit finding is unresolved, block export. Append decisions and changes to the logs. Do not rewrite history.

@@ -4,6 +4,7 @@ Before working on the business writer chat, read:
 
 - `business_pipeline_v0.12/business_pipeline/docs/CONDUCTOR_MANUAL.md` — the goal, paper model, framework/computation rules and extension checklist.
 - `business_pipeline_v0.12/business_pipeline/docs/HANDOFF.md` — current build, tests and open work.
+- `business_pipeline_v0.12/business_pipeline/docs/HOME_CHAT_ORCHESTRATION_MANUAL.md` — the living manual for the Home chat conductor: paper contracts, plan proposal, typed instruction reading, universal nonsense gate, guarded edits, evidence ledger, audit and citation styles. Read before changing the Home chat or its plan flow.
 - `corpus-db/CORPUS_DB.md` — living design record for the proprietary PDF evidence corpus
   (R2 bytes + SQLite/Meilisearch index). Read before any corpus, retrieval or citation-format
   work; it carries the binding constraints, open questions and build sequence.
