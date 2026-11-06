@@ -4,6 +4,8 @@ Three-model loop:
   1. Problem generator — creates N test problems from an instruction
   2. Solver — solves each problem through the pipeline
   3. Improvement writer — reviews failures, proposes improvements
+  4. Code proposer — writes a diff + test for a validation finding
+     (never applied; owner approval only)
 
 Uses the existing llm module. Model selection follows the same env-var
 pattern as the rest of the product (BP_LLM_PROVIDER, BP_LLM_MODEL,
@@ -12,6 +14,9 @@ PROSE_MODEL). Each role can be overridden independently:
     BP_HEAL_GEN_PROVIDER / BP_HEAL_GEN_MODEL   (problem generator)
     BP_HEAL_SOLVER_PROVIDER / BP_HEAL_SOLVER_MODEL (solver)
     BP_HEAL_IMPROVE_PROVIDER / BP_HEAL_IMPROVE_MODEL (improvement writer)
+    BP_HEAL_CODE_PROVIDER / BP_HEAL_CODE_MODEL (code proposer)
+    (BP_HEAL_CODE_MODEL default is set in Backend/.env; an easy override
+     is kimi-k2.7-code for tricky files)
 
 Falls back to the default model for any role not configured.
 """
@@ -24,19 +29,32 @@ from . import ops_log as _ops_log
 # ── Model helpers ──────────────────────────────────────────────────────────
 
 def _models_for(role):
-    """Return llm.Models for a role, or None if not configured."""
+    """Return llm.Models for a role, or None if not configured.
+
+    Role overrides replace (never setdefault) the global provider/model pair
+    and are applied only for the life of this call, so the process env is not
+    permanently mutated. There is no DeepSeek fallback: with no provider
+    configured, the role is simply unavailable.
+    """
     from .. import llm
-    # Role-specific overrides
     provider_var = "BP_HEAL_%s_PROVIDER" % role.upper()
     model_var = "BP_HEAL_%s_MODEL" % role.upper()
-    if os.environ.get(provider_var) or os.environ.get(model_var):
-        os.environ.setdefault("BP_LLM_PROVIDER", os.environ.get(provider_var, "deepseek"))
-        os.environ.setdefault("BP_LLM_MODEL", os.environ.get(model_var, "deepseek-chat"))
-    # Fall back to DeepSeek if key is available but provider not set
-    if not os.environ.get("BP_LLM_PROVIDER") and os.environ.get("DEEPSEEK_API_KEY"):
-        os.environ["BP_LLM_PROVIDER"] = "deepseek"
-        os.environ.setdefault("BP_LLM_MODEL", "deepseek-chat")
-    return llm.from_env()
+    override_provider = os.environ.get(provider_var)
+    override_model = os.environ.get(model_var)
+    saved = (os.environ.get("BP_LLM_PROVIDER"), os.environ.get("BP_LLM_MODEL"))
+    try:
+        if override_provider or override_model:
+            if override_provider:
+                os.environ["BP_LLM_PROVIDER"] = override_provider
+            if override_model:
+                os.environ["BP_LLM_MODEL"] = override_model
+        return llm.from_env()
+    finally:
+        for name, value in zip(("BP_LLM_PROVIDER", "BP_LLM_MODEL"), saved):
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
 
 
 def _call_model(models, system, user):
