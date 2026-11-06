@@ -78,6 +78,78 @@ ATTRIBUTE_PATTERNS = (
     ("rate", r"\brate\b"),
 )
 
+#: A universal metric -> entity-type table.  A metric may be asked of the
+#: entity types on the right; asking it of a framework, theory or artefact is a
+#: category error.
+METRIC_LEXICON = {
+    "ebitda margin": {"company", "segment", "product"},
+    "beta coefficient": {"stock", "portfolio", "company"},
+    "beta": {"stock", "portfolio", "company"},
+    "discount rate": {"valuation", "computation", "project", "investment"},
+    "payback period": {"project", "investment", "computation"},
+    "conversion rate": {"funnel", "campaign", "website", "marketing"},
+    "working capital requirement": {"company", "operation", "project"},
+    "working-capital requirement": {"company", "operation", "project"},
+    "working capital": {"company", "operation", "project"},
+    "working-capital": {"company", "operation", "project"},
+    "learning curve percentage": {"production_process", "cost_model", "operation"},
+    "learning-curve percentage": {"production_process", "cost_model", "operation"},
+    "debt-to-equity ratio": {"company", "segment", "project"},
+    "debt to equity ratio": {"company", "segment", "project"},
+    "cpi": {"project", "computation"},
+    "hurdle rate": {"project", "investment", "capital_budgeting"},
+    "contribution margin": {"product", "company", "segment"},
+    "safety stock level": {"inventory", "supply_chain", "operation"},
+    "safety-stock level": {"inventory", "supply_chain", "operation"},
+    "interest rate": {"loan", "bond", "deposit", "financial_instrument"},
+    "customer lifetime value": {"customer", "segment", "marketing"},
+    "clv": {"customer", "segment", "marketing"},
+    "net present value": {"project", "investment", "computation"},
+    "npv": {"project", "investment", "computation"},
+    "internal rate of return": {"project", "investment", "computation"},
+    "irr": {"project", "investment", "computation"},
+    "return on equity": {"company", "segment"},
+    "return on assets": {"company", "segment"},
+    "current ratio": {"company", "segment"},
+    "quick ratio": {"company", "segment"},
+    "inventory turnover": {"company", "inventory", "operation"},
+}
+
+#: Named entities the gate recognises.  The type is what the metric is being
+#: asked of; the metric table above decides whether that is allowed.
+ENTITY_LEXICON = {
+    "swot analysis": "strategy_framework", "swot": "strategy_framework",
+    "pestle analysis": "strategy_framework", "pestel analysis": "strategy_framework",
+    "pestle": "strategy_framework", "pestel": "strategy_framework",
+    "five forces": "strategy_framework", "porter's five forces": "strategy_framework",
+    "value chain": "strategy_framework", "porter's value chain": "strategy_framework",
+    "vrio": "strategy_framework", "ansoff": "strategy_framework",
+    "bcg matrix": "strategy_framework", "bcg growth-share matrix": "strategy_framework",
+    "bcg": "strategy_framework", "7s framework": "strategy_framework",
+    "7s": "strategy_framework", "4ps marketing mix": "marketing_framework",
+    "4ps": "marketing_framework", "maslow's hierarchy": "theory",
+    "maslow": "theory", "brand-equity pyramid": "theory",
+    "brand equity pyramid": "theory", "stakeholder-salience model": "theory",
+    "stakeholder salience model": "theory", "balanced scorecard": "artifact",
+    "raci matrix": "artifact", "raci": "artifact", "fishbone diagram": "artifact",
+    "fishbone": "artifact", "job description": "role_document",
+    "kanban": "artifact", "kanban cards": "artifact",
+    "dupont analysis": "computation", "break-even analysis": "computation",
+    "activity-based costing": "computation", "capital budgeting": "computation",
+    "credit-risk model": "computation", "marketing funnel": "funnel",
+    "supply chain": "operation", "procurement": "operation",
+    "inventory": "inventory", "loan": "financial_instrument",
+    "bond": "financial_instrument", "deposit": "financial_instrument",
+    "company": "company", "firm": "company", "project": "project",
+    "investment": "investment", "product": "product", "customer": "customer",
+    "portfolio": "portfolio", "stock": "stock", "share": "stock",
+}
+
+NON_QUANT_ENTITIES = {
+    "strategy_framework", "marketing_framework", "theory", "artifact",
+    "role_document", "process_diagram", "org_design",
+}
+
 
 @dataclass(frozen=True)
 class Mention:
@@ -205,61 +277,62 @@ def _entity_before(text: str, position: int) -> Optional[Tuple[str, str, Tuple[i
     return best
 
 
+def _entity_after(text: str, start: int, window: int = 120):
+    """The first named entity after a metric, with its type and span."""
+    tail = text[start:start + window]
+    best = None
+    for entity, entity_type in sorted(ENTITY_LEXICON.items(), key=lambda item: -len(item[0])):
+        pattern = re.compile(r"(?<![a-z0-9])" + re.escape(entity) + r"(?![a-z0-9])", re.I)
+        match = pattern.search(tail)
+        if match:
+            span = (start + match.start(), start + match.end())
+            if best is None or span[0] < best[2][0]:
+                best = (entity, entity_type, span)
+    return best
+
+
 def find_category_errors(brief: str, reading: Optional[FrameworkReading] = None) -> Tuple[CategoryError, ...]:
-    """Find a quantity bound to an entity that cannot have that attribute."""
+    """Find a metric bound to an entity that cannot carry it.
+
+    The rule is universal, not a list of examples: a metric is asked of an
+    entity; if the entity's type is not in the metric's allowed set, the
+    instruction is a category error.  Frameworks, theories, artefacts and role
+    documents do not carry financial, accounting or operational metrics.
+    """
     text = _normalise(brief)
     errors = []
-    for attribute, pattern in ATTRIBUTE_PATTERNS:
-        for match in re.finditer(pattern, text, re.I):
-            tail = text[match.end():match.end() + 80]
-            # The entity follows "interest rate of ...".
-            entity_match = re.match(
-                r"\s*(?:of|for)\s+(.+?)(?=\s+(?:when|and|or|at|for|to|of|in|with|while|then|but|so)\b|[,.?!;]|$)",
-                tail, re.I)
-            if not entity_match:
+    seen_spans = set()
+    metrics = sorted(METRIC_LEXICON.items(), key=lambda item: -len(item[0]))
+    for metric, allowed in metrics:
+        pattern = re.compile(r"(?<![a-z0-9])" + re.escape(metric) + r"(?![a-z0-9])", re.I)
+        for match in pattern.finditer(text):
+            if any(not (match.end() <= start or match.start() >= end) for start, end in seen_spans):
                 continue
-            entity_text = entity_match.group(1).strip()
-            entity_span = (match.end() + entity_match.start(1), match.end() + entity_match.end(1))
-            entity_type = None
-            framework_id = None
-            lowered = entity_text.lower()
-            for candidate, aliases in FRAMEWORK_ALIASES.items():
-                if any(_alias_pattern(alias).search(lowered) for alias in aliases):
-                    entity_type = "strategy_framework"
-                    framework_id = candidate
-                    break
-            if entity_type is None:
-                for candidate, names in ENTITY_TYPES.items():
-                    if any(_alias_pattern(name).search(lowered) for name in names):
-                        entity_type = candidate
-                        break
-            if entity_type is None:
+            seen_spans.add((match.start(), match.end()))
+            entity = _entity_after(text, match.end())
+            if not entity:
                 continue
-            allowed = ENTITY_ATTRIBUTES.get(entity_type, set())
-            if attribute in allowed:
+            entity_text, entity_type, entity_span = entity
+            if entity_type in allowed:
+                continue
+            if entity_type not in NON_QUANT_ENTITIES and entity_type not in ("computation",):
                 continue
             repairs = []
-            if attribute in ("interest_rate", "rate", "discount_rate"):
-                repairs = [
-                    {"option": "Use the rate as a discount rate in NPV",
-                     "method": "npv", "because": "a discount rate is an attribute of a valuation, not a framework"},
-                    {"option": "Run the framework without a rate",
-                     "method": None, "because": "the framework itself has no rate input"},
-                ]
-            if entity_type == "strategy_framework":
-                labels = {
-                    "ansoff": "Ansoff", "five_forces": "Five Forces",
-                    "value_chain": "Value Chain", "vrio": "VRIO",
-                    "pestel": "PESTEL", "swot": "SWOT",
-                    "breakeven": "Break-even", "pestel_swot": "PESTEL + SWOT",
-                    "five_forces_breakeven": "Five Forces + Break-even",
-                }
-                label = labels.get(framework_id or "", str(framework_id or entity_type).replace("_", " "))
-                why = (label + " is a strategy framework, not a financial instrument, so it has no "
-                       + attribute.replace("_", " ") + ".")
-            else:
-                why = ("the " + entity_text.lower() + " is a " + entity_type.replace("_", " ")
-                       + ", so it has no " + attribute.replace("_", " ") + ".")
+            if metric in ("interest rate", "rate", "discount rate"):
+                repairs.append({"option": "Use the rate as a discount rate in NPV",
+                                "method": "npv",
+                                "because": "a discount rate is an attribute of a valuation, not a framework"})
+            repairs.extend([
+                {"option": "Apply the measure to a company, project, product or financial instrument instead",
+                 "method": None,
+                 "because": metric + " belongs to a measurable financial or operating entity"},
+                {"option": "Run the framework without that measure",
+                 "method": None,
+                 "because": entity_text + " has no " + metric},
+            ])
+            why = (metric.capitalize() + " is a financial or operating measure; " + entity_text
+                   + " is a " + entity_type.replace("_", " ") + ", so it does not have a "
+                   + metric + ".")
             errors.append(CategoryError(
                 code="CATEGORY_ERROR",
                 found=text[match.start():entity_span[1]],

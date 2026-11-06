@@ -88,6 +88,27 @@ class CategoryTest(unittest.TestCase):
         self.assertIn("proceed", payload)
 
 
+class UniversalCategoryTest(unittest.TestCase):
+    def test_cross_domain_nonsense_is_caught(self):
+        examples = [
+            "What is the EBITDA margin of a SWOT analysis?",
+            "Calculate the beta coefficient of the 4Ps marketing mix.",
+            "What discount rate applies to Maslow's hierarchy of needs?",
+            "How many Kanban cards equal the payback period of a BCG matrix quadrant?",
+            "What is the conversion rate of a PESTLE analysis?",
+            "What working-capital requirement should be assigned to Porter's value chain?",
+            "What is the learning-curve percentage of a brand-equity pyramid?",
+            "What is the debt-to-equity ratio of the 7S framework?",
+            "What is the CPI of a fishbone diagram?",
+            "What hurdle rate should be applied to a RACI matrix?",
+            "What is the contribution margin of a stakeholder-salience model?",
+            "What safety-stock level should a job description carry?",
+        ]
+        for brief in examples:
+            with self.subTest(brief=brief):
+                self.assertTrue(reading.find_category_errors(brief), brief)
+
+
 class PlannerTest(unittest.TestCase):
     def test_intent_is_asked_first(self):
         result = reading.read_frameworks("Use Five Forces.")

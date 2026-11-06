@@ -93,7 +93,7 @@ FRAMEWORKS = {
 }
 
 QUESTIONS = [
-    {"id": "decision", "prompt": "What decision or question should this PESTEL analysis support?",
+    {"id": "decision", "prompt": "What decision or question should this analysis support?",
      "why": "The analysis should serve a decision, not sit on its own.",
      "type": "text", "allow_skip": True, "default": ""},
     {"id": "geography", "prompt": "Which market or region should the evidence cover?",
@@ -713,7 +713,7 @@ def _clean(value, limit=2000):
     return text[:limit]
 
 
-def _fit(brief, framework="pestel"):
+def _fit(brief, framework="none"):
     text = (brief or "").lower()
     if framework in ("breakeven", "vrio"):
         # A computation and an internal-resource audit need no external evidence.
@@ -1334,7 +1334,7 @@ def _topic(text, limit=10):
 
 def _plan(state):
     answers = state["answers"]
-    framework = state.get("framework") or "pestel"
+    framework = state.get("framework") or "none"
     frameworks = state.get("frameworks") or [framework]
     config = FRAMEWORKS[framework]
     seen_keys = set()
@@ -2078,7 +2078,7 @@ def set_capability(state, key, enabled=True, reason=""):
     """Add or drop one capability at the plan stage, recording the student's decision."""
     if (state.get("profile") or "") == PROFILE_BUSINESS_PLAN:
         raise ChatError("A business plan carries its own computation blocks.")
-    framework = state.get("framework") or "pestel"
+    framework = state.get("framework") or "none"
     if framework in ("breakeven", "five_forces_breakeven"):
         raise ChatError("This paper already carries the break-even analysis.")
     try:
@@ -5398,7 +5398,7 @@ def _scope_section(state, evidence, target, style):
     geography = answers.get("geography") or "Global"
     period = answers.get("period") or "10"
     period_text = ("the last " + period + " years") if period not in ("0", "") else "all available years"
-    label = FRAMEWORKS.get(state.get("framework") or "pestel", {}).get("label", "the framework")
+    label = FRAMEWORKS.get(state.get("framework") or "none", {}).get("label", "the framework")
     why = str(plan.get("why") or "").strip()
     geo_text = "the " + geography if geography not in ("Global", "") else "the global market"
     decision_line = _clean(answers.get("decision") or state.get("brief"), 500).rstrip()
@@ -5423,7 +5423,7 @@ def _scope_section(state, evidence, target, style):
     else:
         paragraphs.append("No computation is carried: the question is answered from the framework and the "
                           "evidence, and no financial figure is reported.")
-    framework = state.get("framework") or "pestel"
+    framework = state.get("framework") or "none"
     others = [name for name in ("SWOT", "Five Forces", "Value Chain", "VRIO", "Ansoff") if name != label]
     if others:
         paragraphs.append(
@@ -5875,7 +5875,7 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
                     counter += 1
         _CITATION_NUMBERS = numbers
     answers = state["answers"]
-    framework = state.get("framework") or "pestel"
+    framework = state.get("framework") or "none"
     label = FRAMEWORKS[framework]["label"]
     decision = answers.get("decision") or state["brief"]
     geography = answers.get("geography") or "Global"
@@ -5961,7 +5961,7 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         if framework == "five_forces_breakeven":
             sections.append(paper.section("Financial Feasibility", paper.H1))
             sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
-    framework = state.get("framework") or "pestel"
+    framework = state.get("framework") or "none"
     recorded = state.get("computations") or {}
     selected_caps = (state.get("selection") or {}).get("selected") or []
     rendered_sections = set()
@@ -6141,7 +6141,7 @@ def docx_bytes(state, byline=None):
     if required:
         raise ExportBlocked(required)
     outline = draft.get("outline") or paper.flatten(draft.get("sections") or [])
-    report = paper.check(outline, state.get("framework") or "pestel",
+    report = paper.check(outline, state.get("framework") or "none",
                          draft.get("implications", ""), state.get("answers") or {}, state=state)
     if not report["pass"]:
         raise ExportBlocked([issue["detail"] for issue in report["issues"] if issue["severity"] == "high"])
