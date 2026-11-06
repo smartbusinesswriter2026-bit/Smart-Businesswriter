@@ -1,27 +1,38 @@
 """Automatic in-pipeline resolution of logged errors (product layer).
 
-"Resolve" is not bookkeeping: given a logged error, this module diagnoses the
-failure class, applies the deterministic remediations the pipeline can make on
-its own, replays the failing problem after each, and reports every step. An
-error is marked *verified solved* only when a replay passes.
+"Resolve" repairs the failure inside the pipeline and proves it by replay:
 
-What it can fix by itself (no invented content, no core edits):
-  - rate limited / provider failure  -> replay (solve path swaps to the backup
-    model automatically) and retry
-  - input too large                  -> shorten the problem deterministically
-    (normalise whitespace, drop separator lines, truncate at a line boundary)
-    and replay
-  - duplicated account line          -> drop exact duplicate lines (same account
-    and same amount); differing amounts are never merged or invented
-  - everything else                  -> replayed unchanged; an honest failure
-    reason is returned and the error stays open
+  1. diagnose the failure class from the error message
+  2. refuse to "fix" input that is not an accounting problem — that is an
+     invalid test case, not a pipeline defect, and it is marked invalid
+  3. replay the stored problem through the normal solve path (which applies
+     the deterministic normalizers on every solve) on deepseek-v4.1-flash;
+     if it still fails, replay on deepseek-v4-pro (both OpenCode Go)
+  4. on a passing replay: record a golden regression case, mark the error
+     verified, and close its siblings (errors with the identical message)
+     that also pass the same replay
+
+An error is marked verified solved only when a replay passes. Fixes are
+durable because normalisation runs on every solve and every verified fix is
+pinned in `qa/regression/problem_norm_cases.jsonl`, replayed by the
+`regression` test suite.
 """
-import re
-
 from . import ops_log as _ops_log
+from .problem_norm import normalize_problem
 
-#: The statements model reader refuses inputs above 20000 characters.
-MAX_INPUT = 18000
+#: The fix model ladder: cheap flash first; if it cannot fix it, the pro model.
+#: Both are on OpenCode Go. Override with BP_FIX_MODEL / BP_FIX_ESCALATION_MODEL.
+FIX_MODEL = "deepseek-v4.1-flash"
+ESCALATION_MODEL = "deepseek-v4-pro"
+
+#: How many same-error siblings one resolve may verify and close.
+MAX_SIBLINGS = 5
+
+
+def _fix_models():
+    import os
+    return (os.environ.get("BP_FIX_MODEL", FIX_MODEL),
+            os.environ.get("BP_FIX_ESCALATION_MODEL", ESCALATION_MODEL))
 
 
 def diagnose(error_text):
@@ -40,84 +51,6 @@ def diagnose(error_text):
     if "names no transaction" in low or "does not read as an accounting problem" in low:
         return "unsupported_instruction"
     return "unknown"
-
-
-def _split_inline_accounts(text):
-    """Split a one-line 'Cash 5000, Capital 5000' problem into account lines.
-
-    Deterministic, no new figures: only commas/semicolons between segments that
-    each carry a number become line breaks, and a leading cue ("Trial balance:")
-    is removed from the first account.
-    """
-    text = str(text).strip()
-    if not text or "\n" in text:
-        return text
-    parts = [p.strip() for p in re.split(r"[;,]", text) if p.strip()]
-    if len(parts) < 2 or not all(re.search(r"\d", p) for p in parts):
-        return text
-    parts[0] = re.sub(r"^(?:the following balances?|trial balance|balances?)[^:]*:\s*", "", parts[0], flags=re.I)
-    return "\n".join(p for p in parts if p)
-
-
-def _shorten(text):
-    """Deterministically shorten an over-long problem without inventing anything."""
-    text = re.sub(r"[ \t]+", " ", str(text))
-    lines = [line.strip() for line in text.splitlines()]
-    lines = [line for line in lines if line and not re.fullmatch(r"[-=_*~]{3,}", line)]
-    text = "\n".join(lines)
-    if len(text) <= MAX_INPUT:
-        return text
-    cut = text[:MAX_INPUT]
-    boundary = cut.rfind("\n")
-    if boundary < MAX_INPUT * 0.6:
-        boundary = max(cut.rfind(". "), cut.rfind("; "))
-    if boundary > 0:
-        cut = cut[:boundary + 1]
-    return cut.rstrip()
-
-
-def _drop_duplicate_lines(text):
-    """Drop exact duplicate account lines (same normalised content); keep the first."""
-    seen, kept = set(), []
-    for line in str(text).splitlines():
-        key = re.sub(r"\s+", " ", line.strip().lower())
-        if key and key in seen:
-            continue
-        if key:
-            seen.add(key)
-        kept.append(line)
-    return "\n".join(kept)
-
-
-def _remediations(problem, category):
-    """Ordered (strategy label, rewritten problem) pairs to replay."""
-    attempts = []
-    if category == "input_too_large":
-        fixed = _shorten(problem)
-        if fixed and fixed != problem:
-            attempts.append(("shorten oversized input", fixed))
-    if category == "duplicate_account":
-        fixed = _drop_duplicate_lines(problem)
-        if fixed and fixed != problem:
-            attempts.append(("drop duplicate account lines", fixed))
-    if category == "unreadable_layout":
-        fixed = _split_inline_accounts(problem)
-        if fixed and fixed != problem:
-            attempts.append(("split inline account list into lines", fixed))
-    attempts.append(("replay original problem", problem))
-    return attempts
-
-
-#: The fix model ladder: cheap flash first; if it cannot fix it, the pro model.
-#: Both are on OpenCode Go. Override with BP_FIX_MODEL / BP_FIX_ESCALATION_MODEL.
-FIX_MODEL = "deepseek-v4.1-flash"
-ESCALATION_MODEL = "deepseek-v4-pro"
-
-
-def _fix_models():
-    import os
-    return (os.environ.get("BP_FIX_MODEL", FIX_MODEL),
-            os.environ.get("BP_FIX_ESCALATION_MODEL", ESCALATION_MODEL))
 
 
 def _replay_on(problem, model):
@@ -141,43 +74,108 @@ def _replay_on(problem, model):
                 os.environ[name] = value
 
 
+def _deterministic_ok(normalized):
+    """Whether the frozen reader accepts the normalised problem with no model."""
+    try:
+        from . import statements as stmt_mod
+        rows = stmt_mod.read_deterministic(normalized)
+        return bool(rows)
+    except Exception:
+        return False
+
+
+def _siblings(record, limit=MAX_SIBLINGS):
+    """Unresolved errors carrying the identical message but a different id."""
+    target = (record.get("error") or "").strip()
+    if not target:
+        return []
+    rows = _ops_log.merge_resolved(_ops_log.list_errors(limit=500))
+    out = []
+    for row in rows:
+        if (row.get("error") or "").strip() != target:
+            continue
+        if row.get("error_id") == record.get("error_id"):
+            continue
+        if row.get("resolved") or row.get("invalid") or row.get("dismissed") or not row.get("problem"):
+            continue
+        out.append(row)
+    return out[:limit]
+
+
 def resolve(error_id):
     """Attempt to resolve one logged error inside the pipeline.
 
-    Ladder: deterministic remediations replayed on the fix model
-    (deepseek-v4.1-flash); if none passes, the same attempts are replayed on the
-    escalation model (deepseek-v4-pro). Returns a dict:
-    {resolved, verified, attempted, steps, reason}.
+    Returns {resolved, verified, attempted, invalid, model, category,
+    steps, siblings_resolved, reason}.
     """
     record = _ops_log.get_error(error_id)
     if record is None:
-        return {"resolved": False, "verified": False, "attempted": False,
-                "steps": [], "reason": "unknown error_id"}
-    problem = record.get("problem") or ""
-    if not problem:
-        return {"resolved": False, "verified": False, "attempted": False, "steps": [],
-                "reason": "no replayable problem was stored for this error, so a fix cannot be verified"}
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
+                "steps": [], "siblings_resolved": 0, "reason": "unknown error_id"}
 
     category = diagnose(record.get("error", ""))
-    attempts = _remediations(problem, category)
+    if category == "unsupported_instruction":
+        _ops_log.mark_error_invalid(
+            error_id, "the problem is not an accounting problem; not a pipeline defect")
+        closed = 0
+        for sibling in _siblings(record, limit=200):
+            _ops_log.mark_error_invalid(
+                sibling.get("error_id"),
+                "same invalid-input class: the problem names no transaction and declares no figure")
+            closed += 1
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": True,
+                "category": category, "steps": [], "siblings_resolved": 0,
+                "siblings_invalid": closed,
+                "reason": "invalid test input: the problem names no transaction and declares no figure"}
+
+    problem = record.get("problem") or ""
+    if not problem:
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
+                "steps": [], "siblings_resolved": 0,
+                "reason": "no replayable problem was stored for this error, so a fix cannot be verified"}
+
+    normalized, notes = normalize_problem(problem)
+    strategy = "replay normalized problem" if notes else "replay original problem"
     steps = []
     fix_model, escalation_model = _fix_models()
-    ladder = [(fix_model, attempts), (escalation_model, attempts)]
-    for model, candidates in ladder:
-        for label, candidate in candidates:
-            first = _replay_on(candidate, model)
-            status = first.get("status") or "error"
-            steps.append({"strategy": label, "model": model, "outcome": status,
-                          "detail": (first.get("error") or "")[:200]})
-            if status == "ok":
+
+    for model in (fix_model, escalation_model):
+        first = _replay_on(problem, model)
+        status = first.get("status") or "error"
+        steps.append({"strategy": strategy, "model": model, "outcome": status,
+                      "detail": (first.get("error") or "")[:200]})
+        if status != "ok":
+            continue
+
+        from . import regression_cases
+        regression_cases.record_case(
+            error_id, category, problem, normalized, notes, model,
+            deterministic_ok=_deterministic_ok(normalized))
+        _ops_log.mark_error_verified(
+            error_id, "pipeline replayed the problem on %s and it passed" % model)
+
+        closed, sib_steps = 0, []
+        for sibling in _siblings(record):
+            again = _replay_on(sibling.get("problem"), model)
+            ok = (again.get("status") == "ok")
+            sib_steps.append({"strategy": "close sibling", "model": model,
+                              "outcome": again.get("status") or "error",
+                              "detail": (sibling.get("error_id") or "")[:40]})
+            if ok:
                 _ops_log.mark_error_verified(
-                    error_id, "pipeline replayed the problem on %s and it passed" % model)
-                _ops_log.log_resolution_attempt(error_id, category, steps, "solved")
-                return {"resolved": True, "verified": True, "attempted": True,
-                        "steps": steps, "model": model, "category": category,
-                        "reason": "replay passed on %s after: %s" % (model, label)}
+                    sibling.get("error_id"),
+                    "same failure class verified by the class replay on %s" % model)
+                closed += 1
+        steps.extend(sib_steps)
+        _ops_log.log_resolution_attempt(error_id, category, steps, "solved")
+        return {"resolved": True, "verified": True, "attempted": True, "invalid": False,
+                "steps": steps, "model": model, "category": category,
+                "siblings_resolved": closed,
+                "reason": "replay passed on %s (%s)%s" % (
+                    model, strategy,
+                    "; %d sibling error(s) closed" % closed if closed else "")}
 
     _ops_log.log_resolution_attempt(error_id, category, steps, "still failing")
-    return {"resolved": False, "verified": False, "attempted": True, "steps": steps,
-            "reason": steps[-1]["detail"] if steps else "no remediation applied",
-            "category": category}
+    return {"resolved": False, "verified": False, "attempted": True, "invalid": False,
+            "steps": steps, "siblings_resolved": 0, "category": category,
+            "reason": steps[-1]["detail"] if steps else "no remediation applied"}

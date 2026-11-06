@@ -295,21 +295,28 @@ def _solve_with_fallback(problem):
 def solve_problems(problems):
     """Solve a list of problems through the pipeline.
 
-    Attempts to solve each problem using the statements solver.
+    Every problem passes through the deterministic normalizers first (one-line
+    account lists, duplicate lines, oversized input), so the frozen parser
+    always sees input in the shape it accepts — not only when Resolve is used.
+
     Returns (results: list[dict], error: str or None).
-    Each result: {problem, status, answer, error, gaps}.
+    Each result: {problem, status, answer, error, gaps, normalization}.
     """
+    from .problem_norm import normalize_problem
     results = []
     for problem in problems:
         result = {"problem": problem, "status": "unknown", "answer": None, "error": None, "gaps": []}
+        normalized, norm_notes = normalize_problem(problem)
+        if norm_notes:
+            result["normalization"] = norm_notes
         try:
             from . import statements as stmt_mod
             try:
-                record = stmt_mod.solve(str(problem))
+                record = stmt_mod.solve(str(normalized))
             except Exception as first_err:
                 if _looks_rate_limited(first_err):
                     # Rate limit on beam -> retry once on the backup model (deepseek flash)
-                    record = _solve_with_fallback(problem)
+                    record = _solve_with_fallback(normalized)
                     if record is None:
                         raise first_err
                 else:

@@ -169,8 +169,15 @@ def list_runs(limit=50, lane=None, status=None):
 
 
 def list_errors(limit=50, lane=None):
-    """Return recent error records, newest first."""
+    """Return recent error records, newest first.
+
+    Only records that actually carry an error message are returned; resolution,
+    attendance, invalid and attempt records live in the same append-only file
+    and must never appear as errors themselves.
+    """
     def filt(rec):
+        if not rec.get("error"):
+            return False
         if lane and rec.get("lane") != lane:
             return False
         return True
@@ -295,15 +302,49 @@ def mark_error_attended(error_id):
     return False
 
 
+def mark_error_dismissed(error_id, reason=""):
+    """Dismiss an error that cannot be verified (no replayable problem stored).
+
+    Distinct from solved: it is labelled "dismissed (unverified)" and never
+    claims the failure is gone.
+    """
+    record = {
+        "ts": _now_iso(),
+        "error_id": error_id,
+        "dismissed": True,
+        "reason": str(reason)[:200],
+    }
+    _append_jsonl(_errors_path(), record)
+    return True
+
+
+def mark_error_invalid(error_id, reason=""):
+    """Mark an error as invalid test input (not a pipeline defect).
+
+    It leaves the open list, but it is never labelled solved: invalid input is
+    not a pipeline failure, so "fixed" would be a false claim.
+    """
+    record = {
+        "ts": _now_iso(),
+        "error_id": error_id,
+        "invalid": True,
+        "reason": str(reason)[:200],
+    }
+    _append_jsonl(_errors_path(), record)
+    return True
+
+
 def merge_resolved(errors):
     """Merge resolution records into error list.
 
-    Returns errors with 'resolved' and 'attended' fields set from the
-    append-only resolution/attendance records.
+    Returns errors with 'resolved', 'verified', 'attended' and 'invalid'
+    fields set from the append-only resolution/attendance/invalid records.
     """
     resolved_ids = set()
     attended_ids = set()
     verified_ids = set()
+    invalid_ids = set()
+    dismissed_ids = set()
     all_records = _read_jsonl(_errors_path(), limit=100000)
     for r in all_records:
         if r.get("resolved") and r.get("error_id"):
@@ -312,10 +353,17 @@ def merge_resolved(errors):
                 verified_ids.add(r["error_id"])
         if r.get("attended") and r.get("error_id"):
             attended_ids.add(r["error_id"])
+        if r.get("invalid") and r.get("error_id"):
+            invalid_ids.add(r["error_id"])
+        if r.get("dismissed") and r.get("error_id"):
+            dismissed_ids.add(r["error_id"])
     for e in errors:
         e["resolved"] = e.get("error_id") in resolved_ids
         e["attended"] = e.get("error_id") in attended_ids
         e["verified"] = e.get("error_id") in verified_ids
+        e["invalid"] = e.get("error_id") in invalid_ids
+        e["dismissed"] = e.get("error_id") in dismissed_ids
+        e["replayable"] = bool(e.get("problem"))
     return errors
 
 

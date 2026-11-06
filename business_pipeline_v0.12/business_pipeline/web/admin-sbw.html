@@ -735,12 +735,16 @@ function renderErrorsTable(errors, container) {
     const resolved = e.resolved ? true : false;
     const sev = e.severity || 'moderate';
     const verified = e.verified ? true : false;
-    const sevPill = resolved ? (verified ? pill('verified solved', 'ok') : pill('resolved (unverified)', 'warn'))
-      : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'));
+    const invalid = e.invalid ? true : false;
+    const dismissed = e.dismissed ? true : false;
+    const sevPill = dismissed ? pill('dismissed (unverified)', 'warn') : (invalid ? pill('invalid input', 'info')
+      : (resolved ? (verified ? pill('verified solved', 'ok') : pill('resolved (unverified)', 'warn'))
+      : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'))));
     const statusPill = sevPill;
-    const genBtn = resolved ? '' : '<button class="btn primary" style="font-size:10px;padding:3px 8px;" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\',\'' + escapeHtml(e.severity||'moderate') + '\')">Generate</button>';
-    const resolveBtn = resolved ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" title="Re-runs the failing problem; resolves only if it now passes" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
-    html += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + escapeHtml(e.lane) + '</td><td style="font-size:10.2px;">' + escapeHtml((e.error||'').slice(0,80)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td>' + genBtn + ' ' + resolveBtn + '</td></tr>';
+    const genBtn = (resolved || e.invalid || e.dismissed) ? '' : '<button class="btn primary" style="font-size:10px;padding:3px 8px;" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\',\'' + escapeHtml(e.severity||'moderate') + '\')">Generate</button>';
+    const resolveBtn = (resolved || e.invalid || e.dismissed) ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" title="Re-runs the failing problem; resolves only if it now passes" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
+    const dismissBtn = (!resolved && !invalid && !e.dismissed && !e.replayable) ? ' <button class="btn" style="font-size:10px;padding:3px 8px;" title="No replayable problem was stored; closes it without claiming a fix" onclick="dismissError(\'' + escapeHtml(eid) + '\')">Dismiss</button>' : '';
+    html += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + escapeHtml(e.lane) + '</td><td style="font-size:10.2px;">' + escapeHtml((e.error||'').slice(0,80)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td>' + genBtn + ' ' + resolveBtn + dismissBtn + '</td></tr>';
   });
   html += '</tbody></table>';
   container.innerHTML = html;
@@ -942,6 +946,20 @@ async function genFromError(errorId, errorText, severity) {
   }
 }
 
+async function dismissError(errorId) {
+  const r = await apiFetch('/api/ops/errors/dismiss', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ error_id: errorId, reason: 'no replayable problem stored' })
+  });
+  if (r.status === 200 && r.data.dismissed) {
+    toast('Dismissed as unverified (not solved)');
+    loadErrors();
+  } else {
+    toast('Could not dismiss');
+  }
+}
+
 async function resolveError(errorId) {
   toast('Pipeline is attempting a fix (flash, then pro)...');
   const wfLog = document.getElementById('workflowLog');
@@ -956,9 +974,13 @@ async function resolveError(errorId) {
     wfLog.textContent += '  ' + (s.strategy || '?') + ' on ' + (s.model || '?') + ' -> ' + (s.outcome || '?')
       + (s.detail ? ' (' + s.detail + ')' : '') + '\n';
   });
-  if (r.status === 200 && d.resolved) {
-    wfLog.textContent += '[Resolved and verified on ' + (d.model || 'pipeline') + ']\n';
-    toast('Resolved and verified');
+  if (r.status === 200 && d.invalid) {
+    wfLog.textContent += '[Marked invalid input - not a pipeline defect]\n';
+    toast('Invalid test input - recorded as invalid, not solved');
+    loadErrors();
+  } else if (r.status === 200 && d.resolved) {
+    wfLog.textContent += '[Resolved and verified on ' + (d.model || 'pipeline') + (d.siblings_resolved ? '; ' + d.siblings_resolved + ' sibling error(s) closed' : '') + ']\n';
+    toast('Resolved and verified' + (d.siblings_resolved ? ' (+' + d.siblings_resolved + ' class)' : ''));
     loadErrors();
   } else if (r.status === 200 && d.attempted) {
     wfLog.textContent += '[Not resolved - ' + ((d.reason || 'still failing')).slice(0, 120) + ']\n';

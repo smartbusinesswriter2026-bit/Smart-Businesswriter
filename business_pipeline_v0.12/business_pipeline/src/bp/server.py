@@ -964,6 +964,14 @@ class H(BaseHTTPRequestHandler):
                 if not error_id:
                     return self._send(400, {"error": "error_id required"})
                 return self._send(200, product_auto_resolve.resolve(error_id))
+            if self.path == "/api/ops/errors/dismiss":
+                body = self._body()
+                error_id = body.get("error_id", "") if isinstance(body, dict) else ""
+                if not error_id:
+                    return self._send(400, {"error": "error_id required"})
+                ok = product_ops_log.mark_error_dismissed(
+                    error_id, body.get("reason", "no replayable problem stored") if isinstance(body, dict) else "")
+                return self._send(200, {"dismissed": ok})
             if self.path == "/api/ops/errors/attend":
                 body = self._body()
                 error_id = body.get("error_id", "") if isinstance(body, dict) else ""

@@ -223,6 +223,10 @@ SUITES = {
         "tests/test_prose.py",
         "tests/test_plan_verifier.py",
     ],
+    # ── Regression (harvested golden fixes) ──
+    "regression": [
+        "tests/test_problem_norm_regression.py",
+    ],
     # ── All (run everything) ──
     "all": None,  # special: runs all test files
 }

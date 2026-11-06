@@ -157,7 +157,9 @@ def _pick_highest_impact_error():
     """
     errors = _ops_log.list_errors(limit=100)
     errors = _ops_log.merge_resolved(errors)
-    open_errors = [e for e in errors if not e.get("resolved") and not e.get("attended")]
+    open_errors = [e for e in errors
+                   if not e.get("resolved") and not e.get("attended")
+                   and not e.get("invalid") and not e.get("dismissed")]
     if not open_errors:
         return None
     # Sort by severity (severe first) then by count
