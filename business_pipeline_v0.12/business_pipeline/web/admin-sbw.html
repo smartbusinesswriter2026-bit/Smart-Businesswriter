@@ -387,6 +387,7 @@
           <label>Style: <select id="atStyle"><option value="apa" selected>APA 7</option><option value="harvard">Harvard</option></select></label>
           <label>Format: <select id="atFormat"><option value="docx" selected>Word (.docx)</option><option value="xlsx">Excel (.xlsx)</option><option value="both">Both</option></select></label>
           <label>Length: <select id="atLength"><option value="600">Short (600 words)</option><option value="1200" selected>Mid (1,200 words)</option><option value="2500">Long (2,500 words)</option></select></label>
+          <label>Test source: <select id="atSource"><option value="system" selected>System-generated</option><option value="uploaded">Uploaded files</option><option value="both">Both</option></select></label>
           <button class="btn" id="atRefresh" title="Re-read the subject shelves">Reload subjects</button>
           <span id="atGlobalStatus" style="font-size:11px;color:var(--muted);"></span>
         </div>
@@ -1313,6 +1314,7 @@ function renderPaperTesting() {
     const sid = escapeHtml(subject.id);
     let tileCount = 0;
     let groupHtml = '';
+    let uploadOptions = '';
     (subject.groups || []).forEach(group => {
       let tiles = '';
       (group.tiles || []).forEach(tile => {
@@ -1324,6 +1326,9 @@ function renderPaperTesting() {
         tiles += '<label class="at-tile' + (tile.has_defaults ? '' : ' disabled') + '">'
           + '<input type="checkbox" data-at-sub="' + sid + '" data-at-tile="' + escapeHtml(tile.key) + '"'
           + checked + disabled + '> <span>' + escapeHtml(tile.label) + note + '</span></label>';
+        if (tile.has_defaults) {
+          uploadOptions += '<option value="' + escapeHtml(tile.key) + '">' + escapeHtml(tile.label) + '</option>';
+        }
       });
       groupHtml += '<details class="at-group" data-at-group="' + sid + '">'
         + '<summary>' + escapeHtml(group.label || 'General') + '<span>' + (group.tiles || []).length + ' tile(s)</span></summary>'
@@ -1338,14 +1343,33 @@ function renderPaperTesting() {
       + '<button class="btn" data-at-clear="' + sid + '">Clear</button>'
       + '<span class="at-status" id="at-status-' + sid + '">' + tileCount + ' tile(s) on this shelf</span>'
       + '</div>'
+      + '<div class="row" style="margin-top:6px;">'
+      + '<label>Upload for tile: <select data-at-upload-tile="' + sid + '">' + uploadOptions + '</select></label>'
+      + '<button class="btn" data-at-upload="' + sid + '">Add files</button>'
+      + '<span class="at-status" id="at-uploaded-' + sid + '">0 uploaded case(s)</span>'
+      + '</div>'
+      + '<input type="file" id="at-file-' + sid + '" data-at-file="' + sid + '" multiple style="display:none">'
       + '<div class="progress" id="at-progress-' + sid + '" style="display:none;"><div class="bar" style="width:0%"></div></div>'
       + '<div class="at-results" id="at-results-' + sid + '"></div>'
+      + '<div class="at-results" id="at-case-results-' + sid + '"></div>'
       + '<div class="at-downloads" id="at-downloads-' + sid + '"></div>'
       + '</div>';
   });
   host.innerHTML = html || '<div class="empty">No subjects.</div>';
   atData.subjects.forEach(subject => atUpdateCount(subject.id));
+  atUpdateUploadedCounts();
   atLoadRecentRuns();
+}
+
+function atUploadedCases(subject) {
+  return caseCache.filter(c => c.subject === subject && c.origin === 'uploaded');
+}
+
+function atUpdateUploadedCounts() {
+  (atData.subjects || []).forEach(subject => {
+    const el = document.getElementById('at-uploaded-' + subject.id);
+    if (el) el.textContent = atUploadedCases(subject.id).length + ' uploaded case(s)';
+  });
 }
 
 async function atLoadRecentRuns() {
@@ -1370,6 +1394,15 @@ async function atLoadRecentRuns() {
 
 document.getElementById('atSections').addEventListener('change', (event) => {
   const input = event.target;
+  if (input && input.matches('input[data-at-file]')) {
+    const sid = input.dataset.atFile;
+    const select = document.querySelector('select[data-at-upload-tile="' + sid + '"]');
+    const tile = input.dataset.tile || (select ? select.value : '') || '';
+    if (!tile) { toast('Choose a tile for the upload'); return; }
+    uploadPaperFiles(sid, tile, Array.from(input.files || []));
+    input.value = '';
+    return;
+  }
   if (!input || !input.matches('input[data-at-tile]')) return;
   const ticks = atTicks();
   const key = atKey(input.dataset.atSub, input.dataset.atTile);
@@ -1378,7 +1411,40 @@ document.getElementById('atSections').addEventListener('change', (event) => {
   atUpdateCount(input.dataset.atSub);
 });
 
+async function uploadPaperFiles(subject, tile, files) {
+  let ok = 0;
+  const rejected = [];
+  for (const file of files) {
+    const content = await readBase64(file);
+    const r = await apiFetch('/api/ops/cases/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject: subject, tile: tile, name: file.name, content: content })
+    });
+    if (r.status === 200) ok += 1;
+    else rejected.push(file.name + ': ' + ((r.data && r.data.error) || r.status));
+  }
+  toast(ok + ' file(s) accepted' + (rejected.length ? '; ' + rejected.length + ' rejected' : ''));
+  if (rejected.length) {
+    document.getElementById('at-case-results-' + subject).innerHTML =
+      '<div class="empty">Rejected:<br>' + rejected.map(escapeHtml).join('<br>') + '</div>';
+  }
+  loadCases();
+  atUpdateUploadedCounts();
+}
+
 document.getElementById('atSections').addEventListener('click', (event) => {
+  const uploadBtn = event.target.closest('button[data-at-upload]');
+  if (uploadBtn) {
+    const sid = uploadBtn.dataset.atUpload;
+    const select = document.querySelector('select[data-at-upload-tile="' + sid + '"]');
+    const input = document.getElementById('at-file-' + sid);
+    if (input) {
+      input.dataset.tile = select ? select.value : '';
+      input.click();
+    }
+    return;
+  }
   const runBtn = event.target.closest('button[data-at-run]');
   if (runBtn) { atGenerate(runBtn.dataset.atRun, runBtn); return; }
   const clearBtn = event.target.closest('button[data-at-clear]');
@@ -1398,7 +1464,46 @@ document.getElementById('atRefresh').addEventListener('click', () => loadPaperTe
 async function atGenerate(subject, button) {
   const keys = atSelected(subject);
   if (!keys.length) { toast('Tick at least one tile first'); return; }
-  button.disabled = true;
+  const source = document.getElementById('atSource').value;
+  if (source === 'system' || source === 'both') {
+    await atRunPapers(subject, keys, button);
+  }
+  if (source === 'uploaded' || source === 'both') {
+    await atRunUploaded(subject, keys);
+    if (button) button.disabled = false;
+  }
+}
+
+async function atRunUploaded(subject, keys) {
+  const host = document.getElementById('at-case-results-' + subject);
+  const uploaded = caseCache.filter(c => c.subject === subject
+    && c.origin === 'uploaded' && keys.indexOf(c.tile) !== -1);
+  if (!uploaded.length) {
+    host.innerHTML = '<div class="empty">No uploaded cases for the selected tile(s). Use Add files first.</div>';
+    return;
+  }
+  host.innerHTML = '<div class="at-status">Running ' + uploaded.length + ' uploaded case(s)…</div>';
+  const r = await apiFetch('/api/ops/cases/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      case_ids: uploaded.map(c => c.id),
+      subject: subject,
+      style: document.getElementById('atStyle').value,
+      length: parseInt(document.getElementById('atLength').value, 10) || 1200
+    })
+  });
+  if (r.status !== 200 || !r.data) {
+    host.innerHTML = '<div class="empty">Uploaded case run failed: '
+      + escapeHtml((r.data && r.data.error) || r.status) + '</div>';
+    return;
+  }
+  host.innerHTML = caseResultsHtml(r.data);
+  loadErrors();
+}
+
+async function atRunPapers(subject, keys, button) {
+  if (button) button.disabled = true;
   const status = document.getElementById('at-status-' + subject);
   status.textContent = 'Starting ' + keys.length + ' paper(s)…';
   const r = await apiFetch('/api/ops/papers/batch', {
@@ -1415,7 +1520,7 @@ async function atGenerate(subject, button) {
   });
   if (r.status !== 200 || !r.data || !r.data.run_id) {
     status.textContent = 'Could not start: ' + ((r.data && r.data.error) || r.status);
-    button.disabled = false;
+    if (button) button.disabled = false;
     return;
   }
   atPolling[subject] = r.data.run_id;
@@ -1531,6 +1636,7 @@ async function loadCases() {
   });
   document.getElementById('caseSubjects').innerHTML = html
     || '<div class="empty">No cases yet. Use Seed missing cases.</div>';
+  atUpdateUploadedCounts();
 }
 
 function readBase64(file) {
@@ -1650,7 +1756,7 @@ async function runCases(ids, label, generateCount) {
   loadErrors();
 }
 
-function renderCaseResults(manifest) {
+function caseResultsHtml(manifest) {
   const runId = escapeHtml(manifest.run_id);
   const rows = (manifest.results || []).map(row => {
     const cls = row.status === 'pass' ? 'ok' : 'err';
@@ -1668,12 +1774,15 @@ function renderCaseResults(manifest) {
       + '<td>' + output + '</td>'
       + '<td>' + escapeHtml(row.error || '') + '</td></tr>';
   }).join('');
-  document.getElementById('caseResults').innerHTML =
-    '<div class="row" style="justify-content:space-between;margin-top:6px;">'
-      + '<strong>Run ' + escapeHtml(manifest.run_id) + '</strong>'
-      + '<span class="at-status">' + (manifest.passed || 0) + ' passed / ' + (manifest.failed || 0) + ' failed</span></div>'
-      + '<table><thead><tr><th>Case</th><th>Tile</th><th>Status</th><th>Time</th><th>Output</th><th>Error</th></tr></thead><tbody>'
-      + rows + '</tbody></table>';
+  return '<div class="row" style="justify-content:space-between;margin-top:6px;">'
+    + '<strong>Run ' + escapeHtml(manifest.run_id) + '</strong>'
+    + '<span class="at-status">' + (manifest.passed || 0) + ' passed / ' + (manifest.failed || 0) + ' failed</span></div>'
+    + '<table><thead><tr><th>Case</th><th>Tile</th><th>Status</th><th>Time</th><th>Output</th><th>Error</th></tr></thead><tbody>'
+    + rows + '</tbody></table>';
+}
+
+function renderCaseResults(manifest) {
+  document.getElementById('caseResults').innerHTML = caseResultsHtml(manifest);
 }
 
 /* ── Chat ── */

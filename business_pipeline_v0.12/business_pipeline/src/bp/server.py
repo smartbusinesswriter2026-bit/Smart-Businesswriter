@@ -182,6 +182,7 @@ product_statements.attach_core(
     trend=lambda inputs: methods.LIBRARY["trend_analysis"].impl(inputs),
     tax_reconciliation=lambda inputs: methods.LIBRARY["tax_reconciliation"].impl(inputs),
     piotroski=lambda inputs: methods.LIBRARY["piotroski_f_score"].impl(inputs),
+    beneish=lambda inputs: methods.LIBRARY["beneish_m_score"].impl(inputs),
     guards=lambda record: __import__("bp.guards", fromlist=["guards"]).run(record),
     case_solver=lambda text: __import__("bp.case_solver", fromlist=["case_solver"]).solve_case(text),
 )
