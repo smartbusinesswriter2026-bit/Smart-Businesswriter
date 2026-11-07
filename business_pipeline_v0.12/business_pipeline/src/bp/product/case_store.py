@@ -12,12 +12,17 @@ diffed and committed like any other fixture.  Seeding is additive: an existing
 case is never overwritten unless the caller asks for it.
 """
 
+import csv
+import io
 import json
 import os
 import re
+import zipfile
 from datetime import datetime, timezone
 
+from .. import methods
 from . import capabilities
+from . import documents
 from . import paper_batch
 
 FORMAT = "bp-tile-case/1"
@@ -98,6 +103,7 @@ def seed(subject=None, tile=None, overwrite=False, limit=None):
                         "status": "ok",
                         "result": expected,
                         "contains": [row.get("label") or row["key"], "Declared inputs", "References"],
+                        "xlsx_sheets": ["Summary", "Inputs", "Results", "Record"],
                     },
                     "created_at": _now(),
                     "origin": "preset",

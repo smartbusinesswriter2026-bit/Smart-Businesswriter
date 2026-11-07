@@ -104,16 +104,20 @@
    "n_findings": "0",
    "total_absolute_difference": "0",
    "difference_net": "0",
-   "submitted_balance_difference": "0",
-   "_checks": "[('every_row_is_matched_or_explained', True, '0 unknown status, 0 unexplained'), ('second_route_agrees', True, 'linear scan 0 differing vs index 0'), ('net_difference_agrees_with_lines', True, 'lines 0 vs reported 0'), ('submitted_balance_difference_agrees', True, 'rows 0 vs reported 0'), ('divisibility_rule_is_reported_not_concluded', True, 'the rule did not fire')]",
-   "_appendix": "{'rows': [{'code': '1000', 'name': 'Cash', 'status': 'agrees', 'submitted': '1500', 'rebuilt': '1500', 'difference': '0'}, {'code': '3000', 'name': 'Capital', 'status': 'agrees', 'submitted': '-1500', 'rebuilt': '-1500', 'difference': '0'}], 'findings': [], 'verdict': 'Your trial balance agrees with your own journal, line for line. This is the strongest check available here. It does not prove your entries are right - only that your trial balance is a faithful summary of them.', 'cannot_prove': ['It cannot tell you which of the two figures is right when both are declared.', 'It cannot catch an error of principle if the journal itself encodes the wrong treatment.', 'It cannot check amounts against source documents.', 'It corrects nothing.'], 'inputs_supplied': {'journal': True, 'trial_balance': True}}"
+   "submitted_balance_difference": "0"
   },
   "contains": [
    "Check a trial balance",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:07:46.857419+00:00",
+ "created_at": "2026-11-07T13:49:00.080338+00:00",
  "origin": "preset"
 }

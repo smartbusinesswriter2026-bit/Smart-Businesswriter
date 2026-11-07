@@ -37,6 +37,7 @@ from . import capabilities
 from . import chat as conductor
 from . import paper
 from . import sources as source_finder
+from . import spreadsheets
 from . import subjects as subject_index
 
 FORMAT = "bp-paper-preview/1"
@@ -478,8 +479,36 @@ def _tidy(state, tile, objective, source_count, background=None):
     return state
 
 
-def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpus"):
-    """Generate one tile's paper.  Returns a result dict; raises on a hard failure."""
+def _workbook_bundle(subject, tile, objective, inputs, recorded):
+    """The tile's recorded computation in the shape the workbook writer reads."""
+    artifacts = [{"id": str(name), "metric": str(name), "value": value,
+                  "unit": "", "precision": None, "derivation": ""}
+                 for name, value in (recorded or {}).items()
+                 if not str(name).startswith("_")]
+    return {
+        "id": "tile-%s-%s" % (subject.get("id") or "subject", tile.get("key") or "tile"),
+        "title": "%s: %s" % (tile.get("label") or tile.get("key"), str(objective).rstrip(" .?!")),
+        "method": tile.get("method") or "",
+        "tier": "",
+        "created_at": _now(),
+        "delivery": {"appendix": {"artifacts": artifacts}},
+        "reperform": {"inputs": inputs or {}, "outputs": recorded or {}},
+    }
+
+
+def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpus", format="docx",
+                 inputs=None, instruction=None):
+    """Generate one tile's paper and, when asked, its workbook.
+
+    `format` is ``docx`` (the paper), ``xlsx`` (the recorded computation as a
+    workbook) or ``both``.  The paper is always composed because its computation
+    is the record the workbook carries; the format decides what is returned and
+    saved, not how the figure is computed.
+
+    `inputs` and `instruction` let a stored case replay its own figures and its
+    own problem.  Without them the tile's published preset is used, which is what
+    a plain preview wants.
+    """
     subject, group, tile = _find_tile(subject_id, tile_key)
     started = time.perf_counter()
     if not tile.get("has_defaults"):
@@ -489,8 +518,8 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
                 "status": "needs_input", "error": reason, "duration_ms": 0}
     preset = _preset_for({"preset": tile.get("preset")})
     objective = (preset or {}).get("objective") or tile.get("objective") or tile.get("label")
-    inputs = (preset or {}).get("inputs") or {}
-    brief = _brief(subject, tile, objective, inputs)
+    declared = inputs if isinstance(inputs, dict) and inputs else ((preset or {}).get("inputs") or {})
+    brief = str(instruction or "").strip() or _brief(subject, tile, objective, declared)
 
     state = conductor.start(brief, subject="any", framework="pestel")
     if state.get("stage") == "not_supported":
@@ -525,13 +554,13 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
     state["plan"] = conductor._plan(state)
     state = conductor.confirm_plan(state)
 
-    output = _run_method(tile, inputs)
+    output = _run_method(tile, declared)
     if isinstance(output, dict):
         recorded = {str(name): str(value) for name, value in output.items()}
     else:
         recorded = {str(row.get("output") or "value"): str(output)}
     state.setdefault("computations", {})[row["key"]] = {
-        "ok": True, "method": tile["method"], "inputs": inputs,
+        "ok": True, "method": tile["method"], "inputs": declared,
         "result": recorded, "from": {},
     }
     source_count, errors, background = _seed_corpus(state, subject, tile, objective)
@@ -546,6 +575,13 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
     state = conductor.draft(state, implications=implications)
     state = _tidy(state, tile, objective, source_count, background)
     data = conductor.docx_bytes(state, byline=["Smart Business Writer", "Tile preview"])
+    xlsx = None
+    if str(format or "docx").lower() in ("xlsx", "both", "excel"):
+        try:
+            xlsx = spreadsheets.to_xlsx(
+                _workbook_bundle(subject, tile, objective, declared, recorded))
+        except Exception:
+            xlsx = None
     return {
         "tile_key": tile_key,
         "label": tile.get("label") or tile_key,
@@ -555,6 +591,8 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
         "brief": brief,
         "filename": _safe_name("%s - %s" % (subject["label"], tile.get("label") or tile_key)) + ".docx",
         "bytes": data,
+        "xlsx_filename": _safe_name("%s - %s" % (subject["label"], tile.get("label") or tile_key)) + ".xlsx",
+        "xlsx": xlsx,
         "sections": state["draft"].get("outline") or [],
         "title": state["draft"].get("title") or "",
         "sources": len(state.get("sources") or []),
@@ -562,7 +600,7 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
         "gaps": len(state.get("gaps") or []),
         "evidence_errors": errors,
         "computation": recorded,
-        "inputs": inputs,
+        "inputs": declared,
         "duration_ms": int((time.perf_counter() - started) * 1000),
     }
 
@@ -591,7 +629,7 @@ def _read_manifest(run_id):
         return json.load(handle)
 
 
-def start_run(subject_id, tile_keys, style="apa", evidence="corpus", length=1200):
+def start_run(subject_id, tile_keys, style="apa", evidence="corpus", length=1200, format="docx"):
     """Create a run directory and start generating the selected tiles in background."""
     subject, _group, _tile = _find_tile(subject_id, tile_keys[0] if tile_keys else "")
     keys = []
@@ -615,6 +653,7 @@ def start_run(subject_id, tile_keys, style="apa", evidence="corpus", length=1200
         "created_at": _now(),
         "style": "harvard" if str(style).lower().startswith("harv") else "apa",
         "evidence": "corpus" if evidence != "none" else "none",
+        "output": str(format or "docx").lower(),
         "length": int(length or 1200),
         "status": "running",
         "total": len(keys),
@@ -637,20 +676,28 @@ def _run(run_id, run_dir, manifest, keys):
             try:
                 result = generate_one(manifest["subject"], key,
                                       style=manifest["style"], length=manifest["length"],
-                                      evidence=manifest.get("evidence") or "corpus")
+                                      evidence=manifest.get("evidence") or "corpus",
+                                      format=manifest.get("output") or "docx")
             except Exception as error:
                 result = {"tile_key": key, "label": key, "status": "error",
                           "error": str(error)[:500], "duration_ms": 0}
             data = result.pop("bytes", None)
+            xlsx = result.pop("xlsx", None)
             outline = result.pop("sections", None)
             title = result.pop("title", "")
-            if data:
+            output = manifest.get("output") or "docx"
+            if data and output in ("docx", "both"):
                 path = os.path.join(run_dir, result["filename"])
                 with open(path, "wb") as handle:
                     handle.write(data)
                 result["size"] = len(data)
                 if outline:
                     completed_sections.append((title or result.get("label") or key, outline))
+            if xlsx and output in ("xlsx", "both", "excel"):
+                path = os.path.join(run_dir, result["xlsx_filename"])
+                with open(path, "wb") as handle:
+                    handle.write(xlsx)
+                result["xlsx_size"] = len(xlsx)
             manifest["results"][index] = result
             manifest["completed"] = index + 1
             _write_manifest(run_dir, manifest)
@@ -709,7 +756,7 @@ def _zip_bytes(run_id):
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         for name in sorted(os.listdir(run_dir)):
-            if name.endswith(".docx"):
+            if name.endswith((".docx", ".xlsx")):
                 archive.write(os.path.join(run_dir, name), arcname=name)
         archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=1))
         archive.writestr("index.html", _index_html(manifest))
@@ -721,7 +768,8 @@ def _instructions_md(manifest):
     """The prefilled instruction behind each paper, so the tile's behaviour is inspectable."""
     lines = ["# %s - prefilled tile instructions" % (manifest.get("label") or "Tile previews"),
              "", "Generated %s. Each paper is the writer's own output for the instruction below."
-             % (manifest.get("created_at") or ""), ""]
+             % (manifest.get("created_at") or ""),
+             "Output format: %s." % (manifest.get("output") or "docx"), ""]
     for row in manifest.get("results") or []:
         lines.append("## %s" % (row.get("label") or row.get("tile_key") or ""))
         if row.get("group"):
@@ -745,11 +793,13 @@ def _instructions_md(manifest):
 def _index_html(manifest):
     rows = []
     for row in manifest.get("results") or []:
-        filename = row.get("filename") or ""
-        if row.get("status") == "ok" and filename:
-            rows.append('<li><a href="%s">%s</a> - %s - %s bytes</li>' % (
-                _escape(filename), _escape(filename), _escape(row.get("group") or ""),
-                row.get("size") or 0))
+        if row.get("status") == "ok":
+            for label, filename, size in (
+                    ("DOCX", row.get("filename"), row.get("size")),
+                    ("XLSX", row.get("xlsx_filename"), row.get("xlsx_size"))):
+                if filename and size:
+                    rows.append('<li><a href="%s">%s</a> - %s - %s bytes</li>' % (
+                        _escape(filename), _escape(filename), label, size))
         else:
             rows.append("<li>%s - %s: %s</li>" % (
                 _escape(row.get("label") or row.get("tile_key") or ""),

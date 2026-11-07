@@ -51,8 +51,14 @@
    "Leverage, EPS and Altman Z",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.144506+00:00",
+ "created_at": "2026-11-07T13:49:00.141037+00:00",
  "origin": "preset"
 }

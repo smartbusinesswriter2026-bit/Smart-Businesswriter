@@ -53,15 +53,20 @@
    "n_pairs": "3",
    "n_rejected": "3",
    "alpha": "0.05",
-   "n_excluded": "0",
-   "_appendix": "{'adjust': 'holm', 'alpha': '0.05', 'pairs': ['a vs b', 'a vs c', 'b vs c'], 'correction': 'Holm step-down family-wise correction'}"
+   "n_excluded": "0"
   },
   "contains": [
    "Post-hoc pairwise tests",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.515403+00:00",
+ "created_at": "2026-11-07T13:49:00.493124+00:00",
  "origin": "preset"
 }

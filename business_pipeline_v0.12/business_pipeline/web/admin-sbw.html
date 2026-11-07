@@ -384,6 +384,7 @@
         </p>
         <div class="row">
           <label>Style: <select id="atStyle"><option value="apa" selected>APA 7</option><option value="harvard">Harvard</option></select></label>
+          <label>Format: <select id="atFormat"><option value="docx" selected>Word (.docx)</option><option value="xlsx">Excel (.xlsx)</option><option value="both">Both</option></select></label>
           <label>Length: <select id="atLength"><option value="600">Short (600 words)</option><option value="1200" selected>Mid (1,200 words)</option><option value="2500">Long (2,500 words)</option></select></label>
           <button class="btn" id="atRefresh" title="Re-read the subject shelves">Reload subjects</button>
           <span id="atGlobalStatus" style="font-size:11px;color:var(--muted);"></span>
@@ -1402,6 +1403,7 @@ async function atGenerate(subject, button) {
       subject: subject,
       tile_keys: keys,
       style: document.getElementById('atStyle').value,
+      format: document.getElementById('atFormat').value,
       length: parseInt(document.getElementById('atLength').value, 10) || 1200,
       evidence: 'corpus'
     })
@@ -1457,6 +1459,7 @@ function atRenderResults(subject, state) {
       ? (row.sources || 0) + ' source(s)'
         + (row.background ? ', ' + row.background + ' background' : '')
         + (row.gaps ? ', ' + row.gaps + ' gap(s)' : '')
+        + (row.xlsx_size ? ', xlsx ' + Math.round(row.xlsx_size / 1024) + ' KB' : '')
       : '';
     return '<tr><td>' + escapeHtml(row.label || row.tile_key) + '</td>'
       + '<td>' + pill(row.status || 'queued', cls) + '</td>'
@@ -1498,17 +1501,96 @@ async function loadCases() {
   Object.keys(bySubject).sort().forEach(sid => {
     const rows = bySubject[sid];
     const label = rows[0].subject_label || sid;
-    html += '<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:6px 0;">'
+    const tiles = Array.from(new Set(rows.map(c => c.tile)));
+    const options = tiles.map(tile => '<option value="' + escapeHtml(tile) + '">'
+      + escapeHtml(tile) + '</option>').join('');
+    const checks = rows.map(c => '<label class="at-tile"><input type="checkbox" data-case-check="'
+      + escapeHtml(sid) + '" value="' + escapeHtml(c.id) + '"> <span>'
+      + escapeHtml(c.id) + ' <em>' + escapeHtml(c.tile_label || c.tile || '') + '</em></span></label>').join('');
+    html += '<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:6px 0;align-items:center;">'
       + '<span>' + escapeHtml(label) + ' <span class="at-status">' + rows.length + ' case(s)</span></span>'
-      + '<button class="btn" data-case-run="' + escapeHtml(sid) + '">Run</button></div>';
+      + '<span style="display:flex;gap:6px;align-items:center;">'
+      + '<select data-case-tile="' + escapeHtml(sid) + '" title="Tile for an uploaded file">' + options + '</select>'
+      + '<button class="btn" data-case-upload="' + escapeHtml(sid) + '">Add files</button>'
+      + '<button class="btn" data-case-run="' + escapeHtml(sid) + '">Run all</button>'
+      + '</span></div>'
+      + '<details class="at-group"><summary>Select cases / generate problems<span>'
+      + rows.length + ' stored</span></summary>'
+      + '<div class="at-tiles" style="grid-template-columns:1fr;">' + checks + '</div>'
+      + '<div class="row" style="margin-top:6px;">'
+      + '<label class="at-tile"><input type="checkbox" data-case-gen="' + escapeHtml(sid) + '"> Generate problems: '
+      + '<input type="number" data-case-count="' + escapeHtml(sid) + '" value="5" min="1" max="10" style="width:60px;"></label>'
+      + '<button class="btn" data-case-run-selected="' + escapeHtml(sid) + '">Run selected</button>'
+      + '</div></details>'
+      + '<input type="file" id="case-file-' + escapeHtml(sid) + '" data-case-file="' + escapeHtml(sid) + '" multiple style="display:none">';
   });
   document.getElementById('caseSubjects').innerHTML = html
     || '<div class="empty">No cases yet. Use Seed missing cases.</div>';
 }
 
+function readBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || '').split(',')[1] || '');
+    reader.onerror = () => reject(reader.error || new Error('read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadCaseFiles(subject, tile, files) {
+  let ok = 0;
+  const rejected = [];
+  for (const file of files) {
+    const content = await readBase64(file);
+    const r = await apiFetch('/api/ops/cases/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject: subject, tile: tile, name: file.name, content: content })
+    });
+    if (r.status === 200) ok += 1;
+    else rejected.push(file.name + ': ' + ((r.data && r.data.error) || r.status));
+  }
+  toast(ok + ' file(s) accepted' + (rejected.length ? '; ' + rejected.length + ' rejected' : ''));
+  if (rejected.length) {
+    document.getElementById('caseResults').innerHTML =
+      '<div class="empty">Rejected:<br>' + rejected.map(escapeHtml).join('<br>') + '</div>';
+  }
+  loadCases();
+}
+
 document.getElementById('caseSubjects').addEventListener('click', (event) => {
-  const button = event.target.closest('button[data-case-run]');
-  if (button) runCasesFor(button.dataset.caseRun);
+  const run = event.target.closest('button[data-case-run]');
+  if (run) { runCasesFor(run.dataset.caseRun); return; }
+  const upload = event.target.closest('button[data-case-upload]');
+  if (upload) {
+    const sid = upload.dataset.caseUpload;
+    const input = document.getElementById('case-file-' + sid);
+    if (input) input.click();
+    return;
+  }
+  const selected = event.target.closest('button[data-case-run-selected]');
+  if (selected) {
+    const sid = selected.dataset.caseRunSelected;
+    const ids = Array.from(document.querySelectorAll('input[data-case-check="' + sid + '"]:checked'))
+      .map(input => input.value);
+    const generateBox = document.querySelector('input[data-case-gen="' + sid + '"]');
+    const countBox = document.querySelector('input[data-case-count="' + sid + '"]');
+    const count = generateBox && generateBox.checked
+      ? Math.max(1, Math.min(10, parseInt((countBox || {}).value, 10) || 5)) : 0;
+    if (!ids.length && !count) { toast('Tick a case or generate problems'); return; }
+    runCases(ids, sid, count);
+  }
+});
+
+document.getElementById('caseSubjects').addEventListener('change', (event) => {
+  const input = event.target;
+  if (!input || !input.dataset || !input.dataset.caseFile) return;
+  const sid = input.dataset.caseFile;
+  const select = document.querySelector('select[data-case-tile="' + sid + '"]');
+  const tile = select ? select.value : '';
+  if (!tile) { toast('Choose a tile first'); return; }
+  uploadCaseFiles(sid, tile, Array.from(input.files || []));
+  input.value = '';
 });
 
 document.getElementById('seedCases').addEventListener('click', async () => {
@@ -1527,25 +1609,28 @@ document.getElementById('seedCases').addEventListener('click', async () => {
 
 document.getElementById('runAllCases').addEventListener('click', () => {
   if (!caseCache.length) { toast('No cases to run'); return; }
-  runCases(caseCache.map(c => c.id), 'all subjects');
+  runCases(caseCache.map(c => c.id), 'all subjects', 0);
 });
 
 async function runCasesFor(subject) {
   const ids = caseCache.filter(c => c.subject === subject).map(c => c.id);
-  await runCases(ids, subject);
+  await runCases(ids, subject, 0);
 }
 
-async function runCases(ids, label) {
+async function runCases(ids, label, generateCount) {
   const progress = document.getElementById('caseProgress');
   progress.style.display = '';
   progress.querySelector('.bar').style.width = '10%';
+  const note = generateCount ? ' + ' + generateCount + ' generated problem(s)' : '';
   document.getElementById('caseResults').innerHTML =
-    '<div class="at-status">Running ' + ids.length + ' case(s) for ' + escapeHtml(label) + '…</div>';
+    '<div class="at-status">Running ' + ids.length + ' case(s)' + note + ' for ' + escapeHtml(label) + '…</div>';
   const r = await apiFetch('/api/ops/cases/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       case_ids: ids,
+      subject: label === 'all subjects' ? null : label,
+      generate_count: generateCount || 0,
       style: document.getElementById('atStyle').value,
       length: parseInt(document.getElementById('atLength').value, 10) || 1200
     })

@@ -21,15 +21,20 @@
   "result": {
    "amount": "920.00",
    "amount_from": "1000",
-   "rate": "0.92",
-   "_appendix": "{'from_currency': 'USD', 'to_currency': 'EUR', 'rate': '0.92', 'rate_date': '2026-10-20', 'rate_source': None, 'rate_provenance': 'user', 'converted': '920.00', 'note': \"The exchange rate is the owner's declaration and is not retrieved or verified by the system.\"}"
+   "rate": "0.92"
   },
   "contains": [
    "Currency conversion",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.230646+00:00",
+ "created_at": "2026-11-07T13:49:00.215743+00:00",
  "origin": "preset"
 }

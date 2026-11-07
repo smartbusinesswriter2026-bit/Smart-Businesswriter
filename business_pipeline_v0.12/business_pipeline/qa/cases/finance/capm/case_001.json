@@ -32,8 +32,14 @@
    "CAPM and beta",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.143499+00:00",
+ "created_at": "2026-11-07T13:49:00.140000+00:00",
  "origin": "preset"
 }

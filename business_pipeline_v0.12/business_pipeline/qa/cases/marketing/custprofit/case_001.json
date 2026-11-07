@@ -54,15 +54,20 @@
    "profitable": "2",
    "unprofitable": "1",
    "segments_for_threshold": "1",
-   "concentration_threshold": "0.8",
-   "_appendix": "{'segments': [{'name': 'Enterprise', 'revenue': '5000000', 'direct_cost': '3000000', 'allocated_cost': '600000', 'profit': '1400000'}, {'name': 'SME', 'revenue': '3000000', 'direct_cost': '2100000', 'allocated_cost': '400000', 'profit': '500000'}, {'name': 'Retail', 'revenue': '1200000', 'direct_cost': '1500000', 'allocated_cost': '100000', 'profit': '-400000'}], 'ranked_by_profit': ['Enterprise', 'SME', 'Retail']}"
+   "concentration_threshold": "0.8"
   },
   "contains": [
    "Customer profitability by segment",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.453629+00:00",
+ "created_at": "2026-11-07T13:49:00.433647+00:00",
  "origin": "preset"
 }

@@ -30,8 +30,14 @@
    "Public goods",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.197613+00:00",
+ "created_at": "2026-11-07T13:49:00.190951+00:00",
  "origin": "preset"
 }

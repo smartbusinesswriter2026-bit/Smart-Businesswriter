@@ -32,16 +32,20 @@
    "weighted_mean": "3",
    "weighted_sd": "1.4142135623730950488016887242096980785696718753769",
    "n_eff": "3.0",
-   "design_effect": "1.3333333333333333",
-   "_appendix": "{'weight_kind': 'reliability', 'definitions': {'weighted_mean': 'sum(w*x) / sum(w)', 'reliability_sd': 'sqrt( sum(w*(x-mean)^2) / (sum(w) - sum(w^2)/sum(w)) )  [unbiased under reliability weights]', 'frequency_sd': 'sqrt( sum(w*(x-mean)^2) / (sum(w) - 1) )  [frequency weights count observations]', 'n_eff': 'sum(w)^2 / sum(w^2)  [effective sample size]', 'design_effect': 'n / n_eff'}, 'inference': 'None is provided. No standard error, confidence interval or test is computed, because that needs a declared complex design (stratification, clustering, replicate weights).'}",
-   "_checks": "[('second_implementation_agrees', True, 'float route agrees with the Decimal route'), ('equal_weights_reproduce_the_unweighted_summary', True, 'unit weights are the ordinary sample summary'), ('mean_is_invariant_to_weight_scaling', True, 'multiplying every weight by a constant leaves the mean unchanged'), ('larger_values_weighted_more_raise_the_mean', True, 'extra weight on values farther above the minimum moves the mean upward'), ('design_effect_is_one_for_equal_weights', True, 'equal weights give an effective sample size equal to n')]"
+   "design_effect": "1.3333333333333333"
   },
   "contains": [
    "Weighted summary",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.471010+00:00",
+ "created_at": "2026-11-07T13:49:00.450334+00:00",
  "origin": "preset"
 }

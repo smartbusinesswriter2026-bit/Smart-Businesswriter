@@ -31,16 +31,20 @@
    "mean_observed": "13",
    "bound_low": "12",
    "bound_high": "14",
-   "bound_width": "2",
-   "_appendix": "{'mechanism_declared': 'unknown', 'mechanism_note': \"The mechanism is the owner's declaration; the system cannot verify it from the data.\", 'convention': 'Extreme-case bounds: the complete-data mean if every missing value sat at the smallest observed value (lower) or the largest observed value (upper). No imputation and no probabilistic missing-data model is used.', 'observed_range': ['10', '16']}",
-   "_checks": "[('bounds_bracket_the_observed_mean', True, 'the observed mean lies inside the bounds'), ('bounds_are_the_extreme_cases', True, 'independently recomputed extreme-case values agree'), ('bounds_widen_with_more_missing_values', True, 'adding missing values cannot narrow the bounds'), ('percentage_is_missing_over_total', True, 'the reported share is missing / total'), ('no_missing_values_means_a_zero_width_bound', True, 'with no missing values the bounds collapse to the observed mean')]"
+   "bound_width": "2"
   },
   "contains": [
    "Missing-data bounds",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.526781+00:00",
+ "created_at": "2026-11-07T13:49:00.506835+00:00",
  "origin": "preset"
 }

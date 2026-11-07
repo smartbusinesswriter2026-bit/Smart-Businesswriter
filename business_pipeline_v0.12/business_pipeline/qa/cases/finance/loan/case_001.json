@@ -31,8 +31,14 @@
    "Loan amortization",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.103440+00:00",
+ "created_at": "2026-11-07T13:49:00.101091+00:00",
  "origin": "preset"
 }

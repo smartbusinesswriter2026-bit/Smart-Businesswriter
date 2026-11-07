@@ -45,8 +45,14 @@
    "Comparable multiples",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.383544+00:00",
+ "created_at": "2026-11-07T13:49:00.365500+00:00",
  "origin": "preset"
 }

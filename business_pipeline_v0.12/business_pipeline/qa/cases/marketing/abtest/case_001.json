@@ -46,8 +46,14 @@
    "A/B test result",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.464448+00:00",
+ "created_at": "2026-11-07T13:49:00.444768+00:00",
  "origin": "preset"
 }

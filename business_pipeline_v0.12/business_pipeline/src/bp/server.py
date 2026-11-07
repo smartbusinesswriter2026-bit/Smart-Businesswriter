@@ -17,6 +17,7 @@ from .product import autoresearch as product_autoresearch
 from .product import paper_batch as product_paper_batch
 from .product import case_store as product_case_store
 from .product import case_runner as product_case_runner
+from .product import case_upload as product_case_upload
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -135,6 +136,9 @@ product_statements.attach_core(
     build=_statement_build,
     set_tier=set_statement_model_tier,
     schedules=schedule_math.compute,
+    working_capital=lambda inputs: methods.LIBRARY["working_capital"].impl(inputs),
+    working_capital_cycle=lambda inputs: methods.LIBRARY["working_capital_cycle"].impl(inputs),
+    trend=lambda inputs: methods.LIBRARY["trend_analysis"].impl(inputs),
 )
 from .sandbox import SubprocessSandbox
 
@@ -1007,16 +1011,39 @@ class H(BaseHTTPRequestHandler):
                         subject=subject, tile=tile, overwrite=overwrite))
                 except Exception as e:
                     return self._send(422, {"error": str(e)[:300]})
+            if self.path == "/api/ops/cases/upload":
+                body = self._body(INGEST_MAXBODY)
+                if not isinstance(body, dict):
+                    return self._send(422, {"error": "upload needs {subject, tile, name, content}"})
+                subject = str(body.get("subject") or "").strip()
+                tile = str(body.get("tile") or "").strip()
+                name = str(body.get("name") or "").strip()
+                content = body.get("content") or ""
+                if not subject or not tile or not name or not content:
+                    return self._send(422, {"error": "upload needs {subject, tile, name, content}"})
+                try:
+                    raw = base64.b64decode(str(content), validate=False)
+                except Exception as e:
+                    return self._send(422, {"error": "the file content is not valid base64"})
+                try:
+                    return self._send(200, product_case_upload.upload(subject, tile, name, raw))
+                except KeyError as e:
+                    return self._send(404, {"error": str(e)})
+                except Exception as e:
+                    return self._send(422, {"error": str(e)[:400]})
             if self.path == "/api/ops/cases/run":
                 body = self._body()
                 case_ids = (body.get("case_ids") if isinstance(body, dict) else None) or []
-                if not isinstance(case_ids, list) or not case_ids:
-                    return self._send(422, {"error": "run needs {case_ids: [...]}"})
+                generate_count = int((body.get("generate_count") if isinstance(body, dict) else 0) or 0)
+                if (not isinstance(case_ids, list) or not case_ids) and generate_count <= 0:
+                    return self._send(422, {"error": "run needs {case_ids: [...]} or generate_count"})
                 try:
                     return self._send(200, product_case_runner.run_cases(
                         [str(x) for x in case_ids],
                         style=(body.get("style") or "apa"),
-                        length=int(body.get("length") or 1200)))
+                        length=int(body.get("length") or 1200),
+                        subject=body.get("subject"),
+                        generate_count=generate_count))
                 except Exception as e:
                     return self._send(422, {"error": str(e)[:300]})
             if self.path == "/api/ops/papers/batch":
@@ -1032,7 +1059,8 @@ class H(BaseHTTPRequestHandler):
                         subject, [str(k) for k in keys],
                         style=body.get("style") or "apa",
                         evidence=body.get("evidence") or "corpus",
-                        length=int(body.get("length") or 1200))
+                        length=int(body.get("length") or 1200),
+                        format=body.get("format") or "docx")
                 except KeyError as e:
                     return self._send(404, {"error": str(e)})
                 except ValueError as e:

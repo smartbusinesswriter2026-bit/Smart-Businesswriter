@@ -31,8 +31,14 @@
    "Market size (TAM, SAM, SOM)",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.317955+00:00",
+ "created_at": "2026-11-07T13:49:00.302690+00:00",
  "origin": "preset"
 }

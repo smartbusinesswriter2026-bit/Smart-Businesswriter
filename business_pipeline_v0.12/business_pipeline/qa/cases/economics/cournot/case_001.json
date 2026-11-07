@@ -29,8 +29,14 @@
    "Cournot duopoly",
    "Declared inputs",
    "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
   ]
  },
- "created_at": "2026-11-07T13:08:10.178390+00:00",
+ "created_at": "2026-11-07T13:49:00.172828+00:00",
  "origin": "preset"
 }
