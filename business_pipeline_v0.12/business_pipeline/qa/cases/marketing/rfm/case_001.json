@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "rfm",
+ "method": "rfm_scoring",
  "tile_label": "RFM segmentation",
  "group": "Customer economics and retention",
  "objective": "Which customer segments do we have, and how big is each?",
@@ -116,6 +117,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.321733+00:00",
+ "created_at": "2026-11-07T21:53:56.604332+00:00",
  "origin": "preset"
 }

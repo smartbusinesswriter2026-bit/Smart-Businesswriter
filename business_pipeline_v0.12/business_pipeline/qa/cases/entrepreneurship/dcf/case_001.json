@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "dcf",
+ "method": "dcf_valuation",
  "tile_label": "DCF valuation (year-end)",
  "group": "Funding and valuation",
  "objective": "Value the project from its free cash flows",
@@ -42,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.244312+00:00",
+ "created_at": "2026-11-07T21:53:56.528293+00:00",
  "origin": "preset"
 }

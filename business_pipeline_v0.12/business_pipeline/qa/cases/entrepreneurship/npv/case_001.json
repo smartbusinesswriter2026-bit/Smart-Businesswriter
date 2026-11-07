@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "npv",
+ "method": "npv",
  "tile_label": "Net present value",
  "group": "Financial plan and return",
  "objective": "Should we invest in this project?",
@@ -34,6 +35,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.217568+00:00",
+ "created_at": "2026-11-07T21:53:56.505148+00:00",
  "origin": "preset"
 }

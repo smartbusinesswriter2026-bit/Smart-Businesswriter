@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "capacity",
+ "method": "capacity_analysis",
  "tile_label": "Capacity and bottleneck",
  "group": "Operations plan",
  "objective": "Which step limits how much we can produce?",
@@ -55,6 +56,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.199911+00:00",
+ "created_at": "2026-11-07T21:53:56.489183+00:00",
  "origin": "preset"
 }

@@ -18,6 +18,7 @@ import zipfile
 from datetime import datetime, timezone
 
 from . import case_store
+from . import case_invariants
 from . import ops_log
 from . import paper_batch
 
@@ -157,6 +158,14 @@ def _check(case, result):
         if extra:
             problems.append("the method returned key(s) the case does not expect: "
                             + ", ".join(extra[:6]))
+    method_id = case.get("method") or ""
+    if not method_id:
+        try:
+            _subject, _group, tile = paper_batch._find_tile(case["subject"], case["tile"])
+            method_id = tile.get("method") or ""
+        except Exception:
+            method_id = ""
+    problems.extend(case_invariants.check(method_id, case.get("inputs") or {}, computed))
     text = _docx_text(result.get("bytes") or b"")
     for phrase in expected.get("contains") or []:
         if phrase and phrase not in text:

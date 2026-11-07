@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "loan",
+ "method": "loan_amortization",
  "tile_label": "Loan amortization",
  "group": "Time value and instruments",
  "objective": "What is the monthly payment on this loan?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.890214+00:00",
+ "created_at": "2026-11-07T21:53:56.227763+00:00",
  "origin": "preset"
 }

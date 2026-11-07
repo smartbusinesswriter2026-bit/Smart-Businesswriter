@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "wacc",
+ "method": "wacc",
  "tile_label": "Weighted average cost of capital",
  "group": "Valuation",
  "objective": "What is our weighted average cost of capital?",
@@ -35,6 +36,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.953020+00:00",
+ "created_at": "2026-11-07T21:53:56.281859+00:00",
  "origin": "preset"
 }

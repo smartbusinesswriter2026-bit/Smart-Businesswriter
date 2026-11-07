@@ -1,6 +1,6 @@
 # Home Ã¢â‚¬â€ map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.121**, **4307 tests**, 2026-11-07. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.122**, **4315 tests**, 2026-11-08. Update the count and date when you change them.
 
 ## Read in 30 seconds
 

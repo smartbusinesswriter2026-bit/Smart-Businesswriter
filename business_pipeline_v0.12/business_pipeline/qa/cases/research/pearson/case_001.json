@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "pearson",
+ "method": "pearson",
  "tile_label": "Pearson correlation",
  "group": "Relate variables",
  "objective": "Is study time associated with exam score?",
@@ -56,6 +57,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.368759+00:00",
+ "created_at": "2026-11-07T21:53:56.646973+00:00",
  "origin": "preset"
 }

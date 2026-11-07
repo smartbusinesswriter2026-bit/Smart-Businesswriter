@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "startupcapital",
+ "method": "startup_capital",
  "tile_label": "Start-up capital and amount to raise",
  "group": "Financial plan and return",
  "objective": "How much capital must we raise to open the business?",
@@ -42,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.212263+00:00",
+ "created_at": "2026-11-07T21:53:56.500195+00:00",
  "origin": "preset"
 }

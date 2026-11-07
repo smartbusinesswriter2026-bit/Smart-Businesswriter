@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "unitecon",
+ "method": "unit_economics",
  "tile_label": "Unit economics",
  "group": "Cost-volume-profit",
  "objective": "What does a customer cost and return?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.902790+00:00",
+ "created_at": "2026-11-07T21:53:56.238340+00:00",
  "origin": "preset"
 }

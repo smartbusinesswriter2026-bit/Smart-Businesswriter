@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "costeffectiveness",
+ "method": "cost_effectiveness",
  "tile_label": "Cost per unit of impact",
  "group": "Impact and options",
  "objective": "Which option gives more effect per unit of cost?",
@@ -45,6 +46,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.252391+00:00",
+ "created_at": "2026-11-07T21:53:56.537064+00:00",
  "origin": "preset"
 }

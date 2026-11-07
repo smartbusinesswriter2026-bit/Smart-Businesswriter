@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "workingcapital",
+ "method": "working_capital",
  "tile_label": "Working capital and EOQ",
  "group": "Financial plan and return",
  "objective": "How long is cash tied up in working capital?",
@@ -49,6 +50,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.239117+00:00",
+ "created_at": "2026-11-07T21:53:56.524975+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "equilibrium",
+ "method": "demand_supply_equilibrium",
  "tile_label": "Market equilibrium",
  "group": "Microeconomics",
  "objective": "Where do demand and supply meet?",
@@ -37,6 +38,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.992214+00:00",
+ "created_at": "2026-11-07T21:53:56.307156+00:00",
  "origin": "preset"
 }

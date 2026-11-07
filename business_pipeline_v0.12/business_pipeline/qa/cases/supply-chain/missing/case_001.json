@@ -4,6 +4,7 @@
  "subject": "supply-chain",
  "subject_label": "Supply chain & logistics",
  "tile": "missing",
+ "method": "missing_data_bounds",
  "tile_label": "Missing-data bounds",
  "group": "Demand and planning",
  "objective": "How much could the missing values move the mean?",
@@ -45,6 +46,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.296401+00:00",
+ "created_at": "2026-11-07T21:53:56.576533+00:00",
  "origin": "preset"
 }

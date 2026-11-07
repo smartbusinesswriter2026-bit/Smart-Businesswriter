@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "depreciation",
+ "method": "depreciation_schedule",
  "tile_label": "Depreciation schedule",
  "group": "Financial plan and return",
  "objective": "What is the depreciation schedule for the equipment?",
@@ -51,6 +52,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.209115+00:00",
+ "created_at": "2026-11-07T21:53:56.497455+00:00",
  "origin": "preset"
 }

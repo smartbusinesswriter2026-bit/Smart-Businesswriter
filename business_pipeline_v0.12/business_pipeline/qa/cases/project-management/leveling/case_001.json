@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "leveling",
+ "method": "resource_leveling",
  "tile_label": "Resource levelling",
  "group": "Schedule and control",
  "objective": "Level the plan against the crew capacity",
@@ -82,6 +83,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.150766+00:00",
+ "created_at": "2026-11-07T21:53:56.443212+00:00",
  "origin": "preset"
 }

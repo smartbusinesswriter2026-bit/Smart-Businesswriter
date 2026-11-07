@@ -4,6 +4,7 @@
  "subject": "people",
  "subject_label": "People & organisation",
  "tile": "descriptive",
+ "method": "descriptive_stats",
  "tile_label": "Descriptive statistics",
  "group": "Analytics",
  "objective": "Describe the exam scores",
@@ -46,6 +47,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.348834+00:00",
+ "created_at": "2026-11-07T21:53:56.628514+00:00",
  "origin": "preset"
 }

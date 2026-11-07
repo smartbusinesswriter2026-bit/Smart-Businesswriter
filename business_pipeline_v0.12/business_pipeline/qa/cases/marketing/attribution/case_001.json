@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "attribution",
+ "method": "attribution_split",
  "tile_label": "Attribution across channels",
  "group": "Campaigns, channels and web analytics",
  "objective": "How much credit does each channel get under different attribution rules?",
@@ -63,6 +64,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.328792+00:00",
+ "created_at": "2026-11-07T21:53:56.608990+00:00",
  "origin": "preset"
 }

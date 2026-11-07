@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "mcda",
+ "method": "multi_criteria",
  "tile_label": "Weighted decision matrix",
  "group": "Compare the options",
  "objective": "Which supplier scores best on the declared criteria?",
@@ -71,6 +72,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.137239+00:00",
+ "created_at": "2026-11-07T21:53:56.431059+00:00",
  "origin": "preset"
 }

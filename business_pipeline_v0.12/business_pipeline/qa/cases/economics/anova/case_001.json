@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "anova",
+ "method": "anova",
  "tile_label": "One-way ANOVA",
  "group": "Quantitative core",
  "objective": "Do the three teaching formats differ in exam scores?",
@@ -78,6 +79,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.086811+00:00",
+ "created_at": "2026-11-07T21:53:56.383843+00:00",
  "origin": "preset"
 }

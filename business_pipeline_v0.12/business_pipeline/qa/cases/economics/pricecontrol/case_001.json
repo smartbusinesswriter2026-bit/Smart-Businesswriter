@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "pricecontrol",
+ "method": "price_control",
  "tile_label": "Price ceilings and floors",
  "group": "Microeconomics",
  "objective": "What does a price ceiling or floor do?",
@@ -43,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.997023+00:00",
+ "created_at": "2026-11-07T21:53:56.310907+00:00",
  "origin": "preset"
 }

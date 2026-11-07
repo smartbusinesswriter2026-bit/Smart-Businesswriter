@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "marketshare",
+ "method": "market_share",
  "tile_label": "Market share and penetration",
  "group": "Market size and demand",
  "objective": "What share of the market do we hold, and is it rising?",
@@ -46,6 +47,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.302429+00:00",
+ "created_at": "2026-11-07T21:53:56.583716+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "unitecon",
+ "method": "unit_economics",
  "tile_label": "Unit economics",
  "group": "Managerial economics",
  "objective": "What does a customer cost and return?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.101849+00:00",
+ "created_at": "2026-11-07T21:53:56.396181+00:00",
  "origin": "preset"
 }

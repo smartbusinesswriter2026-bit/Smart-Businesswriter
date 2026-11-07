@@ -4,6 +4,7 @@
  "subject": "people",
  "subject_label": "People & organisation",
  "tile": "trainingroi",
+ "method": "return_on_investment",
  "tile_label": "Training ROI",
  "group": "Analytics",
  "objective": "What is the return on the money we invested?",
@@ -34,6 +35,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.361630+00:00",
+ "created_at": "2026-11-07T21:53:56.639928+00:00",
  "origin": "preset"
 }

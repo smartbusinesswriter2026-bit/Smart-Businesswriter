@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "breakeven",
+ "method": "breakeven",
  "tile_label": "Break-even point",
  "group": "Cost-volume-profit",
  "objective": "How many units must we sell to break even?",
@@ -33,6 +34,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.900189+00:00",
+ "created_at": "2026-11-07T21:53:56.236206+00:00",
  "origin": "preset"
 }

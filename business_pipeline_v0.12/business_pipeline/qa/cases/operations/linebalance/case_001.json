@@ -4,6 +4,7 @@
  "subject": "operations",
  "subject_label": "Operations management",
  "tile": "linebalance",
+ "method": "line_balancing",
  "tile_label": "Line balancing",
  "group": "Process and capacity",
  "objective": "How many stations does the line need at this cycle time?",
@@ -76,6 +77,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.261350+00:00",
+ "created_at": "2026-11-07T21:53:56.544109+00:00",
  "origin": "preset"
 }

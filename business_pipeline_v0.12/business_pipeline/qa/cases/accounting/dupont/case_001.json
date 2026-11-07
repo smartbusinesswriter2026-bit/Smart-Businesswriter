@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "dupont",
+ "method": "dupont_analysis",
  "tile_label": "DuPont analysis",
  "group": "Statement analysis",
  "objective": "Where does the return on equity come from?",
@@ -59,6 +60,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.863717+00:00",
+ "created_at": "2026-11-07T21:53:56.206778+00:00",
  "origin": "preset"
 }

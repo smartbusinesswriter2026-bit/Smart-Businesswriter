@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "salesvar",
+ "method": "sales_variances",
  "tile_label": "Sales price, mix and yield variances",
  "group": "Cost and variance analysis",
  "objective": "Why did revenue move against the budget?",
@@ -58,6 +59,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.870113+00:00",
+ "created_at": "2026-11-07T21:53:56.210083+00:00",
  "origin": "preset"
 }

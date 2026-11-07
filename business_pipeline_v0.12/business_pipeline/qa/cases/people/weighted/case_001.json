@@ -4,6 +4,7 @@
  "subject": "people",
  "subject_label": "People & organisation",
  "tile": "weighted",
+ "method": "weighted_summary",
  "tile_label": "Weighted summary",
  "group": "Analytics",
  "objective": "Summarize the survey scores with the design weights",
@@ -46,6 +47,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.346989+00:00",
+ "created_at": "2026-11-07T21:53:56.627239+00:00",
  "origin": "preset"
 }

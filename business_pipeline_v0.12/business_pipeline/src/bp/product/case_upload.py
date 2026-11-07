@@ -178,6 +178,7 @@ def _store(subject, tile_key, filename, instruction, inputs, recorded, expected=
         "subject": subject,
         "subject_label": subject_info.get("label") or subject,
         "tile": tile_key,
+        "method": tile.get("method") or "",
         "tile_label": tile.get("label") or tile_key,
         "group": group.get("label") or "",
         "objective": (paper_batch.brief_for(subject, tile_key) or {}).get("objective") or "",

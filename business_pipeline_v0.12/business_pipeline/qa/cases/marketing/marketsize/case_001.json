@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "marketsize",
+ "method": "market_sizing",
  "tile_label": "Market size (TAM, SAM, SOM)",
  "group": "Market size and demand",
  "objective": "How big is the market we can actually serve and win?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.301295+00:00",
+ "created_at": "2026-11-07T21:53:56.582313+00:00",
  "origin": "preset"
 }

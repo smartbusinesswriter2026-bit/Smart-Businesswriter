@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "demandcurve",
+ "method": "demand_curve",
  "tile_label": "Demand line and revenue-max price",
  "group": "Market size and demand",
  "objective": "What do our price and quantity observations imply about demand?",
@@ -49,6 +50,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.303583+00:00",
+ "created_at": "2026-11-07T21:53:56.584943+00:00",
  "origin": "preset"
 }

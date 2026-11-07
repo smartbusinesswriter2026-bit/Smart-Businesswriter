@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "tax",
+ "method": "tax_declared",
  "tile_label": "Tax on declared rates",
  "group": "Financial plan and return",
  "objective": "What is the tax charge on the declared income?",
@@ -43,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.216211+00:00",
+ "created_at": "2026-11-07T21:53:56.504041+00:00",
  "origin": "preset"
 }

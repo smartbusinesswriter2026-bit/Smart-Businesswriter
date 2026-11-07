@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "channelecon",
+ "method": "channel_economics",
  "tile_label": "Channel economics",
  "group": "Campaigns, channels and web analytics",
  "objective": "Which acquisition channel is worth the money we spend on it?",
@@ -73,6 +74,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.330138+00:00",
+ "created_at": "2026-11-07T21:53:56.610105+00:00",
  "origin": "preset"
 }

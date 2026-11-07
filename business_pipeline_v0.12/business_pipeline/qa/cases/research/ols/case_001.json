@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "ols",
+ "method": "ols",
  "tile_label": "Linear regression",
  "group": "Relate variables",
  "objective": "How are study hours and sleep associated with exam score?",
@@ -94,6 +95,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.375008+00:00",
+ "created_at": "2026-11-07T21:53:56.651975+00:00",
  "origin": "preset"
 }

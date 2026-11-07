@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "descriptive",
+ "method": "descriptive_stats",
  "tile_label": "Descriptive statistics",
  "group": "Quantitative core",
  "objective": "Describe the exam scores",
@@ -46,6 +47,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.071546+00:00",
+ "created_at": "2026-11-07T21:53:56.370101+00:00",
  "origin": "preset"
 }

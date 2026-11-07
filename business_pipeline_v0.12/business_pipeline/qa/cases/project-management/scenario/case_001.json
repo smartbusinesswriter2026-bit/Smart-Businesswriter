@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "scenario",
+ "method": "scenario_analysis",
  "tile_label": "Scenario analysis",
  "group": "Compare the options",
  "objective": "How much does the decision swing with the discount rate?",
@@ -44,6 +45,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.134251+00:00",
+ "created_at": "2026-11-07T21:53:56.427413+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "chi_square",
+ "method": "chi_square",
  "tile_label": "Chi-square association",
  "group": "Compare groups",
  "objective": "Is the outcome category associated with the treatment group?",
@@ -51,6 +52,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.402142+00:00",
+ "created_at": "2026-11-07T21:53:56.672565+00:00",
  "origin": "preset"
 }

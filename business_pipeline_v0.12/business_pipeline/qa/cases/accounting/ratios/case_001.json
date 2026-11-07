@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "ratios",
+ "method": "ratio_analysis",
  "tile_label": "Financial statement ratios",
  "group": "Statement analysis",
  "objective": "Compute the key ratios from our financial statements",
@@ -56,6 +57,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.858916+00:00",
+ "created_at": "2026-11-07T21:53:56.204124+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "portfolioperf",
+ "method": "portfolio_performance",
  "tile_label": "Time-weighted return",
  "group": "Investments",
  "objective": "What return did the portfolio earn over these periods?",
@@ -47,6 +48,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.977346+00:00",
+ "created_at": "2026-11-07T21:53:56.292787+00:00",
  "origin": "preset"
 }

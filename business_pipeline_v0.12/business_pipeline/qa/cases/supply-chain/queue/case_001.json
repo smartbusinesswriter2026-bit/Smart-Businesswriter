@@ -4,6 +4,7 @@
  "subject": "supply-chain",
  "subject_label": "Supply chain & logistics",
  "tile": "queue",
+ "method": "queue_analysis",
  "tile_label": "Queue length and waiting time",
  "group": "Inventory and network",
  "objective": "How long is the queue at the counter?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.298794+00:00",
+ "created_at": "2026-11-07T21:53:56.579071+00:00",
  "origin": "preset"
 }

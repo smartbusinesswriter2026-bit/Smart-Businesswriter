@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "depreciation",
+ "method": "depreciation_schedule",
  "tile_label": "Depreciation schedule",
  "group": "Adjustments and depreciation",
  "objective": "What is the depreciation schedule for the equipment?",
@@ -51,6 +52,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.881032+00:00",
+ "created_at": "2026-11-07T21:53:56.220654+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "forecast",
+ "method": "trend_forecast",
  "tile_label": "Trend forecast",
  "group": "Market and customers",
  "objective": "Forecast the next three periods",
@@ -63,6 +64,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.177938+00:00",
+ "created_at": "2026-11-07T21:53:56.469214+00:00",
  "origin": "preset"
 }

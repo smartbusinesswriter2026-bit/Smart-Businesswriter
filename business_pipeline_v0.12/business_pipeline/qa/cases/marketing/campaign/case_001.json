@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "campaign",
+ "method": "campaign_efficiency",
  "tile_label": "Campaign efficiency",
  "group": "Campaigns, channels and web analytics",
  "objective": "Which campaign paid for itself after the cost of the sale?",
@@ -48,6 +49,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.327142+00:00",
+ "created_at": "2026-11-07T21:53:56.607917+00:00",
  "origin": "preset"
 }

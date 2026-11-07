@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "welch",
+ "method": "welch_t",
  "tile_label": "Welch two-sample t-test",
  "group": "Quantitative core",
  "objective": "Do the two teaching methods differ in exam scores?",
@@ -69,6 +70,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.085272+00:00",
+ "created_at": "2026-11-07T21:53:56.381962+00:00",
  "origin": "preset"
 }

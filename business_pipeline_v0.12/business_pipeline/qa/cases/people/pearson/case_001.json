@@ -4,6 +4,7 @@
  "subject": "people",
  "subject_label": "People & organisation",
  "tile": "pearson",
+ "method": "pearson",
  "tile_label": "Pearson correlation",
  "group": "Analytics",
  "objective": "Is study time associated with exam score?",
@@ -56,6 +57,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.352659+00:00",
+ "created_at": "2026-11-07T21:53:56.633786+00:00",
  "origin": "preset"
 }

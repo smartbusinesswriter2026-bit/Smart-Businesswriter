@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "cba",
+ "method": "cost_benefit",
  "tile_label": "Cost-benefit analysis",
  "group": "Managerial economics",
  "objective": "Appraise the programme costs against its benefits",
@@ -43,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.095654+00:00",
+ "created_at": "2026-11-07T21:53:56.389916+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "posthoc",
+ "method": "posthoc_pairwise",
  "tile_label": "Post-hoc pairwise tests",
  "group": "Compare groups",
  "objective": "Which groups differ from which?",
@@ -67,6 +68,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.404977+00:00",
+ "created_at": "2026-11-07T21:53:56.675636+00:00",
  "origin": "preset"
 }

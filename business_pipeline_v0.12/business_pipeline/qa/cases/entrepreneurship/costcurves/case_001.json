@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "costcurves",
+ "method": "cost_curves",
  "tile_label": "Cost curves",
  "group": "Costs, pricing and break-even",
  "objective": "What do average and marginal cost look like at this output?",
@@ -43,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.197641+00:00",
+ "created_at": "2026-11-07T21:53:56.486967+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "social",
+ "method": "social_engagement",
  "tile_label": "Social reach and engagement",
  "group": "Campaigns, channels and web analytics",
  "objective": "How far did our posts reach, and how engaged was the audience?",
@@ -44,6 +45,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.332848+00:00",
+ "created_at": "2026-11-07T21:53:56.613170+00:00",
  "origin": "preset"
 }

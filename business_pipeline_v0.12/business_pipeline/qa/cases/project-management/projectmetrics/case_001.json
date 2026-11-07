@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "projectmetrics",
+ "method": "project_metrics",
  "tile_label": "Project ranking metrics",
  "group": "Appraise the business case",
  "objective": "How does this project rank on PI, MIRR, payback and EAA?",
@@ -44,6 +45,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.116863+00:00",
+ "created_at": "2026-11-07T21:53:56.409807+00:00",
  "origin": "preset"
 }

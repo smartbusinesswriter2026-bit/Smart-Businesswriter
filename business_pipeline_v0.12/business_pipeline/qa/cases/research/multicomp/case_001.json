@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "multicomp",
+ "method": "multiple_comparison",
  "tile_label": "Multiple-comparison correction",
  "group": "Check the design",
  "objective": "Correct a declared family of hypothesis tests",
@@ -41,6 +42,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.417428+00:00",
+ "created_at": "2026-11-07T21:53:56.685057+00:00",
  "origin": "preset"
 }

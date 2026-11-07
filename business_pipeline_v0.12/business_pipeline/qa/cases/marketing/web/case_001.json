@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "web",
+ "method": "web_analytics",
  "tile_label": "Web traffic and conversion by channel",
  "group": "Campaigns, channels and web analytics",
  "objective": "Which traffic channel brings visits that turn into revenue?",
@@ -74,6 +75,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.333949+00:00",
+ "created_at": "2026-11-07T21:53:56.615100+00:00",
  "origin": "preset"
 }

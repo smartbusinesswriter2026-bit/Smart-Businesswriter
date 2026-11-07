@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "multiples",
+ "method": "multiples_valuation",
  "tile_label": "Comparable multiples",
  "group": "Funding and valuation",
  "objective": "What value do comparable multiples imply?",
@@ -53,6 +54,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.246200+00:00",
+ "created_at": "2026-11-07T21:53:56.529715+00:00",
  "origin": "preset"
 }

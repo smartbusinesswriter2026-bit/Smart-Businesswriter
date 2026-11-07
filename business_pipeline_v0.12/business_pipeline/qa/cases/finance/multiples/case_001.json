@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "multiples",
+ "method": "multiples_valuation",
  "tile_label": "Comparable multiples",
  "group": "Valuation",
  "objective": "What value do comparable multiples imply?",
@@ -53,6 +54,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.968999+00:00",
+ "created_at": "2026-11-07T21:53:56.289047+00:00",
  "origin": "preset"
 }

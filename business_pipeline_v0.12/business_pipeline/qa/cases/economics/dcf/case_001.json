@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "dcf",
+ "method": "dcf_valuation",
  "tile_label": "DCF valuation (year-end)",
  "group": "Quantitative core",
  "objective": "Value the project from its free cash flows",
@@ -42,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.070270+00:00",
+ "created_at": "2026-11-07T21:53:56.368988+00:00",
  "origin": "preset"
 }

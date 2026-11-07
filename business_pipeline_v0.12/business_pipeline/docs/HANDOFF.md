@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch corpus/merge-v1, remote origin = smartbusinesswriter2026-bit/smart-businesswriter002; `main` is the deployment branch and carries the same tree; clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.121 (see docs/CHANGELOG.md)
-Tests        : 4307 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Build        : 1.122 (see docs/CHANGELOG.md)
+Tests        : 4315 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -222,6 +222,17 @@ missing; none of the first three computed values appearing in the paper; a missi
 workbook sheet; or none of those values appearing in the workbook.  The paper and
 workbook checks use any-of over the first three numeric results, so an intermediate
 value the formatter does not print cannot cause a false failure.
+
+### 8.6 Domain invariants
+
+`case_invariants.py` checks that the numbers a case records also agree with each
+other: the accounting equation, the ratio identities, the DuPont identity, the
+break-even formulas, loan totals, NPV discounting, the IRR zero, WACC weights,
+the DCF split, proforma totals, the sales projection, Gini/HDI bounds,
+TAM >= SAM >= SOM, cap-table shares, the inventory reorder point and queue
+utilisation.  A missing input or output key skips the invariant; a wrong
+relationship fails the case.  This is the durable version of the checks the
+statements tile used to need, applied to the other tiles.
 
 ## 9. Intended future work (not yet built)
 

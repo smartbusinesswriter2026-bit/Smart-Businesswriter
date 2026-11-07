@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "forecast",
+ "method": "trend_forecast",
  "tile_label": "Trend forecast",
  "group": "Project cost and benefit",
  "objective": "Forecast the next three periods",
@@ -63,6 +64,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.146477+00:00",
+ "created_at": "2026-11-07T21:53:56.439303+00:00",
  "origin": "preset"
 }

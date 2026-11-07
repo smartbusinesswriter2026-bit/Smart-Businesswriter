@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "descriptive",
+ "method": "descriptive_stats",
  "tile_label": "Descriptive statistics",
  "group": "Market and customers",
  "objective": "Describe the exam scores",
@@ -46,6 +47,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.187303+00:00",
+ "created_at": "2026-11-07T21:53:56.477353+00:00",
  "origin": "preset"
 }

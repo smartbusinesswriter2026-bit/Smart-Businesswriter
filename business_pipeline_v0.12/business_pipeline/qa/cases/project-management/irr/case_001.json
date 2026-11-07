@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "irr",
+ "method": "irr",
  "tile_label": "Internal rate of return",
  "group": "Appraise the business case",
  "objective": "What rate of return does the project earn?",
@@ -37,6 +38,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.108986+00:00",
+ "created_at": "2026-11-07T21:53:56.403219+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "decisiontree",
+ "method": "decision_tree",
  "tile_label": "Decision tree",
  "group": "Compare the options",
  "objective": "Which launch option should we choose?",
@@ -87,6 +88,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.135518+00:00",
+ "created_at": "2026-11-07T21:53:56.429118+00:00",
  "origin": "preset"
 }

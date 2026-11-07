@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "multibreakeven",
+ "method": "multi_product_breakeven",
  "tile_label": "Multi-product break-even",
  "group": "Cost and variance analysis",
  "objective": "How many units must the product mix sell to break even?",
@@ -48,6 +49,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.874330+00:00",
+ "created_at": "2026-11-07T21:53:56.213400+00:00",
  "origin": "preset"
 }

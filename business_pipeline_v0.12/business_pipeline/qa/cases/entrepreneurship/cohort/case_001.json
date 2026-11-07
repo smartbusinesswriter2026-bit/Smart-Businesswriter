@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "cohort",
+ "method": "cohort_retention",
  "tile_label": "Cohort retention",
  "group": "Market and customers",
  "objective": "How well do we keep the customers we win each month?",
@@ -63,6 +64,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.183328+00:00",
+ "created_at": "2026-11-07T21:53:56.473884+00:00",
  "origin": "preset"
 }

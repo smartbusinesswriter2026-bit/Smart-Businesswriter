@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "bop",
+ "method": "balance_of_payments",
  "tile_label": "Balance of payments",
  "group": "International",
  "objective": "Does the balance of payments close?",
@@ -37,6 +38,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.047002+00:00",
+ "created_at": "2026-11-07T21:53:56.349840+00:00",
  "origin": "preset"
 }

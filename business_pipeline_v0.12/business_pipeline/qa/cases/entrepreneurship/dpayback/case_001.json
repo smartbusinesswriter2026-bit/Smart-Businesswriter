@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "dpayback",
+ "method": "discounted_payback",
  "tile_label": "Discounted payback",
  "group": "Financial plan and return",
  "objective": "How long until the discounted cash flows repay the investment?",
@@ -38,6 +39,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.224879+00:00",
+ "created_at": "2026-11-07T21:53:56.511075+00:00",
  "origin": "preset"
 }

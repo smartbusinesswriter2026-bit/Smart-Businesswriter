@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "mediaplan",
+ "method": "media_plan",
  "tile_label": "Reach, frequency and rating points",
  "group": "Campaigns, channels and web analytics",
  "objective": "What does this media plan buy in reach, frequency and rating points?",
@@ -73,6 +74,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.335125+00:00",
+ "created_at": "2026-11-07T21:53:56.617832+00:00",
  "origin": "preset"
 }

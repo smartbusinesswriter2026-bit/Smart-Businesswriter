@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "paired",
+ "method": "paired_t",
  "tile_label": "Paired t-test",
  "group": "Compare groups",
  "objective": "Did the scores change after the intervention?",
@@ -57,6 +58,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.410404+00:00",
+ "created_at": "2026-11-07T21:53:56.679233+00:00",
  "origin": "preset"
 }

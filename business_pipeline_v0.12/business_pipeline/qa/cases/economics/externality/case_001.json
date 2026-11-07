@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "externality",
+ "method": "externality_pigouvian",
  "tile_label": "Externalities and Pigouvian tax",
  "group": "Welfare policy",
  "objective": "What is the Pigouvian tax and the deadweight loss?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.030540+00:00",
+ "created_at": "2026-11-07T21:53:56.337349+00:00",
  "origin": "preset"
 }

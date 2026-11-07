@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "okun",
+ "method": "output_gap_okun",
  "tile_label": "Output gap and Okun's law",
  "group": "Macroeconomics",
  "objective": "What does the output gap imply for unemployment?",
@@ -34,6 +35,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.029289+00:00",
+ "created_at": "2026-11-07T21:53:56.336337+00:00",
  "origin": "preset"
 }

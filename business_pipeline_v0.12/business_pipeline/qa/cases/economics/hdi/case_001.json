@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "hdi",
+ "method": "hdi",
  "tile_label": "Human Development Index",
  "group": "International",
  "objective": "What is the Human Development Index?",
@@ -34,6 +35,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.048478+00:00",
+ "created_at": "2026-11-07T21:53:56.351437+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "multibreakeven",
+ "method": "multi_product_breakeven",
  "tile_label": "Multi-product break-even",
  "group": "Costs, pricing and break-even",
  "objective": "How many units must the product mix sell to break even?",
@@ -48,6 +49,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.195001+00:00",
+ "created_at": "2026-11-07T21:53:56.484644+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "portfolio",
+ "method": "portfolio_analysis",
  "tile_label": "Portfolio return and risk",
  "group": "Investments",
  "objective": "What return and risk does this two-asset portfolio have?",
@@ -66,6 +67,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.979090+00:00",
+ "created_at": "2026-11-07T21:53:56.294461+00:00",
  "origin": "preset"
 }

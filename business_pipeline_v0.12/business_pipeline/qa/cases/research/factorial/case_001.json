@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "factorial",
+ "method": "two_way_anova",
  "tile_label": "Two-way ANOVA",
  "group": "Compare groups",
  "objective": "Do the two factors and their interaction matter?",
@@ -94,6 +95,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.403492+00:00",
+ "created_at": "2026-11-07T21:53:56.673902+00:00",
  "origin": "preset"
 }

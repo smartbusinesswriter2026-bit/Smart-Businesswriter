@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "schedrisk",
+ "method": "schedule_risk",
  "tile_label": "Schedule risk (Monte Carlo)",
  "group": "Schedule and control",
  "objective": "How uncertain is the project duration?",
@@ -70,6 +71,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.167308+00:00",
+ "created_at": "2026-11-07T21:53:56.459668+00:00",
  "origin": "preset"
 }

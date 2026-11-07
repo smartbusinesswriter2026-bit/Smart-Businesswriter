@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "email",
+ "method": "email_list_health",
  "tile_label": "Email list health",
  "group": "Campaigns, channels and web analytics",
  "objective": "Is our email list growing and is it still engaged?",
@@ -42,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.331633+00:00",
+ "created_at": "2026-11-07T21:53:56.611537+00:00",
  "origin": "preset"
 }

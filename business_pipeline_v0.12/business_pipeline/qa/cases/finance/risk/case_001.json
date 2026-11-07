@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "risk",
+ "method": "risk_metrics",
  "tile_label": "Value at risk",
  "group": "Risk & derivatives",
  "objective": "How much could this portfolio lose at a stated confidence?",
@@ -56,6 +57,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.980459+00:00",
+ "created_at": "2026-11-07T21:53:56.296371+00:00",
  "origin": "preset"
 }

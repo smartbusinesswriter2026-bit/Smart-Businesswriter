@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "fiscal",
+ "method": "fiscal_multiplier",
  "tile_label": "Fiscal multipliers",
  "group": "Macroeconomics",
  "objective": "What output change does this fiscal package imply?",
@@ -38,6 +39,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.026124+00:00",
+ "created_at": "2026-11-07T21:53:56.334034+00:00",
  "origin": "preset"
 }

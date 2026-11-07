@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "trendanalysis",
+ "method": "trend_analysis",
  "tile_label": "Common-size and trend",
  "group": "Statement analysis",
  "objective": "How has the business performed across these years?",
@@ -84,6 +85,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.861671+00:00",
+ "created_at": "2026-11-07T21:53:56.205665+00:00",
  "origin": "preset"
 }

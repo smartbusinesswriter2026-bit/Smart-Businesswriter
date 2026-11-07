@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "budgetdebt",
+ "method": "budget_debt",
  "tile_label": "Budget balance and debt",
  "group": "Macroeconomics",
  "objective": "What are the budget balance and the debt ratio?",
@@ -46,6 +47,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.027486+00:00",
+ "created_at": "2026-11-07T21:53:56.335235+00:00",
  "origin": "preset"
 }

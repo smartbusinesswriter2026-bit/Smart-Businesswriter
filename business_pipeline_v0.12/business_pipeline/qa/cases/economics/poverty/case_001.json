@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "poverty",
+ "method": "poverty_measures",
  "tile_label": "Poverty measures",
  "group": "Welfare policy",
  "objective": "What are the poverty headcount and gap?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.035907+00:00",
+ "created_at": "2026-11-07T21:53:56.341781+00:00",
  "origin": "preset"
 }

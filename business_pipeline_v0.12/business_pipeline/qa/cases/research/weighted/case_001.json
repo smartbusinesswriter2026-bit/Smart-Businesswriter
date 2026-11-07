@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "weighted",
+ "method": "weighted_summary",
  "tile_label": "Weighted summary",
  "group": "Describe the data",
  "objective": "Summarize the survey scores with the design weights",
@@ -46,6 +47,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.367250+00:00",
+ "created_at": "2026-11-07T21:53:56.645199+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "irr",
+ "method": "irr",
  "tile_label": "Internal rate of return",
  "group": "Corporate finance",
  "objective": "What rate of return does the project earn?",
@@ -37,6 +38,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.931392+00:00",
+ "created_at": "2026-11-07T21:53:56.261421+00:00",
  "origin": "preset"
 }

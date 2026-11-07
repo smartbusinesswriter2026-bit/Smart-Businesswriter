@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "scenario",
+ "method": "scenario_analysis",
  "tile_label": "Scenario analysis",
  "group": "Financial plan and return",
  "objective": "How much does the decision swing with the discount rate?",
@@ -44,6 +45,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.235830+00:00",
+ "created_at": "2026-11-07T21:53:56.521819+00:00",
  "origin": "preset"
 }

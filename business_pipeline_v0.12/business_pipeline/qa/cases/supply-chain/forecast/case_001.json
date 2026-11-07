@@ -4,6 +4,7 @@
  "subject": "supply-chain",
  "subject_label": "Supply chain & logistics",
  "tile": "forecast",
+ "method": "trend_forecast",
  "tile_label": "Trend forecast",
  "group": "Demand and planning",
  "objective": "Forecast the next three periods",
@@ -63,6 +64,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.294605+00:00",
+ "created_at": "2026-11-07T21:53:56.575106+00:00",
  "origin": "preset"
 }

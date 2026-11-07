@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "alpha",
+ "method": "reliability_alpha",
  "tile_label": "Reliability (Cronbach's alpha)",
  "group": "Check the design",
  "objective": "Are the survey items internally consistent?",
@@ -74,6 +75,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.421607+00:00",
+ "created_at": "2026-11-07T21:53:56.688821+00:00",
  "origin": "preset"
 }

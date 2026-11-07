@@ -94,6 +94,7 @@ def seed(subject=None, tile=None, overwrite=False, limit=None):
                     "subject": section["id"],
                     "subject_label": section.get("label") or section["id"],
                     "tile": row["key"],
+                    "method": row.get("method") or "",
                     "tile_label": row.get("label") or row["key"],
                     "group": group.get("label") or "",
                     "objective": info["objective"],

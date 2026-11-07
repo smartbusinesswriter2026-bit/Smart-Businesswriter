@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "npv",
+ "method": "npv",
  "tile_label": "Net present value",
  "group": "Appraise the business case",
  "objective": "Should we invest in this project?",
@@ -34,6 +35,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.103045+00:00",
+ "created_at": "2026-11-07T21:53:56.397944+00:00",
  "origin": "preset"
 }

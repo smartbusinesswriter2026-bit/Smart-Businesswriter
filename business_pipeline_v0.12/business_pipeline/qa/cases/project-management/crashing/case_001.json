@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "crashing",
+ "method": "project_crashing",
  "tile_label": "Project crashing",
  "group": "Schedule and control",
  "objective": "Crash the plan to the target duration",
@@ -64,6 +65,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.152309+00:00",
+ "created_at": "2026-11-07T21:53:56.444713+00:00",
  "origin": "preset"
 }

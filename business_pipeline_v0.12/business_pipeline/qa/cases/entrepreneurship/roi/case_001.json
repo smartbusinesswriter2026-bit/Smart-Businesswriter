@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "roi",
+ "method": "return_on_investment",
  "tile_label": "Return on investment",
  "group": "Financial plan and return",
  "objective": "What is the return on the money we invested?",
@@ -34,6 +35,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.214980+00:00",
+ "created_at": "2026-11-07T21:53:56.502891+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "multibreakeven",
+ "method": "multi_product_breakeven",
  "tile_label": "Multi-product break-even",
  "group": "Customer economics and retention",
  "objective": "How many units must the product mix sell to break even?",
@@ -48,6 +49,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.319308+00:00",
+ "created_at": "2026-11-07T21:53:56.601132+00:00",
  "origin": "preset"
 }

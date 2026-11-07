@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "abc",
+ "method": "abc_costing",
  "tile_label": "Activity-based costing",
  "group": "Cost and variance analysis",
  "objective": "What does each product really cost once activities are traced?",
@@ -78,6 +79,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.868088+00:00",
+ "created_at": "2026-11-07T21:53:56.208968+00:00",
  "origin": "preset"
 }

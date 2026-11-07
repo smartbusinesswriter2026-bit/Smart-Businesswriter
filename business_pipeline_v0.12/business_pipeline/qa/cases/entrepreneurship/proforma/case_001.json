@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "proforma",
+ "method": "proforma_statements",
  "tile_label": "Projected statements",
  "group": "Financial plan and return",
  "objective": "Project the income statement, cash flow and balance sheet",
@@ -135,6 +136,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.203570+00:00",
+ "created_at": "2026-11-07T21:53:56.492835+00:00",
  "origin": "preset"
 }

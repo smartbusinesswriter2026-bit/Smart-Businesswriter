@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "profitmax",
+ "method": "profit_maximization",
  "tile_label": "Profit maximisation",
  "group": "Microeconomics",
  "objective": "What output and price maximise profit?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.001373+00:00",
+ "created_at": "2026-11-07T21:53:56.315086+00:00",
  "origin": "preset"
 }

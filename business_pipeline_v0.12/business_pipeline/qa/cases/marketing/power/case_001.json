@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "power",
+ "method": "power_analysis",
  "tile_label": "Power and sample size",
  "group": "Funnel, surveys and testing",
  "objective": "Size a study to detect a stated effect",
@@ -44,6 +45,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.344021+00:00",
+ "created_at": "2026-11-07T21:53:56.624437+00:00",
  "origin": "preset"
 }

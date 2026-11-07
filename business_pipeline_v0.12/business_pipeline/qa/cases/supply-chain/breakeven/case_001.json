@@ -4,6 +4,7 @@
  "subject": "supply-chain",
  "subject_label": "Supply chain & logistics",
  "tile": "breakeven",
+ "method": "breakeven",
  "tile_label": "Break-even point",
  "group": "Cost and mix",
  "objective": "How many units must we sell to break even?",
@@ -33,6 +34,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.282398+00:00",
+ "created_at": "2026-11-07T21:53:56.563523+00:00",
  "origin": "preset"
 }

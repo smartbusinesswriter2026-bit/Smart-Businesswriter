@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "purchaseintent",
+ "method": "purchase_intent",
  "tile_label": "Purchase intent",
  "group": "Market size and demand",
  "objective": "What share of the market intends to buy, and how many buyers is that?",
@@ -43,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.306630+00:00",
+ "created_at": "2026-11-07T21:53:56.587656+00:00",
  "origin": "preset"
 }

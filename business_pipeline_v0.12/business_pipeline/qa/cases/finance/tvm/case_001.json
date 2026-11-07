@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "tvm",
+ "method": "time_value",
  "tile_label": "Time value of money",
  "group": "Time value and instruments",
  "objective": "What will my savings and regular deposits be worth?",
@@ -41,6 +42,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.887814+00:00",
+ "created_at": "2026-11-07T21:53:56.226588+00:00",
  "origin": "preset"
 }

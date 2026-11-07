@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "workingcapital",
+ "method": "working_capital",
  "tile_label": "Working capital and EOQ",
  "group": "Statement analysis",
  "objective": "How long is cash tied up in working capital?",
@@ -49,6 +50,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.897550+00:00",
+ "created_at": "2026-11-07T21:53:56.233557+00:00",
  "origin": "preset"
 }

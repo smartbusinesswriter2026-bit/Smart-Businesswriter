@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "cohort",
+ "method": "cohort_retention",
  "tile_label": "Cohort retention",
  "group": "Customer economics and retention",
  "objective": "How well do we keep the customers we win each month?",
@@ -63,6 +64,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.320483+00:00",
+ "created_at": "2026-11-07T21:53:56.602766+00:00",
  "origin": "preset"
 }

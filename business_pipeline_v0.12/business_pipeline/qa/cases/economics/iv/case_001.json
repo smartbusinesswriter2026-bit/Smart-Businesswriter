@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "iv",
+ "method": "instrumental_variables",
  "tile_label": "Instrumental variables",
  "group": "Econometrics",
  "objective": "What does the instrument imply for the effect?",
@@ -61,6 +62,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.011004+00:00",
+ "created_at": "2026-11-07T21:53:56.322828+00:00",
  "origin": "preset"
 }

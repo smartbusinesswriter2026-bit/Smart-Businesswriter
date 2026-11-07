@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "captable",
+ "method": "cap_table_round",
  "tile_label": "Cap table and dilution",
  "group": "Funding and valuation",
  "objective": "What share does the investor get in this round?",
@@ -43,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.241280+00:00",
+ "created_at": "2026-11-07T21:53:56.526142+00:00",
  "origin": "preset"
 }

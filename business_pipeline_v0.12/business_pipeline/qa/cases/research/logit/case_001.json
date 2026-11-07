@@ -4,6 +4,7 @@
  "subject": "research",
  "subject_label": "Research & statistics",
  "tile": "logit",
+ "method": "logistic_regression",
  "tile_label": "Logistic regression",
  "group": "Relate variables",
  "objective": "What predicts the binary outcome?",
@@ -172,6 +173,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.379549+00:00",
+ "created_at": "2026-11-07T21:53:56.655145+00:00",
  "origin": "preset"
 }

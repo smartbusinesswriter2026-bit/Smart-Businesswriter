@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "funnel",
+ "method": "sales_funnel",
  "tile_label": "Sales funnel and conversion",
  "group": "Funnel, surveys and testing",
  "objective": "Where do we lose customers between the first contact and the sale?",
@@ -51,6 +52,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.336547+00:00",
+ "created_at": "2026-11-07T21:53:56.619339+00:00",
  "origin": "preset"
 }

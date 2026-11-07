@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "dpayback",
+ "method": "discounted_payback",
  "tile_label": "Discounted payback",
  "group": "Appraise the business case",
  "objective": "How long until the discounted cash flows repay the investment?",
@@ -38,6 +39,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.111093+00:00",
+ "created_at": "2026-11-07T21:53:56.404532+00:00",
  "origin": "preset"
 }

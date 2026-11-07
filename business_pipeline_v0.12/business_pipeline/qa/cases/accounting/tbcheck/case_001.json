@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "tbcheck",
+ "method": "trial_balance_check",
  "tile_label": "Check a trial balance",
  "group": "Bookkeeping",
  "objective": "Check my trial balance against my journal",
@@ -118,6 +119,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.854966+00:00",
+ "created_at": "2026-11-07T21:53:56.202463+00:00",
  "origin": "preset"
 }

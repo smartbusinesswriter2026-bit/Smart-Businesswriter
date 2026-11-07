@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "multiproject",
+ "method": "multi_project_schedule",
  "tile_label": "Multi-project scheduling",
  "group": "Schedule and control",
  "objective": "Schedule two projects that share one crew",
@@ -89,6 +90,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.155337+00:00",
+ "created_at": "2026-11-07T21:53:56.448306+00:00",
  "origin": "preset"
 }

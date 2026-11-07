@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "cba",
+ "method": "cost_benefit",
  "tile_label": "Cost-benefit analysis",
  "group": "Impact and options",
  "objective": "Appraise the programme costs against its benefits",
@@ -43,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.251189+00:00",
+ "created_at": "2026-11-07T21:53:56.535598+00:00",
  "origin": "preset"
 }

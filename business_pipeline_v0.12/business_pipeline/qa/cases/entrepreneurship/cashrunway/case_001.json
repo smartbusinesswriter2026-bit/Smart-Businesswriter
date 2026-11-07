@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "cashrunway",
+ "method": "cash_runway",
  "tile_label": "Cash runway and funding gap",
  "group": "Financial plan and return",
  "objective": "How many months of cash do we have, and how much must we raise?",
@@ -38,6 +39,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.213780+00:00",
+ "created_at": "2026-11-07T21:53:56.501480+00:00",
  "origin": "preset"
 }

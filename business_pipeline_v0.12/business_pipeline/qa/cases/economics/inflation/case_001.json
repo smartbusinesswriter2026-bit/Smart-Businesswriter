@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "inflation",
+ "method": "inflation_cpi",
  "tile_label": "Inflation and real interest",
  "group": "Macroeconomics",
  "objective": "What is the inflation rate and the real interest rate?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.020507+00:00",
+ "created_at": "2026-11-07T21:53:56.330508+00:00",
  "origin": "preset"
 }

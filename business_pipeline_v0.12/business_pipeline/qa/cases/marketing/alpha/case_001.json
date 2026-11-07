@@ -4,6 +4,7 @@
  "subject": "marketing",
  "subject_label": "Marketing & customers",
  "tile": "alpha",
+ "method": "reliability_alpha",
  "tile_label": "Reliability (Cronbach's alpha)",
  "group": "Funnel, surveys and testing",
  "objective": "Are the survey items internally consistent?",
@@ -74,6 +75,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.339741+00:00",
+ "created_at": "2026-11-07T21:53:56.621893+00:00",
  "origin": "preset"
 }

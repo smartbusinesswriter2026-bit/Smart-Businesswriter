@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "evm",
+ "method": "earned_value",
  "tile_label": "Earned value",
  "group": "Schedule and control",
  "objective": "Are we ahead or behind, and what will it cost?",
@@ -43,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.149219+00:00",
+ "created_at": "2026-11-07T21:53:56.441878+00:00",
  "origin": "preset"
 }

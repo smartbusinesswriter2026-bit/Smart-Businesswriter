@@ -4,6 +4,7 @@
  "subject": "finance",
  "subject_label": "Finance",
  "tile": "capm",
+ "method": "capm",
  "tile_label": "CAPM and beta",
  "group": "Corporate finance",
  "objective": "What cost of equity does CAPM imply?",
@@ -40,6 +41,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.941934+00:00",
+ "created_at": "2026-11-07T21:53:56.271228+00:00",
  "origin": "preset"
 }

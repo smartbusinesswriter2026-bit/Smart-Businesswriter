@@ -4,6 +4,7 @@
  "subject": "supply-chain",
  "subject_label": "Supply chain & logistics",
  "tile": "capacity",
+ "method": "capacity_analysis",
  "tile_label": "Capacity and bottleneck",
  "group": "Inventory and network",
  "objective": "Which step limits how much we can produce?",
@@ -55,6 +56,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.300202+00:00",
+ "created_at": "2026-11-07T21:53:56.580806+00:00",
  "origin": "preset"
 }

@@ -4,6 +4,7 @@
  "subject": "entrepreneurship",
  "subject_label": "Entrepreneurship",
  "tile": "pricing",
+ "method": "pricing_decision",
  "tile_label": "Pricing rules",
  "group": "Costs, pricing and break-even",
  "objective": "What price should we set under each pricing rule?",
@@ -44,6 +45,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.192492+00:00",
+ "created_at": "2026-11-07T21:53:56.482063+00:00",
  "origin": "preset"
 }

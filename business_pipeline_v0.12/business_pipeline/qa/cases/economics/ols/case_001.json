@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "ols",
+ "method": "ols",
  "tile_label": "Linear regression",
  "group": "Quantitative core",
  "objective": "How are study hours and sleep associated with exam score?",
@@ -94,6 +95,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.079437+00:00",
+ "created_at": "2026-11-07T21:53:56.375783+00:00",
  "origin": "preset"
 }

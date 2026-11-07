@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "realoption",
+ "method": "real_option",
  "tile_label": "Real option valuation",
  "group": "Appraise the business case",
  "objective": "What is the option to invest in the project worth?",
@@ -42,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.118483+00:00",
+ "created_at": "2026-11-07T21:53:56.411244+00:00",
  "origin": "preset"
 }

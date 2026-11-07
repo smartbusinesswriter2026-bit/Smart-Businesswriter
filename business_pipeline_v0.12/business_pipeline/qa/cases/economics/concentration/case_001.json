@@ -4,6 +4,7 @@
  "subject": "economics",
  "subject_label": "Economics",
  "tile": "concentration",
+ "method": "market_concentration",
  "tile_label": "Market concentration (HHI)",
  "group": "Microeconomics",
  "objective": "How concentrated is this market?",
@@ -39,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.998778+00:00",
+ "created_at": "2026-11-07T21:53:56.312218+00:00",
  "origin": "preset"
 }

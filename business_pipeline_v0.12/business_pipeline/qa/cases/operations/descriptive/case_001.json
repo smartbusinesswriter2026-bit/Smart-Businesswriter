@@ -4,6 +4,7 @@
  "subject": "operations",
  "subject_label": "Operations management",
  "tile": "descriptive",
+ "method": "descriptive_stats",
  "tile_label": "Descriptive statistics",
  "group": "Inventory and planning",
  "objective": "Describe the exam scores",
@@ -46,6 +47,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.274975+00:00",
+ "created_at": "2026-11-07T21:53:56.556996+00:00",
  "origin": "preset"
 }

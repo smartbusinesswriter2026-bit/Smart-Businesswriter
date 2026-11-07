@@ -4,6 +4,7 @@
  "subject": "accounting",
  "subject_label": "Accounting",
  "tile": "sensitivity",
+ "method": "sensitivity_table",
  "tile_label": "Price and volume sensitivity",
  "group": "Planning and projection",
  "objective": "What happens to profit if price or volume changes?",
@@ -52,6 +53,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:17.884186+00:00",
+ "created_at": "2026-11-07T21:53:56.223161+00:00",
  "origin": "preset"
 }

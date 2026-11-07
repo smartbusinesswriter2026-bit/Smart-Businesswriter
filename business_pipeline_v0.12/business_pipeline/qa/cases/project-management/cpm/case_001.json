@@ -4,6 +4,7 @@
  "subject": "project-management",
  "subject_label": "Project management",
  "tile": "cpm",
+ "method": "cpm_schedule",
  "tile_label": "Critical path and PERT",
  "group": "Schedule and control",
  "objective": "What is the critical path and when does the project finish?",
@@ -76,6 +77,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:17:18.148065+00:00",
+ "created_at": "2026-11-07T21:53:56.440692+00:00",
  "origin": "preset"
 }
