@@ -6,514 +6,584 @@
 <title>Smart BusinessWriter — Admin (self-healing)</title>
 <link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,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">
 <style>
-/* sbw-quiet-pass v1 */
-  /* ── Design tokens (sampled from logo: navy #445B75, green #488677) ── */
+/* ── Smart BusinessWriter admin: modern console ── */
   :root {
-    --navy: #1B3049;
-    --navy-dark: #14212E;
-    --green: #3C8771;
-    --green-dark: #2F6552;
-    --bg: #FAFBFC;
+    --ink: #0F172A;
+    --ink-2: #1E293B;
+    --muted: #64748B;
+    --muted-2: #94A3B8;
+    --bg: #F4F6F9;
     --surface: #FFFFFF;
-    --border: #E3E7EB;
-    --text: #1B3049;
-    --muted: #5A6672;
-    --danger: #8E3230;
-    --warn: #8A6A32;
-    --ok: #3C8771;
-    --radius: 6px;
-    --shadow: 0 1px 2px rgba(27,48,73,0.05);
+    --line: #E2E8F0;
+    --line-strong: #CBD5E1;
+    --accent: #2F7D6B;
+    --accent-dark: #256355;
+    --accent-soft: #E8F3F0;
+    --danger: #B42318;
+    --warn: #B54708;
+    --ok: #067647;
+    --info: #175CD3;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 2px rgba(16,24,40,.05);
+    --shadow: 0 1px 3px rgba(16,24,40,.08), 0 1px 2px rgba(16,24,40,.04);
+    --sidebar: #0F172A;
+    --sidebar-text: #CBD5E1;
+    --sidebar-muted: #7C8CA6;
+    --sidebar-active: #1B2A46;
   }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
   body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
     background: var(--bg);
-    color: var(--text);
+    color: var(--ink);
+    font-size: 14px;
     line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
-  /* ── Top bar ── */
-  .topbar {
-    background: var(--navy);
+  /* ── Shell ── */
+  .app { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 258px;
+    background: var(--sidebar);
     color: #fff;
-    padding: 9.6px 16px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: none;
-  }
-  .topbar h1 { font-size:13px; font-weight: 600; }
-  .topbar .meta { font-size:11px; opacity: 0.85; }
-  .topbar .badge {
-    background: var(--green);
-    color: #fff;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size:10.2px;
-    font-weight: 600;
-  }
-  /* ── Layout ── */
-  .layout {
-    display: flex;
-    min-height: calc(100vh - 52px);
-  }
-  .rail {
-    width: 200px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    padding: 12.8px 0;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
     flex-shrink: 0;
   }
-  .rail button {
-    display: block;
-    width: 100%;
-    padding: 8px 16px;
-    border: none;
-    background: none;
-    text-align: left;
-    font-size:11.9px;
-    cursor: pointer;
-    color: var(--text);
-    transition: background 0.15s;
+  .brand {
+    padding: 20px 20px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,.07);
   }
-  .rail button:hover { background: var(--bg); }
-  .rail button.active {
-    background: rgba(60,135,113,0.06);
-    color: var(--green-dark);
-    font-weight: 600;
-    border-left: 3px solid var(--green);
+  .brand-mark {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #3C8771, #256355);
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 14px; color: #fff;
+    letter-spacing: -.02em;
   }
-  .main {
-    flex: 1;
-    padding: 19.2px;
-    overflow-y: auto;
+  .brand-name { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+  .brand-sub { font-size: 11px; color: var(--sidebar-muted); margin-top: 1px; }
+  .nav { padding: 12px; overflow-y: auto; flex: 1; }
+  .nav-label {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: .09em;
+    color: var(--sidebar-muted); padding: 14px 10px 6px; font-weight: 600;
   }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 9px 10px; border: 0; border-radius: 8px;
+    background: transparent; color: var(--sidebar-text);
+    font-size: 13px; text-align: left; cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .nav-item:hover { background: rgba(255,255,255,.06); color: #fff; }
+  .nav-item.active {
+    background: var(--sidebar-active); color: #fff;
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .nav-text { display: flex; flex-direction: column; gap: 1px; }
+  .nav-text small { font-size: 11px; color: var(--sidebar-muted); font-weight: 400; }
+  .nav-item.active .nav-text small { color: #9FB0C8; }
+  .sidebar-foot {
+    padding: 14px 20px; border-top: 1px solid rgba(255,255,255,.07);
+    font-size: 11.5px; color: var(--sidebar-muted);
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .topbar {
+    height: 66px; background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; gap: 16px; position: sticky; top: 0; z-index: 20;
+  }
+  .topbar h1 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; margin: 0; }
+  .topbar .sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .top-actions { display: flex; align-items: center; gap: 10px; }
+  .badge {
+    background: var(--accent-soft); color: var(--accent-dark);
+    padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  }
+  .badge.err { background: #FEE4E2; color: var(--danger); }
+  .main { padding: 24px 28px 56px; max-width: 1420px; width: 100%; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; animation: fade .18s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+  .page-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 16px; margin-bottom: 18px;
+  }
+  .page-head h2 { font-size: 22px; font-weight: 650; letter-spacing: -.02em; margin: 0; }
+  .page-head p { color: var(--muted); font-size: 13px; margin: 4px 0 0; max-width: 820px; }
   /* ── Cards ── */
   .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 12.8px;
-    box-shadow: var(--shadow);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow-sm);
+    margin-bottom: 18px; overflow: hidden;
   }
-  .card h2 { font-size:13.6px; margin-bottom: 9.6px; color: var(--navy); }
-  .card h3 { font-size:11.9px; margin-bottom: 6.4px; color: var(--muted); }
-  /* ── Tables ── */
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size:11px;
+  .card > h2 { padding: 18px 22px 0; margin: 0 0 4px; font-size: 15.5px; font-weight: 650; }
+  .card-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 16px; padding: 18px 22px 0;
   }
-  th, td {
-    padding: 6.4px 9.6px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-  }
-  th {
-    background: var(--bg);
-    font-weight: 600;
-    color: var(--navy);
-    font-size:10.2px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  tr:hover { background: var(--bg); }
-  /* ── Status pills ── */
-  .pill {
-    display: inline-block;
-    padding: 2px 6.4px;
-    border-radius: 10px;
-    font-size:10px;
-    font-weight: 600;
-  }
-  .pill.ok { background: rgba(60,135,113,0.09); color: var(--green-dark); }
-  .pill.err { background: rgba(192,57,43,0.12); color: var(--danger); }
-  .pill.warn { background: rgba(183,121,31,0.12); color: var(--warn); }
-  .pill.info { background: rgba(20,62,104,0.1); color: var(--navy); }
-  /* ── Buttons ── */
-  .btn {
-    padding: 4.8px 11.2px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--surface);
-    cursor: pointer;
-    font-size:11px;
-    transition: all 0.15s;
-  }
-  .btn:hover { background: var(--bg); }
-  .btn.primary { background: var(--green); color: #fff; border-color: var(--green); }
-  .btn.primary:hover { background: var(--green-dark); }
-  .btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
-  .btn.danger:hover { opacity: 0.9; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  /* ── Form controls ── */
+  .card-head h2 { font-size: 15.5px; font-weight: 650; margin: 0; }
+  .card-head p { color: var(--muted); font-size: 12.5px; margin: 4px 0 0; max-width: 820px; }
+  .card-body { padding: 16px 22px 20px; }
+  .card-body > .row:first-child { margin-top: 0; }
+  .card > h2 + p { padding: 0 22px; color: var(--muted); font-size: 12.5px; }
+  /* ── Layout rows ── */
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .row:last-child { margin-bottom: 0; }
+  label { font-size: 12.5px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  /* ── Controls ── */
   input, select, textarea {
-    padding: 4.8px 8px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size:11px;
-    font-family: inherit;
+    padding: 8px 10px; border: 1px solid var(--line-strong);
+    border-radius: 8px; font-size: 13px; font-family: inherit;
+    background: #fff; color: var(--ink); outline: none;
+    transition: border .15s, box-shadow .15s;
   }
-  textarea { resize: vertical; min-height:48px; width: 100%; }
-  .row { display: flex; gap: 9.6px; align-items: center; flex-wrap: wrap; margin-bottom: 9.6px; }
-  .row label { font-size:11px; color: var(--muted); }
-  /* ── Panels ── */
-  .panel { display: none; }
-  .panel.active { display: block; }
-  /* ── Toast ── */
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: var(--navy);
-    color: #fff;
-    padding: 8px 14.4px;
-    border-radius: 8px;
-    font-size:11px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.25s;
-    pointer-events: none;
-    z-index: 100;
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,125,107,.12);
   }
-  .toast.show { opacity: 1; transform: translateY(0); }
-  /* ── Empty state ── */
-  .empty { text-align: center; padding: 32px 16px; color: var(--muted); font-size:11.9px; }
-  .empty .icon { font-size:18.6px; margin-bottom: 6.4px; }
-  /* ── Code blocks ── */
+  textarea { resize: vertical; min-height: 80px; width: 100%; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 8px 14px; border: 1px solid var(--line-strong);
+    border-radius: 8px; background: #fff; color: var(--ink-2);
+    font-size: 13px; font-weight: 550; cursor: pointer;
+    transition: background .15s, border .15s, transform .05s;
+    white-space: nowrap;
+  }
+  .btn:hover { background: #F8FAFC; border-color: var(--muted-2); }
+  .btn:active { transform: translateY(1px); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+  .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .btn.danger:hover { opacity: .92; }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  /* ── Pills ── */
+  .pill {
+    display: inline-flex; align-items: center; padding: 3px 9px;
+    border-radius: 999px; font-size: 11.5px; font-weight: 600;
+    background: #F1F5F9; color: var(--muted);
+  }
+  .pill.ok { background: #E7F6EF; color: var(--ok); }
+  .pill.err { background: #FEE4E2; color: var(--danger); }
+  .pill.warn { background: #FEF0C7; color: var(--warn); }
+  .pill.info { background: #E8F1FE; color: var(--info); }
+  /* ── Tables ── */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    background: #F8FAFC; font-weight: 600; color: var(--muted);
+    font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+  }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: #FBFCFD; }
+  /* ── Code ── */
   .code {
-    background: var(--navy-dark);
-    color: #A0A6B1;
-    padding: 9.6px 12.8px;
-    border-radius: 8px;
-    font-family: "Consolas", "Courier New", monospace;
-    font-size:10.2px;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    word-break: break-word;
+    background: #0B1220; color: #C7D2E0; padding: 14px 16px;
+    border-radius: 10px; font-family: ui-monospace, Consolas, "Courier New", monospace;
+    font-size: 12px; line-height: 1.6; overflow: auto;
+    white-space: pre-wrap; word-break: break-word;
   }
-  /* ── Progress bar ── */
-  .progress { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin: 6.4px 0; }
-  .progress .bar { height: 100%; background: var(--green); transition: width 0.3s; }
-  /* ── Modal ── */
+  /* ── Empty / progress / toast / modal ── */
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
+  .empty .icon { font-size: 22px; margin-bottom: 8px; }
+  .progress { height: 6px; background: #EEF2F6; border-radius: 999px; overflow: hidden; margin: 10px 0; }
+  .progress .bar { height: 100%; background: var(--accent); transition: width .3s; }
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--ink);
+    color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px;
+    box-shadow: 0 10px 30px rgba(15,23,42,.3); opacity: 0;
+    transform: translateY(8px); transition: all .22s; z-index: 100;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: none; }
   .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(27,48,73,0.3);
-    z-index: 50;
-    align-items: center;
-    justify-content: center;
+    display: none; position: fixed; inset: 0; background: rgba(15,23,42,.45);
+    z-index: 50; align-items: center; justify-content: center; padding: 20px;
   }
   .modal-overlay.show { display: flex; }
   .modal {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 19.2px;
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    background: #fff; border-radius: 14px; padding: 24px;
+    max-width: 680px; width: 100%; max-height: 85vh; overflow: auto;
+    box-shadow: 0 24px 60px rgba(15,23,42,.3);
   }
-  .modal h2 { margin-bottom: 9.6px; }
-  .modal .actions { display: flex; gap: 6.4px; justify-content: flex-end; margin-top: 12.8px; }
+  .modal h2 { margin-bottom: 10px; }
+  .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  /* ── Subtabs ── */
+  .subtabs {
+    display: flex; gap: 4px; padding: 4px; background: #EDF1F5;
+    border-radius: 10px; margin-bottom: 18px; width: fit-content; max-width: 100%;
+    overflow-x: auto;
+  }
+  .subtabs button {
+    border: 0; background: transparent; padding: 8px 14px; border-radius: 8px;
+    font-size: 12.5px; font-weight: 600; color: var(--muted); cursor: pointer;
+    white-space: nowrap;
+  }
+  .subtabs button:hover { color: var(--ink); }
+  .subtabs button.active { background: #fff; color: var(--ink); box-shadow: var(--shadow-sm); }
+  .hpanel { display: none; }
+  .hpanel.active { display: block; animation: fade .18s ease; }
+  /* ── Stat grid ── */
+  .stat-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px; margin-bottom: 18px;
+  }
+  .stat {
+    background: #fff; border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 18px; box-shadow: var(--shadow-sm);
+  }
+  .stat .label {
+    font-size: 11.5px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: .05em; font-weight: 600;
+  }
+  .stat .value { font-size: 26px; font-weight: 700; letter-spacing: -.03em; margin-top: 6px; color: var(--ink); }
+  .stat .hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .stat.accent .value { color: var(--accent); }
+  .stat.danger .value { color: var(--danger); }
+  /* ── Automated testing / cases ── */
+  .at-subject { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; background: #fff; }
+  .at-subject-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  .at-subject-head h3 { margin: 0; font-size: 15px; font-weight: 650; }
+  .at-group { border-top: 1px solid var(--line); padding: 8px 0; }
+  .at-group summary { cursor: pointer; font-size: 13px; font-weight: 600; padding: 6px 0; user-select: none; color: var(--ink-2); }
+  .at-group summary span { font-weight: 500; color: var(--muted); font-size: 11.5px; margin-left: 8px; }
+  .at-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px 16px; padding: 8px 0 4px 22px; }
+  .at-tile { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; line-height: 1.4; padding: 3px 0; }
+  .at-tile input { margin-top: 3px; accent-color: var(--accent); }
+  .at-tile.disabled { color: var(--muted-2); }
+  .at-tile em { color: var(--muted); font-style: normal; font-size: 11px; }
+  .at-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .at-status { font-size: 12px; color: var(--muted); }
+  .at-results { margin-top: 10px; font-size: 12.5px; }
+  .at-results table { width: 100%; border-collapse: collapse; }
+  .at-results th, .at-results td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .at-results th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: #F8FAFC; }
+  .at-downloads { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .at-downloads a.btn { text-decoration: none; }
   /* ── Responsive ── */
-  @media (max-width: 768px) {
-    .layout { flex-direction: column; }
-    .rail { width: 100%; display: flex; overflow-x: auto; }
-    .rail button { width: auto; white-space: nowrap; }
+  @media (max-width: 980px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: relative; }
+    .nav { display: flex; flex-wrap: wrap; gap: 4px; }
+    .nav-label { display: none; }
+    .nav-item { width: auto; }
+    .nav-text small { display: none; }
+    .topbar { padding: 0 16px; height: auto; padding-top: 12px; padding-bottom: 12px; }
+    .main { padding: 18px 16px 44px; }
+    .page-head { flex-direction: column; align-items: flex-start; }
+    .hpanel > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
   }
-  /* ── Automated testing: subject sections, collapsible subsections ── */
-  .at-subject { border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:14px; background:var(--surface); }
-  .at-subject-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
-  .at-subject-head h3 { margin:0; font-size:15px; }
-  .at-group { border-top:1px solid var(--line); padding:6px 0; }
-  .at-group summary { cursor:pointer; font-size:12.5px; font-weight:600; padding:4px 0; user-select:none; }
-  .at-group summary span { font-weight:400; color:var(--muted); font-size:10.5px; margin-left:6px; }
-  .at-tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:4px 14px; padding:6px 0 2px 20px; }
-  .at-tile { display:flex; align-items:flex-start; gap:7px; font-size:11.5px; line-height:1.35; padding:2px 0; }
-  .at-tile input { margin-top:2px; }
-  .at-tile.disabled { color:var(--muted); }
-  .at-tile em { color:var(--muted); font-style:normal; font-size:10px; }
-  .at-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px; }
-  .at-status { font-size:11px; color:var(--muted); }
-  .at-results { margin-top:8px; font-size:11px; }
-  .at-results table { width:100%; border-collapse:collapse; }
-  .at-results th, .at-results td { text-align:left; padding:4px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
-  .at-results th { font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
-  .at-downloads { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); }
-  .at-downloads a.btn { text-decoration:none; }
+
 </style>
 </head>
 <body>
-
-<!-- ── Top bar ── -->
-<div class="topbar">
-  <h1>Smart BusinessWriter — Admin</h1>
-  <div style="display:flex;align-items:center;gap:12px;">
-    <span class="meta" id="buildInfo">Build: loading…</span>
-    <span class="badge" id="statusBadge">…</span>
-  </div>
-</div>
-
-<div class="layout">
-  <!-- ── Left rail ── -->
-  <nav class="rail" id="rail">
-    <button data-panel="runs">📋 Run log</button>
-    <button data-panel="validation">🧪 Validation</button>
-    <button data-panel="heal" class="active">Self-Healing</button>
-  <button data-panel="autoresearch">Autoresearch</button>
-    <button data-panel="chat">💬 Chat box</button>
-    <button data-panel="health">💚 Health</button>
-  </nav>
-
-  <!-- ── Main content ── -->
-  <main class="main">
-
-    <!-- ═══ RUNS PANEL ═══ -->
-    <div class="panel" id="panel-runs">
-      <div class="card">
-        <h2>Run log</h2>
-        <div class="row">
-          <label>Lane: <select id="runLane"><option value="">all</option><option value="computation">computation</option><option value="framework">framework</option><option value="prose">prose</option><option value="paper">paper</option></select></label>
-          <label>Status: <select id="runStatus"><option value="">all</option><option value="ok">ok</option><option value="refused">refused</option><option value="error">error</option></select></label>
-          <label>Limit: <input type="number" id="runLimit" value="50" min="1" max="500" style="width:70px;"></label>
-          <button class="btn primary" id="runRefresh">Refresh</button>
-        </div>
-        <div id="runsTable"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SB</div>
+      <div>
+        <div class="brand-name">Smart BusinessWriter</div>
+        <div class="brand-sub">Admin console</div>
       </div>
     </div>
-
-    <!-- ═══ VALIDATION PANEL (harness findings) ═══ -->
-    <div class="panel" id="panel-validation">
-      <div class="card">
-        <h2>Validation findings</h2>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">
-          Fed by the validation harness (<code>validation_out/manifest.json</code>), failing pipeline runs and manual entries.
-          Rule + subject + feature + section is the identity; repeats bump the count. A finding the next harness pass no longer reports auto-resolves.
-        </p>
-        <div class="row">
-          <label>Source: <select id="valSource"><option value="">all</option><option value="validation-harness">validation-harness</option><option value="manual">manual</option></select></label>
-          <label>Status: <select id="valStatus"><option value="open" selected>open</option><option value="resolved">resolved</option><option value="">all</option></select></label>
-          <button class="btn primary" id="valRefresh">Refresh</button>
-          <button class="btn" id="valIngest">Ingest manifest</button>
-          <button class="btn" id="valAdd">Add finding</button>
-        </div>
-        <div id="findingsTable"></div>
-        <h3 style="margin-top:14px;">Proposals</h3>
-        <div id="proposalsTable"></div>
-      </div>
+    <nav class="nav rail" id="rail">
+      <div class="nav-label">Monitor</div>
+      <button class="nav-item active" data-panel="heal">
+        <span class="nav-text">Self-Healing<small>Errors, fixes and tests</small></span>
+      </button>
+      <button class="nav-item" data-panel="autoresearch">
+        <span class="nav-text">Autoresearch<small>Recursive repair loop</small></span>
+      </button>
+      <button class="nav-item" data-panel="runs">
+        <span class="nav-text">Run log<small>Pipeline activity</small></span>
+      </button>
+      <div class="nav-label">Quality</div>
+      <button class="nav-item" data-panel="validation">
+        <span class="nav-text">Validation<small>Findings and proposals</small></span>
+      </button>
+      <div class="nav-label">Tools</div>
+      <button class="nav-item" data-panel="chat">
+        <span class="nav-text">Chat box<small>Problem generation</small></span>
+      </button>
+      <button class="nav-item" data-panel="health">
+        <span class="nav-text">Health<small>Server and storage</small></span>
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <span>Build <span id="buildInfo">loading…</span></span>
+      <span>127.0.0.1:8021</span>
     </div>
+  </aside>
 
-    <!-- ═══ SELF-HEALING PANEL (unified: errors + fixes + tests) ═══ -->
-    <div class="panel active" id="panel-heal">
-      <div class="card">
-        <h2>Self-Healing Monitor</h2>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">
-          Errors → generate problems → solve → propose fix → validate → test. One flow.
-        </p>
-        <!-- Free-form problem generation -->
-        <div class="row">
-          <label>Subject: <select id="healSubject"><option value="">— select subject —</option></select></label>
-          <label>Tile: <select id="healTile"><option value="">— select tile —</option></select></label>
-          <label>Problems: <select id="healCount">
-            <option value="3">3 (light)</option>
-            <option value="5" selected>5 (moderate)</option>
-            <option value="10">10 (severe)</option>
-          </select></label>
-          <label>Difficulty: <select id="healDifficulty">
-            <option value="easy">Easy</option>
-            <option value="medium" selected>Medium</option>
-            <option value="hard">Hard</option>
-            <option value="expert">Expert (stress test)</option>
-          </select></label>
-        </div>
-        <div class="row">
-          <label style="flex:1;">Free-form instruction: <input type="text" id="healInstruction" placeholder="Describe what to test or improve…" style="width:100%;"></label>
-          <button class="btn" id="healFreeGen">Generate</button>
-        </div>
-        <div id="healFreeLog" class="code" style="min-height:40px;max-height:200px;overflow-y:auto;margin-bottom:12px;"></div>
-        <div class="row">
-          <button class="btn" id="healFreeRegen">Regenerate</button>
-          <span style="font-size:12px;color:var(--muted);">Click to generate new problems with same settings</span>
-        </div>
+  <div class="content">
+    <header class="topbar">
+      <div>
+        <h1 id="pageTitle">Self-Healing</h1>
+        <div class="sub" id="pageSub">Monitor errors, repair them, and test the tiles.</div>
       </div>
+      <div class="top-actions">
+        <span class="badge" id="statusBadge">…</span>
+      </div>
+    </header>
 
-      <!-- Two-column: errors (left) + workflow (right) -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <!-- LEFT: Error log -->
+    <main class="main">
+
+      <!-- ═══ RUN LOG ═══ -->
+      <div class="panel" id="panel-runs">
+        <div class="page-head">
+          <div><h2>Run log</h2><p>Every pipeline run, its lane, status and duration. Filter to find a failure or confirm a recent fix.</p></div>
+        </div>
         <div class="card">
-          <h2>Errors</h2>
-          <div class="row">
-            <label>Lane: <select id="errLane"><option value="">all</option><option value="computation">computation</option><option value="framework">framework</option><option value="prose">prose</option><option value="paper">paper</option><option value="statements">statements</option><option value="tile-case">tile-case</option></select></label>
-            <label>Status: <select id="errStatus"><option value="open" selected>open</option><option value="resolved">resolved</option><option value="invalid">invalid</option><option value="dismissed">dismissed</option><option value="all">all</option></select></label>
-            <label>Limit: <input type="number" id="errLimit" value="30" min="1" max="200" style="width:60px;"></label>
-            <button class="btn primary" id="errRefresh">Refresh</button>
-          </div>
-          <div id="errorsTable"></div>
-        </div>
-
-        <!-- RIGHT: Active workflow -->
-        <div>
-          <div class="card">
-            <h2>Problems &amp; Fixes</h2>
-            <div id="workflowLog" class="code" style="min-height:60px;max-height:300px;overflow-y:auto;margin-bottom:12px;">Select an error and click "Generate problems" to start.</div>
+          <div class="card-body">
             <div class="row">
-              <button class="btn" id="wfRegen">Regenerate</button>
+              <label>Lane <select id="runLane"><option value="">all</option><option value="computation">computation</option><option value="framework">framework</option><option value="prose">prose</option><option value="paper">paper</option></select></label>
+              <label>Status <select id="runStatus"><option value="">all</option><option value="ok">ok</option><option value="refused">refused</option><option value="error">error</option></select></label>
+              <label>Limit <input type="number" id="runLimit" value="50" min="1" max="500" style="width:80px;"></label>
+              <button class="btn primary" id="runRefresh">Refresh</button>
             </div>
-            <div id="workflowActions" class="row" style="display:none;">
-              <button class="btn primary" id="wfAutoFix">Auto-fix</button>
-              <button class="btn" id="wfProposeFix">Propose fix</button>
-              <button class="btn" id="wfApplyFix">Apply fix</button>
-              <button class="btn" id="wfRunTests">Run tests</button>
+            <div id="runsTable"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ VALIDATION ═══ -->
+      <div class="panel" id="panel-validation">
+        <div class="page-head">
+          <div><h2>Validation</h2><p>Findings from the validation harness, failing runs and manual entries. Rule + subject + feature + section is the identity; repeats bump the count.</p></div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+              <label>Source <select id="valSource"><option value="">all</option><option value="validation-harness">validation-harness</option><option value="manual">manual</option></select></label>
+              <label>Status <select id="valStatus"><option value="open" selected>open</option><option value="resolved">resolved</option><option value="">all</option></select></label>
+              <button class="btn primary" id="valRefresh">Refresh</button>
+              <button class="btn" id="valIngest">Ingest manifest</button>
+              <button class="btn" id="valAdd">Add finding</button>
+            </div>
+            <div id="findingsTable"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Proposals</h2><p>Code and data proposals raised against the findings.</p></div></div>
+          <div class="card-body"><div id="proposalsTable"></div></div>
+        </div>
+      </div>
+
+      <!-- ═══ SELF-HEALING ═══ -->
+      <div class="panel active" id="panel-heal">
+        <div class="page-head">
+          <div><h2>Self-Healing</h2><p>One flow: see the errors, repair them, prove the fix, and keep the test that proves it.</p></div>
+        </div>
+
+        <div class="subtabs" id="healTabs">
+          <button data-hpanel="overview" class="active">Overview</button>
+          <button data-hpanel="errors">Errors &amp; fixes</button>
+          <button data-hpanel="testing">Testing</button>
+          <button data-hpanel="cases">Cases</button>
+          <button data-hpanel="tools">Tools</button>
+        </div>
+
+        <!-- OVERVIEW -->
+        <div class="hpanel active" id="hpanel-overview">
+          <div class="stat-grid">
+            <div class="stat accent"><div class="label">Open errors</div><div class="value" id="overviewErrors">—</div><div class="hint">Unresolved and not dismissed</div></div>
+            <div class="stat"><div class="label">Tile cases</div><div class="value" id="overviewCases">—</div><div class="hint">Stored tests across subjects</div></div>
+            <div class="stat"><div class="label">Repair loop</div><div class="value" id="overviewLoop" style="font-size:16px;">—</div><div class="hint">Autoresearch status</div></div>
+            <div class="stat"><div class="label">Testable tiles</div><div class="value" id="overviewTiles">—</div><div class="hint">With published defaults</div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div><h2>Generate a test</h2><p>Pick a subject and tile, choose the severity and difficulty, and the model writes test problems for the pipeline.</p></div></div>
+            <div class="card-body">
+              <div class="row">
+                <label>Subject <select id="healSubject"><option value="">— select subject —</option></select></label>
+                <label>Tile <select id="healTile"><option value="">— select tile —</option></select></label>
+                <label>Problems <select id="healCount">
+                  <option value="3">3 (light)</option>
+                  <option value="5" selected>5 (moderate)</option>
+                  <option value="10">10 (severe)</option>
+                </select></label>
+                <label>Difficulty <select id="healDifficulty">
+                  <option value="easy">Easy</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="hard">Hard</option>
+                  <option value="expert">Expert (stress test)</option>
+                </select></label>
+              </div>
+              <div class="row">
+                <label style="flex:1;min-width:260px;">Free-form instruction <input type="text" id="healInstruction" placeholder="Describe what to test or improve…" style="width:100%;"></label>
+                <button class="btn primary" id="healFreeGen">Generate</button>
+              </div>
+              <div id="healFreeLog" class="code" style="min-height:44px;max-height:200px;overflow:auto;margin-bottom:12px;">No generation yet.</div>
+              <div class="row">
+                <button class="btn" id="healFreeRegen">Regenerate</button>
+                <span class="at-status">Same settings, new problems.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><div><h2>Heal history</h2><p>Every problem the system generated and how it ended.</p></div></div>
+            <div class="card-body"><div id="healHistory"></div></div>
+          </div>
+        </div>
+
+        <!-- ERRORS & FIXES -->
+        <div class="hpanel" id="hpanel-errors">
+          <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start;">
+            <div class="card">
+              <div class="card-head"><div><h2>Errors</h2><p>Open errors by default. Resolved, invalid and dismissed records are behind the status filter.</p></div></div>
+              <div class="card-body">
+                <div class="row">
+                  <label>Lane <select id="errLane"><option value="">all</option><option value="computation">computation</option><option value="framework">framework</option><option value="prose">prose</option><option value="paper">paper</option><option value="statements">statements</option><option value="tile-case">tile-case</option></select></label>
+                  <label>Status <select id="errStatus"><option value="open" selected>open</option><option value="resolved">resolved</option><option value="invalid">invalid</option><option value="dismissed">dismissed</option><option value="all">all</option></select></label>
+                  <label>Limit <input type="number" id="errLimit" value="30" min="1" max="200" style="width:72px;"></label>
+                  <button class="btn primary" id="errRefresh">Refresh</button>
+                </div>
+                <div id="errorsTable"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><h2>Problems &amp; fixes</h2><p>Select an error to generate problems, propose a fix, apply it, and run the tests.</p></div></div>
+              <div class="card-body">
+                <div id="workflowLog" class="code" style="min-height:120px;max-height:320px;overflow:auto;margin-bottom:12px;">Select an error and click "Generate problems" to start.</div>
+                <div class="row"><button class="btn" id="wfRegen">Regenerate</button></div>
+                <div id="workflowActions" class="row" style="display:none;">
+                  <button class="btn primary" id="wfAutoFix">Auto-fix</button>
+                  <button class="btn" id="wfProposeFix">Propose fix</button>
+                  <button class="btn" id="wfApplyFix">Apply fix</button>
+                  <button class="btn" id="wfRunTests">Run tests</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TESTING -->
+        <div class="hpanel" id="hpanel-testing">
+          <div class="card" id="autoTestCard">
+            <div class="card-head">
+              <div><h2>Automated testing</h2><p>Generate the writer's own paper for a tile from its prefilled instruction. Every subject is a section; tile groups are collapsible; ticks survive a subsection switch. A corpus source is cited only when a page matches; an empty result is a named gap.</p></div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <label>Style <select id="atStyle"><option value="apa" selected>APA 7</option><option value="harvard">Harvard</option></select></label>
+                <label>Format <select id="atFormat"><option value="docx" selected>Word (.docx)</option><option value="xlsx">Excel (.xlsx)</option><option value="both">Both</option></select></label>
+                <label>Length <select id="atLength"><option value="600">Short (600 words)</option><option value="1200" selected>Mid (1,200 words)</option><option value="2500">Long (2,500 words)</option></select></label>
+                <label>Test source <select id="atSource"><option value="system" selected>System-generated</option><option value="uploaded">Uploaded files</option><option value="both">Both</option></select></label>
+                <button class="btn" id="atRefresh" title="Re-read the subject shelves">Reload subjects</button>
+                <span id="atGlobalStatus" class="at-status"></span>
+              </div>
+              <div id="atSections"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CASES -->
+        <div class="hpanel" id="hpanel-cases">
+          <div class="card" id="tileCasesCard">
+            <div class="card-head">
+              <div><h2>Tile cases</h2><p>Each case is one tile's instruction, declared figures and the frozen method's result. A failure is logged as a tile-case error with its case id; the loop re-checks it by code with no model call. A pass is a stored regression test.</p></div>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <button class="btn" id="seedCases">Seed missing cases</button>
+                <button class="btn primary" id="runAllCases">Run all cases</button>
+                <span id="caseSummary" class="at-status">Loading…</span>
+              </div>
+              <div id="caseSubjects" class="at-results"></div>
+              <div class="progress" id="caseProgress" style="display:none;"><div class="bar" style="width:0%"></div></div>
+              <div id="caseResults" class="at-results"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOOLS -->
+        <div class="hpanel" id="hpanel-tools">
+          <div class="card">
+            <div class="card-head"><div><h2>Hallucination checker</h2><p>Paste generated prose and evidence to check for unsupported claims (rule-based and model deep-check).</p></div></div>
+            <div class="card-body">
+              <div class="row"><label style="flex:1;">Prose <textarea id="hallProse" placeholder="Paste generated paper text…" style="min-height:100px;"></textarea></label></div>
+              <div class="row"><label style="flex:1;">Evidence (JSON) <textarea id="hallEvidence" placeholder='[{"title":"...","quote":"..."}]' style="min-height:70px;"></textarea></label></div>
+              <div class="row">
+                <label>Decision <input type="text" id="hallDecision" placeholder="e.g. Whether to enter the EV charging market in Europe" style="width:340px;"></label>
+                <button class="btn primary" id="hallCheck">Rule check</button>
+                <button class="btn" id="hallDeepCheck">Deep check (model)</button>
+              </div>
+              <div id="hallResults" class="code" style="min-height:80px;max-height:320px;overflow:auto;"></div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ═══ AUTOMATED TESTING — paper previews per subject tile ═══ -->
-      <div class="card" id="autoTestCard">
-        <h2>Automated testing — paper previews</h2>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">
-          Each tile is a real paper from the writer, generated from that tile's prefilled example
-          instruction and its declared figures. Every subject is a section; its subsections are
-          collapsible, and a tick survives a switch to another subsection so tiles can be gathered
-          across the whole subject. A corpus source is cited only when a page matches the tile; an
-          empty result is a named gap, never a filled reference.
-        </p>
-        <div class="row">
-          <label>Style: <select id="atStyle"><option value="apa" selected>APA 7</option><option value="harvard">Harvard</option></select></label>
-          <label>Format: <select id="atFormat"><option value="docx" selected>Word (.docx)</option><option value="xlsx">Excel (.xlsx)</option><option value="both">Both</option></select></label>
-          <label>Length: <select id="atLength"><option value="600">Short (600 words)</option><option value="1200" selected>Mid (1,200 words)</option><option value="2500">Long (2,500 words)</option></select></label>
-          <label>Test source: <select id="atSource"><option value="system" selected>System-generated</option><option value="uploaded">Uploaded files</option><option value="both">Both</option></select></label>
-          <button class="btn" id="atRefresh" title="Re-read the subject shelves">Reload subjects</button>
-          <span id="atGlobalStatus" style="font-size:11px;color:var(--muted);"></span>
+      <!-- ═══ AUTORESEARCH ═══ -->
+      <div class="panel" id="panel-autoresearch">
+        <div class="page-head">
+          <div><h2>Autoresearch</h2><p>The recursive repair loop: pick an open error, replay a stored case by code, or use the flash → pro ladder for a stored problem. When nothing is left, replay the whole case suite and stop.</p></div>
         </div>
-        <div id="atSections"></div>
-      </div>
-
-      <!-- ═══ TILE CASES — stored tests that feed the self-healing loop ═══ -->
-      <div class="card" id="tileCasesCard">
-        <h2>Tile cases — self-healing input</h2>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">
-          Each case is one tile's prefilled instruction, its declared figures, and the result the frozen
-          method returns. A failing case is logged as a <code>tile-case</code> error with its case id, so
-          the Karpathy loop re-checks it by code — no model call and no tokens. A passing case is a stored
-          regression test.
-        </p>
-        <div class="row">
-          <button class="btn" id="seedCases">Seed missing cases</button>
-          <button class="btn primary" id="runAllCases">Run all cases</button>
-          <span id="caseSummary" style="font-size:11px;color:var(--muted);">Loading…</span>
-        </div>
-        <div id="caseSubjects" class="at-results"></div>
-        <div class="progress" id="caseProgress" style="display:none;"><div class="bar" style="width:0%"></div></div>
-        <div id="caseResults" class="at-results"></div>
-      </div>
-
-      <!-- Hallucination checker -->
-      <div class="card">
-        <h2>Hallucination checker</h2>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
-          Paste generated prose + evidence to check for hallucinations (rule-based + model deep-check).
-        </p>
-        <div class="row">
-          <label style="flex:1;">Prose: <textarea id="hallProse" placeholder="Paste generated paper text…" style="min-height:80px;"></textarea></label>
-        </div>
-        <div class="row">
-          <label style="flex:1;">Evidence (JSON): <textarea id="hallEvidence" placeholder='[{"title":"...","quote":"..."}]' style="min-height:60px;"></textarea></label>
-        </div>
-        <div class="row">
-          <label>Decision: <input type="text" id="hallDecision" placeholder="e.g. Whether to enter the EV charging market in Europe" style="width:300px;"></label>
-          <button class="btn primary" id="hallCheck">Rule check</button>
-          <button class="btn" id="hallDeepCheck">Deep check (model)</button>
-        </div>
-        <div id="hallResults" class="code" style="min-height:60px;max-height:300px;overflow-y:auto;"></div>
-      </div>
-
-      <!-- Heal history -->
-      <div class="card">
-        <h2>Heal history</h2>
-        <div id="healHistory"></div>
-      </div>
-    </div>
-
-
-    <!-- ═══ AUTORESEARCH PANEL ═══ -->
-    <div class="panel" id="panel-autoresearch">
-      <div class="card">
-        <h2>Autoresearch Loop</h2>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
-          Autonomous self-healing: generates problems from errors, proposes fixes, tests them,
-          keeps improvements, reverts regressions. Runs in background. Stops when all tests pass.
-        </p>
-        <div class="row">
-          <button class="btn primary" id="arStart">Start</button>
-          <button class="btn danger" id="arStop">Stop</button>
-          <button class="btn" id="arRefresh">Refresh status</button>
-        </div>
-        <div id="arStatus" class="code" style="min-height:60px;margin:12px 0;">
-          Status: idle
-        </div>
-        <div class="row">
-          <div class="card" style="flex:1;min-width:120px;">
-            <h3>Errors closed %</h3>
-            <div id="arMetric" style="font-size:24px;font-weight:700;color:var(--navy);">—</div>
+        <div class="card">
+          <div class="card-body">
+            <div class="row">
+              <button class="btn primary" id="arStart">Start</button>
+              <button class="btn danger" id="arStop">Stop</button>
+              <button class="btn" id="arRefresh">Refresh status</button>
+            </div>
+            <div id="arStatus" class="code" style="min-height:64px;margin:12px 0;">Status: idle</div>
+            <div class="stat-grid">
+              <div class="stat accent"><div class="label">Errors closed %</div><div class="value" id="arMetric">—</div></div>
+              <div class="stat"><div class="label">Best closed %</div><div class="value" id="arBest">—</div></div>
+              <div class="stat"><div class="label">Experiments</div><div class="value" id="arExps">0</div></div>
+              <div class="stat"><div class="label">Kept / reverted</div><div class="value" id="arKept" style="font-size:20px;">0 / 0</div></div>
+            </div>
           </div>
-          <div class="card" style="flex:1;min-width:120px;">
-            <h3>Best closed %</h3>
-            <div id="arBest" style="font-size:24px;font-weight:700;color:var(--green);">—</div>
-          </div>
-          <div class="card" style="flex:1;min-width:120px;">
-            <h3>Experiments</h3>
-            <div id="arExps" style="font-size:24px;font-weight:700;color:var(--navy);">0</div>
-          </div>
-          <div class="card" style="flex:1;min-width:120px;">
-            <h3>Kept / Reverted</h3>
-            <div id="arKept" style="font-size:24px;font-weight:700;color:var(--green);">0 / 0</div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Experiment history</h2><p>What the loop tried, what it kept and why.</p></div></div>
+          <div class="card-body"><div id="arHistory"></div></div>
+        </div>
+      </div>
+
+      <!-- ═══ CHAT ═══ -->
+      <div class="panel" id="panel-chat">
+        <div class="page-head">
+          <div><h2>Chat box</h2><p>Generate problems, solve them through the pipeline, and write improvement notes.</p></div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="row"><label style="flex:1;">Instruction <textarea id="chatInstruction" placeholder="Describe what to test or improve…"></textarea></label></div>
+            <div class="row">
+              <label>Number of problems <input type="number" id="chatCount" value="5" min="1" max="50" style="width:80px;"></label>
+              <button class="btn primary" id="chatGenerate">Generate problems</button>
+            </div>
+            <div id="chatLog" class="code" style="min-height:140px;max-height:420px;overflow:auto;"></div>
+            <div class="row" style="margin-top:12px;">
+              <button class="btn" id="chatSolve">Solve problems</button>
+              <button class="btn" id="chatImprove">Write improvements</button>
+              <button class="btn" id="chatRunTests">Run tests on results</button>
+            </div>
           </div>
         </div>
       </div>
-      <div class="card">
-        <h2>Experiment history</h2>
-        <div id="arHistory"></div>
-      </div>
-    </div>
 
-    <!-- ═══ CHAT PANEL ═══ -->
-    <div class="panel" id="panel-chat">
-      <div class="card">
-        <h2>Self-improvement chat box</h2>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">
-          Three-model loop: (a) one model creates problems, (b) another solves them, (c) a third writes improvements.
-        </p>
-        <div class="row">
-          <label style="flex:1;">Instruction: <textarea id="chatInstruction" placeholder="Describe what to test or improve…"></textarea></label>
-        </div>
-        <div class="row">
-          <label>Number of problems: <input type="number" id="chatCount" value="5" min="1" max="50" style="width:70px;"></label>
-          <button class="btn primary" id="chatGenerate">Generate problems</button>
-        </div>
-        <div id="chatLog" class="code" style="min-height:120px;max-height:400px;overflow-y:auto;"></div>
-        <div class="row" style="margin-top:12px;">
-          <button class="btn" id="chatSolve">Solve problems</button>
-          <button class="btn" id="chatImprove">Write improvements</button>
-          <button class="btn" id="chatRunTests">Run tests on results</button>
-        </div>
+      <!-- ═══ HEALTH ═══ -->
+      <div class="panel" id="panel-health">
+        <div class="page-head"><div><h2>Health</h2><p>Server, storage and model status.</p></div></div>
+        <div class="card"><div class="card-body"><div id="healthInfo"></div></div></div>
       </div>
-    </div>
 
-    <!-- ═══ HEALTH PANEL ═══ -->
-    <div class="panel" id="panel-health">
-      <div class="card">
-        <h2>Health</h2>
-        <div id="healthInfo"></div>
-      </div>
-    </div>
-
-  </main>
+    </main>
+  </div>
 </div>
 
 <!-- ── Toast ── -->
@@ -562,10 +632,51 @@ document.querySelectorAll('.rail button').forEach(btn => {
   });
 });
 
+const PAGE_META = {
+  heal: ['Self-Healing', 'Monitor errors, repair them, and test the tiles.'],
+  autoresearch: ['Autoresearch', 'The recursive repair loop.'],
+  runs: ['Run log', 'Every pipeline run and its outcome.'],
+  validation: ['Validation', 'Findings from the harness and proposals.'],
+  chat: ['Chat box', 'Generate and solve problems with the model chain.'],
+  health: ['Health', 'Server, storage and model status.'],
+};
+
+async function refreshOverview() {
+  try {
+    const [errors, cases, loop] = await Promise.all([
+      apiFetch('/api/ops/errors?status=open&limit=200'),
+      apiFetch('/api/ops/cases'),
+      apiFetch('/api/ops/autoresearch/status')
+    ]);
+    if (errors.status === 200 && errors.data) {
+      document.getElementById('overviewErrors').textContent = (errors.data.errors || []).length;
+    }
+    if (cases.status === 200 && cases.data && cases.data.summary) {
+      document.getElementById('overviewCases').textContent = cases.data.summary.total || 0;
+    }
+    if (loop.status === 200 && loop.data) {
+      document.getElementById('overviewLoop').textContent = loop.data.status_message || 'idle';
+    }
+  } catch (e) { /* the dashboard must never break the page */ }
+}
+
+document.querySelectorAll('#healTabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#healTabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.hpanel').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('hpanel-' + btn.dataset.hpanel);
+    if (target) target.classList.add('active');
+  });
+});
+
 function loadPanel(name) {
+  const meta = PAGE_META[name] || [name, ""];
+  document.getElementById('pageTitle').textContent = meta[0];
+  document.getElementById('pageSub').textContent = meta[1];
   if (name === 'runs') loadRuns();
   else if (name === 'validation') { loadFindings(); loadProposals(); }
-  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadPaperTesting(); loadCases(); }
+  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadPaperTesting(); loadCases(); refreshOverview(); }
   else if (name === 'autoresearch') { loadAutoresearch(); }
   else if (name === 'chat') { /* chat panel loaded on demand */ }
   else if (name === 'health') loadHealth();
@@ -756,6 +867,8 @@ async function loadErrors() {
     + '&status=' + encodeURIComponent(status) + '&limit=' + limit);
   const container = document.getElementById('errorsTable');
   if (r.status === 200 && Array.isArray(r.data.errors)) {
+    const overview = document.getElementById('overviewErrors');
+    if (overview) overview.textContent = r.data.errors.length;
     renderErrorsTable(r.data.errors, container);
   } else if (r.status === 404) {
     container.innerHTML = '<div class="empty"><div class="icon">⚠️</div>Error log endpoint not yet wired.</div>';
@@ -1193,9 +1306,10 @@ document.getElementById('wfAutoFix').addEventListener('click', async () => {
 });
 
 /* ── Heal ── */
-async function loadProposals() {
+async function loadStatementProposals() {
   const r = await apiFetch('/api/cases/statements/proposals');
-  const container = document.getElementById('healTable');
+  const container = document.getElementById('healTable') || document.getElementById('proposalsTable');
+  if (!container) return;
   if (r.status === 200) {
     const proposals = r.data.proposals || [];
     if (!proposals.length) { container.innerHTML = '<div class="empty"><div class="icon">🔧</div>No pending proposals.</div>'; return; }
@@ -1243,7 +1357,7 @@ async function applyHeal(proposal) {
   } else {
     toast('Fix rejected: ' + (r.data.reason || r.data.error || 'unknown'));
   }
-  loadProposals();
+  loadStatementProposals();
   loadHealHistory();
 }
 function openFix(id) {
@@ -1303,6 +1417,12 @@ async function loadPaperTesting(force) {
   }
   atData = r.data;
   atLoadedOnce = true;
+  const overviewTiles = document.getElementById('overviewTiles');
+  if (overviewTiles) {
+    let total = 0;
+    (r.data.subjects || []).forEach(s => (s.groups || []).forEach(g => (g.tiles || []).forEach(t => { if (t.has_defaults) total += 1; })));
+    overviewTiles.textContent = total;
+  }
   renderPaperTesting();
 }
 
@@ -1605,6 +1725,8 @@ async function loadCases() {
   const subjects = (summary.by_subject || []).length;
   document.getElementById('caseSummary').textContent =
     (summary.total || 0) + ' case(s) across ' + subjects + ' subject(s)';
+  const overviewCases = document.getElementById('overviewCases');
+  if (overviewCases) overviewCases.textContent = summary.total || 0;
   const bySubject = {};
   caseCache.forEach(c => { (bySubject[c.subject] = bySubject[c.subject] || []).push(c); });
   let html = '';
@@ -2026,6 +2148,7 @@ loadErrors();
 loadHealHistory();
 loadPaperTesting();
 loadCases();
+refreshOverview();
 </script>
 </body>
 </html>
