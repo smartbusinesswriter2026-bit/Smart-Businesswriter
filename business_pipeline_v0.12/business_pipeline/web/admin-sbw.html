@@ -271,6 +271,8 @@
   .at-results th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: #F8FAFC; }
   .at-downloads { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
   .at-downloads a.btn { text-decoration: none; }
+  #errorsTable, #runsTable, #findingsTable, #proposalsTable, #arHistory,
+  #healHistory, #caseResults, #caseSubjects { overflow-x: auto; }
   /* ── Responsive ── */
   @media (max-width: 980px) {
     .app { flex-direction: column; }
@@ -341,9 +343,6 @@
 
       <!-- ═══ RUN LOG ═══ -->
       <div class="panel" id="panel-runs">
-        <div class="page-head">
-          <div><h2>Run log</h2><p>Every pipeline run, its lane, status and duration. Filter to find a failure or confirm a recent fix.</p></div>
-        </div>
         <div class="card">
           <div class="card-body">
             <div class="row">
@@ -359,9 +358,6 @@
 
       <!-- ═══ VALIDATION ═══ -->
       <div class="panel" id="panel-validation">
-        <div class="page-head">
-          <div><h2>Validation</h2><p>Findings from the validation harness, failing runs and manual entries. Rule + subject + feature + section is the identity; repeats bump the count.</p></div>
-        </div>
         <div class="card">
           <div class="card-body">
             <div class="row">
@@ -382,9 +378,6 @@
 
       <!-- ═══ SELF-HEALING ═══ -->
       <div class="panel active" id="panel-heal">
-        <div class="page-head">
-          <div><h2>Self-Healing</h2><p>One flow: see the errors, repair them, prove the fix, and keep the test that proves it.</p></div>
-        </div>
 
         <div class="subtabs" id="healTabs">
           <button data-hpanel="overview" class="active">Overview</button>
@@ -529,9 +522,6 @@
 
       <!-- ═══ AUTORESEARCH ═══ -->
       <div class="panel" id="panel-autoresearch">
-        <div class="page-head">
-          <div><h2>Autoresearch</h2><p>The recursive repair loop: pick an open error, replay a stored case by code, or use the flash → pro ladder for a stored problem. When nothing is left, replay the whole case suite and stop.</p></div>
-        </div>
         <div class="card">
           <div class="card-body">
             <div class="row">
@@ -556,9 +546,6 @@
 
       <!-- ═══ CHAT ═══ -->
       <div class="panel" id="panel-chat">
-        <div class="page-head">
-          <div><h2>Chat box</h2><p>Generate problems, solve them through the pipeline, and write improvement notes.</p></div>
-        </div>
         <div class="card">
           <div class="card-body">
             <div class="row"><label style="flex:1;">Instruction <textarea id="chatInstruction" placeholder="Describe what to test or improve…"></textarea></label></div>
@@ -578,7 +565,6 @@
 
       <!-- ═══ HEALTH ═══ -->
       <div class="panel" id="panel-health">
-        <div class="page-head"><div><h2>Health</h2><p>Server, storage and model status.</p></div></div>
         <div class="card"><div class="card-body"><div id="healthInfo"></div></div></div>
       </div>
 
