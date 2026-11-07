@@ -1014,15 +1014,15 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     attached = _read_rubric(rubric) if rubric is not None else None
     wanted = (profile or framework or "").strip().lower().replace(" ", "_")
     if wanted in (PROFILE_BUSINESS_PLAN, "business_plan", "businessplan", "plan"):
-        return _with_rubric(_start_plan(brief, subject, level, mode), attached)
+        return _with_rubric(_start_plan(brief, subject, level, mode, words=words), attached)
     if wanted in (PROFILE_FEASIBILITY_STUDY, "feasibility_study", "feasibilitystudy", "feasibility"):
-        return _with_rubric(_start_feasibility_study(brief, subject, level, mode), attached)
+        return _with_rubric(_start_feasibility_study(brief, subject, level, mode, words=words), attached)
     if wanted in (PROFILE_MARKETING_PLAN, "marketing_plan", "marketingplan", "marketing"):
-        return _with_rubric(_start_marketing_plan(brief, subject, level, mode), attached)
+        return _with_rubric(_start_marketing_plan(brief, subject, level, mode, words=words), attached)
     if wanted in (PROFILE_PROJECT_PLAN, "project_plan", "projectplan", "project plan", "complete_project_plan"):
-        return _with_rubric(_start_project_plan(brief, subject, level, mode), attached)
+        return _with_rubric(_start_project_plan(brief, subject, level, mode, words=words), attached)
     if wanted in (PROFILE_PROJECT_PROPOSAL, "project_proposal", "projectproposal", "proposal"):
-        return _with_rubric(_start_project_proposal(brief, subject, level, mode), attached)
+        return _with_rubric(_start_project_proposal(brief, subject, level, mode, words=words), attached)
     frameworks = [str(item).strip().lower() for item in (frameworks or []) if str(item).strip()]
     if frameworks:
         if any(item not in FRAMEWORKS for item in frameworks):
@@ -1647,6 +1647,16 @@ def set_length(state, value):
     """
     if state.get("stage") not in ("plan", "research_ready"):
         raise ChatError("Set the report length while the plan is open.")
+    if state.get("profile") in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY,
+                                PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL,
+                                PROFILE_PROJECT_PLAN):
+        floor = length_mod.minimum_for(state.get("profile"), state.get("subject"))
+        words = check_word_target(value, floor)
+        state["answers"]["length"] = str(words) if words else ""
+        state["plan"] = _plan_profile(state)
+        state["draft"] = None
+        state["updated_at"] = _now()
+        return state
     floor = length_mod.minimum_for(state.get("archetype"), state.get("profile"))
     words = check_word_target(value, floor)
     state["answers"]["length"] = str(words) if words else ""
@@ -2363,7 +2373,7 @@ def _sections_for(level, dropped=None):
 OPTIONAL_SECTIONS = {"marketing_plan", "operations_plan", "management", "risk", "impact"}
 
 
-def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN):
+def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN, words=None):
     if len(brief) < 15:
         raise ChatError("Describe the business and the plan in at least one sentence.")
     level = (level or "shs").strip().lower()
@@ -2375,6 +2385,9 @@ def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN):
         raise ChatError("Choose the strict convention or open composition.")
     answers = _defaults(brief)
     answers["inputs"] = {}
+    if words not in (None, ""):
+        floor = length_mod.minimum_for(profile, subject)
+        answers["length"] = str(check_word_target(words, floor))
     state = {"format": FORMAT, "subject": subject or "entrepreneurship", "framework": None,
              "frameworks": [], "profile": profile, "archetype": "plan_proposal", "paper_contract": None,
              "audit": None, "blocks": None, "evidence_ledger": None, "chart_specs": None,
@@ -2387,20 +2400,20 @@ def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN):
     return state
 
 
-def _start_feasibility_study(brief, subject, level, mode):
-    return _start_plan(brief, subject, level, mode, profile=PROFILE_FEASIBILITY_STUDY)
+def _start_feasibility_study(brief, subject, level, mode, words=None):
+    return _start_plan(brief, subject, level, mode, profile=PROFILE_FEASIBILITY_STUDY, words=words)
 
 
-def _start_marketing_plan(brief, subject, level, mode):
-    return _start_plan(brief, subject, level, mode, profile=PROFILE_MARKETING_PLAN)
+def _start_marketing_plan(brief, subject, level, mode, words=None):
+    return _start_plan(brief, subject, level, mode, profile=PROFILE_MARKETING_PLAN, words=words)
 
 
-def _start_project_proposal(brief, subject, level, mode):
-    return _start_plan(brief, subject, level, mode, profile=PROFILE_PROJECT_PROPOSAL)
+def _start_project_proposal(brief, subject, level, mode, words=None):
+    return _start_plan(brief, subject, level, mode, profile=PROFILE_PROJECT_PROPOSAL, words=words)
 
 
-def _start_project_plan(brief, subject, level, mode):
-    return _start_plan(brief, subject, level, mode, profile=PROFILE_PROJECT_PLAN)
+def _start_project_plan(brief, subject, level, mode, words=None):
+    return _start_plan(brief, subject, level, mode, profile=PROFILE_PROJECT_PLAN, words=words)
 
 
 def _plan_profile(state):
@@ -2508,6 +2521,7 @@ def _plan_profile(state):
         "geography": state["answers"].get("geography") or "Global",
         "period": state["answers"].get("period") or "10",
         "style": state["answers"].get("style") or "apa",
+        "target_words": target_words(state) or SHORT_WORDS,
         "sections": secs,
         "blocks": blocks,
         "fields": all_fields,
@@ -2646,7 +2660,8 @@ def set_project(state, record):
                "start_date": "start_date", "end_date": "end_date",
                "scope_in": "scope_in", "scope_out": "scope_out",
                "deliverables": "deliverables", "success_measures": "success_measures",
-               "assumptions": "assumptions", "constraints": "constraints"}
+               "assumptions": "assumptions", "constraints": "constraints",
+               "governance": "governance", "change_control": "change_control"}
     for field, key in mapping.items():
         if not inputs.get(field) and charter.get(key) not in (None, "", []):
             inputs[field] = charter[key]

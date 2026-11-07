@@ -751,6 +751,25 @@ names remain only as legacy values for a saved case; the number is the target.
 - the section-composition thresholds (`MID_FLOOR`, `LONG_FLOOR`) still decide
   which built-in sections a draft carries; they are not the student's target.
 
+### 7.11 Complete project plan
+
+`PROFILE_PROJECT_PLAN` composes one document from a structured project record:
+charter and scope (plan fields), WBS, activities, resources, RACI and risks (the
+record), plus the frozen CPM result. Sections: executive summary and
+authorisation, charter, scope, WBS, schedule, cost plan, organisation, RACI,
+risk register, governance, monitoring, conclusion, references.
+
+- `project_plan.py` owns validation, the WBS cost roll-up (work-package leaves
+  only), the CPM adapter and the table builders.
+- Cost is per work package; a parent's cost is the sum of its children and is
+  refused if declared. No cost, duration, owner or date is invented.
+- CPM is required; PERT and crashing are optional (`options.pert`,
+  `options.crash_target`).
+- The gate blocks on an invalid WBS, a missing owner/cost/acceptance, an invalid
+  activity or RACI row, a risk without response or owner, and a refused CPM run.
+- `POST /api/cases/chat/{id}/project` stores the record; the page offers a JSON
+  editor and a simple CSV upload.
+
 ## 8. Coherence and export gate
 
 `bp.product.paper.check` must pass before a `.docx` is produced. It rejects:

@@ -3788,6 +3788,8 @@ function renderPlan() {
       '<label class="field" style="margin:0">Composition <select id="plancustommode">' +
         '<option value="strict"' + (plan.mode === "strict" ? " selected" : "") + '>Business-plan convention</option>' +
         '<option value="open"' + (plan.mode === "open" ? " selected" : "") + '>Open composition</option></select></label>' +
+      '<label class="field" style="margin:0;max-width:150px">Body words <input id="planwords" type="number" min="600" max="50000" step="100" value="' + esc(String(plan.target_words || 600)) + '"></label>' +
+      '<button class="btn sm" id="plansetwords">Set</button>' +
       '<button class="btn sm" id="plancustomise">Apply</button></div>' +
       '<div class="row" style="flex-wrap:wrap;gap:10px;margin-top:6px">' +
         optional.map((section) => '<label class="check"><input type="checkbox" data-plandrop="' + esc(section.key) + '"> Leave out ' +
@@ -3870,6 +3872,11 @@ function renderPlan() {
   if (d.draft) {
     html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Draft</h3>' +
       "<p><strong>" + esc(d.draft.title) + "</strong></p>";
+    const draftTarget = d.draft.word_target || {};
+    html += '<p class="muted">Body words: ' + esc(String(d.draft.words || 0)) +
+      (draftTarget.range ? " | target " + esc(String(draftTarget.target)) + " (" +
+        esc(String(draftTarget.range[0])) + "-" + esc(String(draftTarget.range[1])) + ")" : "") +
+      (draftTarget.met === true ? " | inside ±10%" : draftTarget.met === false ? " | outside ±10%" : "") + "</p>";
     if ((d.draft.missing || []).length) {
       html += banner("blocked", "Complete the plan before export",
         "<p>Still needed: " + d.draft.missing.map(esc).join(", ") + ". The download is blocked until these are supplied.</p>");
@@ -3891,6 +3898,8 @@ function renderPlan() {
   out.innerHTML = html;
   const reset = $("#planreset"); if (reset) reset.onclick = () => { state.plan = null; renderPlan(); };
   const confirm = $("#planconfirm"); if (confirm) confirm.onclick = () => planPost("plan", {});
+  const setWords = $("#plansetwords");
+  if (setWords) setWords.onclick = () => planPost("length", { words: ($("#planwords") || {}).value || "" });
   const customise = $("#plancustomise");
   if (customise) customise.onclick = () => {
     const body = { level: $("#plancustomlevel").value, mode: $("#plancustommode").value };
@@ -3979,8 +3988,11 @@ function parseProjectCsv(text) {
     head.forEach((name, index) => { row[name] = cells[index] || ""; });
     return row;
   });
-  if (head.includes("duration") || head.includes("wbs") || head.includes("predecessors")) {
+  if (head.includes("duration") || head.includes("predecessors")) {
     return { activities: rows };
+  }
+  if (head.includes("likelihood") || head.includes("impact")) {
+    return { risks: rows };
   }
   return { wbs: rows };
 }
