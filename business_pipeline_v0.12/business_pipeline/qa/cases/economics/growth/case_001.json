@@ -1,0 +1,34 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/growth/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "growth",
+ "tile_label": "Growth rate and CAGR",
+ "group": "Macroeconomics",
+ "objective": "What compound growth rate does this series imply?",
+ "instruction": "A business is preparing a economics analysis. The question is: What compound growth rate does this series imply. The tile covers Compute total growth, the compound annual growth rate and the rule-of-72 doubling time. The declared figures are: start value 100; end value 200; periods 10. Use growth rate and cagr in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "start_value": "100",
+  "end_value": "200",
+  "periods": "10"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "start_value": "100",
+   "end_value": "200",
+   "periods": "10",
+   "total_growth": "1",
+   "cagr": "0.0717734625362931642130063250233420229063846049776",
+   "doubling_time_years": "10.031562844497335521071807962777809925107621257345"
+  },
+  "contains": [
+   "Growth rate and CAGR",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.189103+00:00",
+ "origin": "preset"
+}

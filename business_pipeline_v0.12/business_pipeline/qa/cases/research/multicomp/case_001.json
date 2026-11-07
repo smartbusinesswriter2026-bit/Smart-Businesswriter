@@ -1,0 +1,42 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "research/multicomp/001",
+ "subject": "research",
+ "subject_label": "Research & statistics",
+ "tile": "multicomp",
+ "tile_label": "Multiple-comparison correction",
+ "group": "Check the design",
+ "objective": "Correct a declared family of hypothesis tests",
+ "instruction": "A business is preparing a research & statistics analysis. The question is: Correct a declared family of hypothesis tests. The tile covers Correct a declared family of tests and show the adjusted decisions. The declared figures are: p values 0.01, 0.04, 0.03, 0.005; method holm; alpha 0.05. Use multiple-comparison correction in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "p_values": [
+   "0.01",
+   "0.04",
+   "0.03",
+   "0.005"
+  ],
+  "method": "holm",
+  "alpha": "0.05"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "p_adj_1": "0.03",
+   "p_adj_2": "0.06",
+   "p_adj_3": "0.06",
+   "p_adj_4": "0.02",
+   "n_tests": "4",
+   "n_rejected": "2",
+   "alpha": "0.05",
+   "_appendix": "{'method': 'holm', 'alpha': '0.05', 'raw_p_values': ['0.01', '0.04', '0.03', '0.005'], 'adjusted_p_values': ['0.03', '0.06', '0.06', '0.02'], 'definition': 'Holm step-down: sort p ascending, multiply the i-th smallest by (k - i + 1), take a running maximum, cap at 1.'}",
+   "_checks": "[('adjusted_p_values_are_at_least_the_raw_ones', True, 'a correction never makes evidence look stronger'), ('adjusted_p_values_are_bounded_in_zero_one', True, 'adjusted values stay in [0, 1]'), ('declared_correction_matches_its_definition', True, 'Holm is a monotone step-down; Bonferroni is k x p capped at 1'), ('second_implementation_agrees', True, 'the declared formula is reproduced by an independent route'), ('correction_is_order_invariant', True, 'reordering the family does not change the adjusted values')]"
+  },
+  "contains": [
+   "Multiple-comparison correction",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.524249+00:00",
+ "origin": "preset"
+}

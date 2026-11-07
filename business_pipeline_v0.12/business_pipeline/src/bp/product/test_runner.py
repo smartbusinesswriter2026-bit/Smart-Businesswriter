@@ -208,6 +208,7 @@ SUITES = {
         "tests/test_product_boundary.py",
         "tests/test_product_cases.py",
         "tests/test_product_ops.py",
+        "tests/test_product_case_loop.py",
         "tests/test_product_paper_batch.py",
         "tests/test_product_routes.py",
         "tests/test_product_server.py",

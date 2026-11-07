@@ -1,0 +1,54 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/probit/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "probit",
+ "tile_label": "Probit model",
+ "group": "Econometrics",
+ "objective": "What predicts the binary outcome?",
+ "instruction": "A business is preparing a economics analysis. The question is: What predicts the binary outcome. The tile covers Fit a binary probit with one predictor and read the marginal effect at the mean. The declared figures are: y 0, 1, 0, 1, 0, 1, 0, 1, 1, 0; x -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5. Use probit model in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "y": [
+   "0",
+   "1",
+   "0",
+   "1",
+   "0",
+   "1",
+   "0",
+   "1",
+   "1",
+   "0"
+  ],
+  "x": [
+   "-2",
+   "-1.5",
+   "-1",
+   "-0.5",
+   "0",
+   "0.5",
+   "1",
+   "1.5",
+   "2",
+   "2.5"
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "intercept": "-0.02290425026345394",
+   "slope": "0.0916170010538158",
+   "log_likelihood": "-6.876815927602634",
+   "pseudo_r2": "0.007885176414144213",
+   "marginal_effect_at_mean": "0.03654989532394974"
+  },
+  "contains": [
+   "Probit model",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.185601+00:00",
+ "origin": "preset"
+}

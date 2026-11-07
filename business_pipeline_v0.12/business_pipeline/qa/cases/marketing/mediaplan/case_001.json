@@ -1,0 +1,72 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "marketing/mediaplan/001",
+ "subject": "marketing",
+ "subject_label": "Marketing & customers",
+ "tile": "mediaplan",
+ "tile_label": "Reach, frequency and rating points",
+ "group": "Campaigns, channels and web analytics",
+ "objective": "What does this media plan buy in reach, frequency and rating points?",
+ "instruction": "A business is preparing a marketing & customers analysis. The question is: What does this media plan buy in reach, frequency and rating points. The tile covers Enter the population and each vehicle's reach, insertions and cost and read rating points, cost per point, cost per thousand impressions and the combined reach under random duplication. The declared figures are: population 1000000; vehicles row 1: name TV prime time, reach 450000, insertions 8, cost 1200000; row 2: name Radio drive time, reach 300000, insertions 12, cost 450000; row 3: name Print weekly, reach 120000, insertions 4, cost 180000. Use reach, frequency and rating points in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "population": "1000000",
+  "vehicles": [
+   {
+    "name": "TV prime time",
+    "reach": "450000",
+    "insertions": "8",
+    "cost": "1200000"
+   },
+   {
+    "name": "Radio drive time",
+    "reach": "300000",
+    "insertions": "12",
+    "cost": "450000"
+   },
+   {
+    "name": "Print weekly",
+    "reach": "120000",
+    "insertions": "4",
+    "cost": "180000"
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "reach_1": "450000",
+   "reach_pct_1": "0.45",
+   "impressions_1": "3600000",
+   "grp_1": "360.00",
+   "cpm_1": "333.33333333333333333333333333333333333333333333333",
+   "cpp_1": "3333.3333333333333333333333333333333333333333333333",
+   "reach_2": "300000",
+   "reach_pct_2": "0.3",
+   "impressions_2": "3600000",
+   "grp_2": "360.0",
+   "cpm_2": "125.000",
+   "cpp_2": "1.25E+3",
+   "reach_3": "120000",
+   "reach_pct_3": "0.12",
+   "impressions_3": "480000",
+   "grp_3": "48.00",
+   "cpm_3": "375.000",
+   "cpp_3": "3.75E+3",
+   "vehicles": "3",
+   "population": "1000000",
+   "total_impressions": "7680000",
+   "total_grp": "768.00",
+   "total_cost": "1830000",
+   "blended_cpm": "238.28125000",
+   "net_reach": "661200.00000",
+   "average_frequency": "11.615245009074410163339382940108892921960072595281"
+  },
+  "contains": [
+   "Reach, frequency and rating points",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.461801+00:00",
+ "origin": "preset"
+}

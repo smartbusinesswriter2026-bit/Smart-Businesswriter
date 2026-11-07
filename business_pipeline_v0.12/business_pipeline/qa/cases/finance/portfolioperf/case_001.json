@@ -1,0 +1,48 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "finance/portfolioperf/001",
+ "subject": "finance",
+ "subject_label": "Finance",
+ "tile": "portfolioperf",
+ "tile_label": "Time-weighted return",
+ "group": "Investments",
+ "objective": "What return did the portfolio earn over these periods?",
+ "instruction": "A business is preparing a finance analysis. The question is: What return did the portfolio earn over these periods. The tile covers Chain dated period returns, net of flows, and compare them with a declared benchmark. The declared figures are: periods row 1: label week 1, start nav 10000, end nav 10250, flow 0; row 2: label week 2, start nav 10250, end nav 10100, flow 0. Use time-weighted return in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "periods": [
+   {
+    "label": "week 1",
+    "start_nav": "10000",
+    "end_nav": "10250",
+    "flow": "0"
+   },
+   {
+    "label": "week 2",
+    "start_nav": "10250",
+    "end_nav": "10100",
+    "flow": "0"
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "n_periods": "2",
+   "twr": "0.0100000000000000000000000000000000000000000000000",
+   "total_flow": "0",
+   "start_nav": "10000",
+   "final_nav": "10100",
+   "best_period": "0.025",
+   "worst_period": "-0.014634146341463414634146341463414634146341463414634",
+   "_appendix": "{'periods': [{'label': 'week 1', 'start_nav': '10000', 'end_nav': '10250', 'flow': '0', 'period_return': '0.025', 'benchmark_return': ''}, {'label': 'week 2', 'start_nav': '10250', 'end_nav': '10100', 'flow': '0', 'period_return': '-0.014634146341463414634146341463414634146341463414634', 'benchmark_return': ''}], 'conventions': 'The external flow is treated as occurring at the start of its period, so the period return is (end_nav - start_nav - flow) / (start_nav + flow). The time-weighted return chains (1 + period return) across the declared periods. A benchmark is chained the same way. No fees, tax or dividends are applied and no future return is forecast.', 'inputs': {'periods': [{'label': 'week 1', 'start_nav': '10000', 'end_nav': '10250', 'flow': '0'}, {'label': 'week 2', 'start_nav': '10250', 'end_nav': '10100', 'flow': '0'}]}}",
+   "_checks": "[('second_implementation_agrees', True, 'float route agrees with the Decimal route'), ('twr_equals_the_product_of_end_over_base', True, 'chaining end_nav / (start_nav + flow) gives the same time-weighted return'), ('a_period_with_no_flow_returns_the_nav_ratio', True, 'with no flow, the period return is end_nav / start_nav - 1'), ('geometric_mean_lies_between_best_and_worst', True, 'the geometric mean period return sits between the best and the worst period'), ('benchmark_chains_the_same_way', True, 'a float route agrees with the chained benchmark return'), ('final_nav_matches_the_last_period', True, 'the reported final NAV is the last declared end_nav')]"
+  },
+  "contains": [
+   "Time-weighted return",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.158722+00:00",
+ "origin": "preset"
+}

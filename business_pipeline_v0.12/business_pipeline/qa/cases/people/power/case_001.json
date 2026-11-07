@@ -1,0 +1,45 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "people/power/001",
+ "subject": "people",
+ "subject_label": "People & organisation",
+ "tile": "power",
+ "tile_label": "Power and sample size",
+ "group": "Analytics",
+ "objective": "Size a study to detect a stated effect",
+ "instruction": "A business is preparing a people & organisation analysis. The question is: Size a study to detect a stated effect. The tile covers Record the sample size or power implied by a declared effect and alpha. The declared figures are: design two_sample; effect 5; n1 30; n2 40; sd1 10; sd2 12; alpha 0.05; tails two_sided; target power 0.8. Use power and sample size in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "design": "two_sample",
+  "effect": "5",
+  "n1": "30",
+  "n2": "40",
+  "sd1": "10",
+  "sd2": "12",
+  "alpha": "0.05",
+  "tails": "two_sided",
+  "target_power": "0.8"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "power": "0.47570563669489524",
+   "mde": "7.376916665618976",
+   "se": "2.6331223544175333",
+   "ncp": "1.8988863132818747",
+   "z_alpha": "1.9599639845400536",
+   "alpha": "0.05",
+   "target_power": "0.8",
+   "n1": "30",
+   "n2": "40",
+   "_appendix": "{'design': 'two_sample', 'tails': 'two_sided', 'effect': '5.0', 'standard_deviations': ['10.0', '12.0'], 'model': 'normal approximation: power = Phi(ncp - z_alpha) + (Phi(-ncp - z_alpha) if two-sided else 0); mde = (z_alpha + z_target) * se', 'approx_limits': 'exact when the standard deviations are known/planned; with estimated sds an exact calculation would use the noncentral t distribution (not implemented).'}",
+   "_checks": "[('second_implementation_agrees', True, 'erfc-based route agrees with the NormalDist route'), ('power_at_zero_effect_equals_alpha', True, 'with no effect the rejection rate is the declared alpha'), ('power_increases_with_effect_size', True, 'a larger effect is easier to detect'), ('power_increases_with_sample_size', True, 'more observations do not reduce power'), ('mde_decreases_with_sample_size', True, 'more observations detect a smaller effect at the same power')]"
+  },
+  "contains": [
+   "Power and sample size",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.474540+00:00",
+ "origin": "preset"
+}

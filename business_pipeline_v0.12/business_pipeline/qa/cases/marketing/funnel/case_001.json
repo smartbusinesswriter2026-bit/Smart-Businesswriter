@@ -1,0 +1,50 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "marketing/funnel/001",
+ "subject": "marketing",
+ "subject_label": "Marketing & customers",
+ "tile": "funnel",
+ "tile_label": "Sales funnel and conversion",
+ "group": "Funnel, surveys and testing",
+ "objective": "Where do we lose customers between the first contact and the sale?",
+ "instruction": "A business is preparing a marketing & customers analysis. The question is: Where do we lose customers between the first contact and the sale. The tile covers Enter how many people reached each stage and read the conversion, the drop-off and the cost of winning a customer. The declared figures are: stages row 1: name store visits, count 10000; row 2: name inquiries, count 2500; row 3: name purchases, count 500; spend 25000. Use sales funnel and conversion in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "stages": [
+   {
+    "name": "store visits",
+    "count": "10000"
+   },
+   {
+    "name": "inquiries",
+    "count": "2500"
+   },
+   {
+    "name": "purchases",
+    "count": "500"
+   }
+  ],
+  "spend": "25000"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "customers": "500",
+   "drop_off": "9500",
+   "overall_conversion": "0.05",
+   "count_1": "10000",
+   "conversion_1": "0.25",
+   "count_2": "2500",
+   "conversion_2": "0.2",
+   "count_3": "500",
+   "spend": "25000",
+   "cac": "50"
+  },
+  "contains": [
+   "Sales funnel and conversion",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.463154+00:00",
+ "origin": "preset"
+}

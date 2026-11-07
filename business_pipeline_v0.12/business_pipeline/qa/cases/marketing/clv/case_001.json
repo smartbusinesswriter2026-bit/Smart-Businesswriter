@@ -1,0 +1,41 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "marketing/clv/001",
+ "subject": "marketing",
+ "subject_label": "Marketing & customers",
+ "tile": "clv",
+ "tile_label": "Customer lifetime value",
+ "group": "Customer economics and retention",
+ "objective": "What is a customer worth once churn and time are counted?",
+ "instruction": "A business is preparing a marketing & customers analysis. The question is: What is a customer worth once churn and time are counted. The tile covers Value a customer over a declared horizon with a churn and discount rate, and read the undiscounted value, the value per unit of acquisition cost and the payback period. The declared figures are: margin per period 1500; churn rate 0.04; discount rate 0.10; horizon periods 24; acquisition cost 9000. Use customer lifetime value in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "margin_per_period": "1500",
+  "churn_rate": "0.04",
+  "discount_rate": "0.10",
+  "horizon_periods": "24",
+  "acquisition_cost": "9000"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "margin_per_period": "1500",
+   "churn_rate": "0.04",
+   "horizon_periods": "24",
+   "discount_rate": "0.10",
+   "clv_undiscounted": "23422.003247733659559157434917428764580700907110400",
+   "clv_discounted": "10305.920846045063119387605872026323710951298800996",
+   "discount_effect": "13116.082401688596439769829045402440869749608309404",
+   "acquisition_cost": "9000",
+   "ltv_cac": "1.1451023162272292354875117635584804123279220889996",
+   "payback_within_horizon": "1",
+   "payback_periods": "7"
+  },
+  "contains": [
+   "Customer lifetime value",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.452432+00:00",
+ "origin": "preset"
+}

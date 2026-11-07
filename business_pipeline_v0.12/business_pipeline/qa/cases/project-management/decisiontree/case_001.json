@@ -1,0 +1,86 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "project-management/decisiontree/001",
+ "subject": "project-management",
+ "subject_label": "Project management",
+ "tile": "decisiontree",
+ "tile_label": "Decision tree",
+ "group": "Compare the options",
+ "objective": "Which launch option should we choose?",
+ "instruction": "A business is preparing a project management analysis. The question is: Which launch option should we choose. The tile covers Roll back your own decision tree: expected value, best alternative, loss probability and the best and worst terminal value. The declared figures are: tree type decision, alternatives [{'name': 'Launch', 'node': {'type': 'chance', 'branches': [{'probability': '0.6', 'node': {'type': 'terminal', 'value': '100000'}}, {'probability': '0.4', 'node': {'type': 'terminal', 'value': '-20000'}}]}}, {'name': 'Pilot', 'node': {'type': 'chance', 'branches': [{'probability': '0.7', 'node': {'type': 'terminal', 'value': '40000'}}, {'probability': '0.3', 'node': {'type': 'terminal', 'value': '5000'}}]}}]. Use decision tree in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "tree": {
+   "type": "decision",
+   "alternatives": [
+    {
+     "name": "Launch",
+     "node": {
+      "type": "chance",
+      "branches": [
+       {
+        "probability": "0.6",
+        "node": {
+         "type": "terminal",
+         "value": "100000"
+        }
+       },
+       {
+        "probability": "0.4",
+        "node": {
+         "type": "terminal",
+         "value": "-20000"
+        }
+       }
+      ]
+     }
+    },
+    {
+     "name": "Pilot",
+     "node": {
+      "type": "chance",
+      "branches": [
+       {
+        "probability": "0.7",
+        "node": {
+         "type": "terminal",
+         "value": "40000"
+        }
+       },
+       {
+        "probability": "0.3",
+        "node": {
+         "type": "terminal",
+         "value": "5000"
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "expected_value": "52000.0",
+   "best_index": "1",
+   "alternative_count": "2",
+   "terminal_count": "4",
+   "ev_1": "52000.0",
+   "loss_probability_1": "0.4",
+   "worst_value_1": "-20000",
+   "best_value_1": "100000",
+   "ev_2": "29500.0",
+   "loss_probability_2": "0",
+   "worst_value_2": "5000",
+   "best_value_2": "40000"
+  },
+  "contains": [
+   "Decision tree",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.288537+00:00",
+ "origin": "preset"
+}

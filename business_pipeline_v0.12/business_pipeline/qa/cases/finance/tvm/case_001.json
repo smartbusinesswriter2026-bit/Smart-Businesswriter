@@ -1,0 +1,40 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "finance/tvm/001",
+ "subject": "finance",
+ "subject_label": "Finance",
+ "tile": "tvm",
+ "tile_label": "Time value of money",
+ "group": "Time value and instruments",
+ "objective": "What will my savings and regular deposits be worth?",
+ "instruction": "A business is preparing a finance analysis. The question is: What will my savings and regular deposits be worth. The tile covers Grow a lump sum and a level payment to a future value, and show the effective annual rate behind them. The declared figures are: present value 100000; payment 12000; rate 0.06; periods 5; compounding quarterly; timing end. Use time value of money in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "present_value": "100000",
+  "payment": "12000",
+  "rate": "0.06",
+  "periods": "5",
+  "compounding": "quarterly",
+  "timing": "end"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "future_value": "412169.50589505043384053371598616910344392272576332",
+   "present_value_input": "100000",
+   "present_value_payments": "206023.66542098316188539904687695437449708020464249",
+   "future_value_payments": "277484.00524004483008047441420992809195015353401184",
+   "total_payments": "240000",
+   "periodic_rate": "0.015",
+   "effective_annual_rate": "0.061363550625",
+   "n_periods": "20",
+   "annuity_factor": "17.168638785081930157116587239746197874756683720208"
+  },
+  "contains": [
+   "Time value of money",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.101209+00:00",
+ "origin": "preset"
+}

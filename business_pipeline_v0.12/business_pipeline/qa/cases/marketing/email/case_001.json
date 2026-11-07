@@ -1,0 +1,41 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "marketing/email/001",
+ "subject": "marketing",
+ "subject_label": "Marketing & customers",
+ "tile": "email",
+ "tile_label": "Email list health",
+ "group": "Campaigns, channels and web analytics",
+ "objective": "Is our email list growing and is it still engaged?",
+ "instruction": "A business is preparing a marketing & customers analysis. The question is: Is our email list growing and is it still engaged. The tile covers Read list growth, churn, open and click rates, click-to-open and revenue per subscriber from the counts you declare. The declared figures are: list start 8000; new subscribers 600; unsubscribes 90; bounces 40; sends 7500; opens 2250; clicks 450; revenue 38000. Use email list health in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "list_start": "8000",
+  "new_subscribers": "600",
+  "unsubscribes": "90",
+  "bounces": "40",
+  "sends": "7500",
+  "opens": "2250",
+  "clicks": "450",
+  "revenue": "38000"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "list_end": "8470",
+   "growth_rate": "0.05875",
+   "churn_rate": "0.01625",
+   "open_rate": "0.3",
+   "click_rate": "0.06",
+   "click_to_open": "0.2",
+   "revenue_per_subscriber": "4.4864226682408500590318772136953955135773317591499",
+   "revenue_per_send": "5.0666666666666666666666666666666666666666666666667"
+  },
+  "contains": [
+   "Email list health",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.458416+00:00",
+ "origin": "preset"
+}

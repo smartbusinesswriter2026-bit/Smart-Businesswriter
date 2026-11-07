@@ -1,0 +1,54 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "supply-chain/capacity/001",
+ "subject": "supply-chain",
+ "subject_label": "Supply chain & logistics",
+ "tile": "capacity",
+ "tile_label": "Capacity and bottleneck",
+ "group": "Inventory and network",
+ "objective": "Which step limits how much we can produce?",
+ "instruction": "A business is preparing a supply chain & logistics analysis. The question is: Which step limits how much we can produce. The tile covers Capacity per resource, the bottleneck and the utilisation at your declared demand. The declared figures are: resources row 1: name cutting, available hours 8, minutes per unit 5; row 2: name assembly, available hours 8, minutes per unit 8; row 3: name packing, available hours 8, minutes per unit 3; demand 50. Use capacity and bottleneck in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "resources": [
+   {
+    "name": "cutting",
+    "available_hours": "8",
+    "minutes_per_unit": "5"
+   },
+   {
+    "name": "assembly",
+    "available_hours": "8",
+    "minutes_per_unit": "8"
+   },
+   {
+    "name": "packing",
+    "available_hours": "8",
+    "minutes_per_unit": "3"
+   }
+  ],
+  "demand": "50"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "max_output": "60",
+   "bottleneck_index": "2",
+   "capacity_1": "96",
+   "capacity_2": "60",
+   "capacity_3": "160",
+   "demand": "50",
+   "capacity_gap": "10",
+   "utilisation_1": "0.52083333333333333333333333333333333333333333333333",
+   "utilisation_2": "0.83333333333333333333333333333333333333333333333333",
+   "utilisation_3": "0.3125",
+   "bottleneck_utilisation": "0.83333333333333333333333333333333333333333333333333"
+  },
+  "contains": [
+   "Capacity and bottleneck",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.431049+00:00",
+ "origin": "preset"
+}

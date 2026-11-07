@@ -114,6 +114,30 @@ def resolve(error_id):
                 "steps": [], "siblings_resolved": 0, "reason": "unknown error_id"}
 
     category = diagnose(record.get("error", ""))
+    case_id = record.get("case_id")
+    if case_id:
+        # A stored tile case is replayed by code, not by a model.  A pass closes
+        # the error; a fail keeps it open with the case's own message.  This is
+        # the token-free half of the fix ladder.
+        from . import case_runner
+        outcome = case_runner.run_case(case_id, log=False)
+        steps = [{"strategy": "replay stored tile case", "model": "none (code)",
+                  "outcome": outcome.get("status") or "error",
+                  "detail": (outcome.get("error") or "")[:200]}]
+        if outcome.get("status") == "pass":
+            _ops_log.mark_error_verified(
+                error_id, "stored tile case %s replayed and passed" % case_id)
+            _ops_log.log_resolution_attempt(error_id, "tile_case", steps, "solved")
+            return {"resolved": True, "verified": True, "attempted": True, "invalid": False,
+                    "steps": steps, "model": "none (code)", "category": "tile_case",
+                    "siblings_resolved": 0,
+                    "reason": "stored tile case replayed and passed"}
+        _ops_log.log_resolution_attempt(error_id, "tile_case", steps, "still failing")
+        return {"resolved": False, "verified": False, "attempted": True, "invalid": False,
+                "steps": steps, "model": "none (code)", "category": "tile_case",
+                "siblings_resolved": 0,
+                "reason": outcome.get("error") or "the stored tile case still fails"}
+
     if category == "unsupported_instruction":
         _ops_log.mark_error_invalid(
             error_id, "the problem is not an accounting problem; not a pipeline defect")

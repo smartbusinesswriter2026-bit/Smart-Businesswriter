@@ -1,0 +1,38 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "finance/loan/001",
+ "subject": "finance",
+ "subject_label": "Finance",
+ "tile": "loan",
+ "tile_label": "Loan amortization",
+ "group": "Time value and instruments",
+ "objective": "What is the monthly payment on this loan?",
+ "instruction": "A business is preparing a finance analysis. The question is: What is the monthly payment on this loan. The tile covers Find the level payment, total interest and first-payment split on a fixed-rate loan. The declared figures are: principal 200000; annual rate 0.09; years 5; payments per year 12. Use loan amortization in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "principal": "200000",
+  "annual_rate": "0.09",
+  "years": "5",
+  "payments_per_year": "12"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "payment": "4151.6710452708019636401401930057889326743235830633",
+   "total_paid": "249100.26271624811781840841158034733596045941498380",
+   "total_interest": "49100.26271624811781840841158034733596045941498380",
+   "principal": "200000",
+   "periodic_rate": "0.0075",
+   "effective_annual_rate": "0.093806897670983062965455548586905002593994140625",
+   "n_payments": "60",
+   "first_interest": "1500.0000",
+   "first_principal": "2651.6710452708019636401401930057889326743235830633"
+  },
+  "contains": [
+   "Loan amortization",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.103440+00:00",
+ "origin": "preset"
+}

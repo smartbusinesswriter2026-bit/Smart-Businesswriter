@@ -1,0 +1,42 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "finance/dcfmid/001",
+ "subject": "finance",
+ "subject_label": "Finance",
+ "tile": "dcfmid",
+ "tile_label": "DCF valuation (mid-year)",
+ "group": "Valuation",
+ "objective": "Value the project with mid-year cash flows",
+ "instruction": "A business is preparing a finance analysis. The question is: Value the project with mid-year cash flows. The tile covers The same DCF with mid-year discounting, recorded separately so the assumption is visible. The declared figures are: cashflows 100000, 120000, 140000, 155000; discount rate 0.10; terminal growth 0.02; timing mid. Use dcf valuation (mid-year) in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "cashflows": [
+   "100000",
+   "120000",
+   "140000",
+   "155000"
+  ],
+  "discount_rate": "0.10",
+  "terminal_growth": "0.02",
+  "timing": "mid"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "pv_explicit": "420712.68119003483610961044230874076332526955946749",
+   "pv_terminal": "1415687.7851214138342612253305170252571455201207179",
+   "terminal_value": "1976250",
+   "enterprise_value": "1836400.4663114486703708357728257660204707896801854",
+   "terminal_share": "0.77090362973220729067113963059039222952546273721987",
+   "n_periods": "4",
+   "discount_rate": "0.10",
+   "terminal_growth": "0.02"
+  },
+  "contains": [
+   "DCF valuation (mid-year)",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.154117+00:00",
+ "origin": "preset"
+}

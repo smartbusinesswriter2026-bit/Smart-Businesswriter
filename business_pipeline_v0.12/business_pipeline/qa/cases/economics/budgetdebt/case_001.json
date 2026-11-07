@@ -1,0 +1,45 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/budgetdebt/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "budgetdebt",
+ "tile_label": "Budget balance and debt",
+ "group": "Macroeconomics",
+ "objective": "What are the budget balance and the debt ratio?",
+ "instruction": "A business is preparing a economics analysis. The question is: What are the budget balance and the debt ratio. The tile covers Compute the overall and primary balances, the debt-to-GDP ratio and the debt-ratio change. The declared figures are: government revenue 500; government spending 520; interest payments 30; debt stock 1000; nominal gdp 2000; nominal growth rate 0.05; inflation rate 0.02. Use budget balance and debt in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "government_revenue": "500",
+  "government_spending": "520",
+  "interest_payments": "30",
+  "debt_stock": "1000",
+  "nominal_gdp": "2000",
+  "nominal_growth_rate": "0.05",
+  "inflation_rate": "0.02"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "government_revenue": "500",
+   "primary_spending": "520",
+   "interest_payments": "30",
+   "total_spending": "550",
+   "overall_balance": "-50",
+   "primary_balance": "-20",
+   "debt_stock": "1000",
+   "nominal_gdp": "2000",
+   "debt_to_gdp": "0.5",
+   "interest_rate": "0.03",
+   "primary_balance_to_gdp": "-0.01",
+   "debt_ratio_change": "0.000",
+   "real_interest_rate": "0.0098039215686274509803921568627450980392156862745"
+  },
+  "contains": [
+   "Budget balance and debt",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.194183+00:00",
+ "origin": "preset"
+}

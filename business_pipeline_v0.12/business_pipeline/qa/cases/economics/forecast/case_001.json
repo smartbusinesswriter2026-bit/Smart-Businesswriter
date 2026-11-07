@@ -1,0 +1,62 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/forecast/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "forecast",
+ "tile_label": "Trend forecast",
+ "group": "Quantitative core",
+ "objective": "Forecast the next three periods",
+ "instruction": "A business is preparing a economics analysis. The question is: Forecast the next three periods. The tile covers Fit a trend to your own series and record the forecast periods and the range the result could fall in. The declared figures are: values 10, 12, 11, 14, 13, 16, 15, 18, 17, 20, 19, 22; missing codes ; horizon 3. Use trend forecast in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "values": [
+   "10",
+   "12",
+   "11",
+   "14",
+   "13",
+   "16",
+   "15",
+   "18",
+   "17",
+   "20",
+   "19",
+   "22"
+  ],
+  "missing_codes": [],
+  "horizon": "3"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "intercept": "9.060606060606060606060606060606060606060606060601",
+   "slope": "1.0034965034965034965034965034965034965034965034970",
+   "r_squared": "0.92954329156588435770791876224904734856321730985529",
+   "residual_se": "1.0447448690909381498159921062985788479066656801316",
+   "p_slope": "4.4042244085004275E-7",
+   "n_fitted": "12",
+   "n_excluded": "0",
+   "horizon": "3",
+   "confidence_level": "0.95",
+   "forecast_1": "22.106060606060606060606060606060606060606060606062",
+   "ci_lower_1": "19.372672962705842548260795604304183535695642594980",
+   "ci_upper_1": "24.839448249415369572951325607817028585516478617144",
+   "forecast_2": "23.109557109557109557109557109557109557109557109559",
+   "ci_lower_2": "20.280790207356203017739728113920179574819555871592",
+   "ci_upper_2": "25.938324011758016096479386105194039539399558347526",
+   "forecast_3": "24.113053613053613053613053613053613053613053613056",
+   "ci_lower_3": "21.179076090156614971820292095272749391742077318870",
+   "ci_upper_3": "27.047031135950611135405815130834476715484029907242",
+   "mae_holdout": "1.1333333333333333333333333333333333333333333333333",
+   "coverage_holdout": "1",
+   "n_holdout": "3"
+  },
+  "contains": [
+   "Trend forecast",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.229472+00:00",
+ "origin": "preset"
+}

@@ -1,0 +1,35 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/optimalpollution/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "optimalpollution",
+ "tile_label": "Optimal pollution",
+ "group": "Welfare policy",
+ "objective": "What is the optimal pollution level?",
+ "instruction": "A business is preparing a economics analysis. The question is: What is the optimal pollution level. The tile covers Find the emission level where marginal damage equals marginal abatement cost, with the pollution tax. The declared figures are: marginal damage intercept 10; marginal damage slope 2; marginal abatement intercept 100; marginal abatement slope 3. Use optimal pollution in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "marginal_damage_intercept": "10",
+  "marginal_damage_slope": "2",
+  "marginal_abatement_intercept": "100",
+  "marginal_abatement_slope": "3"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "optimal_emissions": "18",
+   "marginal_damage": "46",
+   "marginal_abatement_cost": "46",
+   "pollution_tax": "46",
+   "total_damage": "504",
+   "total_abatement_cost": "1314"
+  },
+  "contains": [
+   "Optimal pollution",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.203621+00:00",
+ "origin": "preset"
+}

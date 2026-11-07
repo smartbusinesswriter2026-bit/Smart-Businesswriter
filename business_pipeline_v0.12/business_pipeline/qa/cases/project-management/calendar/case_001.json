@@ -1,0 +1,76 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "project-management/calendar/001",
+ "subject": "project-management",
+ "subject_label": "Project management",
+ "tile": "calendar",
+ "tile_label": "Calendar schedule",
+ "group": "Schedule and control",
+ "objective": "Schedule the plan over a working calendar",
+ "instruction": "A business is preparing a project management analysis. The question is: Schedule the plan over a working calendar. The tile covers Schedule activities over a declared working calendar, skipping non-working periods, with dates, float and the critical path. The declared figures are: working periods 0,1,2,5,6,7,10,11,12; activities row 1: id A, duration 2, predecessors ; row 2: id B, duration 2, predecessors A; row 3: id C, duration 1, predecessors B; row 4: id D, duration 1, predecessors A. Use calendar schedule in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "working_periods": "0,1,2,5,6,7,10,11,12",
+  "activities": [
+   {
+    "id": "A",
+    "duration": "2",
+    "predecessors": ""
+   },
+   {
+    "id": "B",
+    "duration": "2",
+    "predecessors": "A"
+   },
+   {
+    "id": "C",
+    "duration": "1",
+    "predecessors": "B"
+   },
+   {
+    "id": "D",
+    "duration": "1",
+    "predecessors": "A"
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "project_duration": "7",
+   "activity_count": "4",
+   "working_periods": "9",
+   "critical_count": "3",
+   "es_A": "0",
+   "ef_A": "2",
+   "ls_A": "0",
+   "lf_A": "2",
+   "float_A": "0",
+   "critical_A": "1",
+   "es_B": "2",
+   "ef_B": "6",
+   "ls_B": "2",
+   "lf_B": "6",
+   "float_B": "0",
+   "critical_B": "1",
+   "es_C": "6",
+   "ef_C": "7",
+   "ls_C": "6",
+   "lf_C": "7",
+   "float_C": "0",
+   "critical_C": "1",
+   "es_D": "2",
+   "ef_D": "3",
+   "ls_D": "6",
+   "lf_D": "7",
+   "float_D": "4",
+   "critical_D": "0"
+  },
+  "contains": [
+   "Calendar schedule",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.304601+00:00",
+ "origin": "preset"
+}

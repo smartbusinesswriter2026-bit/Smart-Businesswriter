@@ -1,3 +1,77 @@
+## 2026-11-07 - [product] Tile cases and a token-free self-healing loop
+
+**Ask.** Make the Karpathy loop recursive: a folder of cases per tile, tests that log their own errors, passing tests stored for future use, and no token waste on fixes that cannot be verified.
+
+**Did.**
+
+- **`case_store.py`** — 246 cases seeded from the published presets, one JSON per subject/tile. Each case is the prefilled instruction + declared figures + the frozen method's result. It is a fixture, so it is read, diffed and committed.
+- **`case_runner.py`** — replays a case, compares the computation (float tolerance for Decimal trailing digits) and the required paper phrases; a fail logs one `tile-case` error with `case_id` and the instruction, and saves the failing paper under `state/case_runs/`.
+- **`auto_resolve`** — a `case_id` error is replayed by code; a pass marks verified, a fail keeps it open. No model is called for a case replay.
+- **`autoresearch`** — no problem and no case id: skip, no model call. Case id: code replay. Stored problem: flash → pro. Metric: errors-closed %, not pytest pass rate. No open errors: replay all stored cases; stop only when they pass. One attempt per error per cycle.
+- **Page** — Tile cases card: seed, run a subject or all, results table; failures appear in the error log.
+- **Measured** — 246/246 cases pass; the loop ran the 246-case suite in ~56s and stopped at 100% closed with 0 model calls. A deliberately broken case failed, was logged, replayed as still failing, then verified after the expectation was repaired.
+
+**Left open.** Four legacy `no sourced price` errors carried no stored problem, so the loop could not replay them; they were dismissed for owner review rather than guessed at. The loop cannot patch code: a case that still fails stays open until a computation-owner change lands.
+
+## 2026-11-07 - [product] Calculators report to the library; ratios consume a statement
+
+**Ask.** Build (a) the six calculator routes recorded under their accounting shelf, and (b) the first statement-consuming tile (ratios) on the shared bundle.
+
+**Did.**
+
+- **`subjects.accounting_group_for_method(method_id)`** - maps a frozen method to the accounting shelf the subject page shows, or `None`.
+- **`statement_library.record_calculator(...)`** - records a run under that shelf; a non-accounting method returns `None` and is not logged.
+- **Server hook** - the session confirm handler calls `_record_calculator_run(session)` after a calculator is confirmed; it reads the request method and objective and the delivery status, and never raises into the request path.
+- **`statements.ratios(record)`** - the ratio pack computed on demand from `figures(record)`, naming every ratio the record cannot support.
+- **Route and UI** - `GET /api/cases/statements/{id}/ratios`, and a **Ratios** button in the statements panel that fetches it and renders the pack.
+- **One formatter** - `ratio_pack` and `ratios` share `_ratio_rows`, so the record's own ratio section and the on-demand pack cannot format differently.
+
+**Left open.**
+
+- The UI button is the first consumer; DuPont, trend and working-capital cards can follow the same pattern.
+- The library's older records remain `unrecorded` until re-run.
+
+**Proof.** `tests/test_statements_figures.py` (9) and the ten statement/subject suites: 259 passed, 8 subtests; `qa/check_page_syntax.py` reports 4/4 blocks parsed. B-231 records the decision.
+
+## 2026-11-07 - [product] The statement record as a shared input; the library learns by shelf
+
+**Ask.** Wire the solved statement record as the shared input for the other accounting tiles, and tag the learning library by accounting group so the cost/variance, ABC, sales-variance, working-capital, pro-forma and tax tiles are counted beside the statements tile.
+
+**Did.**
+
+- **`statements.figures(record)`** - a `bp-statements-figures/1` bundle read from the frozen record: the named figures (`revenue`, `net_income`, `current_assets`, `current_liabilities`, `inventory`, `receivables`, `payables`, `total_assets`, `total_liabilities`, `equity`, plus `retained_earnings_closing`, `cash_net` and the check counts), the structured `income_groups`, `balance_sheet_groups`, `equity`, `cash_flow`, and the named `ratio_gaps`. Nothing is recomputed: the bundle is the record's own appendix.
+- **Route** - `GET /api/cases/statements/{id}/figures` returns the bundle; a refused record is a 409 naming the refusal, never an empty bundle.
+- **Library group tag** - `statement_library.record(..., group=...)`, `record_problem(group, instruction, solved=..., refusal=..., problem_type=...)`, `gap_report(group=...)` and a new `by_group` key. The statements tile records as `Statements` on success, refusal and error.
+- **A latent crash fixed** - `most_repeated` sliced a NULL `missing` field; it now guards it.
+- **Why the bundle, not a copy** - a tile that re-types figures will disagree with the statements eventually; one bundle from the frozen record makes agreement structural.
+
+**Left open.**
+
+- `[computation]` The six calculator routes (`scv`, `abc`, `salesvar`, `workingcapital`, `proforma`, `tax`) still need their one-line `record_problem(group, instruction, solved, refusal)` call; the helper and the `by_group` report are in place, the routes are not yet hooked.
+- `[computation]` An income statement tile that consumes the bundle can now be built without a second parser; that is a separate increment.
+
+**Proof.** `tests/test_statements_figures.py` (5) plus the eight statement suites: 191 passed, 8 subtests. B-230 records the decision.
+
+## 2026-11-07 - [product] The statements library: a gap was invented, not found
+
+**Ask.** Fix the gaps the statement library reported from its own records, according to the suggested fixes.
+
+**Did.**
+
+- **Read the evidence before changing data.** The library held 1,304 records (919 solved, 385 unsolved, 283 distinct problems). The 51 "no adjusting entries were derived" records were almost all one-line problems such as `Issued common stock for $80,000 cash.` and `Revenue 200,000; sales returns 5,000. Required: income statement.` - nothing was missing, so the gap was a false positive that polluted the report.
+- **Fixed the false positive, not the symptom.** `_solve_transactions` already returns `None` when the text carries an adjustment cue, so its `missing` note could never be true; it is gone. `_solve_narrative` now writes the note only when `_needs_adjustments(text)` is true. The cue set is one module-level tuple (`ADJUSTMENT_CUES`) and one helper, so the two sites cannot drift.
+- **Fixed the gate name.** `current_ratio_equals_assets_divided_by_liabilities` checked `current_assets / current_liabilities`; it is now `current_ratio_equals_current_assets_divided_by_current_liabilities`, so the name matches the check.
+- **Left the correct behaviour alone.** Header sentences ("The following trial balance was extracted at 31 December 2026") are still recorded as non-accounts with an explanation; an unbalanced trial balance is still refused with the difference named; "show only the balance sheet" is still a supported partial render. These are the system working, not gaps.
+- **Did not patch the two deeper findings.** `current liabilities 25,000` given as a *total* with no components parses as 0 in `income_statement.compute_balance_sheet_analysis`; and an income-statement-only narrative ("Revenue 200,000; sales returns 5,000") still runs the full closing/rollforward gates, which fail under `retained_earnings_rollforward` and `income_expense_and_dividends_zero_after_closing`. Both are logic/core decisions (total-vs-components policy; which gates apply to a partial request) and are recorded as `[computation]` follow-ups rather than silently patched.
+
+**Left open.**
+
+- `[computation]` `income_statement.parse_problem` / `compute_balance_sheet_analysis`: use a stated total when its components are absent, and never double-count when both are present. Two records.
+- `[computation]` `statement_plan`/`ledger`: an income-statement-only request should not be failed by balance-sheet closing/rollforward gates that the request never asked for. Two records.
+- The library's older records keep the old gap text; only new solves are corrected. The gap report will show the old counts until those records age out or are re-run.
+
+**Proof.** `tests/test_statements_gap_noise.py` (2, new) plus the six statement suites: 186 passed, 8 subtests. B-229 records the decision.
+
 ## 2026-11-07 - [product] Automated testing: a real paper per tile
 
 **Ask.** Replace the admin Tests button row with an Automated testing section: subjects are permanent sections, subsections collapse, tiles are tickable, a tick survives a subsection switch, and the ZIP download sits at the bottom of each section. Each paper is a real writer paper generated from a prefilled instruction that shows the tile's ideal behaviour, with references.

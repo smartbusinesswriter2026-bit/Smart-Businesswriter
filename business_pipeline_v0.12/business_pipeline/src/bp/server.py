@@ -15,6 +15,8 @@ from .product import auto_resolve as product_auto_resolve
 from .product import hallucination_check as product_hallucination_check
 from .product import autoresearch as product_autoresearch
 from .product import paper_batch as product_paper_batch
+from .product import case_store as product_case_store
+from .product import case_runner as product_case_runner
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -26,6 +28,30 @@ def _plan_method(method_id, inputs):
     if errors:
         raise ValueError("; ".join(errors))
     return method.impl(inputs)
+
+
+def _record_calculator_run(session):
+    """Record an accounting calculator's outcome in the statement library, best-effort.
+
+    Called after a session is confirmed.  Only a method that belongs to an accounting shelf is
+    recorded (`statement_library.record_calculator` returns None for every other method), so the
+    finance, statistics and other calculators do not turn the library into a general run log.
+    The recording never raises into the request path.
+    """
+    try:
+        from .product import statement_library as _slib
+        request = session.request if isinstance(session.request, dict) else {}
+        method_id = request.get("method")
+        if not method_id and getattr(session, "spec", None) is not None:
+            method_id = (session.spec.content() or {}).get("method")
+        delivery = getattr(session, "delivery", None)
+        status = getattr(delivery, "status", None) if delivery is not None else None
+        reason = getattr(delivery, "blocked_reason", None) if status not in (None, "delivered") else None
+        return _slib.record_calculator(method_id, request.get("objective") or "",
+                                       solved=(status == "delivered"),
+                                       refusal=reason)
+    except Exception:
+        return None
 
 
 product_api.attach_methods(_plan_method, methods.describe)
@@ -727,6 +753,23 @@ class H(BaseHTTPRequestHandler):
                 _limit = int((_qs.get("limit") or ["20"])[0])
                 _subject = (_qs.get("subject") or [""])[0] or None
                 return self._send(200, {"runs": product_paper_batch.runs(limit=_limit, subject=_subject)})
+            if _ops_url.path == "/api/ops/cases":
+                _qs = parse_qs(_ops_url.query)
+                _subject = (_qs.get("subject") or [""])[0] or None
+                _tile = (_qs.get("tile") or [""])[0] or None
+                return self._send(200, {"summary": product_case_store.summary(),
+                                        "cases": product_case_store.load_cases(subject=_subject, tile=_tile)})
+            if _ops_url.path == "/api/ops/cases/runs":
+                _qs = parse_qs(_ops_url.query)
+                _limit = int((_qs.get("limit") or ["20"])[0])
+                return self._send(200, {"runs": product_case_runner.runs(limit=_limit)})
+            _case_run = __import__("re").fullmatch(
+                r"/api/ops/cases/runs/([0-9a-f]{8,})", _ops_url.path)
+            if _case_run:
+                try:
+                    return self._send(200, product_case_runner.status(_case_run[1]))
+                except KeyError as e:
+                    return self._send(404, {"error": str(e)})
             _paper_dl = __import__("re").fullmatch(
                 r"/api/ops/papers/batch/([0-9a-f]{8,})/download", _ops_url.path)
             if _paper_dl:
@@ -952,8 +995,30 @@ class H(BaseHTTPRequestHandler):
             if m:
                 body = self._body(); s = M.get(m[1])
                 if not isinstance(body, dict): raise ValueError("body must be an object")
-                s.confirm(m[2] == "confirm", body.get("frameworks")); return self._send(200, s.to_dict())
+                s.confirm(m[2] == "confirm", body.get("frameworks")); _record_calculator_run(s); return self._send(200, s.to_dict())
             # ── Ops / self-healing monitor (admin) ──
+            if self.path == "/api/ops/cases/seed":
+                body = self._body()
+                subject = (body.get("subject") if isinstance(body, dict) else None) or None
+                tile = (body.get("tile") if isinstance(body, dict) else None) or None
+                overwrite = bool(body.get("overwrite")) if isinstance(body, dict) else False
+                try:
+                    return self._send(200, product_case_store.seed(
+                        subject=subject, tile=tile, overwrite=overwrite))
+                except Exception as e:
+                    return self._send(422, {"error": str(e)[:300]})
+            if self.path == "/api/ops/cases/run":
+                body = self._body()
+                case_ids = (body.get("case_ids") if isinstance(body, dict) else None) or []
+                if not isinstance(case_ids, list) or not case_ids:
+                    return self._send(422, {"error": "run needs {case_ids: [...]}"})
+                try:
+                    return self._send(200, product_case_runner.run_cases(
+                        [str(x) for x in case_ids],
+                        style=(body.get("style") or "apa"),
+                        length=int(body.get("length") or 1200)))
+                except Exception as e:
+                    return self._send(422, {"error": str(e)[:300]})
             if self.path == "/api/ops/papers/batch":
                 body = self._body()
                 if not isinstance(body, dict):

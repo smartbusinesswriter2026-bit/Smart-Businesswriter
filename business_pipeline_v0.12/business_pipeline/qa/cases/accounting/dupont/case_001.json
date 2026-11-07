@@ -1,0 +1,58 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/dupont/001",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "dupont",
+ "tile_label": "DuPont analysis",
+ "group": "Statement analysis",
+ "objective": "Where does the return on equity come from?",
+ "instruction": "A business is preparing a accounting analysis. The question is: Where does the return on equity come from. The tile covers Break return on equity into margin, turnover and leverage, with five-step, common-size and prior-period growth. The declared figures are: revenue 20000; net income 1800; total assets 12000; equity 5000; cost of sales 12000; ebit 3000; pretax income 2400; tax expense 600; prior revenue 18000; prior net income 1500; prior total assets 11000; prior equity 4700. Use dupont analysis in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "revenue": "20000",
+  "net_income": "1800",
+  "total_assets": "12000",
+  "equity": "5000",
+  "cost_of_sales": "12000",
+  "ebit": "3000",
+  "pretax_income": "2400",
+  "tax_expense": "600",
+  "prior_revenue": "18000",
+  "prior_net_income": "1500",
+  "prior_total_assets": "11000",
+  "prior_equity": "4700"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "net_margin": "0.09",
+   "asset_turnover": "1.6666666666666666666666666666666666666666666666667",
+   "equity_multiplier": "2.4",
+   "return_on_assets": "0.15",
+   "return_on_equity": "0.36",
+   "roe_three_step": "0.36000000000000000000000000000000000000000000000000",
+   "revenue": "20000",
+   "net_income": "1800",
+   "equity_to_assets": "0.41666666666666666666666666666666666666666666666667",
+   "gross_margin": "0.4",
+   "cost_to_revenue": "0.6",
+   "revenue_growth": "0.1111111111111111111111111111111111111111111111111",
+   "net_income_growth": "0.2",
+   "asset_growth": "0.0909090909090909090909090909090909090909090909091",
+   "equity_growth": "0.0638297872340425531914893617021276595744680851064",
+   "return_on_equity_prior": "0.31914893617021276595744680851063829787234042553191",
+   "roe_change": "0.04085106382978723404255319148936170212765957446809",
+   "tax_burden": "0.75",
+   "interest_burden": "0.8",
+   "operating_margin": "0.15",
+   "roe_five_step": "0.36000000000000000000000000000000000000000000000000"
+  },
+  "contains": [
+   "DuPont analysis",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:07:46.862800+00:00",
+ "origin": "preset"
+}

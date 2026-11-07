@@ -1,0 +1,55 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/pearson/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "pearson",
+ "tile_label": "Pearson correlation",
+ "group": "Quantitative core",
+ "objective": "Is study time associated with exam score?",
+ "instruction": "A business is preparing a economics analysis. The question is: Is study time associated with exam score. The tile covers Record the linear association between two variables with its sample size and checks. The declared figures are: x 1, 2, 3, 4, 5, 6, 7, 8; y 52, 55, 61, 58, 70, 72, 69, 80; missing codes . Use pearson correlation in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "x": [
+   "1",
+   "2",
+   "3",
+   "4",
+   "5",
+   "6",
+   "7",
+   "8"
+  ],
+  "y": [
+   "52",
+   "55",
+   "61",
+   "58",
+   "70",
+   "72",
+   "69",
+   "80"
+  ],
+  "missing_codes": []
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "r": "0.94267097924121413677005603165208643980377737182510",
+   "r_squared": "0.88862857510358957397352149426237792049098242422576",
+   "ci_lower": "0.7089071470763322",
+   "ci_upper": "0.9898269128179266",
+   "p_value": "0.0004510250370052371",
+   "n_pairs": "8",
+   "n_excluded": "0",
+   "confidence_level": "0.95",
+   "alpha": "0.05"
+  },
+  "contains": [
+   "Pearson correlation",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.244536+00:00",
+ "origin": "preset"
+}

@@ -1,0 +1,49 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "finance/fx/001",
+ "subject": "finance",
+ "subject_label": "Finance",
+ "tile": "fx",
+ "tile_label": "FX and interest parity",
+ "group": "International",
+ "objective": "What forward rate and expected spot do the parities imply?",
+ "instruction": "A business is preparing a finance analysis. The question is: What forward rate and expected spot do the parities imply. The tile covers Implied forward, expected spot, forward premium and real rates, plus a one-forward hedge comparison. The declared figures are: spot rate 56; domestic rate 0.05; foreign rate 0.03; domestic inflation 0.04; foreign inflation 0.02; time to maturity 1; forward rate 57; exposure amount 100000; hedge forward 57; expected spot 57.5. Use fx and interest parity in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "spot_rate": "56",
+  "domestic_rate": "0.05",
+  "foreign_rate": "0.03",
+  "domestic_inflation": "0.04",
+  "foreign_inflation": "0.02",
+  "time_to_maturity": "1",
+  "forward_rate": "57",
+  "exposure_amount": "100000",
+  "hedge_forward": "57",
+  "expected_spot": "57.5"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "ppp_expected_spot": "57.098039215686274509803921568627450980392156862745",
+   "interest_rate_parity_forward": "57.087378640776699029126213592233009708737864077670",
+   "forward_rate": "57",
+   "forward_premium": "0.0178571428571428571428571428571428571428571428571",
+   "real_rate_domestic": "0.0096153846153846153846153846153846153846153846154",
+   "real_rate_foreign": "0.0098039215686274509803921568627450980392156862745",
+   "spot_rate": "56",
+   "time_to_maturity": "1",
+   "exposure_amount": "100000",
+   "hedge_forward": "57",
+   "expected_spot": "57.5",
+   "unhedged_domestic": "5750000.0",
+   "hedged_domestic": "5700000",
+   "hedge_gain_loss": "-50000.0"
+  },
+  "contains": [
+   "FX and interest parity",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.166294+00:00",
+ "origin": "preset"
+}

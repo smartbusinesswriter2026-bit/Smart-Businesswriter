@@ -1,0 +1,37 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "entrepreneurship/dpayback/001",
+ "subject": "entrepreneurship",
+ "subject_label": "Entrepreneurship",
+ "tile": "dpayback",
+ "tile_label": "Discounted payback",
+ "group": "Financial plan and return",
+ "objective": "How long until the discounted cash flows repay the investment?",
+ "instruction": "A business is preparing a entrepreneurship analysis. The question is: How long until the discounted cash flows repay the investment. The tile covers Record how long the discounted cash flows take to repay the investment. The declared figures are: cashflows -1000, 400, 400, 400, 400; rate 0.10. Use discounted payback in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "cashflows": [
+   "-1000",
+   "400",
+   "400",
+   "400",
+   "400"
+  ],
+  "rate": "0.10"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "discounted_payback": "3.0192500000000000000000000000000000000000000000000",
+   "recovered_in_period": "4",
+   "net_present_value": "267.94617853971723242947886073355645106208592309268",
+   "n_periods": "5"
+  },
+  "contains": [
+   "Discounted payback",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.365481+00:00",
+ "origin": "preset"
+}

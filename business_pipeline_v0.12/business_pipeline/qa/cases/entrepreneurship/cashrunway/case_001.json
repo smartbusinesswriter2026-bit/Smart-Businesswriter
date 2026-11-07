@@ -1,0 +1,37 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "entrepreneurship/cashrunway/001",
+ "subject": "entrepreneurship",
+ "subject_label": "Entrepreneurship",
+ "tile": "cashrunway",
+ "tile_label": "Cash runway and funding gap",
+ "group": "Financial plan and return",
+ "objective": "How many months of cash do we have, and how much must we raise?",
+ "instruction": "A business is preparing a entrepreneurship analysis. The question is: How many months of cash do we have, and how much must we raise. The tile covers Months of cash left at a declared monthly burn, the lowest balance and the cash needed over your horizon. The declared figures are: opening cash 300000; monthly net cash flow -40000; monthly growth 0; target months 9. Use cash runway and funding gap in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "opening_cash": "300000",
+  "monthly_net_cash_flow": "-40000",
+  "monthly_growth": "0",
+  "target_months": "9"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "opening_cash": "300000",
+   "monthly_net_cash_flow": "-40000",
+   "monthly_growth": "0",
+   "target_months": "9",
+   "runway_months": "7.5",
+   "lowest_cash_balance": "-60000",
+   "cash_at_target_month": "-60000",
+   "funding_gap": "60000"
+  },
+  "contains": [
+   "Cash runway and funding gap",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.356582+00:00",
+ "origin": "preset"
+}

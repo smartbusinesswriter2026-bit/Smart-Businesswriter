@@ -1,0 +1,38 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "entrepreneurship/elasticity/001",
+ "subject": "entrepreneurship",
+ "subject_label": "Entrepreneurship",
+ "tile": "elasticity",
+ "tile_label": "Price elasticity of demand",
+ "group": "Market and customers",
+ "objective": "How responsive is quantity to a price change?",
+ "instruction": "A business is preparing a entrepreneurship analysis. The question is: How responsive is quantity to a price change. The tile covers Measure the arc elasticity between two price-quantity observations and see what happens to revenue. The declared figures are: quantity 1 100; price 1 10; quantity 2 140; price 2 8. Use price elasticity of demand in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "quantity_1": "100",
+  "price_1": "10",
+  "quantity_2": "140",
+  "price_2": "8"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "price_elasticity": "-1.5",
+   "absolute_elasticity": "1.5",
+   "pct_change_quantity": "0.33333333333333333333333333333333333333333333333333",
+   "pct_change_price": "-0.22222222222222222222222222222222222222222222222222",
+   "total_revenue_1": "1000",
+   "total_revenue_2": "1120",
+   "revenue_change": "120",
+   "elastic": "1",
+   "unit_elastic": "0"
+  },
+  "contains": [
+   "Price elasticity of demand",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.333459+00:00",
+ "origin": "preset"
+}

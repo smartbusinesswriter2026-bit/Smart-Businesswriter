@@ -1,0 +1,49 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/nationalincome/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "nationalincome",
+ "tile_label": "GDP and national income",
+ "group": "Macroeconomics",
+ "objective": "What is GDP by the expenditure approach?",
+ "instruction": "A business is preparing a economics analysis. The question is: What is GDP by the expenditure approach. The tile covers Build GDP by the expenditure approach, then GNP, NNP, net exports, GDP per capita and real GDP. The declared figures are: consumption 600; investment 150; government spending 200; exports 120; imports 170; net factor income 20; depreciation 50; population 100; gdp deflator 120. Use gdp and national income in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "consumption": "600",
+  "investment": "150",
+  "government_spending": "200",
+  "exports": "120",
+  "imports": "170",
+  "net_factor_income": "20",
+  "depreciation": "50",
+  "population": "100",
+  "gdp_deflator": "120"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "gdp": "900",
+   "gnp": "920",
+   "nnp": "870",
+   "net_exports": "-50",
+   "consumption": "600",
+   "investment": "150",
+   "government_spending": "200",
+   "exports": "120",
+   "imports": "170",
+   "net_factor_income": "20",
+   "depreciation": "50",
+   "population": "100",
+   "gdp_per_capita": "9",
+   "gdp_deflator": "120",
+   "real_gdp": "7.5E+2"
+  },
+  "contains": [
+   "GDP and national income",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.188034+00:00",
+ "origin": "preset"
+}

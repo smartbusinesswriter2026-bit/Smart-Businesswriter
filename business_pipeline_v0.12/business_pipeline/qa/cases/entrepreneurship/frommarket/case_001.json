@@ -1,0 +1,33 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "entrepreneurship/frommarket/001",
+ "subject": "entrepreneurship",
+ "subject_label": "Entrepreneurship",
+ "tile": "frommarket",
+ "tile_label": "Sales from market share",
+ "group": "Financial plan and return",
+ "objective": "What revenue does our target market share imply?",
+ "instruction": "A business is preparing a entrepreneurship analysis. The question is: What revenue does our target market share imply. The tile covers Target revenue and units from a declared market size, share and price. The declared figures are: market size 60000000; target share 0.03; price 120. Use sales from market share in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "market_size": "60000000",
+  "target_share": "0.03",
+  "price": "120"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "market_size": "60000000",
+   "target_share": "0.03",
+   "price": "120",
+   "target_revenue": "1800000.00",
+   "target_units": "15000.00"
+  },
+  "contains": [
+   "Sales from market share",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.347604+00:00",
+ "origin": "preset"
+}

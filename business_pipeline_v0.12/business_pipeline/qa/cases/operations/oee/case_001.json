@@ -1,0 +1,42 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "operations/oee/001",
+ "subject": "operations",
+ "subject_label": "Operations management",
+ "tile": "oee",
+ "tile_label": "Overall equipment effectiveness",
+ "group": "Quality and evidence",
+ "objective": "What is the overall equipment effectiveness of the line?",
+ "instruction": "A business is preparing a operations management analysis. The question is: What is the overall equipment effectiveness of the line. The tile covers Availability, performance, quality and OEE from planned time, downtime and unit counts. The declared figures are: planned production time 480; downtime 40; ideal cycle time 0.5; total units 760; good units 740. Use overall equipment effectiveness in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "planned_production_time": "480",
+  "downtime": "40",
+  "ideal_cycle_time": "0.5",
+  "total_units": "760",
+  "good_units": "740"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "planned_production_time": "480",
+   "downtime": "40",
+   "run_time": "440",
+   "ideal_cycle_time": "0.5",
+   "total_units": "760",
+   "good_units": "740",
+   "availability": "0.91666666666666666666666666666666666666666666666667",
+   "performance": "0.86363636363636363636363636363636363636363636363636",
+   "quality": "0.97368421052631578947368421052631578947368421052632",
+   "oee": "0.77083333333333333333333333333333333333333333333334",
+   "scrap_units": "20",
+   "theoretical_output": "8.8E+2"
+  },
+  "contains": [
+   "Overall equipment effectiveness",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.410363+00:00",
+ "origin": "preset"
+}

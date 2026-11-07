@@ -1,0 +1,35 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/moneymultiplier/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "moneymultiplier",
+ "tile_label": "Money multiplier",
+ "group": "Macroeconomics",
+ "objective": "How much money does this base support?",
+ "instruction": "A business is preparing a economics analysis. The question is: How much money does this base support. The tile covers Compute the simple and currency-adjusted money multipliers and the implied money supply. The declared figures are: monetary base 100; reserve ratio 0.10; currency drain ratio 0.05. Use money multiplier in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "monetary_base": "100",
+  "reserve_ratio": "0.10",
+  "currency_drain_ratio": "0.05"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "monetary_base": "100",
+   "reserve_ratio": "0.10",
+   "currency_drain_ratio": "0.05",
+   "simple_money_multiplier": "1E+1",
+   "extended_money_multiplier": "7",
+   "money_supply_simple": "1.00E+3",
+   "money_supply_extended": "700"
+  },
+  "contains": [
+   "Money multiplier",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.192313+00:00",
+ "origin": "preset"
+}

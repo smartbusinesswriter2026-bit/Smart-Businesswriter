@@ -1,0 +1,42 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "entrepreneurship/captable/001",
+ "subject": "entrepreneurship",
+ "subject_label": "Entrepreneurship",
+ "tile": "captable",
+ "tile_label": "Cap table and dilution",
+ "group": "Funding and valuation",
+ "objective": "What share does the investor get in this round?",
+ "instruction": "A business is preparing a entrepreneurship analysis. The question is: What share does the investor get in this round. The tile covers Post-money value, price per share, new shares, investor and founder percentages and dilution for one round. The declared figures are: pre money valuation 4000000; investment 1000000; founders shares 1000000; option pool pct 0.10. Use cap table and dilution in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "pre_money_valuation": "4000000",
+  "investment": "1000000",
+  "founders_shares": "1000000",
+  "option_pool_pct": "0.10"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "pre_money_valuation": "4000000",
+   "investment": "1000000",
+   "founders_shares": "1000000",
+   "post_money_valuation": "5000000",
+   "price_per_share": "4",
+   "new_shares": "250000",
+   "option_pool_pct": "0.10",
+   "option_pool_shares": "138888.88888888888888888888888888888888888888888889",
+   "total_shares": "1388888.8888888888888888888888888888888888888888889",
+   "founder_pct": "0.71999999999999999999999999999999999999999999999999",
+   "investor_pct": "0.18000000000000000000000000000000000000000000000000",
+   "pool_pct_actual": "0.1",
+   "founder_dilution": "0.28000000000000000000000000000000000000000000000001"
+  },
+  "contains": [
+   "Cap table and dilution",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.379859+00:00",
+ "origin": "preset"
+}

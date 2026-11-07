@@ -180,6 +180,17 @@ def _declared(inputs):
                      for name, value in (inputs or {}).items())
 
 
+def brief_for(subject_id, tile_key):
+    """The prefilled instruction, objective and declared figures for one tile."""
+    subject, _group, tile = _find_tile(subject_id, tile_key)
+    preset = _preset_for({"preset": tile.get("preset")}) or {}
+    objective = preset.get("objective") or tile.get("objective") or tile.get("label")
+    inputs = preset.get("inputs") or {}
+    return {"objective": objective, "inputs": inputs,
+            "brief": _brief(subject, tile, objective, inputs),
+            "tile": tile, "subject": subject}
+
+
 def _brief(subject, tile, objective, inputs):
     declared = _declared(inputs)
     what = " ".join(str(tile.get("what") or "").split())[:400]
@@ -550,6 +561,8 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
         "background": len(background),
         "gaps": len(state.get("gaps") or []),
         "evidence_errors": errors,
+        "computation": recorded,
+        "inputs": inputs,
         "duration_ms": int((time.perf_counter() - started) * 1000),
     }
 

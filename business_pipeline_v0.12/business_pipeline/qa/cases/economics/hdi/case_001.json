@@ -1,0 +1,33 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/hdi/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "hdi",
+ "tile_label": "Human Development Index",
+ "group": "International",
+ "objective": "What is the Human Development Index?",
+ "instruction": "A business is preparing a economics analysis. The question is: What is the Human Development Index. The tile covers Compute the HDI from life expectancy, schooling and GNI per capita using the UNDP goalposts. The declared figures are: life expectancy 70; expected years schooling 12; mean years schooling 8; gni per capita 5000. Use human development index in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "life_expectancy": "70",
+  "expected_years_schooling": "12",
+  "mean_years_schooling": "8",
+  "gni_per_capita": "5000"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "life_index": "0.76923076923076923076923076923076923076923076923077",
+   "education_index": "0.6000000000000000000000000000000000000000000000000",
+   "income_index": "0.59093349625939783899688321941556929192643657637871",
+   "hdi": "0.64850824509348362514369222491055130605414842547244"
+  },
+  "contains": [
+   "Human Development Index",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.210093+00:00",
+ "origin": "preset"
+}

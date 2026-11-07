@@ -391,6 +391,25 @@
         <div id="atSections"></div>
       </div>
 
+      <!-- ═══ TILE CASES — stored tests that feed the self-healing loop ═══ -->
+      <div class="card" id="tileCasesCard">
+        <h2>Tile cases — self-healing input</h2>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">
+          Each case is one tile's prefilled instruction, its declared figures, and the result the frozen
+          method returns. A failing case is logged as a <code>tile-case</code> error with its case id, so
+          the Karpathy loop re-checks it by code — no model call and no tokens. A passing case is a stored
+          regression test.
+        </p>
+        <div class="row">
+          <button class="btn" id="seedCases">Seed missing cases</button>
+          <button class="btn primary" id="runAllCases">Run all cases</button>
+          <span id="caseSummary" style="font-size:11px;color:var(--muted);">Loading…</span>
+        </div>
+        <div id="caseSubjects" class="at-results"></div>
+        <div class="progress" id="caseProgress" style="display:none;"><div class="bar" style="width:0%"></div></div>
+        <div id="caseResults" class="at-results"></div>
+      </div>
+
       <!-- Hallucination checker -->
       <div class="card">
         <h2>Hallucination checker</h2>
@@ -437,11 +456,11 @@
         </div>
         <div class="row">
           <div class="card" style="flex:1;min-width:120px;">
-            <h3>Current metric</h3>
+            <h3>Errors closed %</h3>
             <div id="arMetric" style="font-size:24px;font-weight:700;color:var(--navy);">—</div>
           </div>
           <div class="card" style="flex:1;min-width:120px;">
-            <h3>Best metric</h3>
+            <h3>Best closed %</h3>
             <div id="arBest" style="font-size:24px;font-weight:700;color:var(--green);">—</div>
           </div>
           <div class="card" style="flex:1;min-width:120px;">
@@ -543,7 +562,7 @@ document.querySelectorAll('.rail button').forEach(btn => {
 function loadPanel(name) {
   if (name === 'runs') loadRuns();
   else if (name === 'validation') { loadFindings(); loadProposals(); }
-  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadPaperTesting(); }
+  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadPaperTesting(); loadCases(); }
   else if (name === 'autoresearch') { loadAutoresearch(); }
   else if (name === 'chat') { /* chat panel loaded on demand */ }
   else if (name === 'health') loadHealth();
@@ -1459,6 +1478,105 @@ function atRenderDownloads(subject, runId, state) {
     + '<span class="at-status">Run ' + escapeHtml(runId) + ' · ' + escapeHtml(state.label || subject) + '</span>';
 }
 
+/* ── Tile cases: stored tests that feed the self-healing loop ── */
+let caseCache = [];
+
+async function loadCases() {
+  const r = await apiFetch('/api/ops/cases');
+  if (r.status !== 200 || !r.data) {
+    document.getElementById('caseSummary').textContent = 'Cases unavailable: ' + ((r.data && r.data.error) || r.status);
+    return;
+  }
+  const summary = r.data.summary || {};
+  caseCache = r.data.cases || [];
+  const subjects = (summary.by_subject || []).length;
+  document.getElementById('caseSummary').textContent =
+    (summary.total || 0) + ' case(s) across ' + subjects + ' subject(s)';
+  const bySubject = {};
+  caseCache.forEach(c => { (bySubject[c.subject] = bySubject[c.subject] || []).push(c); });
+  let html = '';
+  Object.keys(bySubject).sort().forEach(sid => {
+    const rows = bySubject[sid];
+    const label = rows[0].subject_label || sid;
+    html += '<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:6px 0;">'
+      + '<span>' + escapeHtml(label) + ' <span class="at-status">' + rows.length + ' case(s)</span></span>'
+      + '<button class="btn" data-case-run="' + escapeHtml(sid) + '">Run</button></div>';
+  });
+  document.getElementById('caseSubjects').innerHTML = html
+    || '<div class="empty">No cases yet. Use Seed missing cases.</div>';
+}
+
+document.getElementById('caseSubjects').addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-case-run]');
+  if (button) runCasesFor(button.dataset.caseRun);
+});
+
+document.getElementById('seedCases').addEventListener('click', async () => {
+  const r = await apiFetch('/api/ops/cases/seed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ overwrite: false })
+  });
+  if (r.status === 200) {
+    toast('Seeded ' + (r.data.written || 0) + ' case(s)');
+    loadCases();
+  } else {
+    toast('Seed failed: ' + ((r.data && r.data.error) || r.status));
+  }
+});
+
+document.getElementById('runAllCases').addEventListener('click', () => {
+  if (!caseCache.length) { toast('No cases to run'); return; }
+  runCases(caseCache.map(c => c.id), 'all subjects');
+});
+
+async function runCasesFor(subject) {
+  const ids = caseCache.filter(c => c.subject === subject).map(c => c.id);
+  await runCases(ids, subject);
+}
+
+async function runCases(ids, label) {
+  const progress = document.getElementById('caseProgress');
+  progress.style.display = '';
+  progress.querySelector('.bar').style.width = '10%';
+  document.getElementById('caseResults').innerHTML =
+    '<div class="at-status">Running ' + ids.length + ' case(s) for ' + escapeHtml(label) + '…</div>';
+  const r = await apiFetch('/api/ops/cases/run', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      case_ids: ids,
+      style: document.getElementById('atStyle').value,
+      length: parseInt(document.getElementById('atLength').value, 10) || 1200
+    })
+  });
+  progress.querySelector('.bar').style.width = '100%';
+  if (r.status !== 200 || !r.data) {
+    document.getElementById('caseResults').innerHTML =
+      '<div class="empty">Case run failed: ' + escapeHtml((r.data && r.data.error) || r.status) + '</div>';
+    return;
+  }
+  renderCaseResults(r.data);
+  loadErrors();
+}
+
+function renderCaseResults(manifest) {
+  const rows = (manifest.results || []).map(row => {
+    const cls = row.status === 'pass' ? 'ok' : 'err';
+    return '<tr><td>' + escapeHtml(row.case_id) + '</td>'
+      + '<td>' + escapeHtml(row.tile_label || row.tile || '') + '</td>'
+      + '<td>' + pill(row.status, cls) + '</td>'
+      + '<td>' + (row.duration_ms ? (row.duration_ms / 1000).toFixed(1) + 's' : '—') + '</td>'
+      + '<td>' + escapeHtml(row.error || '') + '</td></tr>';
+  }).join('');
+  document.getElementById('caseResults').innerHTML =
+    '<div class="row" style="justify-content:space-between;margin-top:6px;">'
+      + '<strong>Run ' + escapeHtml(manifest.run_id) + '</strong>'
+      + '<span class="at-status">' + (manifest.passed || 0) + ' passed / ' + (manifest.failed || 0) + ' failed</span></div>'
+      + '<table><thead><tr><th>Case</th><th>Tile</th><th>Status</th><th>Time</th><th>Error</th></tr></thead><tbody>'
+      + rows + '</tbody></table>';
+}
+
 /* ── Chat ── */
 let chatProblems = [];
 let chatResults = [];
@@ -1671,6 +1789,7 @@ loadHealth();
 loadErrors();
 loadHealHistory();
 loadPaperTesting();
+loadCases();
 </script>
 </body>
 </html>

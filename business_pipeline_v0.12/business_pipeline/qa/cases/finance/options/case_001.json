@@ -1,0 +1,48 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "finance/options/001",
+ "subject": "finance",
+ "subject_label": "Finance",
+ "tile": "options",
+ "tile_label": "Option pricing",
+ "group": "Risk & derivatives",
+ "objective": "What is this option worth and what are its Greeks?",
+ "instruction": "A business is preparing a finance analysis. The question is: What is this option worth and what are its Greeks. The tile covers Black-Scholes price and Greeks for a European call or put, with a binomial cross-check. The declared figures are: option type call; spot price 100; strike price 100; volatility 0.25; risk free rate 0.05; time to maturity 1; steps 200. Use option pricing in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "option_type": "call",
+  "spot_price": "100",
+  "strike_price": "100",
+  "volatility": "0.25",
+  "risk_free_rate": "0.05",
+  "time_to_maturity": "1",
+  "steps": "200"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "option_price": "12.335998930368717",
+   "binomial_price": "12.32364646070717",
+   "delta": "0.627409464153284",
+   "gamma": "0.015136793277352779",
+   "vega": "37.84198319338194",
+   "theta": "-7.250495273420727",
+   "rho": "50.404947484959685",
+   "intrinsic_value": "0.0",
+   "time_value": "12.335998930368717",
+   "put_call_parity_gap": "0.0",
+   "d1": "0.325",
+   "d2": "0.07500000000000001",
+   "spot_price": "100",
+   "strike_price": "100",
+   "volatility": "0.25",
+   "time_to_maturity": "1"
+  },
+  "contains": [
+   "Option pricing",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.164768+00:00",
+ "origin": "preset"
+}

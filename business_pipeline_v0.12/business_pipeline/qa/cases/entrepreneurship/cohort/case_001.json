@@ -1,0 +1,62 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "entrepreneurship/cohort/001",
+ "subject": "entrepreneurship",
+ "subject_label": "Entrepreneurship",
+ "tile": "cohort",
+ "tile_label": "Cohort retention",
+ "group": "Market and customers",
+ "objective": "How well do we keep the customers we win each month?",
+ "instruction": "A business is preparing a entrepreneurship analysis. The question is: How well do we keep the customers we win each month. The tile covers Follow groups of customers who started together and read retention, churn and the average customer life. The declared figures are: cohort sizes 200, 180, 150; retained ['200', '140', '110', '90'], ['180', '130', '100', '60'], ['150', '120', '95', '70']. Use cohort retention in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "cohort_sizes": [
+   "200",
+   "180",
+   "150"
+  ],
+  "retained": [
+   [
+    "200",
+    "140",
+    "110",
+    "90"
+   ],
+   [
+    "180",
+    "130",
+    "100",
+    "60"
+   ],
+   [
+    "150",
+    "120",
+    "95",
+    "70"
+   ]
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "retention_1": "1",
+   "churn_1": "0",
+   "retention_2": "0.73584905660377358490566037735849056603773584905660",
+   "churn_2": "0.26415094339622641509433962264150943396226415094340",
+   "retention_3": "0.57547169811320754716981132075471698113207547169811",
+   "churn_3": "0.42452830188679245283018867924528301886792452830189",
+   "retention_4": "0.41509433962264150943396226415094339622641509433962",
+   "churn_4": "0.58490566037735849056603773584905660377358490566038",
+   "average_retention": "0.68160377358490566037735849056603773584905660377358",
+   "average_lifetime": "2.7264150943396226415094339622641509433962264150943",
+   "total_start": "530",
+   "total_retained_1": "530"
+  },
+  "contains": [
+   "Cohort retention",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.331142+00:00",
+ "origin": "preset"
+}

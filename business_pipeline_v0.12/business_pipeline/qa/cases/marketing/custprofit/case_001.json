@@ -1,0 +1,68 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "marketing/custprofit/001",
+ "subject": "marketing",
+ "subject_label": "Marketing & customers",
+ "tile": "custprofit",
+ "tile_label": "Customer profitability by segment",
+ "group": "Customer economics and retention",
+ "objective": "Which customer segments actually make money?",
+ "instruction": "A business is preparing a marketing & customers analysis. The question is: Which customer segments actually make money. The tile covers Enter revenue, direct cost and any allocated cost for each segment and read profit, margin, profit share and how few segments carry the profit. The declared figures are: segments row 1: name Enterprise, revenue 5000000, direct cost 3000000, allocated cost 600000; row 2: name SME, revenue 3000000, direct cost 2100000, allocated cost 400000; row 3: name Retail, revenue 1200000, direct cost 1500000, allocated cost 100000; concentration threshold 0.8. Use customer profitability by segment in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "segments": [
+   {
+    "name": "Enterprise",
+    "revenue": "5000000",
+    "direct_cost": "3000000",
+    "allocated_cost": "600000"
+   },
+   {
+    "name": "SME",
+    "revenue": "3000000",
+    "direct_cost": "2100000",
+    "allocated_cost": "400000"
+   },
+   {
+    "name": "Retail",
+    "revenue": "1200000",
+    "direct_cost": "1500000",
+    "allocated_cost": "100000"
+   }
+  ],
+  "concentration_threshold": "0.8"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "segments": "3",
+   "total_revenue": "9200000",
+   "total_cost": "7700000",
+   "total_profit": "1500000",
+   "overall_margin": "0.16304347826086956521739130434782608695652173913043",
+   "revenue_1": "5000000",
+   "profit_1": "1400000",
+   "margin_1": "0.28",
+   "profit_share_1": "0.93333333333333333333333333333333333333333333333333",
+   "revenue_2": "3000000",
+   "profit_2": "500000",
+   "margin_2": "0.16666666666666666666666666666666666666666666666667",
+   "profit_share_2": "0.33333333333333333333333333333333333333333333333333",
+   "revenue_3": "1200000",
+   "profit_3": "-400000",
+   "margin_3": "-0.33333333333333333333333333333333333333333333333333",
+   "profit_share_3": "-0.26666666666666666666666666666666666666666666666667",
+   "profitable": "2",
+   "unprofitable": "1",
+   "segments_for_threshold": "1",
+   "concentration_threshold": "0.8",
+   "_appendix": "{'segments': [{'name': 'Enterprise', 'revenue': '5000000', 'direct_cost': '3000000', 'allocated_cost': '600000', 'profit': '1400000'}, {'name': 'SME', 'revenue': '3000000', 'direct_cost': '2100000', 'allocated_cost': '400000', 'profit': '500000'}, {'name': 'Retail', 'revenue': '1200000', 'direct_cost': '1500000', 'allocated_cost': '100000', 'profit': '-400000'}], 'ranked_by_profit': ['Enterprise', 'SME', 'Retail']}"
+  },
+  "contains": [
+   "Customer profitability by segment",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.453629+00:00",
+ "origin": "preset"
+}

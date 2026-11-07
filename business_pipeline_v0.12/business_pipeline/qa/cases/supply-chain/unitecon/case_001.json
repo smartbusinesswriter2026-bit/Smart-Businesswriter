@@ -1,0 +1,38 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "supply-chain/unitecon/001",
+ "subject": "supply-chain",
+ "subject_label": "Supply chain & logistics",
+ "tile": "unitecon",
+ "tile_label": "Unit economics",
+ "group": "Cost and mix",
+ "objective": "What does a customer cost and return?",
+ "instruction": "A business is preparing a supply chain & logistics analysis. The question is: What does a customer cost and return. The tile covers The margin per customer, the cost to win one, its payback and lifetime value. The declared figures are: price 49; variable cost 12; acquisition cost 80; churn rate 0.04. Use unit economics in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "price": "49",
+  "variable_cost": "12",
+  "acquisition_cost": "80",
+  "churn_rate": "0.04"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "unit_margin": "37",
+   "margin_pct": "0.75510204081632653061224489795918367346938775510204",
+   "payback_periods": "2.1621621621621621621621621621621621621621621621622",
+   "price": "49",
+   "variable_cost": "12",
+   "acquisition_cost": "80",
+   "churn_rate": "0.04",
+   "ltv": "925",
+   "ltv_cac": "11.5625"
+  },
+  "contains": [
+   "Unit economics",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.417582+00:00",
+ "origin": "preset"
+}

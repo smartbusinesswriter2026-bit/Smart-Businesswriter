@@ -84,7 +84,7 @@ def log_run(lane, kind, status, problem_text=None, error=None, duration_ms=None,
     return _append_jsonl(_runs_path(), record)
 
 
-def log_error(lane, error, problem_text=None, gap_label=None, count=1):
+def log_error(lane, error, problem_text=None, gap_label=None, count=1, case_id=None):
     """Append one error record. Returns True when written."""
     record = {
         "ts": _now_iso(),
@@ -99,6 +99,10 @@ def log_error(lane, error, problem_text=None, gap_label=None, count=1):
         # Kept locally so "Resolve" can replay the exact failing problem;
         # never shown as evidence and never leaves the state directory.
         record["problem"] = str(problem_text)[:2000]
+    if case_id:
+        # A stored tile case is replayed by code, not by a model, so a case
+        # failure costs no tokens to re-check.
+        record["case_id"] = str(case_id)[:200]
     if gap_label:
         record["gap_label"] = str(gap_label)[:160]
     return _append_jsonl(_errors_path(), record)

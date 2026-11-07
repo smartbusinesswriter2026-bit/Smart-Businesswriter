@@ -1,0 +1,50 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "operations/spc/001",
+ "subject": "operations",
+ "subject_label": "Operations management",
+ "tile": "spc",
+ "tile_label": "Control chart and capability",
+ "group": "Quality and evidence",
+ "objective": "Is the process in control, and is it capable?",
+ "instruction": "A business is preparing a operations management analysis. The question is: Is the process in control, and is it capable. The tile covers I-MR control limits, out-of-control points and, with specification limits, Cp and Cpk. The declared figures are: values 10, 11, 9, 10, 12, 9, 10, 11; spec lower 7; spec upper 13. Use control chart and capability in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "values": [
+   "10",
+   "11",
+   "9",
+   "10",
+   "12",
+   "9",
+   "10",
+   "11"
+  ],
+  "spec_lower": "7",
+  "spec_upper": "13"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "n": "8",
+   "mean": "10.25",
+   "average_moving_range": "1.5714285714285714285714285714285714285714285714286",
+   "sigma_estimate": "1.3931104356636271529888551165146909827760891590679",
+   "upper_control_limit": "14.429331306990881458966565349544072948328267477204",
+   "lower_control_limit": "6.0706686930091185410334346504559270516717325227963",
+   "out_of_control": "0",
+   "longest_run": "2",
+   "run_signal": "0",
+   "spec_lower": "7",
+   "spec_upper": "13",
+   "cp": "0.71781818181818181818181818181818181818181818181817",
+   "cpk": "0.65799999999999999999999999999999999999999999999999"
+  },
+  "contains": [
+   "Control chart and capability",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.411350+00:00",
+ "origin": "preset"
+}

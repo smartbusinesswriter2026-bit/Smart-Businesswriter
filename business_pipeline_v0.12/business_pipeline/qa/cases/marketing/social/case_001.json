@@ -1,0 +1,43 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "marketing/social/001",
+ "subject": "marketing",
+ "subject_label": "Marketing & customers",
+ "tile": "social",
+ "tile_label": "Social reach and engagement",
+ "group": "Campaigns, channels and web analytics",
+ "objective": "How far did our posts reach, and how engaged was the audience?",
+ "instruction": "A business is preparing a marketing & customers analysis. The question is: How far did our posts reach, and how engaged was the audience. The tile covers Read engagement rate, frequency, cost per thousand impressions, cost per engagement and follower growth from the platform counts you declare. The declared figures are: impressions 150000; reach 95000; engagements 5700; followers start 18000; followers gained 900; spend 25000; posts 15. Use social reach and engagement in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "impressions": "150000",
+  "reach": "95000",
+  "engagements": "5700",
+  "followers_start": "18000",
+  "followers_gained": "900",
+  "spend": "25000",
+  "posts": "15"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "impressions": "150000",
+   "reach": "95000",
+   "engagements": "5700",
+   "spend": "25000",
+   "engagement_rate": "0.06",
+   "frequency": "1.5789473684210526315789473684210526315789473684211",
+   "cpm": "166.66666666666666666666666666666666666666666666667",
+   "cost_per_engagement": "4.3859649122807017543859649122807017543859649122807",
+   "follower_growth": "0.05",
+   "posts": "15",
+   "engagement_per_post": "380"
+  },
+  "contains": [
+   "Social reach and engagement",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.459394+00:00",
+ "origin": "preset"
+}

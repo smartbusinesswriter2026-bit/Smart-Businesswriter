@@ -132,18 +132,19 @@ def _revert_last():
 # ── Metric ─────────────────────────────────────────────────────────────────
 
 def _measure_metric():
-    """Run the test suite and return pass rate (0-100)."""
-    from . import test_runner
-    # Run core suites
-    total_passed = 0
-    total_tests = 0
-    for suite in ["computations", "frameworks", "prose", "paper"]:
-        result = test_runner.run_suite(suite)
-        total_passed += result.get("passed", 0)
-        total_tests += result.get("total", 0)
-    if total_tests == 0:
-        return 0.0
-    return round(total_passed / total_tests * 100, 2)
+    """Percentage of logged errors that are closed (resolved, invalid or dismissed).
+
+    The old metric ran four pytest suites every cycle.  That measured the test
+    suite, not the loop's own work, and it could not tell a fixed error from an
+    unrelated green test.  This one reads the error log the loop actually acts
+    on, so a verified fix moves it and a nothing-done cycle does not.
+    """
+    errors = _ops_log.merge_resolved(_ops_log.list_errors(limit=1000))
+    if not errors:
+        return 100.0
+    closed = sum(1 for row in errors
+                 if row.get("resolved") or row.get("invalid") or row.get("dismissed"))
+    return round(100.0 * closed / len(errors), 2)
 
 
 # ── Problem generation ─────────────────────────────────────────────────────
@@ -169,64 +170,56 @@ def _pick_highest_impact_error():
 
 
 def _run_experiment(error):
-    """Run one experiment: generate problems, solve, propose fix, apply, test."""
-    from . import chat_heal
-    from . import hallucination_check
+    """Attempt one fix, in the cheapest honest order.
+
+    1. A stored tile case is replayed by code (no model, no tokens).
+    2. An error with a stored problem is resolved by the fix ladder
+       (deepseek-v4.1-flash, then deepseek-v4-pro); replay must pass.
+    3. An error with neither is left to the owner: generating a problem from
+       an unreplayable error spends tokens and cannot verify a fix.
+    """
+    from . import auto_resolve
 
     exp = {
         "ts": datetime.now(timezone.utc).isoformat(),
         "error": error.get("error", "")[:200],
         "error_id": error.get("error_id", ""),
         "severity": error.get("severity", "moderate"),
+        "case_id": error.get("case_id") or "",
     }
+    exp["baseline_metric"] = _measure_metric()
 
-    # Step 1: Generate problems
-    count = _ops_log.severity_count(error.get("severity", "moderate"))
-    problems, instruction, err = chat_heal.generate_problems_from_error(
-        error.get("error", ""), count)
-    exp["problems_generated"] = len(problems)
-    if err or not problems:
-        exp["outcome"] = "no_problems"
-        exp["reason"] = err or "no problems generated"
+    if not error.get("case_id") and not error.get("problem"):
+        exp["outcome"] = "no_replayable_problem"
+        exp["reason"] = ("no stored problem or case id; skipped without a model call")
+        exp["after_metric"] = exp["baseline_metric"]
         _log_experiment(exp)
         return exp
 
-    # Step 2: Solve
-    results, _ = chat_heal.solve_problems(problems)
-    failures = [r for r in results if r.get("status") in ("error", "logged")]
-    exp["problems_solved"] = len(results) - len(failures)
-    exp["problems_failed"] = len(failures)
-
-    # Step 3: Propose fix (if failures)
-    improvements = []
-    if failures:
-        improvements, _ = chat_heal.write_improvements(
-            [{"problem": f.get("problem", ""), "error": f.get("error", "")} for f in failures])
-    exp["improvements_proposed"] = len(improvements)
-
-    # Step 4: Measure baseline metric
-    baseline_metric = _measure_metric()
-    exp["baseline_metric"] = baseline_metric
-
-    # Step 5: Apply fix (if proposals exist)
-    from . import statements as _stmt
-    proposals = []
-    try:
-        import urllib.request, json as _json
-        # Get pending proposals from statements
-        pass
-    except Exception:
-        pass
-
-    # For now, log the experiment without applying (computation owner needs to expose heal API)
-    # The fix application is documented as a request for the computation owner
-    exp["outcome"] = "proposed"
-    exp["reason"] = "Fix proposed but not auto-applied (needs computation owner heal API)"
-    exp["after_metric"] = baseline_metric
-
-    # Step 6: Log
+    result = auto_resolve.resolve(error.get("error_id", ""))
+    exp["category"] = result.get("category") or ""
+    exp["model"] = result.get("model") or ""
+    exp["steps"] = result.get("steps") or []
+    exp["verified"] = bool(result.get("verified"))
+    exp["problems_solved"] = 1 if result.get("verified") else 0
+    exp["problems_failed"] = 0 if result.get("verified") else 1
+    exp["outcome"] = "kept" if result.get("verified") else "still_failing"
+    exp["reason"] = result.get("reason") or ""
+    exp["after_metric"] = _measure_metric()
     _log_experiment(exp)
     return exp
+
+
+def _run_case_suite():
+    """Replay every stored tile case; failures become open tile-case errors."""
+    try:
+        from . import case_runner, case_store
+        ids = [case["id"] for case in case_store.load_cases()]
+        if not ids:
+            return {"total": 0, "passed": 0, "failed": 0}
+        return case_runner.run_cases(ids)
+    except Exception as error:
+        return {"total": 0, "passed": 0, "failed": 0, "error": str(error)[:200]}
 
 
 # ── Main loop ──────────────────────────────────────────────────────────────
@@ -252,20 +245,28 @@ def _loop():
                     _state["best_metric"] = metric
                 _state["last_run"] = datetime.now(timezone.utc).isoformat()
 
-            if metric >= 100.0:
-                with _lock:
-                    _state["status_message"] = "all tests pass — stopped"
-                    _state["stopped"] = True
-                    _state["running"] = False
-                break
-
             # Check for open errors
             error = _pick_highest_impact_error()
             if error is None:
+                # No unattended error: re-run the stored case suite, which is
+                # the loop's own regression pass.  A failure becomes an open
+                # tile-case error for the next cycle; a clean pass stops the
+                # loop because there is nothing left to repair.
+                if os.environ.get("BP_AUTORESEARCH_CASES", "1") != "0":
+                    with _lock:
+                        _state["status_message"] = "replaying the stored case suite"
+                    suite = _run_case_suite()
+                    with _lock:
+                        _state["status_message"] = "case suite: %d passed / %d failed" % (
+                            suite.get("passed", 0), suite.get("failed", 0))
+                    if suite.get("failed"):
+                        continue
                 with _lock:
-                    _state["status_message"] = "no open errors — sleeping"
-                time.sleep(interval)
-                continue
+                    _state["status_message"] = ("all logged errors closed and the stored case suite "
+                                                "passed — stopped")
+                    _state["stopped"] = True
+                    _state["running"] = False
+                break
 
             # Run experiments
             with _lock:
@@ -281,6 +282,12 @@ def _loop():
                         _state["experiments_kept"] += 1
                     elif exp.get("outcome") in ("reverted", "rejected"):
                         _state["experiments_reverted"] += 1
+                # One attempt per error per cycle: a resolved error is done, and
+                # an error with nothing to replay will say the same thing again.
+                # Repeating it would only fill the experiment log.
+                if exp.get("outcome") in ("kept", "applied", "no_replayable_problem",
+                                          "still_failing", "reverted", "rejected"):
+                    break
 
             # Sleep between cycles
             with _lock:

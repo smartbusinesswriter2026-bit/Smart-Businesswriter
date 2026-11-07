@@ -1,0 +1,73 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "marketing/web/001",
+ "subject": "marketing",
+ "subject_label": "Marketing & customers",
+ "tile": "web",
+ "tile_label": "Web traffic and conversion by channel",
+ "group": "Campaigns, channels and web analytics",
+ "objective": "Which traffic channel brings visits that turn into revenue?",
+ "instruction": "A business is preparing a marketing & customers analysis. The question is: Which traffic channel brings visits that turn into revenue. The tile covers Compare sessions, conversions, conversion rate and revenue per session across your acquisition channels, with organic-search click-through when you declare it. The declared figures are: channels row 1: name organic search, sessions 42000, conversions 1350, revenue 680000; row 2: name paid search, sessions 24000, conversions 960, revenue 430000; row 3: name email, sessions 9000, conversions 540, revenue 260000; organic impressions 600000; organic clicks 24000. Use web traffic and conversion by channel in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "channels": [
+   {
+    "name": "organic search",
+    "sessions": "42000",
+    "conversions": "1350",
+    "revenue": "680000"
+   },
+   {
+    "name": "paid search",
+    "sessions": "24000",
+    "conversions": "960",
+    "revenue": "430000"
+   },
+   {
+    "name": "email",
+    "sessions": "9000",
+    "conversions": "540",
+    "revenue": "260000"
+   }
+  ],
+  "organic_impressions": "600000",
+  "organic_clicks": "24000"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "total_sessions": "75000",
+   "total_conversions": "2850",
+   "total_revenue": "1370000",
+   "blended_conversion_rate": "0.038",
+   "revenue_per_session": "18.266666666666666666666666666666666666666666666667",
+   "sessions_1": "42000",
+   "conversions_1": "1350",
+   "revenue_1": "680000",
+   "session_share_1": "0.56",
+   "conversion_rate_1": "0.032142857142857142857142857142857142857142857142857",
+   "revenue_per_session_1": "16.190476190476190476190476190476190476190476190476",
+   "sessions_2": "24000",
+   "conversions_2": "960",
+   "revenue_2": "430000",
+   "session_share_2": "0.32",
+   "conversion_rate_2": "0.04",
+   "revenue_per_session_2": "17.916666666666666666666666666666666666666666666667",
+   "sessions_3": "9000",
+   "conversions_3": "540",
+   "revenue_3": "260000",
+   "session_share_3": "0.12",
+   "conversion_rate_3": "0.06",
+   "revenue_per_session_3": "28.888888888888888888888888888888888888888888888889",
+   "organic_impressions": "600000",
+   "organic_clicks": "24000",
+   "organic_ctr": "0.04"
+  },
+  "contains": [
+   "Web traffic and conversion by channel",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.460717+00:00",
+ "origin": "preset"
+}

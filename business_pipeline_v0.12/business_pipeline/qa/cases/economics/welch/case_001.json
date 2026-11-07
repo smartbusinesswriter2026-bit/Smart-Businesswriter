@@ -1,0 +1,68 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/welch/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "welch",
+ "tile_label": "Welch two-sample t-test",
+ "group": "Quantitative core",
+ "objective": "Do the two teaching methods differ in exam scores?",
+ "instruction": "A business is preparing a economics analysis. The question is: Do the two teaching methods differ in exam scores. The tile covers Compare two group means without assuming equal variances. The declared figures are: groups lecture ['62', '70', '68', '75', '66', '71', '64', '73'], workshop ['72', '78', '74', '85', '80', '77', '69', '83', '79']; missing codes . Use welch two-sample t-test in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "groups": {
+   "lecture": [
+    "62",
+    "70",
+    "68",
+    "75",
+    "66",
+    "71",
+    "64",
+    "73"
+   ],
+   "workshop": [
+    "72",
+    "78",
+    "74",
+    "85",
+    "80",
+    "77",
+    "69",
+    "83",
+    "79"
+   ]
+  },
+  "missing_codes": []
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "diff": "-8.819444444444444444444444444444444444444444444444",
+   "se_diff": "2.3275568615100706555878902478659467809102622276515",
+   "ci_lower": "-13.780569156837887369131540685484848921050481350776",
+   "ci_upper": "-3.8583197320510015197573482034040399678384075381120",
+   "t_stat": "-3.7891424223778454385722052124818410189811350638510",
+   "df": "14.998101450382642270337649745942933867443770547367",
+   "p_value": "0.0017827234983478464",
+   "hedges_g": "-1.7327206103784526650092822849310842375380249287574",
+   "g_ci_lower": "-2.8691422560302436895510992170151279764788039574636",
+   "g_ci_upper": "-0.5962989647266616404674653528470404985972459000512",
+   "n_lecture": "8",
+   "mean_lecture": "68.625",
+   "sd_lecture": "4.4701390198899695006403890483873062852555538342394",
+   "n_workshop": "9",
+   "mean_workshop": "77.444444444444444444444444444444444444444444444444",
+   "sd_workshop": "5.1261854997432328363567655132117620616471325021680",
+   "n_excluded": "0",
+   "confidence_level": "0.95",
+   "alpha": "0.05"
+  },
+  "contains": [
+   "Welch two-sample t-test",
+   "Declared inputs",
+   "References"
+  ]
+ },
+ "created_at": "2026-11-07T13:08:10.254602+00:00",
+ "origin": "preset"
+}
