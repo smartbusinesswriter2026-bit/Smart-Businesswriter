@@ -5,7 +5,7 @@
  "subject_label": "Economics",
  "tile": "breakeven",
  "tile_label": "Break-even point",
- "group": "Quantitative core",
+ "group": "Managerial economics",
  "objective": "How many units must we sell to break even?",
  "instruction": "A business is preparing a economics analysis. The question is: How many units must we sell to break even. The tile covers Solve the break-even quantity from fixed cost, price and variable cost. The declared figures are: fixed 1000; price 20; variable 10. Use break-even point in a competitive market and industry context, and report the method's result.",
  "inputs": {
@@ -33,6 +33,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T13:49:00.224451+00:00",
+ "created_at": "2026-11-07T21:17:18.098952+00:00",
  "origin": "preset"
 }

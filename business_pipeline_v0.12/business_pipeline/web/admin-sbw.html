@@ -1651,19 +1651,28 @@ async function runCases(ids, label, generateCount) {
 }
 
 function renderCaseResults(manifest) {
+  const runId = escapeHtml(manifest.run_id);
   const rows = (manifest.results || []).map(row => {
     const cls = row.status === 'pass' ? 'ok' : 'err';
+    let output = '';
+    if (row.paper) {
+      output += '<a href="/api/ops/cases/runs/' + runId + '/file/' + encodeURIComponent(row.paper) + '">paper</a> ';
+    }
+    if (row.workbook) {
+      output += '<a href="/api/ops/cases/runs/' + runId + '/file/' + encodeURIComponent(row.workbook) + '">xlsx</a>';
+    }
     return '<tr><td>' + escapeHtml(row.case_id) + '</td>'
       + '<td>' + escapeHtml(row.tile_label || row.tile || '') + '</td>'
       + '<td>' + pill(row.status, cls) + '</td>'
       + '<td>' + (row.duration_ms ? (row.duration_ms / 1000).toFixed(1) + 's' : '—') + '</td>'
+      + '<td>' + output + '</td>'
       + '<td>' + escapeHtml(row.error || '') + '</td></tr>';
   }).join('');
   document.getElementById('caseResults').innerHTML =
     '<div class="row" style="justify-content:space-between;margin-top:6px;">'
       + '<strong>Run ' + escapeHtml(manifest.run_id) + '</strong>'
       + '<span class="at-status">' + (manifest.passed || 0) + ' passed / ' + (manifest.failed || 0) + ' failed</span></div>'
-      + '<table><thead><tr><th>Case</th><th>Tile</th><th>Status</th><th>Time</th><th>Error</th></tr></thead><tbody>'
+      + '<table><thead><tr><th>Case</th><th>Tile</th><th>Status</th><th>Time</th><th>Output</th><th>Error</th></tr></thead><tbody>'
       + rows + '</tbody></table>';
 }
 

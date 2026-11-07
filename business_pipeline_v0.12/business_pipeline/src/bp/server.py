@@ -122,6 +122,47 @@ def _statement_build(plan):
     return statement_plan.build(plan)
 
 
+def _load_opencode_env():
+    """Load the OpenCode Go credentials from Backend/.env when the BP_* names are unset.
+
+    The .env uses the product's own names (OPENCODE_API_KEY, LLM_PROVIDER, PROSE_MODEL); the
+    core reads BP_OPENGO_API_KEY, BP_LLM_PROVIDER, BP_LLM_MODEL.  Mapping them here means a
+    developer who has Backend/.env gets live model reading without exporting anything, and an
+    operator who exports the BP_* names still wins (setdefault).
+    """
+    import os as _os
+    root = _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+    path = _os.path.join(root, "Backend", ".env")
+    if not _os.path.exists(path):
+        return
+    values = {}
+    try:
+        with open(path, encoding="utf-8") as stream:
+            for line in stream:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                values[key.strip()] = value.strip()
+    except OSError:
+        return
+    mapping = {
+        "BP_OPENGO_API_KEY": values.get("OPENCODE_API_KEY"),
+        "BP_LLM_PROVIDER": values.get("LLM_PROVIDER") or "opencode",
+        "BP_LLM_MODEL": values.get("PROSE_MODEL") or values.get("OPENCODE_GO_MODEL"),
+        "BP_PROSE_MODEL": values.get("PROSE_MODEL"),
+        "BP_COUNCIL_MODEL": values.get("COUNCIL_MODEL"),
+        "BP_LLM_MODEL_TIER2": values.get("LLM_MODEL_TIER2"),
+        "BP_LLM_MODEL_TIER3": values.get("LLM_MODEL_TIER3"),
+    }
+    for key, value in mapping.items():
+        if value and not _os.environ.get(key):
+            _os.environ[key] = value
+
+
+_load_opencode_env()
+
+
 # The statements tile reaches the core through these callables, so the product package never imports
 # the frozen core (tests/test_product_boundary.py).  The reader is the model council; the tile's own
 # parser runs first and is exact on a trial balance, whatever the reader says.
@@ -139,6 +180,8 @@ product_statements.attach_core(
     working_capital=lambda inputs: methods.LIBRARY["working_capital"].impl(inputs),
     working_capital_cycle=lambda inputs: methods.LIBRARY["working_capital_cycle"].impl(inputs),
     trend=lambda inputs: methods.LIBRARY["trend_analysis"].impl(inputs),
+    tax_reconciliation=lambda inputs: methods.LIBRARY["tax_reconciliation"].impl(inputs),
+    piotroski=lambda inputs: methods.LIBRARY["piotroski_f_score"].impl(inputs),
     guards=lambda record: __import__("bp.guards", fromlist=["guards"]).run(record),
     case_solver=lambda text: __import__("bp.case_solver", fromlist=["case_solver"]).solve_case(text),
 )
@@ -776,6 +819,20 @@ class H(BaseHTTPRequestHandler):
                     return self._send(200, product_case_runner.status(_case_run[1]))
                 except KeyError as e:
                     return self._send(404, {"error": str(e)})
+            _case_file = __import__("re").fullmatch(
+                r"/api/ops/cases/runs/([0-9a-f]{8,})/file/(.+)", _ops_url.path)
+            if _case_file:
+                try:
+                    path = product_case_runner.file_path(_case_file[1], _case_file[2])
+                except KeyError as e:
+                    return self._send(404, {"error": str(e)})
+                with open(path, "rb") as handle:
+                    data = handle.read()
+                ext = path.rsplit(".", 1)[-1].lower()
+                ctype = ("application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                         if ext == "docx" else
+                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                return self._send(200, data, ctype, filename=os.path.basename(path))
             _paper_dl = __import__("re").fullmatch(
                 r"/api/ops/papers/batch/([0-9a-f]{8,})/download", _ops_url.path)
             if _paper_dl:

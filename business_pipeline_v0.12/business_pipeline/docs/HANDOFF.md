@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch corpus/merge-v1, remote origin = smartbusinesswriter2026-bit/smart-businesswriter002; `main` is the deployment branch and carries the same tree; clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.117 (see docs/CHANGELOG.md)
-Tests        : 4214 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Build        : 1.120 (see docs/CHANGELOG.md)
+Tests        : 4286 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -184,20 +184,23 @@ and defaults to the **Self-Healing** panel.
 ### 8.2 Routes
 
 - `GET /api/ops/papers/tiles`, `POST /api/ops/papers/batch`, `GET /api/ops/papers/batch/{id}`, `GET /api/ops/papers/batch/{id}/download?format=zip|docx`, `GET /api/ops/papers/runs`
-- `GET /api/ops/cases`, `POST /api/ops/cases/seed`, `POST /api/ops/cases/upload`, `POST /api/ops/cases/run`, `GET /api/ops/cases/runs`, `GET /api/ops/cases/runs/{id}`
+- `GET /api/ops/cases`, `POST /api/ops/cases/seed`, `POST /api/ops/cases/upload`, `POST /api/ops/cases/run`, `GET /api/ops/cases/runs`, `GET /api/ops/cases/runs/{id}`, `GET /api/ops/cases/runs/{id}/file/{name}`
 - `POST /api/ops/errors/resolve` — in-pipeline fix ladder.
 
 ### 8.3 How to debug a failing case
 
 1. Run the case (Tile cases card -> Run, or `POST /api/ops/cases/run`).
-2. On fail, the error appears in the error log (`/api/ops/errors`) with `lane: tile-case`
+2. Every case run saves its paper and workbook in `state/case_runs/<run_id>/`; the result
+   carries `paper` and `workbook`, and the Output column links to
+   `/api/ops/cases/runs/{id}/file/{name}`.  A pass can be opened and read, not only a fail.
+3. On fail, the error appears in the error log (`/api/ops/errors`) with `lane: tile-case`
    and the `case_id`.  The failing paper is in `state/case_runs/<run_id>/`.
-3. Resolve: `POST /api/ops/errors/resolve` with the `error_id` — it replays the case by
+4. Resolve: `POST /api/ops/errors/resolve` with the `error_id` — it replays the case by
    code and marks verified only on a pass.
-4. If the case still fails, the message is the assertion that failed
+5. If the case still fails, the message is the assertion that failed
    (status, computation value, or missing paper phrase).  Fix the pipeline, then re-resolve;
    the case re-runs in the loop's next cycle.
-5. A verified fix is a stored regression: re-seed the case (`case_store.seed(overwrite=True)`)
+6. A verified fix is a stored regression: re-seed the case (`case_store.seed(overwrite=True)`)
    after a computation change so the expected result tracks the frozen core.
 
 ### 8.4 Non-negotiables that apply to this subsystem

@@ -144,7 +144,8 @@ def run_case(case_id, style="apa", length=1200, log=True):
                 "bytes": result.get("bytes") or b"", "xlsx": result.get("xlsx") or b"",
                 "tile": case.get("tile"), "tile_label": case.get("tile_label")}
     return {"case_id": case_id, "status": "pass", "problems": [],
-            "error": "", "duration_ms": elapsed, "bytes": b"", "xlsx": b"",
+            "error": "", "duration_ms": elapsed,
+            "bytes": result.get("bytes") or b"", "xlsx": result.get("xlsx") or b"",
             "tile": case.get("tile"), "tile_label": case.get("tile_label")}
 
 
@@ -246,6 +247,17 @@ def status(run_id):
         raise KeyError("no such case run")
     with open(path, "r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def file_path(run_id, name):
+    """The stored paper or workbook of one case run, if it exists."""
+    safe = os.path.basename(str(name))
+    if not safe or safe != str(name):
+        raise KeyError("no such file")
+    path = os.path.join(_state_root(), str(run_id), safe)
+    if not os.path.isfile(path):
+        raise KeyError("no such file")
+    return path
 
 
 def runs(limit=20):
