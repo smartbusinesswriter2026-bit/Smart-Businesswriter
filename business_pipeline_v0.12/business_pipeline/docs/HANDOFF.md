@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch corpus/merge-v1, remote origin = smartbusinesswriter2026-bit/smart-businesswriter002; `main` is the deployment branch and carries the same tree; clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.115 (see docs/CHANGELOG.md)
-Tests        : 4197 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Build        : 1.117 (see docs/CHANGELOG.md)
+Tests        : 4214 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -145,3 +145,89 @@ The remaining heavy statistics work is **parked, not forgotten**: Tukey/Dunnett/
 - Keep new methods/templates behind the existing contract (`Method(...)` with tests, second route, checks, sandbox parity, preset).
 - Commit with a message that states what changed, what verifies it, and the test count; update docs in the same commit.
 - If you are unsure whether something is a convention decision, stop and log it as a B-decision question rather than inventing a default.
+
+
+## 8. Automated testing, tile cases, and the self-healing loop (build 1.115+)
+
+This section is the reference for anyone debugging or extending the admin
+self-healing system.  The admin page is served at `http://127.0.0.1:8021/admin-sbw.html`
+and defaults to the **Self-Healing** panel.
+
+### 8.1 What is built
+
+- **`src/bp/product/paper_batch.py`** — generates one real paper per subject tile from the
+  tile's published preset objective and declared figures.  The conductor runs with no
+  framework wrapper, so the paper shows the tile's computation, not a PESTEL essay.
+  Format selector: Word / Excel / Both.  The Excel workbook is the product's own
+  `spreadsheets.to_xlsx` (Cover, Summary, Inputs, Working, Results, Notes, Record).
+- **`src/bp/product/case_store.py`** — seeds and stores cases under
+  `qa/cases/<subject>/<tile-slug>/case_NNN.json`.  246 cases seeded from published presets.
+  `upload()` accepts JSON, CSV/TSV, XLSX (first worksheet), Word, PDF, TXT and images; table
+  headers map automatically onto the method's input names, and the gate runs
+  `validate_inputs` plus the method itself before writing.
+- **`src/bp/product/case_runner.py`** — replays a case (status, computation with numeric
+  tolerance, required paper phrases, workbook sheets).  A fail logs one `tile-case`
+  error carrying the `case_id` and the instruction.  `run_cases` stores a run manifest
+  under `state/case_runs/<run_id>/`.
+- **`src/bp/product/auto_resolve.py`** — a `case_id` error is replayed by code (zero
+  tokens); a legacy error with a stored problem uses deepseek-v4.1-flash then
+  deepseek-v4-pro.  A fix is marked verified only when replay passes.
+- **`src/bp/product/autoresearch.py`** — the Karpathy loop: picks the highest-impact open
+  error, skips errors with neither a problem nor a case id (no model call), resolves a case
+  by code and a problem by flash -> pro, and when no open errors remain it replays the
+  whole 246-case suite and stops only when that passes.  Metric is errors-closed %.
+- **`web/admin-sbw.html`** — Self-Healing panel: subject sections (permanent), collapsible
+  tile groups, tickable tiles (ticks survive a subsection switch and a reload), Format
+  selector, Generate selected, progress, results table, download ZIP at the bottom of each
+  section.  Tile cases card: seed, run a subject or all, results, Add files per subject.
+
+### 8.2 Routes
+
+- `GET /api/ops/papers/tiles`, `POST /api/ops/papers/batch`, `GET /api/ops/papers/batch/{id}`, `GET /api/ops/papers/batch/{id}/download?format=zip|docx`, `GET /api/ops/papers/runs`
+- `GET /api/ops/cases`, `POST /api/ops/cases/seed`, `POST /api/ops/cases/upload`, `POST /api/ops/cases/run`, `GET /api/ops/cases/runs`, `GET /api/ops/cases/runs/{id}`
+- `POST /api/ops/errors/resolve` — in-pipeline fix ladder.
+
+### 8.3 How to debug a failing case
+
+1. Run the case (Tile cases card -> Run, or `POST /api/ops/cases/run`).
+2. On fail, the error appears in the error log (`/api/ops/errors`) with `lane: tile-case`
+   and the `case_id`.  The failing paper is in `state/case_runs/<run_id>/`.
+3. Resolve: `POST /api/ops/errors/resolve` with the `error_id` — it replays the case by
+   code and marks verified only on a pass.
+4. If the case still fails, the message is the assertion that failed
+   (status, computation value, or missing paper phrase).  Fix the pipeline, then re-resolve;
+   the case re-runs in the loop's next cycle.
+5. A verified fix is a stored regression: re-seed the case (`case_store.seed(overwrite=True)`)
+   after a computation change so the expected result tracks the frozen core.
+
+### 8.4 Non-negotiables that apply to this subsystem
+
+- No invented evidence, sources, numbers or citations: a corpus page is cited only when a
+  sentence in it matches the tile; a weak page is labelled background.
+- A dimension with no citable evidence carries a labelled background paragraph from the
+  weak sources the retriever saw; it is never filled with invented evidence.
+- A case is accepted only when its inputs pass `validate_inputs` and the method runs.
+- A fix is marked verified only when replay passes.
+- Beam is not in the fix path; beam is prose/problem-generation, flash then pro fix.
+
+## 9. Intended future work (not yet built)
+
+These are recorded so a future enhancer can pick them up without re-discovering them.
+They are not implemented today.
+
+1. Autonomous growth loop (the "write the codes" idea).  Out-of-scope instructions are
+   logged as findings, but the loop cannot author new capabilities (new method, capability
+   entry, preset, tests).  That needs a proposal-apply-verify pipeline: a model writes a
+   code patch, a sandbox applies it, the test suite runs, and the patch is kept only when
+   green.  This is a separate, large project and is not the current loop.
+2. Local models.  Rejected on this hardware (Ryzen 5 2600 / 16 GB / RX 580 4 GB, no
+   CUDA/ROCm).  Stay on beam -> flash -> pro.
+3. XLSX per tile in the paper preview.  Done for the paper preview (Format selector).
+   Still open: the case runner's xlsx check is sheet-name based only; cell-level
+   assertions would be stronger.
+4. Multi-case upload.  One file at a time today; a ZIP of cases would be convenient.
+5. Excel upload mapping.  Automatic header -> input mapping; merged cells are not handled.
+6. Re-open a dismissed error.  There is no reopen route; a dismissed error stays dismissed.
+7. Case versioning.  One case per tile today; multiple variants per tile would need
+   numbering beyond case_001.
+

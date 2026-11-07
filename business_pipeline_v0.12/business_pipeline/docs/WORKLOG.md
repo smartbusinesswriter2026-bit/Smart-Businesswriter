@@ -28,6 +28,39 @@
 
 **Left open.** Four legacy `no sourced price` errors carried no stored problem, so the loop could not replay them; they were dismissed for owner review rather than guessed at. The loop cannot patch code: a case that still fails stays open until a computation-owner change lands.
 
+## 2026-11-07 - [core] The deterministic reader: bare lists, preambles, currencies, a crash
+
+**Ask.** Fix the narrative-reader defects the handoff measured.
+
+**Did.**
+
+- **`parse_rows`** splits a line on `. ` sentence boundaries, so "…31 December 2026. Cash 10,000. Capital 10,000." reads as two accounts. Decimals ("5.50") and dot leaders ("Cash ...... 5,000") carry no space after the period and are untouched.
+- **`read_deterministic`** treats a bare list of accounts and balances as a trial balance when at least two accounts place; everything else is still refused.
+- **`BLOCKED`** catches common foreign currency codes and symbols; "EUR" is now refused with the USD message instead of being read as an unplaceable account.
+- **A `tier1_gaps` NameError** in `_solve_financial_computations` is fixed; a ratio question used to crash with a 5xx.
+- **Trap tests** - `tests/test_statements_reader_fixes.py` (4).
+
+**Left open.**
+
+- An adjustments narrative (prepaid, accrual, depreciation) still needs the model reader; a deterministic adjustment reader is a separate increment.
+- Tax stays parked (B-052).
+
+**Proof.** Accounting sweep 489 + 186 subtests; page syntax OK; the frozen fixture is in sync. B-237.
+
+## 2026-11-07 - [test] The statements core resets between test classes
+
+**Ask.** The accounting sweep failed on `test_product_statements_api` after the new statement tests attached `build`.
+
+**Did.**
+
+- Added `statements.reset_core()`.
+- `test_statements_figures` and `test_statements_gap_noise` call it in `tearDownClass`; the API route suite calls it at the start of `attach()`.
+- No product code path calls it.
+
+**Why.** `_CORE` is module state; a test that attaches more than the minimum leaked a builder into a later test that expected a smaller subset, so "Cash 5,000" solved where the suite meant it to refuse. The suite's own comment says it is hermetic; this makes that true.
+
+**Proof.** Accounting sweep 485 + 186 subtests; targeted suites 337 + 8; page syntax OK; the frozen fixture is in sync. B-236.
+
 ## 2026-11-07 - [core] Contra-income closing and stated totals
 
 **Ask.** Fix the two accounting correctness bugs: the income-statement-only refusal and the stated-total-zero.
@@ -5399,3 +5432,20 @@ fields directly instead of "every value is None" — which is what its name alwa
 first-draft expectations failed against it and were corrected, not the code: a method with no caveats
 legitimately has no fifth field, and `ratio_analysis` does declare caveats.
 
+
+
+## 2026-11-07 - [product] Manual update: automated testing, tile cases, self-healing loop
+
+**Ask.** Update the manual of what was built today so a debugger and a future enhancer
+can reference it.  Separately record the intended future work.
+
+**Did.**
+
+- **`docs/HANDOFF.md`** gains sections 8 (Automated testing, tile cases, and the
+  self-healing loop) and 9 (Intended future work).  Section 8 covers what is built,
+  the routes, how to debug a failing case, and the non-negotiables that apply to the
+  subsystem.  Section 9 records the autonomous growth loop, local models, xlsx
+  cell-level assertions, multi-case upload, Excel merged cells, reopen, and case
+  versioning as not-yet-built.
+- Sections 8.3 and 8.4 are written so a debugger can follow them without reading the
+  code first.
