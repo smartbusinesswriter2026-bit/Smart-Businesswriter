@@ -578,6 +578,22 @@ class CatalogueCopyTest(BundleTestCase):
             self.assertIsNone(card["credits"])
             self.assertIn("to be confirmed", card["credits_label"].lower())
 
+    def test_each_bundle_rung_names_the_write_smarter_pools(self):
+        starter = billing.card("bundle_starter")
+        self.assertEqual(starter["write_smarter"]["tier"], "Basic")
+        self.assertEqual(starter["sbw_tier"], "Starter")
+        values = {pool["label"]: pool["value"] for pool in starter["write_smarter"]["pools"]}
+        self.assertEqual(values["Text-Gen pool"], "25,000 words")
+        self.assertEqual(values["Humanizer & AI-Detector"], "5,000 words")
+        self.assertEqual(values["Video"], "30 min")
+        self.assertEqual(values["Source Finder"], "Unlimited")
+        pro = {pool["label"]: pool["value"] for pool in billing.card("bundle_pro")["write_smarter"]["pools"]}
+        self.assertEqual(pro["Text-Gen pool"], "50,000 words")
+        studio = {pool["label"]: pool["value"] for pool in billing.card("bundle_studio")["write_smarter"]["pools"]}
+        self.assertEqual(studio["Text-Gen pool"], "100,000 words")
+        best = {pool["label"]: pool["value"] for pool in billing.card("agency")["write_smarter"]["pools"]}
+        self.assertEqual(best["Text-Gen pool"], "Unlimited")
+
     def test_the_bundle_carries_no_discount_claim(self):
         # The bundle is a declared price, not a discount: there is no published sum to take
         # 20% off, so the card must not claim a saving against a made-up total.

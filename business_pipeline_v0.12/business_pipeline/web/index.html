@@ -574,6 +574,17 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .pm-best-c{display:flex;justify-content:flex-end}
 .pm-best-c .btn{width:auto;min-width:150px;justify-content:center;padding:10px 18px}
 @media(max-width:680px){.pm-best-c{justify-content:flex-start}}
+/* The Write Smarter pools a bundle buys, shown inside the tile. */
+.pm-ws{margin:2px 0 0;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--sunken);padding:7px 9px}
+.pm-ws-line{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.pm-ws-k{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--navy-700);opacity:.7}
+.pm-ws-t{font-size:12px;font-weight:700;color:var(--navy-900)}
+.pm-ws-pools{margin:5px 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.pm-ws-pools li{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:11px;line-height:1.35;color:var(--navy-700)}
+.pm-ws-pools li span{opacity:.75}
+.pm-ws-pools li b{font-weight:700;color:var(--navy-900);white-space:nowrap}
+.pm-ws-sub{font-size:10.5px;color:var(--navy-700);opacity:.65}
+.pm-ws-note{margin:10px 0 0;font-size:11px;line-height:1.55;color:var(--navy-700);opacity:.7}
 .pm-note{margin:12px 0 0;font-size:13px;color:var(--navy-700);opacity:.62;text-align:center}
 .pm-view[hidden]{display:none}
 .pm-check{max-width:440px;margin:0 auto;text-align:center}
@@ -10712,6 +10723,7 @@ function pmRenderBundles(bundles, annual) {
   const host = $("#pmbband");
   if (!host) return;
   if (!bundles.length) { host.innerHTML = ""; return; }
+  const note = (bundles.find((bundle) => bundle.pools_note) || {}).pools_note || "";
   host.innerHTML =
     '<div class="pm-ladder">' +
       '<div class="pm-ladder-head">' +
@@ -10719,48 +10731,50 @@ function pmRenderBundles(bundles, annual) {
         '<span class="pm-ladder-sub">One subscription for Smart Business Writer and Write Smarter. Allowances follow the plan.</span>' +
       "</div>" +
       '<div class="pm-ladder-grid">' + bundles.map((bundle) => pmBundleCard(bundle, annual)).join("") + "</div>" +
+      (note ? '<p class="pm-ws-note">' + esc(note) + "</p>" : "") +
     "</div>";
+}
+
+/* The Write Smarter half of a bundle: the tier it buys and that tier's published pools, so the
+   tile reads like the Write Smarter pricing page. The Smart Business Writer tier sits under it. */
+function pmWriteSmarterBlock(bundle) {
+  const ws = bundle.write_smarter || {};
+  const pools = (ws.pools || []).map((pool) =>
+    "<li><span>" + esc(pool.label) + "</span><b>" + esc(pool.value) + "</b></li>").join("");
+  if (!ws.tier && !pools) return "";
+  return '<div class="pm-ws">' +
+    '<div class="pm-ws-line"><span class="pm-ws-k">Write Smarter</span><span class="pm-ws-t">' + esc(ws.tier || "") + "</span></div>" +
+    (pools ? '<ul class="pm-ws-pools">' + pools + "</ul>" : "") +
+    (bundle.sbw_tier ? '<div class="pm-ws-line"><span class="pm-ws-k">Smart Business Writer</span><span class="pm-ws-t">' + esc(bundle.sbw_tier) + "</span></div>" : "") +
+    '<div class="pm-ws-sub">' + (bundle.unlimited ? "No export limit" : "Exports: to be confirmed") + "</div>" +
+  "</div>";
 }
 
 function pmBundleCard(bundle, annual) {
   const amount = annual ? bundle.annual.amount : bundle.monthly.amount;
   const unlimited = !!bundle.unlimited;
   // The rungs use the same .pm-card tile as the plans above, so the two rows read as one grid.
-  const includes = (bundle.includes || []).map((line) => esc(line)).join(" · ");
-  const creditsKey = unlimited ? "Limits" : "Credits";
-  const creditsVal = unlimited ? "Unlimited" : "To be confirmed";
   const saving = annual ? '<div class="per">saves $' + esc(bundle.annual_saving.amount) + " a year</div>" : "";
   const button = '<button class="btn primary" type="button" data-pm-buy="' + esc(bundle.tier) + '">' +
     (unlimited ? "Get the bundle" : "Choose") + "</button>";
+  const head = '<div class="n">' + esc(bundle.name) + "</div>" +
+    '<div class="p">$' + esc(amount) + "</div>" +
+    '<div class="per">' + (annual ? "per year" : "per month") + "</div>";
+  const details = pmWriteSmarterBlock(bundle);
   if (unlimited) {
     // The best value bundle spans the whole third row: price, what it covers, and the action.
     return '<div class="pm-card is-best" data-tier="' + esc(bundle.tier) + '">' +
       '<div class="bar c-green"></div>' +
       '<div class="pm-best-grid">' +
-        '<div class="pm-best-a">' +
-          '<span class="pm-best">Best value</span>' +
-          '<div class="n">' + esc(bundle.name) + "</div>" +
-          '<div class="p">$' + esc(amount) + "</div>" +
-          '<div class="per">' + (annual ? "per year" : "per month") + "</div>" +
-        "</div>" +
-        '<div class="pm-best-b">' +
-          '<div class="cr"><div class="k">' + creditsKey + '</div><div class="v">' + creditsVal + "</div></div>" +
-          (includes ? '<div class="inc">' + includes + "</div>" : "") +
-          saving +
-        "</div>" +
+        '<div class="pm-best-a"><span class="pm-best">Best value</span>' + head + saving + "</div>" +
+        '<div class="pm-best-b">' + details + "</div>" +
         '<div class="pm-best-c">' + button + "</div>" +
       "</div>" +
     "</div>";
   }
   return '<div class="pm-card" data-tier="' + esc(bundle.tier) + '">' +
     '<div class="bar c-green"></div>' +
-    '<div class="n">' + esc(bundle.name) + "</div>" +
-    '<div class="p">$' + esc(amount) + "</div>" +
-    '<div class="per">' + (annual ? "per year" : "per month") + "</div>" +
-    '<div class="cr"><div class="k">' + creditsKey + '</div><div class="v tbd">' + creditsVal + "</div></div>" +
-    (includes ? '<div class="inc">' + includes + "</div>" : "") +
-    saving +
-    button +
+    head + details + saving + button +
   "</div>";
 }
 

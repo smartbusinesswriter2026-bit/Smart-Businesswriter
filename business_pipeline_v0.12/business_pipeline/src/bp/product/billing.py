@@ -70,6 +70,12 @@ BUNDLE_TIER = "agency"
 #: are used verbatim from that product's pricing page, so a customer reads the same words here as
 #: there. The pools are unlimited because the bundle grants no limit at all - they are not a quota
 #: and they do not refill.
+#: The Write Smarter pool rules, shown with each bundle rung. Published on Write Smarter's own
+#: pricing page; repeated here so the bundle tile names the same pools the customer sees there.
+POOLS_NOTE = ("Pools reset each billing cycle. Humanizer use draws from the Humanizer & "
+              "AI-Detector pool - 1 word rewritten = 1 credit, and AI-detection scans cost "
+              "1 credit per word.")
+
 PLANS = {
     "starter": {"name": "Starter", "monthly": "14.99", "credits": None, "highlights": [],
                 "color": "navy"},
@@ -83,6 +89,12 @@ PLANS = {
     "bundle_starter": {"name": "Starter Bundle", "monthly": "20.00", "credits": None,
                        "highlights": [], "bundle": True, "unlimited": False, "color": "green",
                        "includes": ["Write Smarter - Basic", "Smart Business Writer - Starter"],
+                       "write_smarter": {"tier": "Basic", "pools": [
+                           {"label": "Text-Gen pool", "value": "25,000 words"},
+                           {"label": "Humanizer & AI-Detector", "value": "5,000 words"},
+                           {"label": "Video", "value": "30 min"},
+                           {"label": "Source Finder", "value": "Unlimited"}]},
+                       "sbw_tier": "Starter",
                        "products": [
                            {"name": "Write Smarter", "features": ["Basic plan", "Source Finder included"]},
                            {"name": "Smart Business Writer", "features": ["Starter plan", "Every framework, shelf and calculator"]},
@@ -90,6 +102,12 @@ PLANS = {
     "bundle_pro": {"name": "Pro Bundle", "monthly": "39.00", "credits": None,
                    "highlights": [], "bundle": True, "unlimited": False, "color": "green",
                    "includes": ["Write Smarter - Standard", "Smart Business Writer - Pro"],
+                   "write_smarter": {"tier": "Standard", "pools": [
+                       {"label": "Text-Gen pool", "value": "50,000 words"},
+                       {"label": "Humanizer & AI-Detector", "value": "12,000 words"},
+                       {"label": "Video", "value": "2 hrs"},
+                       {"label": "Source Finder", "value": "Unlimited"}]},
+                   "sbw_tier": "Pro",
                    "products": [
                        {"name": "Write Smarter", "features": ["Standard plan", "Source Finder included"]},
                        {"name": "Smart Business Writer", "features": ["Pro plan", "Every framework, shelf and calculator"]},
@@ -97,6 +115,12 @@ PLANS = {
     "bundle_studio": {"name": "Studio Bundle", "monthly": "65.00", "credits": None,
                       "highlights": [], "bundle": True, "unlimited": False, "color": "green",
                       "includes": ["Write Smarter - Pro", "Smart Business Writer - Studio"],
+                      "write_smarter": {"tier": "Pro", "pools": [
+                          {"label": "Text-Gen pool", "value": "100,000 words"},
+                          {"label": "Humanizer & AI-Detector", "value": "30,000 words"},
+                          {"label": "Video", "value": "6 hrs"},
+                          {"label": "Source Finder", "value": "Unlimited"}]},
+                      "sbw_tier": "Studio",
                       "products": [
                           {"name": "Write Smarter", "features": ["Pro plan", "Source Finder included"]},
                           {"name": "Smart Business Writer", "features": ["Studio plan", "Every framework, shelf and calculator"]},
@@ -106,6 +130,12 @@ PLANS = {
                "bundle": True,
                "color": "green",
                "includes": ["Write Smarter - unlimited", "Smart Business Writer - unlimited"],
+               "write_smarter": {"tier": "Unlimited", "pools": [
+                   {"label": "Text-Gen pool", "value": "Unlimited"},
+                   {"label": "Humanizer & AI-Detector", "value": "Unlimited"},
+                   {"label": "Video", "value": "Unlimited"},
+                   {"label": "Source Finder", "value": "Unlimited"}]},
+               "sbw_tier": "Unlimited",
                "products": [
                    {"name": "Write Smarter",
                     "features": [
@@ -165,6 +195,13 @@ def annual_saving(tier):
             "percent": _percent(ANNUAL_DISCOUNT * 100)}
 
 
+def _write_smarter(plan):
+    """The Write Smarter tier a bundle buys, and that tier's published pools."""
+    ws = plan.get("write_smarter") or {}
+    return {"tier": ws.get("tier"),
+            "pools": [dict(pool) for pool in (ws.get("pools") or [])]}
+
+
 def card(tier):
     """One card's payload: the prices, the derived saving and the fields still to be supplied."""
     plan = PLANS[tier]
@@ -185,6 +222,9 @@ def card(tier):
             "bundle": bool(plan.get("bundle")),
             "color": plan.get("color"),
             "includes": list(plan.get("includes") or []),
+            "write_smarter": _write_smarter(plan),
+            "sbw_tier": plan.get("sbw_tier"),
+            "pools_note": POOLS_NOTE if plan.get("bundle") else None,
             "products": [dict(product, features=list(product.get("features") or []))
                          for product in (plan.get("products") or [])],
             "highlights": list(plan["highlights"])}
