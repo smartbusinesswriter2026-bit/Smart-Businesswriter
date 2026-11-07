@@ -99,24 +99,29 @@ class BillingTestCase(unittest.TestCase):
 
 
 class CatalogueTest(BillingTestCase):
-    def test_four_tiers_in_order(self):
+    def test_the_tier_ladder_in_order(self):
         data = billing.catalogue()
-        # The keys are stable ("agency") so the PayPal plan cache and every ledger already written
-        # against it stay valid; the owner renamed what the customer reads to "Business Bundle"
-        # (one subscription covering both products, 2026-11-03), so the name is what changed here.
+        # The three single-product cards, then the bundle ladder (owner prices, 2026-11-08). The
+        # keys stay stable ("agency" is the top bundle) so the PayPal plan cache and every ledger
+        # already written against them stay valid.
         self.assertEqual([row["tier"] for row in data["tiers"]],
-                         ["starter", "pro", "studio", "agency"])
+                         ["starter", "pro", "studio", "bundle_starter", "bundle_pro",
+                          "bundle_studio", "agency"])
         self.assertEqual([row["name"] for row in data["tiers"]],
-                         ["Starter", "Pro", "Studio", "Business Bundle"])
+                         ["Starter", "Pro", "Studio", "Starter Bundle", "Pro Bundle",
+                          "Studio Bundle", "Business Bundle"])
 
     def test_monthly_prices_are_the_owners_numbers(self):
         self.assertEqual([row["monthly"]["amount"] for row in billing.catalogue()["tiers"]],
-                         ["14.99", "29.99", "49.99", "99.99"])
+                         ["14.99", "29.99", "49.99", "20.00", "39.00", "65.00", "99.99"])
 
     def test_annual_is_twelve_months_less_twenty_percent(self):
         self.assertEqual(billing.price("starter", "annual"), "143.90")
         self.assertEqual(billing.price("pro", "annual"), "287.90")
         self.assertEqual(billing.price("studio", "annual"), "479.90")
+        self.assertEqual(billing.price("bundle_starter", "annual"), "192.00")
+        self.assertEqual(billing.price("bundle_pro", "annual"), "374.40")
+        self.assertEqual(billing.price("bundle_studio", "annual"), "624.00")
         self.assertEqual(billing.price("agency", "annual"), "959.90")
 
     def test_annual_is_cheaper_than_twelve_monthly_payments(self):
@@ -202,7 +207,7 @@ class RoutesTest(BillingTestCase):
     def test_the_catalogue_is_served(self):
         status, payload = product_api.handle("GET", "/api/billing/plans")
         self.assertEqual(status, 200)
-        self.assertEqual(len(payload["tiers"]), 4)
+        self.assertEqual(len(payload["tiers"]), 7)
 
     def test_status_reports_no_plan_on_a_fresh_machine(self):
         status, payload = product_api.handle("GET", "/api/billing/status")

@@ -406,6 +406,11 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .btn.sm{padding:5px 10px;font-size:15.4px}
 .btn.danger{color:var(--red);border-color:var(--red-line)}
 .btn.danger:hover{background:var(--red-bg)}
+/* The download row is the one action a reader takes after reading the numbers, so it is
+   solid black with white bold text against the white card - it cannot be mistaken for a
+   secondary control. */
+.btn.dl{background:#000;border-color:#000;color:#fff;font-weight:700}
+.btn.dl:hover{background:#1c1c1c;border-color:#1c1c1c;color:#fff}
 /* Center text in close buttons within tiles */
 .levelhead .btn[data-close-tile],
 .tilefoot .btn {
@@ -547,6 +552,28 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .pm-band .bfoot{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:13px}
 .pm-band .bfoot .bper{font-size:12px;color:var(--navy-700);opacity:.62}
 .pm-band .btn{width:auto;justify-content:center;padding:9px 18px;font-size:14.5px}
+/* The bundle ladder: the matching Write Smarter + Smart Business Writer tier at one price. */
+.pm-ladder{margin-top:16px}
+.pm-ladder-head{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.pm-ladder-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-900)}
+.pm-ladder-sub{font-size:13px;color:var(--navy-700);opacity:.8}
+.pm-ladder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:680px){.pm-ladder-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.pm-ladder-grid{grid-template-columns:1fr}}
+/* The best-value bundle takes the whole third row, laid out horizontally. */
+.pm-ladder-grid .is-best{grid-column:1 / -1;display:block;
+                         border-color:#BFE3D1;background:linear-gradient(180deg,var(--green-100),#fff)}
+.pm-best-grid{display:grid;grid-template-columns:minmax(190px,0.85fr) minmax(0,1.7fr) auto;
+              gap:14px;align-items:center}
+@media(max-width:680px){.pm-best-grid{grid-template-columns:1fr;gap:10px}}
+.pm-best{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+         background:var(--green-600);color:#fff;border-radius:var(--r-pill);padding:3px 9px;margin-bottom:4px}
+.pm-best-a .n{margin-top:0}
+.pm-best-b .cr{margin-top:0}
+.pm-best-b .inc{margin:4px 0 0}
+.pm-best-c{display:flex;justify-content:flex-end}
+.pm-best-c .btn{width:auto;min-width:150px;justify-content:center;padding:10px 18px}
+@media(max-width:680px){.pm-best-c{justify-content:flex-start}}
 .pm-note{margin:12px 0 0;font-size:13px;color:var(--navy-700);opacity:.62;text-align:center}
 .pm-view[hidden]{display:none}
 .pm-check{max-width:440px;margin:0 auto;text-align:center}
@@ -1287,7 +1314,6 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <div class="row">
           <button class="btn primary" id="savecase" type="button">Save as case</button>
           <button class="btn" id="tocharts" type="button" hidden>Charts and exports</button>
-          <button class="btn" id="tostats" type="button">Download financial statements</button>
         </div>
       </div>
     </section>
@@ -1654,7 +1680,7 @@ const state = {
   presets: {}, methods: [], currencies: [], session: null, delivery: null,
   cases: [], caseId: null, caseBundle: null, ingest: null, ref: null,
   health: null, locale: "en-US", tab: "report", versions: [], signoffs: [], compare: null,
-  subjects: (window.__SBW_SUBJECTS__ && window.__SBW_SUBJECTS__.subjects) || null, subject: null, subjectId: null, calculator: null, calcGroup: null, tool: null,
+  subjects: (window.__SBW_SUBJECTS__ && window.__SBW_SUBJECTS__.subjects) || null, subject: null, subjectId: null, subjectLabel: "", tileLabel: "", calculator: null, calcGroup: null, tool: null,
   calcTool: null, calcValues: {}, calcFocus: 0, calcDelivery: null, calcRan: null, calcMode: "pad",
   worksheet: null, panel: null, railSubject: null, plan: null, planMode: "strict"
 };
@@ -2418,7 +2444,7 @@ function pfData(holdings, latest, snapshot) {
       "</tbody></table></div>" +
       '<p style="margin-top:10px"><strong>NAV ' + pfNum(snapshot.outputs.nav, 2) + "</strong> · invested " + pfNum(snapshot.outputs.invested_value, 2) +
       " · cash " + pfNum(snapshot.outputs.cash, 2) + " · top three " + pfNum(snapshot.outputs.top3_concentration, 4) + "</p>" +
-      '<div class="row"><button class="btn" type="button" id="pfexport2">Download the report (.docx)</button></div></div>';
+      '<div class="row"><button class="btn dl" type="button" id="pfexport2">Download the report (.docx)</button></div></div>';
   }
   return html;
 }
@@ -3219,7 +3245,7 @@ function renderChat() {
       html += banner("blocked", "Complete the paper before export",
         "<p>Still needed: " + c.draft.missing.map(esc).join(", ") + ". The download is blocked until these are supplied.</p>");
     } else {
-      html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatdownload">Download the paper</button>' +
+      html += '<div class="row" style="margin-top:10px"><button class="btn dl" id="chatdownload">Download the paper</button>' +
         '<span class="muted">A paper with a computation downloads as a ZIP with its explainer.</span></div>';
     }
     html += "</div>";
@@ -3911,7 +3937,7 @@ async function downloadSessionPaper(fmt) {
         const name = match ? decodeURIComponent(match[1]) : "computation.docx";
         const url = URL.createObjectURL(await response.blob());
         const link = document.createElement("a");
-        link.href = url; link.download = name;
+        link.href = url; link.download = downloadName(null, name);
         document.body.appendChild(link); link.click(); link.remove();
         setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
         toast("Paper downloaded: " + name);
@@ -4278,7 +4304,7 @@ function renderPlan() {
           "the coverage table still names every gap, and the decision is recorded on this plan.</span></div>";
       }
     } else {
-      html += '<div class="row" style="margin-bottom:8px"><button class="btn primary" id="plandownload">Download the plan</button>' +
+      html += '<div class="row" style="margin-bottom:8px"><button class="btn dl" id="plandownload">Download the plan</button>' +
         '<span class="muted">A plan with a computation downloads as a ZIP with its explainer.</span></div>';
     }
     html += '<details class="studynote"><summary><strong>Read the drafted plan</strong></summary>' +
@@ -4801,23 +4827,13 @@ function bindAttachments(panel) {
   });
 }
 
-/* The Finance shelf is described by its capabilities, not by a shelf description.
-   The catalogue blanks that summary too; the page must not render it in the
-   meantime, and an empty summary leaves no empty line behind. */
-const SHELVES_WITHOUT_SUMMARY = ["finance"];
-function shelfSummary(subject) {
-  if (!subject) return "";
-  const id = String(subject.id || "").toLowerCase();
-  if (SHELVES_WITHOUT_SUMMARY.indexOf(id) !== -1) return "";
-  return subject.summary || "";
-}
-
+/* The owner removed the shelf descriptions from the page (2026-11-08): the title and the
+   counts say what the shelf holds, and a sentence under it only repeats them. The
+   catalogue keeps its own summaries for the API; the page renders none. */
 function subjectCard(row) {
-  const desc = shelfSummary(row);
   return '<button class="subjectcard" type="button" data-subject="' + esc(row.id) + '">' +
     '<span class="shield"><span class="capicon" style="color:' + toneOf(row.id) + '">' + iconSvg(row.icon) + "</span>" +
       '<span class="sctitle">' + esc(row.label) + "</span></span>" +
-    (desc ? '<span class="scdesc">' + esc(desc) + "</span>" : "") +
     '<span class="meta">' +
       '<span class="badge">' + esc(row.tool_count) + " calculations</span>" +
       (row.worksheet_count ? '<span class="badge mute">' + esc(row.worksheet_count) + " worksheets</span>" : "") +
@@ -4951,6 +4967,8 @@ RENDERERS.subjects = function () {
 function openSubject(id) {
   state.subjectId = id;
   state.subject = null;
+  state.subjectLabel = "";
+  state.tileLabel = "";
   show("subject");
 }
 
@@ -4962,7 +4980,7 @@ RENDERERS.subject = function () {
   }
   out.innerHTML = loading("Reading the subject");
   api("/api/cases/subjects/" + encodeURIComponent(state.subjectId)).then((d) => {
-    if (d && d.id) { state.subject = d; renderSubject(); return; }
+    if (d && d.id) { state.subject = d; state.subjectLabel = d.label || ""; renderSubject(); return; }
     // Static host (e.g. Cloudflare Pages) returns the page HTML instead of the
     // subject payload: fall back to the baked subject detail.
     return fetch("/subject-" + encodeURIComponent(state.subjectId) + ".json").then((r) => r.json()).then((d2) => {
@@ -4976,11 +4994,11 @@ RENDERERS.subject = function () {
 };
 
 
-function capabilityCard(item, kind) {
+function capabilityCard(item, kind, tileLabel) {
   const isSheet = kind === "worksheet";
   const attrs = isSheet
     ? 'data-worksheet="' + esc(item.template) + '" data-wlabel="' + esc(item.label) + '"'
-    : 'data-tool="' + esc(item.key) + '"';
+    : 'data-tool="' + esc(item.key) + '" data-tile="' + esc(tileLabel || "") + '"';
   const domain = (state.subject && state.subject.label) || "This subject";
   const need = (!isSheet && item.need)
     ? '<span class="capneed">You will need: ' + esc(item.need) + "</span>" : "";
@@ -5085,7 +5103,6 @@ function subjectTiles(s) {
       html += '<p class="muted">' + esc(tile.note || "Nothing is assigned to this tile yet.") + "</p>";
       return;
     }
-    if (tile.note) html += '<p class="muted" style="margin:0 0 10px">' + esc(tile.note) + "</p>";
     if (sheets.length) {
       // Worksheet description suppressed per owner request.
       html += '<div class="capgrid">' + sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
@@ -5097,15 +5114,13 @@ function subjectTiles(s) {
          listed as read-and-cite cards. */
       const readOnlyRows = rows.filter((row) => row.form !== "computed");
       if (readOnlyRows.length) {
-        html += '<p class="muted" style="margin:12px 0 6px">Catalogued frameworks with no worksheet yet: read and cite them, ' +
-          "and check what each one would need.</p>" +
-          '<div class="capgrid">' + readOnlyRows.map((row) => frameworkCard(row, "framework", tile.label,
+        html += '<div class="capgrid">' + readOnlyRows.map((row) => frameworkCard(row, "framework", tile.label,
             "Read and cite - no worksheet yet")).join("") + "</div>";
       }
     }
     if (tools.length) {
       // "Calculators: supply the figures..." suppressed per owner request.
-      html += '<div class="capgrid">' + tools.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
+      html += '<div class="capgrid">' + tools.map((t) => capabilityCard(t, "compute", tile.label)).join("") + "</div>";
     }
   });
   /* Nothing is dropped: a record no tile claimed is still shown - unless the
@@ -5121,8 +5136,6 @@ function subjectTiles(s) {
   const theories = s.theories || [];
   if (theories.length) {
     html += '<h4 class="levelhead">Reading lenses - ' + theories.length + "</h4>" +
-      '<p class="muted">A theory explains behaviour or relationships; it does not prescribe a template. Read it to interpret ' +
-      "the evidence, retrieve the original research, cite it, and state its limits.</p>" +
       '<div class="capgrid">' + theories.map((row) => frameworkCard(row, "theory", "Supporting theory")).join("") + "</div>";
   }
   return html;
@@ -5482,7 +5495,7 @@ function renderDraftReview(draft, worksheet) {
     '<select id="reportstyle"><option value="apa">APA 7</option><option value="harvard">Harvard</option></select>' +
     (draft.completion
       ? '<span class="muted">The completed worksheet writes the paper; this review only places the sources.</span>'
-      : '<button class="btn" id="draftreport">Download the report (Word)</button>') + "</div></div>";
+      : '<button class="btn dl" id="draftreport">Download the report (Word)</button>') + "</div></div>";
   out.innerHTML = html;
   const open = document.getElementById("draftopen");
   if (open) open.onclick = () => {
@@ -5530,10 +5543,10 @@ async function downloadCaseExplanation(caseId) {
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
     const url = URL.createObjectURL(new Blob([bytes], { type: doc.mime }));
     const link = document.createElement("a");
-    link.href = url; link.download = doc.filename;
+    link.href = url; link.download = downloadName(null, doc.filename);
     document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
-    toast("Explanation downloaded: " + doc.filename);
+    toast("Explanation downloaded: " + link.download);
   } catch (error) { toast("The explanation could not be produced: " + (error.message || error)); }
 }
 
@@ -5557,11 +5570,9 @@ function renderSubject() {
   // Which shelf is on screen, so a heading treatment can be trialled on one subject
   // before it is applied to all of them.
   out.dataset.subject = String(s.id || "").toLowerCase();
-  const summary = shelfSummary(s);
   let html = '<div class="row" style="justify-content:space-between;align-items:flex-start">' +
     '<div class="shield"><span class="capicon" style="width:44px;height:44px;color:' + toneOf(s.id) + '">' +
-      iconSvg(s.icon) + '</span><div><h2 style="margin:0">' + esc(s.label) + '</h2>' +
-      (summary ? '<p class="sub" style="margin:4px 0 0">' + esc(summary) + "</p>" : "") + "</div></div>" +
+      iconSvg(s.icon) + '</span><div><h2 style="margin:0">' + esc(s.label) + "</h2></div></div>" +
     '<button class="btn sm" id="subjectback">All subjects</button></div>' +
     '<div class="subjectask">' +
       '<button class="btn sm quicklink" id="subjectcalc" type="button">Open the Business Calculator</button>' +
@@ -5727,7 +5738,7 @@ function renderSubject() {
   bindSubjectCards(out);
   $$("[data-tool]", out).forEach((b) => {
     const tool = (s.tools || []).find((t) => t.key === b.dataset.tool);
-    b.onclick = () => { if (tool) openTool(tool); };
+    b.onclick = () => { if (tool) openTool(Object.assign({}, tool, { tile: b.dataset.tile || "" })); };
   });
   $$("[data-worksheet]", out).forEach((b) => {
     b.onclick = () => openWorksheet(b.dataset.worksheet, b.dataset.wlabel);
@@ -6422,6 +6433,7 @@ async function loadSubjectCases(subject) {
 async function openTool(tool) {
   state.draft = null;
   state.tool = tool;
+  state.tileLabel = tool.tile || tool.label;
   state.worksheet = null;
   const preset = tool.preset ? state.presets[tool.preset] : null;
   const body = {
@@ -7606,7 +7618,7 @@ function bindRecords(name) {
 
 /* What the page is for and how to work it, in the page itself rather than in a manual. */
 function guideCard() {
-  return '<details class="card guide" open><summary>How this page works</summary>' +
+  return '<details class="card guide"><summary>How this page works</summary>' +
     '<p class="sub">It builds a set of management accounts from what you declare: the accounts you keep, the ' +
     "balances you start with, the entries you post, and - if you have one - the bank statement to reconcile. The " +
     "engine posts every entry, closes the period, and produces a trial balance, the statements, the reconciliation " +
@@ -9198,37 +9210,30 @@ function renderNew() {
   const method = state.methods.find((m) => m.method_id === (plan.method || s.spec && s.spec.method));
   const schema = (method && method.input_schema) || {};
   const isCaseDecision = ((plan.method || (state.tool && state.tool.method) || "") === "case_decision");
-  /* The figures panel must describe what the engine will actually take. Only
-     management accounts have an engagement - a period, a chart, opening
-     balances, entries and schedules. Every other method takes the figures
-     listed on the form, so the panel says that instead. */
-  function figuresCopy(plan) {
-    const methodId = (plan.method || (state.tool && state.tool.method) || "");
-    if (methodId === "management_accounts") {
-      return "These are the figures the engine will post. The engagement is declared once: the period, the chart, " +
-        "the opening balances, the entries and any schedules. Change a figure, then run it.";
-    }
-    return "";
-  }
   const delivered = s.delivery && s.delivery.status === "delivered";
   const blocked = s.delivery && s.delivery.status === "blocked";
   const mapping = s.status === "awaiting_mapping_confirmation";
   let html = '<div class="card">' +
     "<h2>" + (state.tool ? "Tool - " + esc(state.tool.label) : "New analysis") + "</h2>" +
-    '<div class="row" style="justify-content:space-between"><span class="sub">' + esc(plan.objective || "") + "</span></div>" +
     '<div class="row" style="margin:8px 0 2px"><button class="btn sm" id="toolback">Back to subjects</button>' +
-      '<button class="btn sm" id="toolcalc">Calculator</button></div>' +
+      '<button class="btn sm" id="toolcalc">Calculator</button>' +
+      (!delivered && !mapping && state.tool && state.tool.preset
+        ? '<button class="btn sm" id="clearexample" type="button">Clear the example figures</button>' : "") +
+    "</div>" +
     "</div>";
 
-  if (!delivered && !mapping && !state.worksheet && state.tool) {
-    html += '<div class="card"><h2>Before you start</h2>' +
-      (state.tool.preset
-        ? '<p class="muted">A worked example is loaded so you can see the format. Replace it with your own figures, or clear it and start blank.</p>' +
-          '<button class="btn sm" id="clearexample" type="button">Clear the example figures</button>'
-        : '<p class="muted">Enter only the figures you can support. The checks will refuse a figure that does not hold.</p>') +
-      "</div>";
-  }
   if (!delivered && !mapping && (plan.method || "") === "management_accounts") html += guideCard();
+  /* Finance tools read the figures from a pasted problem, exactly as the accounting
+     tiles do: the field's own name must sit next to the number, and a figure it
+     cannot prove stays a named gap. */
+  if (!delivered && !mapping && !state.worksheet && Object.keys(schema).length &&
+      (state.subjectId === "finance" || (state.tool && state.tool.subject === "finance"))) {
+    html += '<div class="card" id="problemread">' +
+      '<h2>Paste the problem</h2>' +
+      '<textarea id="problemtext" rows="5" spellcheck="false" placeholder="Paste the question. A figure is read only when a field&#39;s own name sits next to it."></textarea>' +
+      '<div class="row" style="margin-top:10px"><button class="btn" id="problemgo" type="button">Read the figures</button>' +
+      '<span class="muted" id="problemmsg"></span></div></div>';
+  }
   if (!delivered) {
     html += '<div class="card" id="figures">' +
       (blocked ? banner("blocked", "The engine refused these figures", "<div>" + esc(s.delivery.blocked_reason) +
@@ -9242,7 +9247,7 @@ function renderNew() {
       : '<h2>' + (state.worksheet ? "Fill in the worksheet" : "Enter the figures") + "</h2>" +
         (state.worksheet
           ? '<p class="sub">This worksheet organizes the evidence you supply and audits it. It computes nothing, scores nothing and adds no facts.</p>'
-          : (figuresCopy(plan) ? '<p class="sub">' + esc(figuresCopy(plan)) + "</p>" : "")) +
+          : "") +
         '<div class="row" style="margin:0 0 6px"><button class="btn primary" id="apply">' +
         (state.worksheet ? "Run the worksheet" : "Apply figures and calculate") + "</button>" +
         '<button class="btn" id="reject">Reject</button></div>' +
@@ -9256,10 +9261,28 @@ function renderNew() {
       "</div>";
   }
 
-  html += '<div class="card"><h2>Method</h2>' +
+  /* A delivered run shows its result on the tool page itself: the report, then the
+     downloads at the bottom of the container.  The tool used to go silent once the
+     engine had delivered, so the only way to a file was the Result page. */
+  if (delivered) {
+    const toolMethod = plan.method || (state.tool && state.tool.method) || "";
+    html += '<div class="card" id="toolresult">' +
+      "<h2>Result</h2>" +
+      '<div class="report">' + esc(s.delivery.report || "") + "</div>" +
+      '<div class="row" style="margin-top:14px">' +
+        '<button class="btn primary" id="toolsavecase">Save as case</button>' +
+        (toolMethod === "management_accounts" ? '<button class="btn dl" id="toolstatements">Download the statements (Word)</button>' : "") +
+        '<button class="btn dl" id="toolxlsx">Download spreadsheet</button>' +
+        '<button class="btn dl" id="tooldocx">Download the paper (Word)</button>' +
+        '<button class="btn dl" id="toolexplain">Download the explainer</button>' +
+        '<button class="btn" id="toolopenresult">Open the full result</button>' +
+      "</div></div>";
+  }
+
+  html += '<details class="studynote"><summary>Method</summary>' +
     kv([["Method", methodName((method && method.method_id) || plan.method)],
         ["Intended use", method && method.intended_use], ["Unsupported use", method && method.unsupported_use]]) +
-    "</div>";
+    "</details>";
   if (s.spec) {
     const checks = plan.planned_checks || [];
     html += '<details class="studynote"><summary>Draft work plan</summary>' +
@@ -9293,6 +9316,48 @@ function renderNew() {
   const clear = $("#clearexample"); if (clear) clear.onclick = clearExampleFields;
   const rj = $("#reject"); if (rj) rj.onclick = () => confirmSession(true);
   const cm = $("#confirmmap"); if (cm) cm.onclick = () => confirmSession(false);
+  const pg = $("#problemgo"); if (pg) pg.onclick = readProblem;
+  const tsv = $("#toolsavecase"); if (tsv) tsv.onclick = saveCase;
+  const tst = $("#toolstatements"); if (tst) tst.onclick = () => exportStatements();
+  const txl = $("#toolxlsx"); if (txl) txl.onclick = downloadResultXlsx;
+  const twd = $("#tooldocx"); if (twd) twd.onclick = () => downloadSessionPaper("docx");
+  const tex = $("#toolexplain");
+  if (tex) tex.onclick = async () => {
+    const id = await ensureSavedCase();
+    if (id) downloadCaseExplanation(id);
+  };
+  const tor = $("#toolopenresult");
+  if (tor) tor.onclick = () => { show("results"); renderResults(); };
+}
+
+/* Read a finance method's figures from a pasted problem.  The server does the reading
+   (it owns each method's schema); this only fills the fields it proved and names the
+   ones it did not, so nothing is guessed in the browser. */
+async function readProblem() {
+  const s = state.session;
+  const methodId = (s && s.work_plan && s.work_plan.method) || (state.tool && state.tool.method) || "";
+  const box = $("#problemtext");
+  const msg = $("#problemmsg");
+  if (!methodId) { toast("Open a tool first."); return; }
+  const text = (box && box.value) || "";
+  if (!text.trim()) { toast("Paste the problem first."); return; }
+  if (msg) msg.textContent = "Reading…";
+  try {
+    const r = await post("/api/cases/solve/read", { method: methodId, instruction: text });
+    let filled = 0;
+    Object.keys(r.inputs || {}).forEach((name) => {
+      const el = document.getElementById("in-" + name);
+      if (el) { el.value = r.inputs[name]; filled += 1; }
+    });
+    const missing = r.missing || [];
+    if (msg) {
+      msg.textContent = (filled ? filled + " figure(s) read. " : "No labelled figure was found. ") +
+        (missing.length ? "Not stated: " + missing.join("; ") + "." : "Every required figure was read.");
+    }
+    toast(filled ? "Figures read from the problem." : "No labelled figure was found in that problem.");
+  } catch (e) {
+    if (msg) msg.textContent = "The problem could not be read: " + (e.message || e);
+  }
 }
 
 function clearExampleFields() {
@@ -9300,7 +9365,6 @@ function clearExampleFields() {
   $$("#figures [data-table]").forEach((box) => { box.innerHTML = ""; });
   toast("The example figures are cleared. Enter your own, then run the calculation.");
 }
-
 function readInputs(schema, methodId) {
   const inputs = {};
   const method = methodId || (state.tool && state.tool.method) ||
@@ -9514,7 +9578,7 @@ function resultBodyHtml(d, withActions) {
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="viewgantt">View the Gantt</button>' : "") +
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
       '<button class="btn" id="tocharts" type="button" hidden>Charts and exports</button>' +
-      (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
+      (state.draft ? '<button class="btn dl" id="resultreport">Download the report (Word)</button>' : "") +
       (state.worksheet && state.worksheet.completion ? '<select id="evresultversion"><option value="draft">Draft</option><option value="full" selected>Full paper</option></select><label class="field" style="margin:0;max-width:170px">Body words<input id="evresultlength" type="number" min="600" max="50000" step="100" value="2500"></label><select id="evresultstyle"><option value="apa">APA 7</option><option value="harvard">Harvard</option></select><button class="btn" id="evresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
     '<h3 style="margin-top:14px">What this means</h3>' +
     '<div class="report">' + esc(d.report) + "</div>";
@@ -9527,9 +9591,9 @@ function resultBodyHtml(d, withActions) {
   html += renderRegressionBlock(ap);
   // The three downloads sit below the numbers, at the bottom of the computation card.
   html += '<div class="row" style="margin-top:14px">' +
-    '<button class="btn" id="downloadxlsx">Download spreadsheet</button>' +
-    '<button class="btn" id="downloadpaper">Download the paper (Word)</button>' +
-    '<button class="btn" id="downloadexplain">Download the explainer</button>' +
+    '<button class="btn dl" id="downloadxlsx">Download spreadsheet</button>' +
+    '<button class="btn dl" id="downloadpaper">Download the paper (Word)</button>' +
+    '<button class="btn dl" id="downloadexplain">Download the explanation</button>' +
     "</div>";
   const detail = (title, body) => '<details class="studynote"><summary>' + esc(title) + "</summary>" + body + "</details>";
   if (honestyKeys.length) {
@@ -9676,13 +9740,40 @@ async function downloadResultXlsx() {
   } catch (e) { toast("The spreadsheet could not be downloaded: " + (e.message || e)); }
 }
 
+/* One name for every file this workbench saves: subject_subtile_NNN.ext.
+   The number is a counter per subject and subtile, kept in this browser, so two
+   downloads of the same computation never overwrite each other and a student can
+   see at a glance which shelf and tile a file came from. */
+function filePart(text, fallback) {
+  const value = String(text || "").replace(/[\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
+  return value || fallback;
+}
+function nextFileNumber(subject, tile) {
+  const key = "bp-file-number:" + subject + "|" + tile;
+  let number = 0;
+  try { number = Number(localStorage.getItem(key)) || 0; } catch (e) { number = 0; }
+  number += 1;
+  try { localStorage.setItem(key, String(number)); } catch (e) {}
+  return String(number).padStart(3, "0");
+}
+function downloadName(tile, filename, subject) {
+  const subj = filePart(subject || state.subjectLabel ||
+                        (state.subject && state.subject.label) ||
+                        (state.tool && state.tool.subject) || "Case", "Case");
+  const part = filePart(tile || state.tileLabel ||
+                        (state.tool && state.tool.label) || "Result", "Result");
+  const match = String(filename || "").match(/\.([a-z0-9]{2,5})$/i);
+  const ext = match ? match[1].toLowerCase() : "dat";
+  return subj + "_" + part + "_" + nextFileNumber(subj, part) + "." + ext;
+}
+
 /* Turn one export response ({data: base64, mime, filename}) into a real download. */
 function saveDownload(payload) {
   const bin = atob(payload.data || ""), bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
   const url = URL.createObjectURL(new Blob([bytes], { type: payload.mime || "application/octet-stream" }));
   const link = document.createElement("a");
-  link.href = url; link.download = payload.filename || "download";
+  link.href = url; link.download = downloadName(null, payload.filename);
   document.body.appendChild(link); link.click(); link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
@@ -9821,13 +9912,17 @@ function renderCase() {
         '<button class="tab" role="tab" data-tab="' + t + '" aria-selected="' + (state.tab === t) + '">' +
         ({ report: "Report", versions: "Versions", comparison: "Comparison" })[t] + "</button>").join("") +
     "</div>";
+  // The downloads sit at the bottom of the report, after the text and the
+  // technical record, so a reader meets the numbers before the files - the same
+  // order as the result card.
+  const downloadRow = '<div class="row" style="margin-top:14px">' +
+    '<button class="btn dl" id="dlxlsx" type="button">Download the figures (Excel)</button>' +
+    '<button class="btn dl" id="dlword" type="button">Download the submission' + (hasComputation(b) ? ' (Word + explainer)' : ' (Word)') + '</button>' +
+    '<button class="btn dl" id="dlhtml" type="button">Download it as HTML' + (hasComputation(b) ? ' + explainer' : '') + ' (prints to PDF)</button>' +
+    (hasComputation(b) ? '<button class="btn dl" id="dlexplain" type="button">Download the explainer</button>' : '') +
+    (isSheet ? '<button class="btn dl" id="dlws" type="button">Download the worksheet (Word)</button>' : '') +
+    '<span class="muted" id="dlmsg"></span></div>';
   html += '<div class="tabpanel" data-panel="report"' + (state.tab === "report" ? "" : " hidden") + ">" +
-    '<div class="row" style="margin:12px 0"><button class="btn primary" id="dlxlsx" type="button">Download the figures (Excel)</button>' +
-    '<button class="btn" id="dlword" type="button">Download the submission' + (hasComputation(b) ? ' (Word + explainer)' : ' (Word)') + '</button>' +
-    '<button class="btn" id="dlhtml" type="button">Download it as HTML' + (hasComputation(b) ? ' + explainer' : '') + ' (prints to PDF)</button>' +
-    (hasComputation(b) ? '<button class="btn" id="dlexplain" type="button">Download the explainer</button>' : '') +
-    (isSheet ? '<button class="btn" id="dlws" type="button">Download the worksheet (Word)</button>' : '') +
-    '<span class="muted" id="dlmsg"></span></div>' +
     '<div class="report">' + esc(d.report) + "</div>" +
     (ap.accounts ? accountingBlocks(ap.accounts) : "") +
     (honestyKeys.length ? '<details class="studynote"><summary>Honesty: what was not done</summary><ul>' + honestyKeys.map((k) =>
@@ -9839,6 +9934,7 @@ function renderCase() {
         ["Method", ap.method && ap.method.id], ["Method version", ap.method && ap.method.version],
         ["Tier", tierLabel(ap.tier)], ["Code hash", ap.code_hash], ["Environment hash", ap.env_hash], ["Run id", ap.run_id]]) +
     "</details>" +
+    downloadRow +
     "</div>";
   html += '<div class="tabpanel" data-panel="versions"' + (state.tab === "versions" ? "" : " hidden") + ">" +
     '<div class="row"><button class="btn" id="newver">Save the current session as a new version</button></div>' +
@@ -9865,7 +9961,7 @@ function renderCase() {
       const bin = atob(r.data), bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       const url = URL.createObjectURL(new Blob([bytes], { type: r.mime }));
-      const a = document.createElement("a"); a.href = url; a.download = r.filename;
+      const a = document.createElement("a"); a.href = url; a.download = downloadName(b.title, r.filename, "Case");
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       if (msg) msg.textContent = "Saved " + r.filename + (r.credits && r.credits.charged ? " (1 credit)" : " (free)");
@@ -10127,7 +10223,7 @@ RENDERERS.deliver = function () {
     '<option value="spreadsheetml">spreadsheetml</option><option value="html">html</option></select>' +
     '<input type="text" id="expdest" size="42" placeholder="exports/case.csv"><button class="btn" id="expbtn">Export</button></div>' +
     '<div id="expout"></div>' +
-    '<div class="row" style="margin-top:10px"><button class="btn" id="expzip">Download results (zip)</button>' +
+    '<div class="row" style="margin-top:10px"><button class="btn dl" id="expzip">Download results (zip)</button>' +
     '<span class="muted">A per-case zip export is requested; the working zip today is the case-store backup.</span></div></div>';
   const sel = $("#chartart");
   arts.forEach((a) => {
@@ -10335,18 +10431,20 @@ function renderAccounts() {
   if (d && d.status === "blocked") { box.innerHTML = banner("blocked", "Blocked", "<div>" + esc(d.blocked_reason) + "</div>"); return; }
   if (d && d.status === "delivered") {
     const ap = d.appendix || {};
+    state.tileLabel = "Management accounts";
     box.innerHTML = '<div class="report">' + esc(d.report) + "</div>" +
       ((ap.limitations || []).length ? '<details class="studynote"><summary>Limitations (as recorded)</summary><ul>' + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul></details>" : "") +
       '<div class="row" style="margin-top:14px">' +
-        '<button class="btn" id="dlstatements">Download financial statements</button>' +
-        '<button class="btn" id="dlacctxlsx">Download spreadsheet</button>' +
-        '<button class="btn" id="dlacctdocx">Download the paper (Word)</button>' +
-        '<button class="btn" id="dlacctexplain">Download the explainer</button>' +
+        '<button class="btn dl" id="dlstatements">Download the statements (Word)</button>' +
+        '<button class="btn dl" id="dlacctxlsx">Download spreadsheet</button>' +
+        '<button class="btn dl" id="dlacctdocx">Download the paper (Word)</button>' +
+        '<button class="btn dl" id="dlacctexplain">Download the explainer</button>' +
       "</div>";
-    $("#dlstatements").onclick = () => exportStatements();
-    $("#dlacctxlsx").onclick = () => downloadResultXlsx();
-    $("#dlacctdocx").onclick = () => downloadSessionPaper("docx");
-    $("#dlacctexplain").onclick = async () => {
+    const st = $("#dlstatements"); if (st) st.onclick = () => exportStatements();
+    const xl = $("#dlacctxlsx"); if (xl) xl.onclick = () => downloadResultXlsx();
+    const wd = $("#dlacctdocx"); if (wd) wd.onclick = () => downloadSessionPaper("docx");
+    const ex = $("#dlacctexplain");
+    if (ex) ex.onclick = async () => {
       const id = await ensureSavedCase();
       if (id) downloadCaseExplanation(id);
     };
@@ -10360,10 +10458,17 @@ function renderAccounts() {
 }
 
 async function exportStatements() {
+  // The statements are downloaded, not written to a server path: the case is saved
+  // first, then the server renders the statements deliverable and returns the bytes
+  // here, which become a file in the student's Downloads folder.
+  const id = await ensureSavedCase();
+  if (!id) { toast("The statements could not be prepared: the case was not saved."); return; }
   try {
-    const r = await post("/api/cases/" + (state.caseId || "") + "/export", { kind: "html", destination: "exports/statements.html" });
-    toast("Statements written to " + (r.path || "exports/statements.html") + ".");
-  } catch (e) { toast(e.message); }
+    const r = await post("/api/cases/" + encodeURIComponent(id) + "/export",
+                         { kind: "docx", deliverable: "statements", download: true });
+    saveDownload(r);
+    toast("Statements downloaded: " + (r.filename || "statements.docx"));
+  } catch (e) { toast("The statements could not be downloaded: " + (e.message || e)); }
 }
 
 /* ---------- status ---------- */
@@ -10422,6 +10527,11 @@ function checkReport(d, det) {
     html += '<div class="card"><h2>What this check cannot prove</h2><ul>' +
       det.cannot_prove.map((x) => "<li>" + esc(x) + "</li>").join("") + "</ul></div>";
   }
+  html += '<div class="card"><div class="row">' +
+    '<button class="btn dl" id="checkxlsx">Download spreadsheet</button>' +
+    '<button class="btn dl" id="checkdocx">Download the check (Word)</button>' +
+    '<button class="btn dl" id="checkexplain">Download the explainer</button>' +
+    "</div></div>";
   return html;
 }
 
@@ -10450,7 +10560,17 @@ async function runCheck() {
       out.innerHTML = '<div class="card">' + banner("blocked", "The check did not run", esc(why)) + "</div>";
       return;
     }
+    state.session = d; state.savedCaseId = null; state.caseId = null;
+    state.tileLabel = "Trial balance check";
+    state.subjectLabel = state.subjectLabel || "Accounting";
     out.innerHTML = checkReport(d, (d.delivery && d.delivery.appendix && d.delivery.appendix.detail) || {});
+    const cx = $("#checkxlsx"); if (cx) cx.onclick = downloadResultXlsx;
+    const cd = $("#checkdocx"); if (cd) cd.onclick = () => downloadSessionPaper("docx");
+    const ce = $("#checkexplain");
+    if (ce) ce.onclick = async () => {
+      const id = await ensureSavedCase();
+      if (id) downloadCaseExplanation(id);
+    };
   } catch (e) {
     out.innerHTML = '<div class="card">' + banner("blocked", "The check did not run", esc(e.message)) + "</div>";
   }
@@ -10550,8 +10670,8 @@ function pmRender() {
   // below the grid, so a customer reads "two products, one price" rather than "a fourth tier".
   const cardKeys = pm.plans.card_tiers || [];
   const cards = tiers.filter((card) => cardKeys.indexOf(card.tier) !== -1);
-  const bundle = tiers.find((card) => card.tier === pm.plans.bundle_tier) ||
-                 tiers.find((card) => card.bundle) || null;
+  const bundleKeys = pm.plans.bundle_tiers || (pm.plans.bundle_tier ? [pm.plans.bundle_tier] : []);
+  const bundles = bundleKeys.map((key) => tiers.find((card) => card.tier === key)).filter(Boolean);
   $("#pmgrid").innerHTML = cards.map((card) => {
     const amount = annual ? card.annual.amount : card.monthly.amount;
     const unlimited = !!card.unlimited;
@@ -10570,7 +10690,7 @@ function pmRender() {
       '<button class="btn primary" type="button" data-pm-buy="' + esc(card.tier) + '">Choose</button>' +
     "</div>";
   }).join("");
-  pmRenderBundle(bundle, annual);
+  pmRenderBundles(bundles, annual);
   $("#pmsave").textContent = "Save " + pm.plans.annual_discount_percent + "%";
   $("#pmlab-m").classList.toggle("on", !annual);
   $("#pmlab-a").classList.toggle("on", annual);
@@ -10586,31 +10706,62 @@ function pmRender() {
   $("#pmnote").textContent = note;
 }
 
-/* The bundle band: one price for two products, and what that price buys in each of them. */
-function pmRenderBundle(bundle, annual) {
+/* The bundle ladder: one subscription covers both products. Each rung pairs the matching Write
+   Smarter tier with a Smart Business Writer tier; the top rung is the unlimited Business Bundle. */
+function pmRenderBundles(bundles, annual) {
   const host = $("#pmbband");
-  if (!bundle) { host.innerHTML = ""; return; }
-  const amount = annual ? bundle.annual.amount : bundle.monthly.amount;
-  const products = (bundle.products || []).map((product) =>
-    '<div class="bp"><div class="pn">' + esc(product.name) + "</div><ul>" +
-    (product.features || []).map((line) => "<li>" + esc(line) + "</li>").join("") +
-    "</ul></div>").join("");
+  if (!host) return;
+  if (!bundles.length) { host.innerHTML = ""; return; }
   host.innerHTML =
-    '<div class="pm-band" data-tier="' + esc(bundle.tier) + '">' +
-      '<div class="btop">' +
-        '<span class="btitle">' + esc(bundle.name) + "</span>" +
-        '<span class="btag">Both products</span>' +
-        '<span class="bprice">$' + esc(amount) + "<small>" + (annual ? "a year" : "a month") + "</small></span>" +
+    '<div class="pm-ladder">' +
+      '<div class="pm-ladder-head">' +
+        '<span class="pm-ladder-title">Bundle both products</span>' +
+        '<span class="pm-ladder-sub">One subscription for Smart Business Writer and Write Smarter. Allowances follow the plan.</span>' +
       "</div>" +
-      '<p class="bsub">One subscription, one charge, unlimited use of both products.</p>' +
-      '<div class="bproducts">' + products + "</div>" +
-      '<div class="bfoot">' +
-        '<button class="btn primary" type="button" data-pm-buy="' + esc(bundle.tier) + '">Get the bundle</button>' +
-        '<span class="bper">' + (annual
-          ? "Billed once a year. Cancels any time; the period you paid for stays active."
-          : "Billed once a month. Cancels any time; the period you paid for stays active.") + "</span>" +
+      '<div class="pm-ladder-grid">' + bundles.map((bundle) => pmBundleCard(bundle, annual)).join("") + "</div>" +
+    "</div>";
+}
+
+function pmBundleCard(bundle, annual) {
+  const amount = annual ? bundle.annual.amount : bundle.monthly.amount;
+  const unlimited = !!bundle.unlimited;
+  // The rungs use the same .pm-card tile as the plans above, so the two rows read as one grid.
+  const includes = (bundle.includes || []).map((line) => esc(line)).join(" · ");
+  const creditsKey = unlimited ? "Limits" : "Credits";
+  const creditsVal = unlimited ? "Unlimited" : "To be confirmed";
+  const saving = annual ? '<div class="per">saves $' + esc(bundle.annual_saving.amount) + " a year</div>" : "";
+  const button = '<button class="btn primary" type="button" data-pm-buy="' + esc(bundle.tier) + '">' +
+    (unlimited ? "Get the bundle" : "Choose") + "</button>";
+  if (unlimited) {
+    // The best value bundle spans the whole third row: price, what it covers, and the action.
+    return '<div class="pm-card is-best" data-tier="' + esc(bundle.tier) + '">' +
+      '<div class="bar c-green"></div>' +
+      '<div class="pm-best-grid">' +
+        '<div class="pm-best-a">' +
+          '<span class="pm-best">Best value</span>' +
+          '<div class="n">' + esc(bundle.name) + "</div>" +
+          '<div class="p">$' + esc(amount) + "</div>" +
+          '<div class="per">' + (annual ? "per year" : "per month") + "</div>" +
+        "</div>" +
+        '<div class="pm-best-b">' +
+          '<div class="cr"><div class="k">' + creditsKey + '</div><div class="v">' + creditsVal + "</div></div>" +
+          (includes ? '<div class="inc">' + includes + "</div>" : "") +
+          saving +
+        "</div>" +
+        '<div class="pm-best-c">' + button + "</div>" +
       "</div>" +
     "</div>";
+  }
+  return '<div class="pm-card" data-tier="' + esc(bundle.tier) + '">' +
+    '<div class="bar c-green"></div>' +
+    '<div class="n">' + esc(bundle.name) + "</div>" +
+    '<div class="p">$' + esc(amount) + "</div>" +
+    '<div class="per">' + (annual ? "per year" : "per month") + "</div>" +
+    '<div class="cr"><div class="k">' + creditsKey + '</div><div class="v tbd">' + creditsVal + "</div></div>" +
+    (includes ? '<div class="inc">' + includes + "</div>" : "") +
+    saving +
+    button +
+  "</div>";
 }
 
 function pmDone(reply) {
@@ -11194,7 +11345,7 @@ if (new URLSearchParams(location.search).get("pricing")) {
           var blob = new Blob([bytes], {type: result.body.mime || "application/octet-stream"});
           var url = URL.createObjectURL(blob);
           var link = document.createElement("a");
-          link.href = url; link.download = filename || result.body.filename;
+          link.href = url; link.download = downloadName("Statements", filename || result.body.filename, "Accounting");
           document.body.appendChild(link); link.click();
           setTimeout(function () { URL.revokeObjectURL(url); link.remove(); }, 0);
           host.appendChild(el("p", "muted", label + ": " + (filename || result.body.filename) + " is ready."));
@@ -11213,19 +11364,19 @@ if (new URLSearchParams(location.search).get("pricing")) {
     }
     var foot = el("div", "row");
     foot.style.marginTop = "14px";
-    function act(label, body) {
-      var button = el("button", "btn sm", label);
+    function act(label, body, cls) {
+      var button = el("button", cls || "btn sm", label);
       button.type = "button";
       button.onclick = body;
       foot.appendChild(button);
     }
-    act(".docx", function () {
+    act("Download the statements (Word)", function () {
       fetchExport("docx", "Download the statements", "statements-" + record.id + ".docx");
-    });
-    act(".xlsx", function () {
+    }, "btn sm dl");
+    act("Download the workbook (Excel)", function () {
       fetchExport("xlsx", "Download the workbook", "statements-" + record.id + ".xlsx");
-    });
-    act("Explanation file", function () {
+    }, "btn sm dl");
+    act("Download the explainer", function () {
       fetch("/api/cases/statements/" + record.id + "/explanation", {method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({format: "docx"})})
@@ -11236,7 +11387,7 @@ if (new URLSearchParams(location.search).get("pricing")) {
             for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
             var url = URL.createObjectURL(new Blob([bytes], {type: body.document.mime}));
             var link = document.createElement("a");
-            link.href = url; link.download = body.document.filename;
+            link.href = url; link.download = downloadName("Statements", body.document.filename, "Accounting");
             document.body.appendChild(link); link.click();
             setTimeout(function () { URL.revokeObjectURL(url); link.remove(); }, 0);
             host.appendChild(el("p", "muted", "Explanation downloaded: " + body.document.filename));
@@ -11244,7 +11395,7 @@ if (new URLSearchParams(location.search).get("pricing")) {
             host.appendChild(el("p", "muted", (body.error) || "No explanation available."));
           }
         });
-    });
+    }, "btn sm dl");
     /* Ratios are computed on demand from the frozen record, never re-typed: the route reads
        the same figures the statements printed.  A ratio the record cannot support is named. */
     act("Ratios", function () {
@@ -11590,7 +11741,7 @@ if (new URLSearchParams(location.search).get("pricing")) {
       if ((d.limitations || []).length) {
         html += "<h4>Limitations</h4><ul>" + d.limitations.map(function (row) { return "<li>" + esc(row) + "</li>"; }).join("") + "</ul>";
       }
-      html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="economicsdownload">Download the Word file</button></div>';
+      html += '<div class="row" style="margin-top:10px"><button class="btn dl" id="economicsdownload">Download the Word file</button></div>';
       host.innerHTML = html;
       var download = $("#economicsdownload");
       if (download) {
@@ -11599,7 +11750,7 @@ if (new URLSearchParams(location.search).get("pricing")) {
           var url = URL.createObjectURL(new Blob([bytes], {type: d.docx.mime}));
           var link = document.createElement("a");
           link.href = url;
-          link.download = d.docx.filename;
+          link.download = downloadName(d.problem_label, d.docx.filename, "Economics");
           link.click();
           setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
         };

@@ -91,19 +91,22 @@ The bundle is a **declared price, not a discount**: "unlimited Write Smarter + u
 Business Writer" has no published sum to take 20% off. Do not put a "% off" or "save $" line on
 that card.
 
-### 2.3 Lower bundle rungs — proposed, NOT confirmed, deferred by the owner
+### 2.3 Bundle rungs — **confirmed by the owner (2026-11-08)**
 
-| Rung | Write Smarter | Smart Business Writer | Monthly | Annual | Saving |
-|---|---|---|---|---|---|
-| Bundle Basic | Basic | Starter | $18.99 | $182.30 | $3.99 |
-| Bundle Standard | Standard | Pro | $35.99 | $345.50 | $8.99 |
-| Bundle Pro | Pro | Studio | $59.99 | $575.90 | $14.99 |
-| Business Bundle | unlimited | unlimited | $99.99 | $959.90 | — |
+| Rung | Write Smarter | Smart Business Writer | Monthly | Annual |
+|---|---|---|---|---|
+| Starter Bundle | Basic | Starter | $20.00 | $192.00 |
+| Pro Bundle | Standard | Pro | $39.00 | $374.40 |
+| Studio Bundle | Pro | Studio | $65.00 | $624.00 |
+| Business Bundle | unlimited | unlimited | $99.99 | $959.90 |
 
-Rungs 1–3 are the two published prices less 20%, rounded to `.99` — so the true discount is
-17.4% / 20.0% / 20.0%, not a flat 20%. The limits are **not pooled**: one limit value per tier,
-enforced once per product, in each product's own unit (words on the Write Smarter side, exports
-on the Smart Business Writer side).
+Each rung is one subscription that buys the matching Write Smarter tier and this product's tier
+together; the annual price is 12 months less the declared 20% (`billing.price()`), never typed by
+hand. The allowances on the three lower rungs are still the owner's to set, so they print
+"to be confirmed" rather than an estimated number. The limits are **not pooled**: one limit value
+per tier, enforced once per product, in each product's own unit (words on the Write Smarter side,
+exports on the Smart Business Writer side). The top rung, the Business Bundle, grants unlimited use
+of both products by owner declaration.
 
 ---
 
@@ -207,11 +210,11 @@ subscription date) or **per calendar month**. The existing free grant of 100 exp
 the anchor — a paid tier should be above it. Note the wallet's own rules: the **first export of
 an artefact is free whatever its format**, and a *second* format of the same artefact is charged.
 
-### 4.2 Whether the lower rungs ship at launch — **DEFERRED by the owner (2026-11-03)**
+### 4.2 Whether the lower rungs ship at launch — **DECIDED by the owner (2026-11-08)**
 
-One SKU ($99.99 only) or four (`$18.99` / `$35.99` / `$59.99` / `$99.99`). The owner has not
-decided; the lower rungs carry limits the owner will set later. Recommendation on the record:
-**one SKU at launch**; add the ladder when the allowance and the per-cycle refresh exist.
+The four rungs ship at `$20.00` / `$39.00` / `$65.00` / `$99.99` (see §2.3). The lower rungs carry
+limits the owner will set later; until then their allowance prints "to be confirmed" rather than an
+estimated number.
 
 ### 4.3 Where the Write Smarter pricing page points — **OPEN (owner asked for plain wording)**
 

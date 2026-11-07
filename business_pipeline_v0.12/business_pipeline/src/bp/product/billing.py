@@ -40,7 +40,7 @@ ANNUAL_DISCOUNT = Decimal("0.20")
 _CENT = Decimal("0.01")
 
 #: Tier order as shown on the page. The key is what the routes and the ledger use.
-TIERS = ("starter", "pro", "studio", "agency")
+TIERS = ("starter", "pro", "studio", "bundle_starter", "bundle_pro", "bundle_studio", "agency")
 
 #: The tiers that are shown as **cards in the pricing grid**. The bundle is deliberately not one of
 #: them: it covers two products, so it is shown as its own band below the grid (owner instruction,
@@ -48,8 +48,13 @@ TIERS = ("starter", "pro", "studio", "agency")
 #: this product" from a fourth card.
 CARD_TIERS = ("starter", "pro", "studio")
 
-#: The tier that is the bundle. It keeps the ``agency`` key so the PayPal plan cache and every
-#: ledger already written against it stay valid.
+#: The bundle ladder, shown as bands below the grid. Each rung is the matching Write Smarter tier
+#: paired with a Smart Business Writer tier at one price; the top rung is the unlimited Business
+#: Bundle. Owner instruction, 2026-11-08: Starter $20, Pro $39, Studio $65, Business Bundle $99.99.
+BUNDLE_TIERS = ("bundle_starter", "bundle_pro", "bundle_studio", "agency")
+
+#: The top bundle. It keeps the ``agency`` key so the PayPal plan cache and every ledger already
+#: written against it stay valid.
 BUNDLE_TIER = "agency"
 
 #: The catalogue. ``monthly`` is the only price written by hand; ``credits`` and ``highlights`` stay
@@ -72,6 +77,30 @@ PLANS = {
             "color": "indigo"},
     "studio": {"name": "Studio", "monthly": "49.99", "credits": None, "highlights": [],
                "color": "teal"},
+    # The lower bundle rungs (owner instruction, 2026-11-08): one subscription buying the matching
+    # Write Smarter tier and this product's tier together. The allowance is still the owner's to
+    # set, so it stays undecided rather than estimated.
+    "bundle_starter": {"name": "Starter Bundle", "monthly": "20.00", "credits": None,
+                       "highlights": [], "bundle": True, "unlimited": False, "color": "green",
+                       "includes": ["Write Smarter - Basic", "Smart Business Writer - Starter"],
+                       "products": [
+                           {"name": "Write Smarter", "features": ["Basic plan", "Source Finder included"]},
+                           {"name": "Smart Business Writer", "features": ["Starter plan", "Every framework, shelf and calculator"]},
+                       ]},
+    "bundle_pro": {"name": "Pro Bundle", "monthly": "39.00", "credits": None,
+                   "highlights": [], "bundle": True, "unlimited": False, "color": "green",
+                   "includes": ["Write Smarter - Standard", "Smart Business Writer - Pro"],
+                   "products": [
+                       {"name": "Write Smarter", "features": ["Standard plan", "Source Finder included"]},
+                       {"name": "Smart Business Writer", "features": ["Pro plan", "Every framework, shelf and calculator"]},
+                   ]},
+    "bundle_studio": {"name": "Studio Bundle", "monthly": "65.00", "credits": None,
+                      "highlights": [], "bundle": True, "unlimited": False, "color": "green",
+                      "includes": ["Write Smarter - Pro", "Smart Business Writer - Studio"],
+                      "products": [
+                          {"name": "Write Smarter", "features": ["Pro plan", "Source Finder included"]},
+                          {"name": "Smart Business Writer", "features": ["Studio plan", "Every framework, shelf and calculator"]},
+                      ]},
     "agency": {"name": "Business Bundle", "monthly": "99.99", "credits": None, "highlights": [],
                "unlimited": True,
                "bundle": True,
@@ -169,6 +198,7 @@ def catalogue():
     """
     return {"currency": CURRENCY, "tiers": [card(tier) for tier in TIERS],
             "card_tiers": list(CARD_TIERS),
+            "bundle_tiers": list(BUNDLE_TIERS),
             "bundle_tier": BUNDLE_TIER,
             "annual_discount_percent": _percent(ANNUAL_DISCOUNT * 100),
             "credits_set": all(PLANS[tier]["credits"] is not None for tier in TIERS),

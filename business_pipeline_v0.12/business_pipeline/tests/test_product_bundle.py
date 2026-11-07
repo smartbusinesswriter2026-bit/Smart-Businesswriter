@@ -608,15 +608,18 @@ class BundleBandTest(BundleTestCase):
         catalogue = billing.catalogue()
         self.assertEqual(catalogue["card_tiers"], ["starter", "pro", "studio"])
         self.assertEqual(catalogue["bundle_tier"], "agency")
+        self.assertEqual(catalogue["bundle_tiers"],
+                         ["bundle_starter", "bundle_pro", "bundle_studio", "agency"])
 
-    def test_the_bundle_is_not_one_of_the_cards(self):
+    def test_no_bundle_rung_is_one_of_the_cards(self):
         catalogue = billing.catalogue()
-        self.assertNotIn(catalogue["bundle_tier"], catalogue["card_tiers"])
-        bundle = [row for row in catalogue["tiers"] if row["tier"] == catalogue["bundle_tier"]][0]
-        self.assertTrue(bundle["bundle"])
+        for tier in catalogue["bundle_tiers"]:
+            self.assertNotIn(tier, catalogue["card_tiers"])
         for row in catalogue["tiers"]:
-            if row["tier"] != catalogue["bundle_tier"]:
-                self.assertFalse(row["bundle"])
+            if row["tier"] in catalogue["bundle_tiers"]:
+                self.assertTrue(row["bundle"], row["tier"])
+            else:
+                self.assertFalse(row["bundle"], row["tier"])
 
     def test_the_bundle_band_lists_both_products_and_what_each_one_gives(self):
         card = billing.card("agency")
@@ -641,15 +644,16 @@ class BundleBandTest(BundleTestCase):
         page = os.path.join(HERE, "..", "web", "index.html")
         with open(page, encoding="utf-8") as stream:
             html = stream.read()
-        # The band lives in its own element, after the grid.
+        # The bundle ladder lives in its own element, after the grid.
         self.assertIn('id="pmbband"', html)
         self.assertLess(html.index('id="pmgrid"'), html.index('id="pmbband"'))
-        # The grid itself is three columns now - the bundle is not a fourth card in it.
+        # The grid itself is three columns now - the bundles are not cards in it.
         self.assertIn("grid-template-columns:repeat(3,minmax(0,1fr))", html)
-        # The band renders the bundle tier and the two product panels.
-        self.assertIn("pmRenderBundle", html)
-        self.assertIn('class="bproducts"', html)
-        self.assertIn('class="btag"', html)
+        # The ladder renders one plan-style card per rung, all from the catalogue.
+        self.assertIn("pmRenderBundles", html)
+        self.assertIn("pm-ladder-grid", html)
+        self.assertIn("pm-best-grid", html)
+        self.assertIn('class="pm-card is-best"', html)
 
     def test_the_page_draws_the_cards_and_the_band_from_the_api_not_from_itself(self):
         # The page must not name the tiers itself: it reads which are cards and which is the
