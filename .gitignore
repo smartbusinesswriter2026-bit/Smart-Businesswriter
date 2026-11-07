@@ -40,6 +40,11 @@ corpus-db/data.ms/
 corpus-state/enrich.log
 corpus-state/framework_seed_report.json
 
+# The Home page's stored papers are runtime data.  A generated .docx belongs to
+# the student who asked for it, not to the repository; tracking them meant a
+# checkout could resurrect a paper the owner had deleted.
+business_pipeline_v0.12/business_pipeline/documents/
+
 # Word lock files
 ~$*.docx
 
