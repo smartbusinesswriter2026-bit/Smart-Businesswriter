@@ -2253,13 +2253,21 @@ ENTREPRENEURSHIP_PERIODS = {
 #: Intro (market_basics), intermediate (firm_behaviour, macroeconomics, welfare_policy, international),
 #: advanced (behavioural_evidence, impact_evaluation, quantitative_core).
 ECONOMICS_GROUPS = {
-    "equilibrium": "market_basics", "elasticity": "market_basics", "taxincidence": "market_basics",
-    "pricecontrol": "market_basics", "concentration": "market_basics",
-    "costcurves": "firm_behaviour", "profitmax": "firm_behaviour", "marketpower": "firm_behaviour",
-    "pricediscrimination": "firm_behaviour", "cournot": "firm_behaviour", "nash": "firm_behaviour",
+    # Microeconomics absorbed the old Market basics and Firm behaviour groups.
+    "equilibrium": "microeconomics", "elasticity": "microeconomics", "taxincidence": "microeconomics",
+    "pricecontrol": "microeconomics", "concentration": "microeconomics",
+    "costcurves": "microeconomics", "profitmax": "microeconomics", "marketpower": "microeconomics",
+    "pricediscrimination": "microeconomics", "cournot": "microeconomics", "nash": "microeconomics",
+    # Managerial economics absorbed pricing, cost-benefit and unit economics.
+    "pricing": "managerial_economics", "demandcurve": "managerial_economics",
+    "cba": "managerial_economics", "cea": "managerial_economics", "sroi": "managerial_economics",
+    "unitecon": "managerial_economics",
+    "breakeven": "managerial_economics", "multibreakeven": "managerial_economics",
+    # Macroeconomics is unchanged.
     "nationalincome": "macroeconomics", "growth": "macroeconomics", "inflation": "macroeconomics",
     "unemployment": "macroeconomics", "moneymultiplier": "macroeconomics", "fiscal": "macroeconomics",
     "budgetdebt": "macroeconomics", "okun": "macroeconomics",
+    # The rest is unchanged.
     "externality": "welfare_policy", "publicgood": "welfare_policy", "socialwelfare": "welfare_policy",
     "gini": "welfare_policy", "poverty": "welfare_policy", "taxprogressivity": "welfare_policy",
     "optimalpollution": "welfare_policy",
@@ -2270,10 +2278,7 @@ ECONOMICS_GROUPS = {
     "did": "econometrics", "iv": "econometrics", "panel": "econometrics",
     "rdd": "econometrics", "probit": "econometrics",
     "forecast": "quantitative_core", "currency": "quantitative_core",
-    "pricing": "quantitative_core", "demandcurve": "quantitative_core",
-    "cba": "quantitative_core", "cea": "quantitative_core", "sroi": "quantitative_core",
     "npv": "quantitative_core", "dcf": "quantitative_core",
-    "breakeven": "quantitative_core", "multibreakeven": "quantitative_core", "unitecon": "quantitative_core",
     "descriptive": "quantitative_core", "pearson": "quantitative_core", "ols": "quantitative_core",
     "ols_robust": "quantitative_core", "welch": "quantitative_core", "anova": "quantitative_core",
     "chi_square": "quantitative_core", "power": "quantitative_core",
@@ -2576,6 +2581,24 @@ ACCOUNTING_PERIODS = {
     "frommarket": "annual", "salesprojection": "per period",
 }
 
+
+def accounting_group_for_method(method_id):
+    """The accounting shelf a frozen method belongs to, or None when it is not an accounting tool.
+
+    Used by the learning library so a calculator's run is counted beside the statements tile's
+    under the same group name the subject page shows.  The first tool that names the method wins;
+    a method shared by two shelves (break-even) still lands on an accounting shelf, which is the
+    honest answer for an accounting run.
+    """
+    if not method_id:
+        return None
+    for key, meta in TOOL_INFO.items():
+        if isinstance(meta, dict) and meta.get("method") == method_id:
+            group = ACCOUNTING_GROUPS.get(key)
+            if group:
+                return group
+    return None
+
 #: Operations groups: the process, the inventory feeding it, and the evidence on quality.
 OPERATIONS_GROUPS = {
     "capacity": "Process and capacity", "queue": "Process and capacity",
@@ -2745,30 +2768,48 @@ PEOPLE_TILES = [
 #: a tile with nothing in it is shown empty and says so, because a missing
 #: capability is named rather than hidden.
 ECONOMICS_TILES = [
-    {"key": "market_basics", "label": "Market basics",
-     "what": "Equilibrium price and quantity, price elasticity, tax incidence, price controls and market concentration.",
-     "need": "The demand and supply curves, or two price-quantity observations for elasticity."},
-    {"key": "firm_behaviour", "label": "Firm behaviour",
-     "what": "Cost curves, profit maximisation, markup and Lerner index, price discrimination, Cournot and Nash equilibrium.",
-     "need": "A cost function and demand curve, or a price and marginal cost for markup."},
-    {"key": "macroeconomics", "label": "Macroeconomics",
-     "what": "GDP and national income, growth and CAGR, inflation and real interest, unemployment, money and fiscal multipliers, budget and debt, Okun's law.",
-     "need": "The expenditure components for GDP, two values and periods for growth, two CPI values for inflation."},
-    {"key": "welfare_policy", "label": "Welfare and policy",
-     "what": "Externalities and Pigouvian tax, public goods, social welfare functions, Gini coefficient, poverty measures, tax progressivity, optimal pollution.",
-     "need": "Incomes for inequality and poverty, benefit schedules for public goods, damage and abatement for externalities."},
+    {"key": "macroeconomics", "label": "Macroeconomics", "service": "macroeconomics",
+     "what": "GDP and national income, growth and CAGR, inflation and real interest, unemployment, "
+             "money and fiscal multipliers, budget and debt, Okun's law.",
+     "need": "The expenditure components for GDP, two values and periods for growth, two CPI values "
+             "for inflation.",
+     "note": "Paste the problem as you were given it. One instruction, no fields to fill."},
+    {"key": "microeconomics", "label": "Microeconomics", "service": "microeconomics",
+     "what": "Equilibrium, elasticity, tax incidence, price controls, concentration, cost curves, "
+             "profit maximisation, markup and Lerner index, price discrimination, Cournot and Nash.",
+     "need": "The demand and supply curves, or two price-quantity observations for elasticity; a cost "
+             "function and demand curve for firm behaviour.",
+     "note": "Paste the problem as you were given it. One instruction, no fields to fill."},
+    {"key": "managerial_economics", "label": "Managerial economics", "service": "managerial_economics",
+     "what": "Break-even and target profit, pricing and demand, cost-benefit and cost-effectiveness, "
+             "social return on investment, unit economics, multi-product break-even.",
+     "need": "The cost and price structure for break-even; costs and benefits per period for "
+             "cost-benefit; options with cost and effect for cost-effectiveness.",
+     "note": "Paste the problem as you were given it. One instruction, no fields to fill."},
+    {"key": "econometrics", "label": "Econometrics and impact evaluation",
+     "what": "Difference-in-differences, instrumental variables, panel regression, regression "
+             "discontinuity, probit.",
+     "need": "Four means for difference-in-differences, an instrument and endogenous variable for IV."},
     {"key": "international", "label": "International economics",
-     "what": "Comparative advantage, tariff welfare, purchasing-power parity, interest-rate parity, balance of payments, Human Development Index.",
-     "need": "Unit labour requirements for comparative advantage, a tariff rate, two interest rates for interest-rate parity."},
+     "what": "Comparative advantage, tariff welfare, purchasing-power parity, interest-rate parity, "
+             "balance of payments, Human Development Index.",
+     "need": "Unit labour requirements for comparative advantage, a tariff rate, two interest rates "
+             "for interest-rate parity."},
     {"key": "behavioural_economics", "label": "Behavioural economics",
      "what": "Expected utility, prospect theory, labour market.",
-     "need": "A gamble for prospect theory, or the wage, price index and productivity for the labour market."},
-    {"key": "econometrics", "label": "Econometrics and impact evaluation",
-     "what": "Difference-in-differences, instrumental variables, panel regression, regression discontinuity, probit.",
-     "need": "Four means for difference-in-differences, an instrument and endogenous variable for IV."},
+     "need": "A gamble for prospect theory, or the wage, price index and productivity for the labour "
+             "market."},
+    {"key": "welfare_policy", "label": "Welfare and policy",
+     "what": "Externalities and Pigouvian tax, public goods, social welfare functions, Gini "
+             "coefficient, poverty measures, tax progressivity, optimal pollution.",
+     "need": "Incomes for inequality and poverty, benefit schedules for public goods, damage and "
+             "abatement for externalities."},
     {"key": "quantitative_core", "label": "Quantitative core",
-     "what": "Pricing and demand, cost-benefit and cost-effectiveness, discounting, social return on investment, break-even, multi-product break-even, unit economics, descriptive statistics, Pearson correlation, linear regression, Welch t-test, one-way ANOVA, chi-square, power analysis, trend forecast and currency conversion.",
-     "need": "Price, variable and fixed cost for pricing and break-even; costs and benefits per period for cost-benefit; options with cost and effect for cost-effectiveness; investment and benefits for SROI; observations for statistics; two groups for t-test; three groups for ANOVA."},
+     "what": "Discounting, social return on investment, descriptive statistics, Pearson correlation, "
+             "linear regression, Welch t-test, one-way ANOVA, chi-square, power analysis, trend "
+             "forecast and currency conversion.",
+     "need": "Investment and benefits for SROI; observations for statistics; two groups for t-test; "
+             "three groups for ANOVA."},
 ]
 
 #: Which tile each Economics catalogue record belongs to.  A record

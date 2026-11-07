@@ -31,6 +31,9 @@
   --ops-tint:#E8EDF7;
   --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
   --sh-1:0 1px 2px rgba(2,40,76,.06); --sh-2:0 6px 20px rgba(2,40,76,.08); --sh-3:0 18px 48px rgba(2,40,76,.14);
+  /* Global UI scale: 90% is the new 100%. One value drives the page zoom and
+     the viewport-height compensation for full-height chrome (the rail). */
+  --ui-zoom:.9;
   --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --doc:"Times New Roman",Times,serif;
   --rail-w:45px; --rail-w-open:272px; --rail-gap:10px;
@@ -58,7 +61,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:var(--font);font-size:16.8px;line-height:1.5;color:var(--text);background:var(--canvas);
-     -webkit-font-smoothing:antialiased}
+     -webkit-font-smoothing:antialiased;zoom:var(--ui-zoom)}
 a{color:var(--navy-500)}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--navy-900);outline-offset:2px;border-radius:4px}
@@ -182,7 +185,7 @@ label.field{display:block;font-size:15.4px;color:var(--text-2);margin:0 0 4px}
 
 /* ---------- shell + rail ---------- */
 .shell{display:flex;align-items:flex-start}
-.rail{position:sticky;top:56px;height:calc(100vh - 56px);background:var(--surface);border-right:1px solid var(--border);
+.rail{position:sticky;top:56px;height:calc(100vh / var(--ui-zoom) - 56px);background:var(--surface);border-right:1px solid var(--border);
       width:var(--rail-w);flex:0 0 auto;padding:12px var(--rail-pad);display:flex;flex-direction:column;gap:6px;overflow:visible;
       transition:width .34s cubic-bezier(.32,.72,0,1),padding .34s cubic-bezier(.32,.72,0,1);z-index:20}
 body.rail-open .rail{width:var(--rail-w-open)}
@@ -336,6 +339,40 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .runbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 .runbtn[disabled]{opacity:.55;cursor:not-allowed;transform:none}
 .actionbox.dragging{border-color:var(--green-600);box-shadow:var(--sh-2),0 0 0 3px rgba(2,161,94,.16)}
+
+/* ---------- Home composer setup: mode segmented control + word target ---------- */
+.composer-setup{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px 24px;margin:0 0 12px}
+.composer-setup.below{margin:10px 0 2px}
+.homectl{min-width:0}
+.homectl-cap{display:block;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin:0 0 7px}
+.segmented{display:inline-flex;align-items:center;gap:2px;padding:3px;background:var(--sunken);border:1px solid var(--border);border-radius:var(--r-pill);box-shadow:inset 0 1px 2px rgba(2,40,76,.04)}
+.segmented .segbtn{display:inline-flex;align-items:center;gap:7px;border:1px solid transparent;background:transparent;color:var(--text-2);
+  font:inherit;font-size:15px;font-weight:600;line-height:1.1;padding:8px 15px;border-radius:var(--r-pill);min-height:40px;
+  cursor:pointer;transition:background .14s ease,color .14s ease,box-shadow .14s ease,border-color .14s ease}
+.segmented .segbtn svg{width:15px;height:15px;fill:currentColor;flex:0 0 auto}
+.segmented .segbtn:hover{color:var(--navy-900);background:rgba(2,40,76,.05)}
+.segmented .segbtn[aria-pressed="true"]{background:var(--surface);color:var(--navy-900);border-color:var(--border);box-shadow:var(--sh-1)}
+.segmented .segbtn:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px}
+.wordtarget{display:flex;align-items:center;flex-wrap:wrap;gap:9px}
+.wordtarget-field{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:3px 10px;box-shadow:var(--sh-1);transition:border-color .14s ease,box-shadow .14s ease}
+.wordtarget-field:focus-within{border-color:var(--green-600);box-shadow:0 0 0 3px rgba(2,161,94,.12)}
+.wordtarget-field input{width:72px;border:0;background:transparent;text-align:right;font-size:17px;font-weight:650;
+  font-variant-numeric:tabular-nums;color:var(--navy-900);padding:4px 0}
+.wordtarget-field input:focus{outline:none}
+.wordtarget-field input::-webkit-outer-spin-button,
+.wordtarget-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.wordtarget-field input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.wordtarget-unit{font-size:13.6px;color:var(--text-2);font-weight:500}
+.wordpresets{display:inline-flex;flex-wrap:wrap;gap:5px}
+.wordpreset{border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:13.4px;
+  font-weight:600;padding:6px 11px;border-radius:var(--r-pill);min-height:30px;cursor:pointer;
+  transition:border-color .14s ease,color .14s ease,background .14s ease}
+.wordpreset:hover{border-color:var(--navy-300);color:var(--navy-900);background:var(--sunken)}
+.wordpreset[aria-pressed="true"]{background:var(--green-100);border-color:#BFE3D2;color:var(--green-700)}
+.wordpreset:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px}
+.homectl-hint{margin:7px 0 0;font-size:13px;line-height:1.45;color:var(--text-3)}
+@media (max-width:620px){.composer-setup{gap:12px}.wordtarget-field input{width:64px}}
 /* The composer and the conversation under it are one column, and that column
    is the width of the Documents section below it - the full content box, with
    the same even space on both sides - rather than a narrower box floating in
@@ -800,7 +837,7 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
   .topbar{gap:10px;padding:0 12px}
   #pricingpill,#accountpill,#signuppill{display:none}
   .locale select{max-width:132px}
-  body.rail-open .rail{position:fixed;left:0;top:56px;width:var(--rail-w-open);height:calc(100vh - 56px)}
+  body.rail-open .rail{position:fixed;left:0;top:56px;width:var(--rail-w-open);height:calc(100vh / var(--ui-zoom) - 56px)}
   main{padding:20px 16px 90px}
   .hero h1{font-size:32.2px}
   .hero img{height:74px;margin-top:4px}
@@ -1100,13 +1137,40 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <p class="slogan"><span class="slogan-lead">Your reliable business writing assistant</span><br><span class="slogan-proof">Real computation. Real research. Built for business students.</span></p>
       </div>
       <div class="actionbox">
+        <div class="composer-setup">
+          <div class="homectl">
+            <span class="homectl-cap" id="homemode-cap">Mode</span>
+            <div class="segmented" role="group" aria-labelledby="homemode-cap">
+              <button type="button" class="segbtn" data-homemode="chat" aria-pressed="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l6-4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>Chat</button>
+              <button type="button" class="segbtn" data-homemode="chart" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h4v7H4zM10 4h4v16h-4zM16 9h4v11h-4z"/></svg>Chart chat</button>
+            </div>
+            <select id="homemode" class="visually-hidden" tabindex="-1" aria-hidden="true">
+              <option value="chat">Chat</option><option value="chart">Chart chat</option></select>
+          </div>
+        </div>
         <label class="visually-hidden" for="objective">What would you like to work on?</label>
         <textarea id="objective" placeholder="What would you like to work on..."></textarea>
-        <div class="row" style="margin:2px 0 8px;gap:8px;align-items:flex-end;flex-wrap:wrap">
-          <label class="field" for="homelength" style="margin:0;max-width:220px">Body words
-            <input id="homelength" type="number" min="600" max="50000" step="100" placeholder="e.g. 2500">
-          </label>
-          <span class="muted" style="max-width:260px;font-size:12px">Body only: no title page, title, headings, references or footnotes. 10% is strived for, not guaranteed.</span>
+        <div class="composer-setup below">
+          <div class="homectl">
+            <span class="homectl-cap" id="homewords-cap">Target length</span>
+            <div class="wordtarget" role="group" aria-labelledby="homewords-cap">
+              <span class="wordtarget-field">
+                <label class="visually-hidden" for="homelength">Target body word count</label>
+                <input id="homelength" type="number" min="600" max="50000" step="100" inputmode="numeric" placeholder="2500">
+                <span class="wordtarget-unit">words</span>
+              </span>
+              <div class="wordpresets">
+                <button type="button" class="wordpreset" data-homewords="1000">1,000</button>
+                <button type="button" class="wordpreset" data-homewords="1500">1,500</button>
+                <button type="button" class="wordpreset" data-homewords="2500">2,500</button>
+                <button type="button" class="wordpreset" data-homewords="4000">4,000</button>
+                <button type="button" class="wordpreset" data-homewords="5000">5,000</button>
+              </div>
+            </div>
+            <p class="homectl-hint">Body text only · the paper aims within ±10%</p>
+          </div>
         </div>
         <div class="actionrow">
           <button class="btn" id="attachbtn" type="button" title="Upload the files that contain the instruction to follow">Instruction files</button>
@@ -1354,6 +1418,23 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <div id="statementsout"></div>
       </div>
     </section>
+    <section class="panel" id="panel-economics" hidden aria-labelledby="economics-title">
+      <div class="card">
+        <h2 id="economics-title" style="margin:0 0 10px">Economics</h2>
+        <label class="field" for="economicstype">Problem type</label>
+        <select id="economicstype"></select>
+        <label class="field" for="economicsinstruction" style="margin-top:10px">Problem</label>
+        <textarea id="economicsinstruction" rows="5" spellcheck="false" placeholder="Paste the problem as you were given it. The figures are read from it."></textarea>
+        <details id="economicsmanual" style="margin-top:8px"><summary class="muted">Enter figures manually (optional)</summary>
+          <div id="economicsfields" class="grid2" style="margin-top:8px"></div>
+        </details>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="economicsgo" type="button">Solve it</button>
+          <button class="btn" id="economicsback" type="button">Back to the shelf</button>
+        </div>
+        <div id="economicsout"></div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -1396,7 +1477,7 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <li><strong>Calculation</strong> — one method with figures you declare.</li>
         <li><strong>Worked example</strong> — a preset you replace with your own numbers.</li>
         <li><strong>Checks</strong> — the engine's own verification; a failed check blocks the result.</li>
-        <li><strong>T1 / T2</strong> — a standard tool or a custom analysis; the result says which.</li>
+        <li><strong>T1 / T2</strong> — a standard tool or a custom method; the result says which.</li>
         <li><strong>Blocked</strong> — the engine refused; the reason is shown, and nothing is guessed.</li>
       </ul>
       <h3>Offline</h3>
@@ -1580,7 +1661,7 @@ const state = {
 /* "chat" is not a panel any more: the chat renders on the Home page. The router
    sends both #/chat and #/home there, so an old link still lands in the right
    place instead of a blank screen. */
-const PANELS = ["home", "plan", "subjects", "subject", "portfolio", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status", "statements"];
+const PANELS = ["home", "plan", "subjects", "subject", "portfolio", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status", "statements", "economics"];
 /* The panels a subject hands off to. A tool or worksheet opened from a subject
    page lands here, and that subject keeps its place in the rail while the work
    runs, so the highlight does not vanish the moment a subsection is opened. */
@@ -1701,6 +1782,10 @@ function route() {
     state.subjectId = decodeURIComponent(parts[1]);
     state.subject = null;
     show("subject");
+    return;
+  }
+  if (head === "economics" && parts[1]) {
+    if (typeof window.openEconomicsTile === "function") window.openEconomicsTile(decodeURIComponent(parts[1]));
     return;
   }
   if (head === "financial-statements" || head === "statements") {
@@ -2545,6 +2630,184 @@ async function exportPortfolio() {
   } catch (error) { toast(error.message || String(error)); }
 }
 
+function parsePoints(text, withRunning) {
+  return String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    .map((line) => {
+      const parts = line.split(",").map((part) => part.trim()).filter((part) => part !== "");
+      if (withRunning && parts.length >= 3) {
+        return { label: parts.slice(0, parts.length - 2).join(", "),
+                 value: parts[parts.length - 2], cumulative: parts[parts.length - 1] };
+      }
+      const cut = line.lastIndexOf(",");
+      if (cut < 0) return null;
+      return { label: line.slice(0, cut).trim(), value: line.slice(cut + 1).trim() };
+    }).filter(Boolean);
+}
+
+function visualRequest() {
+  const title = ($("#vistitle").value || "").trim();
+  const kind = $("#viskind").value;
+  const points = parsePoints($("#vispoints").value, kind === "pareto");
+  if (!title) throw new Error("Give the visual a title.");
+  if (!points.length) throw new Error("Add at least one line: label, value.");
+  const body = { title: title, source: { kind: "declared", points: points } };
+  if (kind) body.kind = kind;
+  return body;
+}
+
+async function visualPreview() {
+  const out = $("#visout");
+  out.innerHTML = loading("Drawing the preview");
+  try {
+    const body = visualRequest();
+    body.preview = true;
+    const r = await post("/api/cases/visuals", body);
+    out.innerHTML = '<figure class="chart">' + (r.svg || "") + "</figure>" +
+      '<p class="muted">' + esc(r.kind) + " &middot; " + esc((r.source || {}).label || "") + "</p>";
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function visualCreate() {
+  const out = $("#visout");
+  out.innerHTML = loading("Creating the visual");
+  try {
+    const r = await post("/api/cases/visuals", visualRequest());
+    const formats = ["png", "svg", "docx", "pptx", "pdf"];
+    out.innerHTML = '<p class="muted">Saved: ' + esc(r.title) + " &middot; " + esc(r.kind) + "</p>" +
+      '<div class="row" style="flex-wrap:wrap">' + formats.map((fmt) =>
+        '<button class="btn sm" type="button" data-visexport="' + fmt + '" data-visid="' + esc(r.id) + '">' +
+        fmt.toUpperCase() + "</button>").join("") + "</div>";
+    $$("[data-visexport]", out).forEach((button) => {
+      button.onclick = () => visualExport(button.dataset.visid, button.dataset.visexport);
+    });
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function visualExport(id, fmt) {
+  const out = $("#visout");
+  try {
+    const r = await post("/api/cases/visuals/" + encodeURIComponent(id) + "/export", { format: fmt });
+    const binary = atob(r.data), bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = r.filename;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => { URL.revokeObjectURL(url); link.remove(); }, 0);
+    out.insertAdjacentHTML("beforeend", '<p class="muted">Downloaded ' + esc(r.filename) + ".</p>");
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function loadVisuals() {
+  const host = $("#vislist");
+  if (!host) return;
+  try {
+    const r = await api("/api/cases/visuals");
+    const rows = (r && r.visuals) || [];
+    if (!rows.length) { host.innerHTML = '<p class="muted">No visuals yet.</p>'; return; }
+    host.innerHTML = rows.map((row) =>
+      '<div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px;margin:4px 0">' +
+      '<span class="row" style="gap:8px;align-items:flex-start">' +
+      '<input type="checkbox" class="vispick" value="' + esc(row.id) + '" aria-label="Choose this visual">' +
+      "<span><strong>" + esc(row.title) + '</strong> <span class="muted">' +
+      esc((row.kinds || []).join(", ")) + " - " + esc(((row.source || {}).label) || "") + "</span></span></span>" +
+      '<span class="row" style="gap:6px;flex-wrap:wrap">' +
+      '<button class="btn sm" type="button" data-visopen="' + esc(row.id) + '">Open</button>' +
+      '<button class="btn sm" type="button" data-visattach="' + esc(row.id) + '">Add to paper</button>' +
+      '<button class="btn sm" type="button" data-visdelete="' + esc(row.id) + '">Delete</button>' +
+      "</span></div>").join("");
+    $$("[data-visopen]", host).forEach((b) => { b.onclick = () => openVisual(b.dataset.visopen); });
+    $$("[data-visattach]", host).forEach((b) => { b.onclick = () => attachVisual(b.dataset.visattach); });
+    $$("[data-visdelete]", host).forEach((b) => { b.onclick = () => deleteVisual(b.dataset.visdelete); });
+  } catch (error) { host.innerHTML = errorBanner(error); }
+}
+
+async function openVisual(id) {
+  const out = $("#visout");
+  out.innerHTML = loading("Opening the visual");
+  try {
+    const r = await post("/api/cases/visuals/" + encodeURIComponent(id) + "/export", { format: "svg" });
+    const binary = atob(r.data), bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    out.innerHTML = '<figure class="chart">' + new TextDecoder().decode(bytes) + "</figure>";
+  } catch (error) {
+    try {
+      const record = await api("/api/cases/visuals/" + encodeURIComponent(id));
+      const table = ((record.figures || [])[0] || {}).table;
+      if (table && table.columns) {
+        out.innerHTML = "<table><thead><tr>" +
+          table.columns.map((c) => "<th>" + esc(c) + "</th>").join("") + "</tr></thead><tbody>" +
+          (table.rows || []).map((row) => "<tr>" +
+            row.map((cell) => "<td>" + esc(cell) + "</td>").join("") + "</tr>").join("") +
+          "</tbody></table>";
+        return;
+      }
+    } catch (inner) { /* fall through to the banner */ }
+    out.innerHTML = errorBanner(error);
+  }
+}
+
+async function attachVisual(id) {
+  const out = $("#visout");
+  if (!state.chat || !state.chat.id) {
+    out.innerHTML = banner("limit", "Start a paper first",
+      "<div>The visual can be attached once the paper exists.</div>");
+    return;
+  }
+  out.innerHTML = loading("Adding it to the paper");
+  try {
+    state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/attach-visual",
+      { visual_id: id });
+    out.innerHTML = banner("ok", "Added",
+      "<div>The visual is now part of the paper and its deck.</div>");
+    renderChat();
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function deleteVisual(id) {
+  const out = $("#visout");
+  try {
+    await api("/api/cases/visuals/" + encodeURIComponent(id), { method: "DELETE" });
+    out.innerHTML = banner("ok", "Deleted", "<div>That visual is gone.</div>");
+    loadVisuals();
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function visualSheet() {
+  const out = $("#visout");
+  const ids = $$(".vispick", $("#vislist")).filter((box) => box.checked).map((box) => box.value);
+  if (ids.length < 1) { out.innerHTML = banner("limit", "Choose a visual", "<div>Tick at least one visual.</div>"); return; }
+  out.innerHTML = loading("Putting the visuals on one page");
+  try {
+    const r = await post("/api/cases/visuals/sheet", { ids: ids, title: "Figure sheet" });
+    const binary = atob(r.data), bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+    const url = URL.createObjectURL(new Blob([bytes], { type: r.mime }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = r.filename;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => { URL.revokeObjectURL(url); link.remove(); }, 0);
+    out.innerHTML = banner("ok", "Sheet ready", "<div>" + esc(r.filename) + " carries " + ids.length + " visuals.</div>");
+  } catch (error) { out.innerHTML = errorBanner(error); }
+}
+
+async function loadVisualMethods() {
+  const sel = $("#vismethod");
+  if (!sel || sel.options.length > 1) return;
+  try {
+    const d = await api("/api/cases/calculator");
+    const rows = [];
+    (d.groups || []).forEach((group) => (group.tools || []).forEach((tool) =>
+      rows.push({ method: tool.method, label: tool.label || tool.method })));
+    sel.innerHTML = '<option value="">Choose a calculation</option>' + rows.map((row) =>
+      '<option value="' + esc(row.method) + '">' + esc(row.label) + "</option>").join("");
+  } catch (error) { /* the select stays as it is */ }
+}
+
 RENDERERS.home = function () {
   const p = $("#panel-home");
   p.innerHTML =
@@ -2554,33 +2817,138 @@ RENDERERS.home = function () {
       '<p class="slogan"><span class="slogan-lead">Your reliable business writing assistant</span><br><span class="slogan-proof">Real computation. Real research. Built for business students.</span></p>' +
     "</div>" +
     '<div class="actionbox">' +
-      '<label class="visually-hidden" for="objective">What would you like to work on?</label>' +
-      '<textarea id="objective" placeholder="What would you like to work on..."></textarea>' +
-      '<div class="row" style="margin:2px 0 8px;gap:8px;align-items:flex-end;flex-wrap:wrap">' +
-        '<label class="field" for="homelength" style="margin:0;max-width:220px">Body words' +
-          '<input id="homelength" type="number" min="600" max="50000" step="100" placeholder="e.g. 2500">' +
-        "</label>" +
-        '<span class="muted" style="max-width:260px;font-size:12px">Body only: no title page, title, headings, references or footnotes. 10% is strived for, not guaranteed.</span>' +
+      '<div class="composer-setup">' +
+        '<div class="homectl">' +
+          '<span class="homectl-cap" id="homemode-cap">Mode</span>' +
+          '<div class="segmented" role="group" aria-labelledby="homemode-cap">' +
+            '<button type="button" class="segbtn" data-homemode="chat" aria-pressed="true">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l6-4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>Chat</button>' +
+            '<button type="button" class="segbtn" data-homemode="chart" aria-pressed="false">' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h4v7H4zM10 4h4v16h-4zM16 9h4v11h-4z"/></svg>Chart chat</button>' +
+          "</div>" +
+          '<select id="homemode" class="visually-hidden" tabindex="-1" aria-hidden="true">' +
+            '<option value="chat">Chat</option><option value="chart">Chart chat</option></select>' +
+        "</div>" +
       "</div>" +
-      '<div class="actionrow">' +
-        '<button class="btn" id="attachbtn" type="button" title="Upload the files that contain the instruction to follow">Instruction files</button>' +
-        '<button class="btn" id="sourcesbtn" type="button" title="Upload priority source documents">Sources</button>' +
-        '<button class="btn" id="databtn" type="button" title="Upload data files (XLSX, XLSM, CSV, TSV)">Data</button>' +
-        '<button class="btn" id="rubricbtn" type="button" title="Upload a marking guide">Rubric</button>' +
-        '<input type="file" id="attachfile" multiple accept=".pdf,.docx,.docm,.txt,.text,.md,.png,.jpg,.jpeg,.webp" hidden>' +
-        '<input type="file" id="sourcesfile" multiple accept=".pdf,.docx,.docm,.txt,.md,.bib,.ris" hidden>' +
-        '<input type="file" id="datafile" multiple accept=".xlsx,.xlsm,.xls,.csv,.tsv,.txt" hidden>' +
-        '<input type="file" id="rubricfile" multiple accept=".pdf,.docx,.docm,.txt,.md" hidden>' +
-        '<button type="button" id="chatstart" hidden tabindex="-1">Start the analysis</button>' +
-        '<button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">' +
-          '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>' +
-        "</button>" +
+      '<div id="chatmode">' +
+        '<label class="visually-hidden" for="objective">What would you like to work on?</label>' +
+        '<textarea id="objective" placeholder="What would you like to work on..."></textarea>' +
+        '<div class="composer-setup below">' +
+          '<div class="homectl">' +
+            '<span class="homectl-cap" id="homewords-cap">Target length</span>' +
+            '<div class="wordtarget" role="group" aria-labelledby="homewords-cap">' +
+              '<span class="wordtarget-field">' +
+                '<label class="visually-hidden" for="homelength">Target body word count</label>' +
+                '<input id="homelength" type="number" min="600" max="50000" step="100" inputmode="numeric" placeholder="2500">' +
+                '<span class="wordtarget-unit">words</span>' +
+              "</span>" +
+              '<div class="wordpresets">' +
+                '<button type="button" class="wordpreset" data-homewords="1000">1,000</button>' +
+                '<button type="button" class="wordpreset" data-homewords="1500">1,500</button>' +
+                '<button type="button" class="wordpreset" data-homewords="2500">2,500</button>' +
+                '<button type="button" class="wordpreset" data-homewords="4000">4,000</button>' +
+                '<button type="button" class="wordpreset" data-homewords="5000">5,000</button>' +
+              "</div>" +
+            "</div>" +
+            '<p class="homectl-hint">Body text only · the paper aims within ±10%</p>' +
+          "</div>" +
+        "</div>" +
+        '<div class="actionrow">' +
+          '<button class="btn" id="attachbtn" type="button" title="Upload the files that contain the instruction to follow">Instruction files</button>' +
+          '<button class="btn" id="sourcesbtn" type="button" title="Upload priority source documents">Sources</button>' +
+          '<button class="btn" id="databtn" type="button" title="Upload data files (XLSX, XLSM, CSV, TSV)">Data</button>' +
+          '<button class="btn" id="rubricbtn" type="button" title="Upload a marking guide">Rubric</button>' +
+          '<input type="file" id="attachfile" multiple accept=".pdf,.docx,.docm,.txt,.text,.md,.png,.jpg,.jpeg,.webp" hidden>' +
+          '<input type="file" id="sourcesfile" multiple accept=".pdf,.docx,.docm,.txt,.md,.bib,.ris" hidden>' +
+          '<input type="file" id="datafile" multiple accept=".xlsx,.xlsm,.xls,.csv,.tsv,.txt" hidden>' +
+          '<input type="file" id="rubricfile" multiple accept=".pdf,.docx,.docm,.txt,.md" hidden>' +
+          '<button type="button" id="chatstart" hidden tabindex="-1">Start the analysis</button>' +
+          '<button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>' +
+          "</button>" +
+        "</div>" +
+        '<div id="attachments" class="attachments" aria-live="polite"></div>' +
       "</div>" +
-      '<div id="attachments" class="attachments" aria-live="polite"></div>' +
+      '<div id="chartmode" hidden>' +
+        '<p class="muted" style="margin:0 0 8px">A figure on its own, without a paper. Type your figures or pick a calculation, choose a chart, download it.</p>' +
+        '<div class="row" style="flex-wrap:wrap;margin:6px 0;gap:8px">' +
+          '<input id="vistitle" placeholder="Title, e.g. Revenue by quarter" style="flex:1;min-width:220px">' +
+          '<select id="vissource" aria-label="Where the figures come from">' +
+          '<option value="declared">Figures I type</option>' +
+          '<option value="calculation">A calculation</option></select>' +
+          '<select id="viskind" aria-label="Chart kind"><option value="">Propose for me</option>' +
+          '<option value="bar">bar</option><option value="line">line</option><option value="pie">pie</option>' +
+          '<option value="stacked_bar">stacked bar</option><option value="waterfall">waterfall</option>' +
+          '<option value="pareto">pareto</option>' +
+          '<option value="table">table</option></select>' +
+        "</div>" +
+        '<div id="viscalc" hidden>' +
+          '<div class="row" style="flex-wrap:wrap;gap:8px;margin:6px 0">' +
+            '<select id="vismethod" aria-label="Calculation"><option value="">Choose a calculation</option></select>' +
+          "</div>" +
+          '<textarea id="visinputs" rows="3" style="width:100%" placeholder="One per line: input, value - e.g.&#10;fixed, 40000&#10;price, 25&#10;variable, 12"></textarea>' +
+        "</div>" +
+        '<textarea id="vispoints" rows="4" style="width:100%" placeholder="One per line: label, value - e.g.&#10;Q1, 120000&#10;Q2, 240000&#10;A pareto adds a third column: the running total"></textarea>' +
+        '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
+          '<button class="btn" id="vispreview" type="button">Preview</button>' +
+          '<button class="btn primary" id="viscreate" type="button">Create</button>' +
+          '<span class="muted">Your figures are labelled as yours; they are never called evidence.</span>' +
+        "</div>" +
+        '<div id="visout"></div>' +
+        '<h3 style="margin:16px 0 6px">My visuals</h3>' +
+        '<div id="vislist"></div>' +
+        '<div class="row" style="margin-top:8px">' +
+          '<button class="btn" id="vissheet" type="button">Combine into one sheet</button>' +
+          '<span class="muted">Tick two or more visuals to put them on one Word page.</span>' +
+        "</div>" +
+      "</div>" +
     "</div>" +
     '<div class="card" id="chatcard" hidden><div id="chatout" aria-live="polite"></div></div>' +
     '<div class="card" id="storedpapers"><h2>Stored papers</h2><div id="storedpapersout" aria-live="polite"></div></div>';
   $("#run").onclick = startChat;
+  const visPreview = $("#vispreview");
+  if (visPreview) visPreview.onclick = visualPreview;
+  const visCreate = $("#viscreate");
+  if (visCreate) visCreate.onclick = visualCreate;
+  const mode = $("#homemode");
+  if (mode) mode.onchange = () => {
+    const chart = mode.value === "chart";
+    const chatBox = $("#chatmode"); if (chatBox) chatBox.hidden = chart;
+    const chartBox = $("#chartmode"); if (chartBox) chartBox.hidden = !chart;
+    if (chart) { loadVisuals(); loadVisualMethods(); }
+  };
+  /* The segmented buttons drive the (hidden) #homemode select, so the rest of the
+     page keeps reading one source of truth. */
+  $$("[data-homemode]").forEach((btn) => {
+    btn.onclick = () => {
+      $$("[data-homemode]").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+      if (mode) { mode.value = btn.dataset.homemode; mode.dispatchEvent(new Event("change")); }
+    };
+  });
+  /* Preset chips set #homelength (the word target startChat reads). */
+  const homeLen = $("#homelength");
+  const syncHomeWords = () => {
+    const value = homeLen ? String(homeLen.value || "").trim() : "";
+    $$("[data-homewords]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.homewords === value)));
+  };
+  $$("[data-homewords]").forEach((btn) => {
+    btn.onclick = () => {
+      if (homeLen) { homeLen.value = btn.dataset.homewords; homeLen.dispatchEvent(new Event("input")); homeLen.focus(); }
+      syncHomeWords();
+    };
+  });
+  if (homeLen) homeLen.addEventListener("input", syncHomeWords);
+  syncHomeWords();
+  const visSheet = $("#vissheet");
+  if (visSheet) visSheet.onclick = visualSheet;
+  const visSource = $("#vissource");
+  if (visSource) visSource.onchange = () => {
+    const calculation = visSource.value === "calculation";
+    const calcBox = $("#viscalc"); if (calcBox) calcBox.hidden = !calculation;
+    const points = $("#vispoints"); if (points) points.hidden = calculation;
+    if (calculation) loadVisualMethods();
+  };
+  loadVisuals();
   const legacy = $("#chatstart");
   if (legacy) legacy.onclick = startChat;
   $("#objective").addEventListener("keydown", (e) => {
@@ -2741,6 +3109,15 @@ function renderChat() {
     if (wordBox) wordBox.onkeydown = (event) => {
       if (event.key === "Enter") { event.preventDefault(); setReportLength(); }
     };
+    const syncChatWords = () => {
+      const value = wordBox ? String(wordBox.value || "").trim() : "";
+      $$("[data-chatwords]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.chatwords === value)));
+    };
+    $$("[data-chatwords]").forEach((btn) => {
+      btn.onclick = () => { if (wordBox) { wordBox.value = btn.dataset.chatwords; wordBox.dispatchEvent(new Event("input")); } syncChatWords(); };
+    });
+    if (wordBox) wordBox.addEventListener("input", syncChatWords);
+    syncChatWords();
     bindProposalControls(c);
     return;
   }
@@ -2896,15 +3273,24 @@ async function startChat() {
 /* ---- report length: three options with ranges, one vocabulary ---- */
 function reportLengthRow(plan) {
   const target = Number(plan.target_words || 2500);
-  return '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
+  return '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">' +
     '<h4 class="levelhead" style="margin-top:0">Body word count</h4>' +
-    '<div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap">' +
-    '<label class="field" for="chatwords" style="margin:0;max-width:240px">Target words' +
-    '<input id="chatwords" type="number" min="600" max="50000" step="100" value="' + esc(String(target)) + '">' +
-    "</label>" +
-    '<button class="btn" type="button" id="chatwordset">Set word count</button>' +
-    '<span class="muted">The body only: no title page, title, headings, reference list or footnotes.</span></div>' +
-    '<p class="muted" style="margin:6px 0 0">A target inside ±10% is strived for, not guaranteed. The paper is ' +
+    '<div class="wordtarget" role="group" aria-label="Body word count">' +
+    '<span class="wordtarget-field">' +
+    '<label class="visually-hidden" for="chatwords">Target body word count</label>' +
+    '<input id="chatwords" type="number" min="600" max="50000" step="100" inputmode="numeric" value="' + esc(String(target)) + '">' +
+    '<span class="wordtarget-unit">words</span>' +
+    "</span>" +
+    '<div class="wordpresets">' +
+    '<button type="button" class="wordpreset" data-chatwords="1000">1,000</button>' +
+    '<button type="button" class="wordpreset" data-chatwords="1500">1,500</button>' +
+    '<button type="button" class="wordpreset" data-chatwords="2500">2,500</button>' +
+    '<button type="button" class="wordpreset" data-chatwords="4000">4,000</button>' +
+    '<button type="button" class="wordpreset" data-chatwords="5000">5,000</button>' +
+    "</div>" +
+    '<button class="btn primary" type="button" id="chatwordset">Set word count</button>' +
+    "</div>" +
+    '<p class="homectl-hint">A target inside ±10% is strived for, not guaranteed. The paper is ' +
     "never blocked for its length; the count is reported and one adjustment pass is attempted when it is outside " +
     "10%. The student's instruction or rubric count wins over a default.</p></div>";
 }
@@ -3788,7 +4174,10 @@ function renderPlan() {
       '<label class="field" style="margin:0">Composition <select id="plancustommode">' +
         '<option value="strict"' + (plan.mode === "strict" ? " selected" : "") + '>Business-plan convention</option>' +
         '<option value="open"' + (plan.mode === "open" ? " selected" : "") + '>Open composition</option></select></label>' +
-      '<label class="field" style="margin:0;max-width:150px">Body words <input id="planwords" type="number" min="600" max="50000" step="100" value="' + esc(String(plan.target_words || 600)) + '"></label>' +
+      '<span class="wordtarget-field" style="max-width:170px">' +
+        '<label class="visually-hidden" for="planwords">Target body word count</label>' +
+        '<input id="planwords" type="number" min="600" max="50000" step="100" inputmode="numeric" value="' + esc(String(plan.target_words || 600)) + '">' +
+        '<span class="wordtarget-unit">words</span></span>' +
       '<button class="btn sm" id="plansetwords">Set</button>' +
       '<button class="btn sm" id="plancustomise">Apply</button></div>' +
       '<div class="row" style="flex-wrap:wrap;gap:10px;margin-top:6px">' +
@@ -4631,6 +5020,19 @@ function statementsCard(tile) {
   "</a>";
 }
 
+/* An economics service tile is one card that opens the solver page.  The whole
+   card is the link, exactly like the statements tile. */
+function economicsServiceCard(tile) {
+  return '<a class="capcard" href="#/economics/' + esc(tile.service) + '" data-service-open="' + esc(tile.service) + '">' +
+    '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' +
+      iconSvg("worksheet") + "</span>" +
+      "<strong>" + esc(tile.label) + "</strong></span>" +
+    '<span class="capdesc">' + esc(tile.what) + "</span>" +
+    '<span class="capfoot"><span class="capfoot-row"><span>One instruction</span>' +
+      '<span class="capgo">Open &rarr;</span></span></span>' +
+  "</a>";
+}
+
 function frameworkCard(row, kind, domain, actionOverride) {
   const theory = kind === "theory";
   const method = kind === "method";
@@ -4676,6 +5078,8 @@ function subjectTiles(s) {
        #/financial-statements, so the tile has a name a student can copy or bookmark. */
     if (tile.service === "statements") {
       html += '<div class="capgrid">' + statementsCard(tile) + "</div>";
+    } else if (tile.service) {
+      html += '<div class="capgrid">' + economicsServiceCard(tile) + "</div>";
     }
     if (!sheets.length && !rows.length && !tools.length && !tile.service) {
       html += '<p class="muted">' + esc(tile.note || "Nothing is assigned to this tile yet.") + "</p>";
@@ -6422,13 +6826,25 @@ function renderCalcResult() {
     resultBodyHtml(d, false) +
     '<div class="row" style="margin-top:12px">' +
     (state.calcRan
-      ? '<button class="btn primary" id="calcopenresult">Open the recorded case</button>' +
-        '<button class="btn" id="calcexplain">Download the explanation</button>'
+      ? '<button class="btn primary" id="calcopenresult">Open the recorded case</button>'
       : '<button class="btn primary" id="calcsaveresult">Save as case</button><button class="btn" id="calcopenresult">Open the full Result page</button>') +
     "</div>";
   const save = $("#calcsaveresult"); if (save) save.onclick = () => saveCase();
-  const explain = $("#calcexplain");
-  if (explain) explain.onclick = () => downloadCaseExplanation(state.calcRan);
+  const xlsx = $("#downloadxlsx");
+  if (xlsx) xlsx.onclick = async () => {
+    const id = state.calcRan || state.savedCaseId || await ensureSavedCase();
+    if (!id) return;
+    try {
+      const r = await post("/api/cases/" + encodeURIComponent(id) + "/export",
+                           { kind: "xlsx", deliverable: "workpapers", download: true });
+      saveDownload(r);
+      toast("Spreadsheet downloaded: " + (r.filename || "workpapers.xlsx"));
+    } catch (e) { toast("The spreadsheet could not be downloaded: " + (e.message || e)); }
+  };
+  const paper = $("#downloadpaper");
+  if (paper) paper.onclick = () => downloadSessionPaper("docx");
+  const explain = $("#downloadexplain");
+  if (explain) explain.onclick = () => downloadCaseExplanation(state.calcRan || state.savedCaseId || state.caseId);
   const open = $("#calcopenresult");
   if (open) open.onclick = () => {
     if (state.calcRan) { openCase(state.calcRan); return; }
@@ -7207,7 +7623,7 @@ function guideCard() {
     "are on the case page, and the download button gives you the file to hand in.</li>" +
     "</ol>" +
     '<p class="muted" style="margin-bottom:0">Management accounts only: not GAAP or IFRS statements and not ' +
-    "assurance. This is custom analysis (T2), expert review pending.</p>" +
+    "assurance. Expert review pending.</p>" +
     "</details>";
 }
 
@@ -8846,7 +9262,7 @@ function renderNew() {
     "</div>";
   if (s.spec) {
     const checks = plan.planned_checks || [];
-    html += '<div class="card"><h2>Draft work plan</h2>' +
+    html += '<details class="studynote"><summary>Draft work plan</summary>' +
       (checks.length ? "<h3>What will be checked</h3><ul class=\"checklist\">" +
         checks.map((c) => "<li>" + esc(checkLabel(c)) + "</li>").join("") + "</ul>" : "") +
       (plan.ambiguities && plan.ambiguities.length
@@ -8859,7 +9275,7 @@ function renderNew() {
           "<details><summary>The recorded values, verbatim</summary><pre class=\"json\">" +
           esc(recordedRaw(plan)) + "</pre></details>"
         : "") +
-      "</div>";
+      "</details>";
   }
   if (s.delivery) {
     html += '<div class="card"><h2>Stage status</h2>' +
@@ -8967,6 +9383,11 @@ RENDERERS.results = function () { renderResults(); };
 function tierLabel(tier) {
   return ({ T1: "Verified calculation", T2: "Custom analysis", T3: "Framework with calculation",
             T4: "Framework worksheet" })[tier] || "Result";
+}
+
+function firstUpper(text) {
+  const s = String(text || "");
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 /* One builder for the delivered result, used by the Result page and by the
@@ -9084,14 +9505,13 @@ function resultBodyHtml(d, withActions) {
   const ap = d.appendix || {};
   const honesty = ap.honesty || {};
   const honestyKeys = Object.keys(honesty).filter((k) => honesty[k]);
+  const cap = (text) => { const s = String(text || ""); return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; };
   let html = '<div class="card">' +
     '<div class="row" style="justify-content:space-between"><' + (withActions ? "h2" : "h3") +
-      ' style="margin:0">Result</' + (withActions ? "h2" : "h3") + '><span class="badge">' + esc(tierLabel(ap.tier)) + "</span></div>" +
+      ' style="margin:0">Result</' + (withActions ? "h2" : "h3") + '></div>' +
     (withActions ? '<div class="row" style="margin:10px 0 12px">' +
       '<button class="btn primary" id="savecase">Save as case</button>' +
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="viewgantt">View the Gantt</button>' : "") +
-      '<button class="btn" id="downloadxlsx">Download spreadsheet</button>' +
-      '<button class="btn" id="downloadpaper">Download the paper (Word)</button>' +
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
       '<button class="btn" id="tocharts" type="button" hidden>Charts and exports</button>' +
       (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
@@ -9105,15 +9525,22 @@ function resultBodyHtml(d, withActions) {
       "</tbody></table></div>";
   }
   html += renderRegressionBlock(ap);
+  // The three downloads sit below the numbers, at the bottom of the computation card.
+  html += '<div class="row" style="margin-top:14px">' +
+    '<button class="btn" id="downloadxlsx">Download spreadsheet</button>' +
+    '<button class="btn" id="downloadpaper">Download the paper (Word)</button>' +
+    '<button class="btn" id="downloadexplain">Download the explainer</button>' +
+    "</div>";
+  const detail = (title, body) => '<details class="studynote"><summary>' + esc(title) + "</summary>" + body + "</details>";
   if (honestyKeys.length) {
-    html += banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
-      "<li>" + esc(String(k).replace(/_/g, " ")) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : "see the technical record") + "</li>").join("") + "</ul>");
+    html += detail("Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
+      "<li>" + esc(cap(String(k).replace(/_/g, " "))) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : "see the technical record") + "</li>").join("") + "</ul>");
   }
   if ((ap.limitations || []).length) {
-    html += banner("limit", "Limitations (as recorded)", "<ul>" + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>");
+    html += detail("Limitations (as recorded)", "<ul>" + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>");
   }
   if ((ap.assumptions || []).length) {
-    html += banner("limit", "Assumptions (as recorded)", "<ul>" + ap.assumptions.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>");
+    html += detail("Assumptions (as recorded)", "<ul>" + ap.assumptions.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>");
   }
   html += "</div>";
   html += '<details class="studynote"><summary>For audit: recorded values, checks and hashes</summary>' +
@@ -9169,6 +9596,7 @@ function renderResults() {
   const gantt = $("#viewgantt"); if (gantt) gantt.onclick = viewGantt;
   const xlsx = $("#downloadxlsx"); if (xlsx) xlsx.onclick = downloadResultXlsx;
   const paper = $("#downloadpaper"); if (paper) paper.onclick = () => downloadSessionPaper("docx");
+  const explainOut = $("#downloadexplain"); if (explainOut) explainOut.onclick = () => downloadCaseExplanation(state.savedCaseId || state.caseId);
   const svg = $("#downloadsvg"); if (svg) svg.onclick = downloadResultSvg;
   $("#tocharts").onclick = () => { state.caseId = state.savedCaseId || null; show("deliver"); };
   const resultReport = $("#resultreport");
@@ -9385,8 +9813,7 @@ function renderCase() {
   const honesty = ap.honesty || {};
   const honestyKeys = Object.keys(honesty).filter((k) => honesty[k]);
   let html = '<div class="card">' +
-    '<div class="row" style="justify-content:space-between"><h2>' + esc(txt(b.title)) + "</h2>" +
-    '<span class="badge">' + esc(tierLabel(b.tier)) + "</span></div>" +
+    '<div class="row" style="justify-content:space-between"><h2>' + esc(txt(b.title)) + "</h2></div>" +
     '<div class="row"><span class="muted">Case ' + esc(b.id) + " - " + esc(txt(b.created_at)) + " - " + esc(txt(b.method)) + "</span>" +
     '<span class="grow"></span><button class="btn sm danger" id="delcase">Delete case</button></div>' +
     '<div class="tabs" role="tablist">' +
@@ -9403,9 +9830,9 @@ function renderCase() {
     '<span class="muted" id="dlmsg"></span></div>' +
     '<div class="report">' + esc(d.report) + "</div>" +
     (ap.accounts ? accountingBlocks(ap.accounts) : "") +
-    (honestyKeys.length ? banner("honesty", "Honesty: what was not done", "<ul>" + honestyKeys.map((k) =>
-      "<li>" + esc(String(k).replace(/_/g, " ")) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : "see the technical record") + "</li>").join("") + "</ul>") : "") +
-    ((ap.limitations || []).length ? banner("limit", "Limitations (as recorded)", "<ul>" + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>") : "") +
+    (honestyKeys.length ? '<details class="studynote"><summary>Honesty: what was not done</summary><ul>' + honestyKeys.map((k) =>
+      "<li>" + esc(firstUpper(String(k).replace(/_/g, " "))) + ": " + esc(typeof honesty[k] === "string" ? honesty[k] : "see the technical record") + "</li>").join("") + "</ul></details>" : "") +
+    ((ap.limitations || []).length ? '<details class="studynote"><summary>Limitations (as recorded)</summary><ul>' + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul></details>" : "") +
     '<details class="studynote"><summary>Technical record (hashes, checks and artifacts)</summary>' +
       "<h3>Artifacts</h3>" + artifactTable(ap) +
       '<h3>Recorded metadata</h3>' + kv([["Spec hash", ap.spec_hash], ["Outputs hash", b.outputs_hash],
@@ -9909,9 +10336,20 @@ function renderAccounts() {
   if (d && d.status === "delivered") {
     const ap = d.appendix || {};
     box.innerHTML = '<div class="report">' + esc(d.report) + "</div>" +
-      ((ap.limitations || []).length ? banner("limit", "Limitations (as recorded)", "<ul>" + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul>") : "") +
-      '<div class="row"><button class="btn primary" id="dlstatements">Download financial statements</button></div>';
+      ((ap.limitations || []).length ? '<details class="studynote"><summary>Limitations (as recorded)</summary><ul>' + ap.limitations.map((l) => "<li>" + esc(l) + "</li>").join("") + "</ul></details>" : "") +
+      '<div class="row" style="margin-top:14px">' +
+        '<button class="btn" id="dlstatements">Download financial statements</button>' +
+        '<button class="btn" id="dlacctxlsx">Download spreadsheet</button>' +
+        '<button class="btn" id="dlacctdocx">Download the paper (Word)</button>' +
+        '<button class="btn" id="dlacctexplain">Download the explainer</button>' +
+      "</div>";
     $("#dlstatements").onclick = () => exportStatements();
+    $("#dlacctxlsx").onclick = () => downloadResultXlsx();
+    $("#dlacctdocx").onclick = () => downloadSessionPaper("docx");
+    $("#dlacctexplain").onclick = async () => {
+      const id = await ensureSavedCase();
+      if (id) downloadCaseExplanation(id);
+    };
   }
   const mbox = $("#acctmap");
   if (mbox) {
@@ -10340,10 +10778,13 @@ async function boot() {
     railTip.classList.add("on");
     const r = item.getBoundingClientRect();
     const t = railTip.getBoundingClientRect();
+    /* getBoundingClientRect reports visual pixels, but style.left/top are in the
+       zoomed CSS space; divide by the page zoom so the tip lands where measured. */
+    const zoom = Number(getComputedStyle(document.body).zoom) || 1;
     let left = r.right + 10;
     if (left + t.width > window.innerWidth - 8) left = Math.max(8, window.innerWidth - 8 - t.width);
-    railTip.style.left = Math.round(left) + "px";
-    railTip.style.top = Math.round(r.top + r.height / 2 - t.height / 2) + "px";
+    railTip.style.left = Math.round(left / zoom) + "px";
+    railTip.style.top = Math.round((r.top + r.height / 2 - t.height / 2) / zoom) + "px";
   };
   const rail = $("#rail");
   rail.addEventListener("mouseover", (e) => {
@@ -10804,6 +11245,204 @@ if (new URLSearchParams(location.search).get("pricing")) {
           }
         });
     });
+    /* Ratios are computed on demand from the frozen record, never re-typed: the route reads
+       the same figures the statements printed.  A ratio the record cannot support is named. */
+    act("Ratios", function () {
+      var old = document.getElementById("stmtratios");
+      if (old) { old.remove(); }
+      var box = el("div", "stmtsbox");
+      box.id = "stmtratios";
+      box.appendChild(el("p", "muted", "Computing ratios from this statement…"));
+      host.appendChild(box);
+      fetch("/api/cases/statements/" + record.id + "/ratios")
+        .then(function (answer) {
+          return answer.json().then(function (body) { return {status: answer.status, body: body}; });
+        })
+        .then(function (result) {
+          box.innerHTML = "";
+          if (result.status !== 200) {
+            box.appendChild(el("p", "muted", "Ratios: " +
+              ((result.body && result.body.error) || result.status)));
+            return;
+          }
+          box.appendChild(el("h4", "", "Ratios from this statement"));
+          (result.body.computed || []).forEach(function (row) {
+            box.appendChild(el("p", "muted", row.ratio + ": " + row.value +
+              (row.definition ? " (" + row.definition + ")" : "")));
+          });
+          (result.body.named_unsupported || []).forEach(function (row) {
+            box.appendChild(el("p", "muted", row.ratio + " - not computed: " + (row.reason || "")));
+          });
+        })
+        .catch(function (error) {
+          box.innerHTML = "";
+          box.appendChild(el("p", "muted", "Ratios: the server did not answer (" + error + ")."));
+        });
+    });
+    act("DuPont", function () {
+      var old = document.getElementById("stmtdupont");
+      if (old) { old.remove(); }
+      var box = el("div", "stmtsbox");
+      box.id = "stmtdupont";
+      box.appendChild(el("p", "muted", "Computing the DuPont decomposition…"));
+      host.appendChild(box);
+      fetch("/api/cases/statements/" + record.id + "/dupont")
+        .then(function (answer) {
+          return answer.json().then(function (body) { return {status: answer.status, body: body}; });
+        })
+        .then(function (result) {
+          box.innerHTML = "";
+          if (result.status !== 200) {
+            box.appendChild(el("p", "muted", "DuPont: " +
+              ((result.body && result.body.error) || result.status)));
+            return;
+          }
+          box.appendChild(el("h4", "", "DuPont decomposition"));
+          Object.keys(result.body.result || {}).sort().forEach(function (key) {
+            box.appendChild(el("p", "muted", key + ": " + result.body.result[key]));
+          });
+          (result.body.not_run || []).forEach(function (note) {
+            box.appendChild(el("p", "muted", "Not run: " + note));
+          });
+        })
+        .catch(function (error) {
+          box.innerHTML = "";
+          box.appendChild(el("p", "muted", "DuPont: the server did not answer (" + error + ")."));
+        });
+    });
+    act("Working capital", function () {
+      var old = document.getElementById("stmtwc");
+      if (old) { old.remove(); }
+      var box = el("div", "stmtsbox");
+      box.id = "stmtwc";
+      box.appendChild(el("h4", "", "Working capital and the cash conversion cycle"));
+      box.appendChild(el("p", "muted", "The statement supplies revenue, cost of sales, inventory, " +
+        "receivables and payables. The order size and the cost of trade credit need these terms:"));
+      var fields = [
+        ["annual_demand", "Annual demand (units)", "1000"],
+        ["order_cost", "Order cost per order", "50"],
+        ["holding_cost_per_unit", "Holding cost per unit", "2"],
+        ["discount_percent", "Discount percent (0.02 = 2%)", "0.02"],
+        ["credit_terms_days", "Credit terms (days)", "30"],
+        ["discount_days", "Discount period (days)", "10"]
+      ];
+      fields.forEach(function (f) {
+        var row = el("div", "row");
+        row.appendChild(el("label", "muted", f[1]));
+        var input = el("input");
+        input.type = "text";
+        input.value = f[2];
+        input.id = "stmtwc-" + f[0];
+        row.appendChild(input);
+        box.appendChild(row);
+      });
+      var run = el("button", "btn sm", "Compute");
+      run.type = "button";
+      run.onclick = function () {
+        var extra = {};
+        fields.forEach(function (f) {
+          var input = document.getElementById("stmtwc-" + f[0]);
+          if (input && input.value !== "") { extra[f[0]] = input.value; }
+        });
+        box.appendChild(el("p", "muted", "Computing…"));
+        fetch("/api/cases/statements/" + record.id + "/working-capital", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({extra: extra})
+        }).then(function (answer) {
+          return answer.json().then(function (body) { return {status: answer.status, body: body}; });
+        }).then(function (result) {
+          var out = el("div");
+          if (result.status !== 200) {
+            out.appendChild(el("p", "muted", "Working capital: " +
+              ((result.body && result.body.error) || result.status)));
+          } else {
+            Object.keys(result.body.result || {}).sort().forEach(function (key) {
+              out.appendChild(el("p", "muted", key + ": " + result.body.result[key]));
+            });
+          }
+          box.appendChild(out);
+        }).catch(function (error) {
+          box.appendChild(el("p", "muted", "Working capital: the server did not answer (" + error + ")."));
+        });
+      };
+      box.appendChild(run);
+      host.appendChild(box);
+    });
+    act("Cash conversion cycle", function () {
+      var old = document.getElementById("stmtccc");
+      if (old) { old.remove(); }
+      var box = el("div", "stmtsbox");
+      box.id = "stmtccc";
+      box.appendChild(el("p", "muted", "Computing the cash conversion cycle…"));
+      host.appendChild(box);
+      fetch("/api/cases/statements/" + record.id + "/cycle")
+        .then(function (answer) {
+          return answer.json().then(function (body) { return {status: answer.status, body: body}; });
+        })
+        .then(function (result) {
+          box.innerHTML = "";
+          if (result.status !== 200) {
+            box.appendChild(el("p", "muted", "Cash conversion cycle: " +
+              ((result.body && result.body.error) || result.status)));
+            return;
+          }
+          box.appendChild(el("h4", "", "Cash conversion cycle"));
+          Object.keys(result.body.result || {}).sort().forEach(function (key) {
+            box.appendChild(el("p", "muted", key + ": " + result.body.result[key]));
+          });
+        })
+        .catch(function (error) {
+          box.innerHTML = "";
+          box.appendChild(el("p", "muted", "Cash conversion cycle: the server did not answer (" + error + ")."));
+        });
+    });
+    act("Trend", function () {
+      var old = document.getElementById("stmttrend");
+      if (old) { old.remove(); }
+      var box = el("div", "stmtsbox");
+      box.id = "stmttrend";
+      box.appendChild(el("h4", "", "Trend across periods"));
+      box.appendChild(el("p", "muted", "This record is one period. Enter the ids of the other " +
+        "statement records (comma-separated); the trend orders them by the year each statement ends."));
+      var row = el("div", "row");
+      var input = el("input");
+      input.type = "text";
+      input.id = "stmttrend-others";
+      input.placeholder = "record id, record id";
+      row.appendChild(input);
+      var run = el("button", "btn sm", "Compute trend");
+      run.type = "button";
+      row.appendChild(run);
+      box.appendChild(row);
+      host.appendChild(box);
+      run.onclick = function () {
+        var others = (input.value || "").split(",").map(function (s) { return s.trim(); })
+          .filter(function (s) { return s; });
+        var ids = [record.id].concat(others);
+        fetch("/api/cases/statements/trend", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({records: ids})
+        }).then(function (answer) {
+          return answer.json().then(function (body) { return {status: answer.status, body: body}; });
+        }).then(function (result) {
+          var out = el("div");
+          if (result.status !== 200) {
+            out.appendChild(el("p", "muted", "Trend: " +
+              ((result.body && result.body.error) || result.status)));
+          } else {
+            out.appendChild(el("p", "muted", "Periods: " + (result.body.periods || []).join(", ")));
+            Object.keys(result.body.result || {}).sort().forEach(function (key) {
+              out.appendChild(el("p", "muted", key + ": " + result.body.result[key]));
+            });
+          }
+          box.appendChild(out);
+        }).catch(function (error) {
+          box.appendChild(el("p", "muted", "Trend: the server did not answer (" + error + ")."));
+        });
+      };
+    });
     host.appendChild(foot);
     var checks = record.checks || [];
     var passed = checks.filter(function (check) { return check.ok; }).length;
@@ -10831,6 +11470,146 @@ if (new URLSearchParams(location.search).get("pricing")) {
   window.openStatementsTile = open;
 
   bind();
+})();
+
+/* The economics service tiles: one problem type, declared figures, a solution. */
+(function () {
+  var service = "macroeconomics";
+  var types = [];
+  var bound = false;
+
+  function open(name) {
+    service = name || "macroeconomics";
+    bind();
+    show("economics");
+    load();
+  }
+  function bind() {
+    if (bound) { return; }
+    bound = true;
+    var back = $("#economicsback");
+    if (back) { back.onclick = function () { location.hash = "#/subject/economics"; }; }
+    var go = $("#economicsgo");
+    if (go) { go.onclick = function () { solve(go); }; }
+    var pick = $("#economicstype");
+    if (pick) { pick.onchange = function () { renderFields(pick.value); }; }
+  }
+  function load() {
+    var host = $("#economicsout");
+    if (host) { host.innerHTML = ""; }
+    var pick = $("#economicstype");
+    if (pick) { pick.innerHTML = "<option>Loading…</option>"; }
+    fetch("/api/cases/economics/" + encodeURIComponent(service)).then(function (answer) {
+      return answer.json();
+    }).then(function (body) {
+      types = body.types || [];
+      var title = $("#economics-title");
+      if (title) { title.textContent = body.label || service; }
+      if (pick) {
+        pick.innerHTML = types.map(function (row) {
+          return '<option value="' + esc(row.key) + '">' + esc(row.label) + "</option>";
+        }).join("");
+      }
+      renderFields(pick ? pick.value : (types[0] || {}).key);
+    }).catch(function (error) {
+      if (host) { host.innerHTML = banner("blocked", "The solver did not load", "<p>" + esc(String(error)) + "</p>"); }
+    });
+  }
+  function current() {
+    var pick = $("#economicstype");
+    var key = pick ? pick.value : "";
+    for (var i = 0; i < types.length; i += 1) { if (types[i].key === key) { return types[i]; } }
+    return types[0];
+  }
+  function renderFields(key) {
+    var type = current();
+    for (var i = 0; i < types.length; i += 1) { if (types[i].key === key) { type = types[i]; } }
+    var host = $("#economicsfields");
+    if (!host) { return; }
+    host.innerHTML = "";
+    if (!type) { return; }
+    (type.fields || []).forEach(function (field) {
+      var label = document.createElement("label");
+      label.className = "field";
+      label.style.margin = "0";
+      label.appendChild(document.createTextNode(field.label + (field.required ? "" : " (optional)")));
+      var input = document.createElement("input");
+      input.type = field.type === "decimal" ? "number" : "text";
+      input.step = "any";
+      input.dataset.econfield = field.key;
+      label.appendChild(input);
+      host.appendChild(label);
+    });
+  }
+  function solve(button) {
+    var type = current();
+    if (!type) { return; }
+    var figures = {};
+    $$("[data-econfield]").forEach(function (input) {
+      if (input.value.trim()) { figures[input.dataset.econfield] = input.value.trim(); }
+    });
+    var instruction = ($("#economicsinstruction") || {}).value || "";
+    var host = $("#economicsout");
+    host.innerHTML = loading("Solving");
+    button.disabled = true;
+    fetch("/api/cases/economics/" + encodeURIComponent(service), {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({problem: type.key, figures: figures, instruction: instruction})
+    }).then(function (answer) {
+      return answer.json().then(function (body) { return {status: answer.status, body: body}; });
+    }).then(function (result) {
+      button.disabled = false;
+      host.innerHTML = "";
+      if (result.status !== 200) {
+        var reason = (result.body || {}).error || "The server refused it.";
+        if (/does not state|does not look like/.test(reason)) {
+          var manual = $("#economicsmanual");
+          if (manual) { manual.open = true; }
+        }
+        host.innerHTML = banner("blocked", "This problem was not solved",
+          "<p>" + esc(reason) + "</p>");
+        return;
+      }
+      var d = result.body;
+      var html = "<h3 style=\"margin-top:14px\">" + esc(d.problem_label) + "</h3>";
+      if (d.read && Object.keys(d.read).length) {
+        html += '<p class="muted">Read from the problem: ' +
+          Object.keys(d.read).map(function (key) { return esc(key.replace(/_/g, " ")) + " " + esc(d.read[key]); }).join("; ") + "</p>";
+      }
+      if (d.interpretation) { html += '<p class="muted">' + esc(d.interpretation) + "</p>"; }
+      html += '<div class="stack">' + (d.lines || []).map(function (line) {
+        var split = line.indexOf(": ");
+        var key = split > 0 ? line.slice(0, split) : "Result";
+        var value = split > 0 ? line.slice(split + 2) : line;
+        return "<p style=\"margin:2px 0\"><strong>" + esc(key) + ":</strong> " + esc(value) + "</p>";
+      }).join("") + "</div>";
+      if ((d.assumptions || []).length) {
+        html += "<h4>Assumptions</h4><ul>" + d.assumptions.map(function (row) { return "<li>" + esc(row) + "</li>"; }).join("") + "</ul>";
+      }
+      if ((d.limitations || []).length) {
+        html += "<h4>Limitations</h4><ul>" + d.limitations.map(function (row) { return "<li>" + esc(row) + "</li>"; }).join("") + "</ul>";
+      }
+      html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="economicsdownload">Download the Word file</button></div>';
+      host.innerHTML = html;
+      var download = $("#economicsdownload");
+      if (download) {
+        download.onclick = function () {
+          var bytes = Uint8Array.from(atob(d.docx.data), function (c) { return c.charCodeAt(0); });
+          var url = URL.createObjectURL(new Blob([bytes], {type: d.docx.mime}));
+          var link = document.createElement("a");
+          link.href = url;
+          link.download = d.docx.filename;
+          link.click();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        };
+      }
+    }).catch(function (error) {
+      button.disabled = false;
+      host.innerHTML = banner("blocked", "The server did not answer", "<p>" + esc(String(error)) + "</p>");
+    });
+  }
+  window.openEconomicsTile = open;
 })();
 </script></body>
 

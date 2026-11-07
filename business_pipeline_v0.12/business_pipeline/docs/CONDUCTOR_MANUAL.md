@@ -770,6 +770,25 @@ risk register, governance, monitoring, conclusion, references.
 - `POST /api/cases/chat/{id}/project` stores the record; the page offers a JSON
   editor and a simple CSV upload.
 
+### 7.12 Economics service tiles
+
+Macroeconomics, Microeconomics and Managerial economics are service tiles that
+follow the financial-statements pattern. The student chooses a problem type,
+declares the figures, optionally pastes the instruction, and solves.
+
+- `src/bp/product/economics.py` owns the route and the gate. It runs only the
+  frozen method the Economics shelf already uses (`set_runner` is injected from
+  `bp.server`); it holds no formula.
+- The instruction, when supplied, must share a significant word with the chosen
+  problem type. A mismatch is refused by name, so the solver never answers a
+  different question.
+- Output: problem, method, declared figures, computation and result, economic
+  interpretation, assumptions, limitations and the Word file.
+- Microeconomics absorbed the old Market basics and Firm behaviour groups.
+  Managerial economics absorbed pricing, demand, cost-benefit, cost-effectiveness,
+  SROI, unit economics and break-even. The individual calculators stay inside the
+  service tile, so a student can still solve a specific problem directly.
+
 ## 8. Coherence and export gate
 
 `bp.product.paper.check` must pass before a `.docx` is produced. It rejects:

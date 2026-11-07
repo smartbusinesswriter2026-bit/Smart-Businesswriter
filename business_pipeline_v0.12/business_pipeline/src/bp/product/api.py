@@ -79,6 +79,7 @@ from . import chat_store
 from . import charts as chart_renderer
 from . import compare as comparator
 from . import completion as framework_completion
+from . import economics as economics_service
 from . import length as length_mod
 from .completion import Incomplete as FrameworkIncomplete
 from . import diagrams as diagram_renderer
@@ -92,6 +93,7 @@ from . import credits
 from . import deliverables
 from . import documents
 from . import paper_store
+from . import visuals as visual_store
 from . import proposals
 from . import drafting
 from . import mapsheet
@@ -114,6 +116,8 @@ def attach_compute(fn):
 def attach_methods(run, describe=None):
     """Attach the frozen core to the chat's plan blocks (run and describe)."""
     chat_conductor.set_method_compute(run, describe)
+    visual_store.set_method_compute(run)
+    economics_service.set_runner(run, describe)
 
 
 def attach_models(factory):
@@ -449,6 +453,10 @@ def handle(method, path, body=None):
     if segments and segments[0] == STATEMENTS_SEGMENT:
         return statements.handle(verb, segments[1:], body)
 
+    # -- the economics service tiles: macro, micro and managerial ------------------
+    if segments and segments[0] == "economics":
+        return economics_service.handle(verb, segments[1:], body)
+
     # -- the case collection -------------------------------------------------
     if not segments:
         if verb == "GET":
@@ -496,6 +504,66 @@ def handle(method, path, body=None):
         # case-id parser and answer `422 case id must be 12 lowercase hex characters`,
         # which names neither the route nor the mistake.  Fail closed, naming the route.
         return 404, {"error": "unknown route /api/cases/%s" % "/".join(segments)}
+    # -- standalone visuals (product layer) ----------------------------------
+    if segments and segments[0] == "visuals":
+        if segments == ["visuals"]:
+            if verb == "GET":
+                return 200, visual_store.listing()
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on visuals" % verb}
+            try:
+                payload = body if isinstance(body, dict) else {}
+                if payload.get("preview"):
+                    return 200, visual_store.preview(payload)
+                return 201, visual_store.build(payload)
+            except visual_store.VisualError as error:
+                return _error(error)
+        if segments == ["visuals", "plan"]:
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on a visual plan" % verb}
+            try:
+                data = body if isinstance(body, dict) else {}
+                return 200, visual_store.propose(data.get("source"), data.get("words") or "")
+            except visual_store.VisualError as error:
+                return _error(error)
+        if segments == ["visuals", "sheet"]:
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on a figure sheet" % verb}
+            data = body if isinstance(body, dict) else {}
+            try:
+                payload, filename, mime = visual_store.export_sheet(
+                    data.get("ids") or [], data.get("format") or "docx", data.get("title"))
+            except visual_store.VisualError as error:
+                return _error(error)
+            return 200, {"filename": filename, "mime": mime,
+                         "data": base64.b64encode(payload).decode("ascii"),
+                         "sha256": hashlib.sha256(payload).hexdigest()}
+        if len(segments) == 2:
+            if verb == "DELETE":
+                try:
+                    return 200, visual_store.delete(segments[1])
+                except visual_store.VisualError as error:
+                    return 404, {"error": str(error)}
+            if verb != "GET":
+                return 405, {"error": "method %s is not allowed on a visual" % verb}
+            try:
+                return 200, visual_store.load(segments[1])
+            except visual_store.VisualError as error:
+                return 404, {"error": str(error)}
+        if len(segments) == 3 and segments[2] == "export":
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on a visual export" % verb}
+            fmt = str((body or {}).get("format") or "png").lower() if isinstance(body, dict) else "png"
+            try:
+                record = visual_store.load(segments[1])
+                data, filename, mime = visual_store.export(record, fmt)
+            except visual_store.VisualError as error:
+                return _error(error)
+            return 200, {"filename": filename, "mime": mime,
+                         "data": base64.b64encode(data).decode("ascii"),
+                         "sha256": hashlib.sha256(data).hexdigest()}
+        return 404, {"error": "unknown route /api/cases/%s" % "/".join(segments)}
+
     # -- screening a student's candidate list (product layer, ported B-184) ---
     if segments == ["screen"]:
         if verb != "POST":
@@ -815,6 +883,16 @@ def handle(method, path, body=None):
                 state = chat_conductor.set_figure(state, ident,
                                                   bool(data.get("enabled", True)),
                                                   str(data.get("reason") or ""))
+            elif action == "attach-visual":
+                ident = str(data.get("visual_id") or "").strip()
+                if not ident:
+                    return _error("a visual id is required")
+                state = chat_conductor.attach_visual(state, ident, str(data.get("section") or ""))
+            elif action == "detach-visual":
+                ident = str(data.get("visual_id") or "").strip()
+                if not ident:
+                    return _error("a visual id is required")
+                state = chat_conductor.detach_visual(state, ident)
             elif action == "rubric-gate":
                 state = chat_conductor.set_rubric_gate(state, data.get("enabled", True))
             elif action == "assist":
