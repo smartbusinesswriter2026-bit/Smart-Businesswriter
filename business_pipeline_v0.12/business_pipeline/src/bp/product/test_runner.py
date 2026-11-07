@@ -36,6 +36,7 @@ SUITES = {
         "tests/test_framework_profiles.py",
         "tests/test_leadership_culture_ethics.py",
         "tests/test_word_count_length.py",
+        "tests/test_economics_service.py",
     ],
     "prose": [
         "tests/test_prose.py",

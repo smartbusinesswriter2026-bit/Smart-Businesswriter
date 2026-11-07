@@ -158,11 +158,24 @@ def _pick_highest_impact_error():
     """
     errors = _ops_log.list_errors(limit=100)
     errors = _ops_log.merge_resolved(errors)
-    open_errors = [e for e in errors
-                   if not e.get("resolved") and not e.get("attended")
-                   and not e.get("invalid") and not e.get("dismissed")]
+    open_all = [e for e in errors
+                if not e.get("resolved") and not e.get("attended")
+                and not e.get("invalid") and not e.get("dismissed")]
+    open_errors = [e for e in open_all
+                   if e.get("problem") or e.get("case_id")]
     if not open_errors:
+        # Count how many open errors we refused to touch, so the status line
+        # explains why the loop is doing nothing instead of looping silently.
+        if open_all:
+            with _lock:
+                _state["status_message"] = ("%d open error(s), none replayable - waiting for owner"
+                                           % len(open_all))
+            return None
         return None
+    # Sort by severity (severe first) then by count
+    severity_rank = {"severe": 0, "moderate": 1, "light": 2}
+    open_errors.sort(key=lambda e: (severity_rank.get(e.get("severity", "moderate"), 1), -e.get("count", 1)))
+    return open_errors[0]
     # Sort by severity (severe first) then by count
     severity_rank = {"severe": 0, "moderate": 1, "light": 2}
     open_errors.sort(key=lambda e: (severity_rank.get(e.get("severity", "moderate"), 1), -e.get("count", 1)))
