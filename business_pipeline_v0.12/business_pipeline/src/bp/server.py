@@ -139,6 +139,8 @@ product_statements.attach_core(
     working_capital=lambda inputs: methods.LIBRARY["working_capital"].impl(inputs),
     working_capital_cycle=lambda inputs: methods.LIBRARY["working_capital_cycle"].impl(inputs),
     trend=lambda inputs: methods.LIBRARY["trend_analysis"].impl(inputs),
+    guards=lambda record: __import__("bp.guards", fromlist=["guards"]).run(record),
+    case_solver=lambda text: __import__("bp.case_solver", fromlist=["case_solver"]).solve_case(text),
 )
 from .sandbox import SubprocessSandbox
 
@@ -703,10 +705,10 @@ class H(BaseHTTPRequestHandler):
                 _qs = parse_qs(_ops_url.query)
                 _lane = (_qs.get("lane") or [""])[0] or None
                 _limit = int((_qs.get("limit") or ["50"])[0])
-                errors = product_ops_log.list_errors(limit=_limit, lane=_lane)
+                _status = (_qs.get("status") or ["open"])[0] or "open"
+                errors = product_ops_log.list_errors(limit=_limit, lane=_lane, status=_status)
                 errors = product_ops_log.merge_resolved(errors)
-                return self._send(200, {"errors": errors,
-                                        "total": product_ops_log.error_count()})
+                return self._send(200, {"errors": errors, "total": len(errors)})
             if _ops_url.path == "/api/ops/summary":
                 runs = product_ops_log.list_runs(limit=10000)
                 errors = product_ops_log.list_errors(limit=10000)

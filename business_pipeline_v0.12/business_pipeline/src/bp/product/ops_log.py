@@ -172,12 +172,16 @@ def list_runs(limit=50, lane=None, status=None):
     return _read_jsonl(_runs_path(), limit=limit, filter_fn=filt)
 
 
-def list_errors(limit=50, lane=None):
+def list_errors(limit=50, lane=None, status="open"):
     """Return recent error records, newest first.
 
     Only records that actually carry an error message are returned; resolution,
     attendance, invalid and attempt records live in the same append-only file
     and must never appear as errors themselves.
+
+    ``status`` is ``open`` (default, the lists hide anything already resolved,
+    invalid, dismissed or attended), ``resolved``, ``invalid``, ``dismissed``,
+    ``attended`` or ``all``.
     """
     def filt(rec):
         if not rec.get("error"):
@@ -185,7 +189,17 @@ def list_errors(limit=50, lane=None):
         if lane and rec.get("lane") != lane:
             return False
         return True
-    return _read_jsonl(_errors_path(), limit=limit, filter_fn=filt)
+    rows = _read_jsonl(_errors_path(), limit=None, filter_fn=filt)
+    rows = merge_resolved(rows)
+    wanted = str(status or "open").strip().lower()
+    if wanted != "all":
+        if wanted == "open":
+            rows = [e for e in rows
+                    if not (e.get("resolved") or e.get("invalid")
+                            or e.get("dismissed") or e.get("attended"))]
+        else:
+            rows = [e for e in rows if e.get(wanted)]
+    return rows[:int(limit)] if limit else rows
 
 
 def run_count():

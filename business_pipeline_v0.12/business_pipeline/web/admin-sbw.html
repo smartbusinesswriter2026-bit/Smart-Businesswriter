@@ -347,7 +347,8 @@
         <div class="card">
           <h2>Errors</h2>
           <div class="row">
-            <label>Lane: <select id="errLane"><option value="">all</option><option value="computation">computation</option><option value="framework">framework</option><option value="prose">prose</option><option value="paper">paper</option><option value="statements">statements</option></select></label>
+            <label>Lane: <select id="errLane"><option value="">all</option><option value="computation">computation</option><option value="framework">framework</option><option value="prose">prose</option><option value="paper">paper</option><option value="statements">statements</option><option value="tile-case">tile-case</option></select></label>
+            <label>Status: <select id="errStatus"><option value="open" selected>open</option><option value="resolved">resolved</option><option value="invalid">invalid</option><option value="dismissed">dismissed</option><option value="all">all</option></select></label>
             <label>Limit: <input type="number" id="errLimit" value="30" min="1" max="200" style="width:60px;"></label>
             <button class="btn primary" id="errRefresh">Refresh</button>
           </div>
@@ -748,8 +749,10 @@ let workflowResults = [];
 
 async function loadErrors() {
   const lane = document.getElementById('errLane').value;
+  const status = document.getElementById('errStatus').value;
   const limit = document.getElementById('errLimit').value;
-  const r = await apiFetch('/api/ops/errors?lane=' + encodeURIComponent(lane) + '&limit=' + limit);
+  const r = await apiFetch('/api/ops/errors?lane=' + encodeURIComponent(lane)
+    + '&status=' + encodeURIComponent(status) + '&limit=' + limit);
   const container = document.getElementById('errorsTable');
   if (r.status === 200 && Array.isArray(r.data.errors)) {
     renderErrorsTable(r.data.errors, container);
@@ -782,6 +785,8 @@ function renderErrorsTable(errors, container) {
   container.innerHTML = html;
 }
 document.getElementById('errRefresh').addEventListener('click', loadErrors);
+document.getElementById('errStatus').addEventListener('change', loadErrors);
+document.getElementById('errLane').addEventListener('change', loadErrors);
 
 // Free-form problem generation
 
