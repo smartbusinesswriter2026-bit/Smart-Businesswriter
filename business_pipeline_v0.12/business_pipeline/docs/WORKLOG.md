@@ -28,6 +28,77 @@
 
 **Left open.** Four legacy `no sourced price` errors carried no stored problem, so the loop could not replay them; they were dismissed for owner review rather than guessed at. The loop cannot patch code: a case that still fails stays open until a computation-owner change lands.
 
+## 2026-11-08 - [core] Beneish from two records; tax law deferred
+
+**Ask.** Close Beneish; defer tax law to a jurisdiction decision.
+
+**Did.**
+
+- **`statements.beneish(records)`** - the eight indices (DSRI, GMI, AQI, SGI, DEPI, SGAI, LVGI, TATA) derived from two solved records (receivables/sales, gross margin, asset quality, sales growth, depreciation rate, SG&A intensity, leverage, accruals); a missing figure is named; the frozen `beneish_m_score` computes the formula. Route `POST /api/cases/statements/beneish`.
+- **`altman_z_score` and `beneish_m_score` use Decimal constants** - the `_d` repair now returns Decimals, and the old float coefficients would raise on a Decimal input.
+- **`RATIO_GAPS`** points Beneish at the two-record route.
+
+**Left open.**
+
+- Tax law is deferred to a jurisdiction decision (likely the US when there are enough subscribers); the declared-rate reconciliation remains the global default.
+
+**Proof.** `tests/test_beneish.py` (4, exact score -2.0126); the suite passes; both fixtures in sync. B-242.
+
+## 2026-11-08 - [core] Piotroski from two records; the finance `_d` repair
+
+**Ask.** Build Piotroski.
+
+**Did.**
+
+- **`statements.piotroski(records, extra)`** - two solved records (prior and current), the nine inputs built from each bundle's figures, the diluted share count declared in `extra`; orders by period, refuses a same-period pair, names a missing figure, and calls the frozen `piotroski_f_score`. Route `POST /api/cases/statements/piotroski`.
+- **`finance_methods._d` accepts both call shapes** - `_d(inputs, "key")` and `_d(value)`. 78 two-argument calls (Altman, Piotroski, Beneish and the rest) had been failing at runtime against a one-argument helper; this repairs the finance shelf, not just Piotroski.
+- **`RATIO_GAPS`** now points Piotroski at the two-record route instead of calling it impossible.
+
+**Left open.**
+
+- Beneish still needs its eight indices from two periods; a form that computes them from the two records is the next step.
+- Tax law remains a jurisdiction/source decision.
+
+**Proof.** `tests/test_piotroski.py` (3); frozen contract in sync; page syntax OK. B-241.
+
+## 2026-11-08 - [core] Three gaps: market ratios, integrated narratives, tax reconciliation
+
+**Ask.** Close the ratio-catalogue gap, the integrated-narrative gap and the tax gap (B-052 resumed).
+
+**Did.**
+
+- **Ratio catalogue** - added earnings per share, book value per share, price-earnings, market-to-book, dividend payout and yield, and the Altman Z-score; `ratios(record, extra)` accepts declared share data; `RATIO_GAPS` now names only Piotroski (two periods + diluted shares), Beneish (two periods of eight indices) and the free-cash-flow amount.
+- **Integrated narratives** - broadened the detector for "bought", "earned 30,000 cash sales" and "paid 5,000 rent"; de-duplicated overlapping matches (`capital_contribution` vs `equity_issuance_cash`); the transactions route now applies the adjustment parser to the same narrative, so transactions+adjustments solves with every check green; the route is tried whenever the detector has matches, not only when the parser error says "transactions".
+- **Tax reconciliation (B-052 resumed)** - `tax_reconciliation` reconciles accounting profit to taxable income through non-deductible, non-taxable and allowance items, then current tax, deferred tax, total charge, effective rate and VAT payable; `statements.tax_note(record, extra)` and `POST /{id}/tax`; registered as a statement-registered helper.
+- **Two concurrent-write breakages repaired** - `reconstruction.py` was missing `import re`, and `statement_extract.py`'s `stated = []` line was merged with the following `if`, which stopped the module importing.
+
+**Left open.**
+
+- Piotroski and Beneish still need two periods (a multi-record forensic consumer).
+- Tax law, credits, thresholds, loss carryforwards and a tax return remain out of scope by design.
+
+**Proof.** Accounting sweep 576 + 186 subtests; both fixtures in sync; page syntax OK. B-239/B-240.
+
+## 2026-11-08 - [core] The adjustment reader and the ratio catalogue
+
+**Ask.** Make the pipeline handle any valid accounting problem: a full adjustment narrative and a broader ratio catalogue.
+
+**Did.**
+
+- **`_split_tb_and_adjustments`** - an explicit "adjustments:" marker first; otherwise the balance rows and the adjustment sentences (a sentence never parses as a balance row; a balance row never carries an adjustment verb).
+- **`_adjustment_specs`** now reads prepaid amortisation (payment x months expired / total), straight-line depreciation from a cost and life, bad debts at a rate of receivables, interest accrual (principal x rate x months / 12) and income tax at a rate, in addition to supplies, unearned revenue and accrued expenses. An unrecognised or under-specified clause is named `unread`.
+- **A problem with only adjustments** refuses with "the unadjusted trial balance is not given" instead of "no account".
+- **`column_lines`** no longer mistakes an adjustment sentence's payment and months for a comparative.
+- **`_RATIOS`** gains operating cash flow ratio, cash flow margin, cash flow to debt, free cash flow margin and the accruals ratio; the bundle supplies operating cash flow and capital expenditure from a present cash flow and withholds them when the cash flow is withheld; `RATIO_GAPS` drops the ratios now computed.
+- **`reconstruction.py`** (another lane's new, untracked file) was missing `import re`, which stopped `statements` importing; the one import is added.
+
+**Left open.**
+
+- Altman, Piotroski, Beneish and the market ratios still need inputs a single statement does not carry (a market value, two periods, a share price); they stay named gaps.
+- Tax reporting stays parked (B-052).
+
+**Proof.** Accounting sweep 572 + 186 subtests; page syntax OK; both the frozen contract and the statements record regenerate. B-238.
+
 ## 2026-11-07 - [core] The deterministic reader: bare lists, preambles, currencies, a crash
 
 **Ask.** Fix the narrative-reader defects the handoff measured.
@@ -595,6 +666,45 @@ crash is also a measurement: the notebook said the narrative solved, and it did 
 run the sentence through the reader. And the routing defect was the most embarrassing of the three, because it made
 **the same trial balance print two different balance sheets** — a confidently wrong number, which is the one thing
 this repository is not allowed to do.
+
+## 2026-11-08 — [computation] The open gaps close: vocabulary, classifier, opening balances, live OpenCode Go (build 1.121)
+
+**Ask.** "close the open gaps. live mode is opencode go" — the four gaps the 1.119 manual named, and the live reader configured against the funded OpenCode Go account.
+
+**Did.**
+
+- **Vocabulary — closed.** Every *raw* input the 128 specs declare (168 distinct names that are never another spec's output) now has a pattern in `COMMON_PATTERNS`, added through `_EXTRA_PATTERNS` and a `_p()` helper that builds a word-bounded `label [of|is|was|:] amount` pattern. A rich sample (beginning inventory, purchases, ending inventory, accumulated depreciation, depreciation expense, other income, taxable income, dividends declared, cash receipts, debt repayments, number of years) parses all of them. Two false-positive traps found and fixed: `depreciation_expense` read "accumulated depreciation" (9000 instead of 3000) until a negative lookbehind was added, and `payments` read "repayments" until every label got a `\b` word boundary. The 42 inputs that are another spec's output (capex, gross profit, ebitda) are computed, not parsed — correctly.
+- **Classifier — built.** `src/bp/product/problem_type.py` names the Tip 5 type (1–7) in every record as `tip5_type`. Order is specific-to-general: error correction (4), an explicit missing raw figure (2), ratio analysis (3), any other reconstruction (2), trial balance (6), cash-flow statement (5), integrated case (7, three+ transaction cues), preparing from transactions (1). Two ordering bugs were found by the tests: "Compute the current ratio" was read as a reconstruction because "equity ratio" contains "equity"; fixed by excluding ratio targets from the raw-figure check.
+- **Policy layer — `balances` key.** The extract contract gains `balances` (opening balances stated as a list); `to_opening()` turns them into one entry marked `opening: true`, so the trial balance carries them but the cash-flow movement does not count them as a receipt. `_solve_narrative` passes it through.
+- **Live reader — OpenCode Go.** `bp.server._load_opencode_env()` reads `Backend/.env` and maps `OPENCODE_API_KEY` → `BP_OPENGO_API_KEY`, `LLM_PROVIDER` → `BP_LLM_PROVIDER`, `PROSE_MODEL` → `BP_LLM_MODEL`, the tier models, and the council model, when the `BP_*` names are unset. A live call returned "OK" from `deepseek-v4.1-flash`.
+- **Case solver completeness.** `CaseResult.unused_amounts` names a stated figure no entry uses. When a model is configured, `solve()` runs the case solver once, and an incomplete case skips the older `_solve_transactions` path so the model reads the whole narrative instead of answering with half a ledger. Proved live: "received a government grant of 50,000 and bought a delivery van for 30,000" returned other income 50,000, total assets 50,000, 11/11 checks — the grant was read by the model, not dropped.
+- **More patterns/relations.** Six more error-correction patterns (prepaid expensed in full, sale/purchase/interest/wages not recorded) with their signed effects; four more reconstruction relations (quick, cash, debt, equity ratios, return on common equity).
+- **Fixture isolation.** `product_statements_fixture.record()` now calls `statements.reset_core()` first, so a test that imported `bp.server` (which attaches guards and the case solver) cannot leak into the frozen fixture. The fixture regenerates byte-identically.
+
+**Verified.** `tests.test_financial_engines` → **37 tests, OK** (reconstruction, error correction, case solver, guards, vocabulary, classifier). The statements sweep (13 modules) → **285 + 8 subtests, OK**. `test_docs_sync` → 8, OK. The frozen fixture regenerates byte-identically. Live extraction and a live `solve()` proved against OpenCode Go. Suite count **4299**.
+
+**Not done, and named.** The classifier is cue-based, not a model reading; a text with no cue is `type=None`. The policy layer still lets the model guess at timing (a per-policy provenance tag is the remaining piece). The error/reconstruction sets are the common cases, not exhaustive. The guards G12/G16/G17 report `not_applicable` outside their context.
+
+**Learned.** A generic label pattern is a substring trap: "depreciation" lives inside "accumulated depreciation", "payments" inside "repayments", "equity" inside "equity ratio". Word boundaries and two negative lookbehinds fixed the first two; the third was a classifier ordering bug, not a vocabulary one. And a test that imports the server pollutes the global core — the fixture must reset it, or the fixture's bytes depend on test order.
+
+## 2026-11-08 — [computation] The four problem engines, and the guards that decide whether a record leaves the building (build 1.119)
+
+**Ask.** "yes, build them" — build the four remaining capabilities that the living manual named: the reconstruction engine (Tip 5 Type 2), the error-correction engine (Tip 5 Type 4), the integrated case solver (Tip 5 Type 7 / Tip 6), and the 22 guards (Tip 7), so the tile handles any financial-statement problem without fabricating a figure.
+
+**Did.**
+
+- **`src/bp/product/reconstruction.py` (new).** A relation is a formula with named variables: linear (`a = b + c − d`) solves for any variable by moving terms, ratio (`ratio = numerator / denominator`) solves for the ratio, the numerator or the denominator. `solve_for` returns the first relation that reaches the target; `solve_all` chains solved values so COGS feeds gross profit feeds gross margin; `cross_check` looks for a second relation that agrees. 20 relations cover COGS, net sales, net purchases, gross profit, net income, A = L + E, ending RE, working capital, CFO, and the common ratios. The route `_solve_reconstruction` parses "label is amount" sentences (splitting on sentence boundaries and "and", stripping connectors) into canonical knowns; a target no relation can reach is a gap.
+- **`src/bp/product/error_correction.py` (new).** Six registered error patterns (equipment expensed, unearned revenue, depreciation omitted, ending inventory overstated, accrued expense omitted, capex charged to repairs) each declare the correcting debit/credit and the signed effect on net income, assets, liabilities and equity. `correct(text)` detects and builds; `correct_stated(original, correct)` computes `correct − original`; a missing amount is a named gap. The route `_solve_error_correction` reports the correcting entry and the effect, and checks that the effect keeps the accounting equation.
+- **`src/bp/case_solver.py` (new).** The nine-stage state machine INGEST → PARSE → DETECT → RESOLVE → JOURNALIZE → POST → ADJUST → PROJECT → VALIDATE. Every stage records its outcome; the first refusal returns `status="review"` naming what it expected. The deterministic template layer supplies the journal; `statement_plan.build` supplies the projection and the articulation gate. The route `_solve_case` adds the `stage_trace` to the record.
+- **`src/bp/guards.py` (new).** One runner over all 22 Tip 7 guards. A guard that cannot run is `applicable=False`; a guard that raises is `ok=False`. The correctness guards (G1–G9, G13, G18, G21) block the record; the trust guards are recorded. Injected from `bp.server` as `_core("guards")`, so the product package imports no core module.
+- **Two detector gaps found while proving the case solver, and closed with trap tests.** `sold goods for 9,500 cash` was matched by `asset_disposal` (specificity 80), whose template credits **PPE** — a sale of inventory recorded as a disposal of property. It is now `goods_sale_cash` (Dr Cash, Cr Revenue), and `asset_disposal` is tightened to name a real asset (equipment, machine, vehicle, land, building, furniture, plant). A bare `started the business with 20,000 cash` had **no detector at all**; it is now `capital_contribution` (Dr Cash, Cr Capital). `paid rent of 1,200` did not match `rent_payment` (which wants "paid 1,200 cash rent"); it now matches `rent_payment2`.
+- **The guards found a genuine defect in the transaction record.** G14 (audit trail) failed because a transactions record carries its provenance in the journal, not in a separate `figures` list. G14 now counts the journal and the spec entries as the audit trail. G2 (decimal arithmetic) failed on non-numeric scalars (the assumption manifest, the spec); it now checks only values that look like numbers.
+
+**Verified.** `tests.test_financial_engines` → **27 tests, OK** (reconstruction, error correction, case solver, guards, plus the detector trap tests). The statements sweep (`test_statement_plan`, `test_statement_reader_seams`, `test_product_statements`, `test_product_statements_api`, `test_schedule_routes`, `test_statements_render_contract`, `test_product_boundary`, `test_financial_engines`, `test_statement_runtime`, `test_statement_detect`, `test_statement_detect_contract`) → **251 + 8 subtests, OK**. The council/tile/reperform/equity/OCI modules → **50, OK**. Measured end to end through the tile with the core attached: a correction ("Equipment costing $50,000 was expensed instead of capitalised") → correcting entry, NI +50,000, assets +50,000, equation holds; a reconstruction ("COGS 55,000, beginning 10,000, ending 15,000, find the net purchases") → net purchases 60,000; an integrated case ("started with 20,000; sold goods 9,500; paid rent 1,200") → nine stages all OK, net income 8,300, total assets 28,300, **13 guards pass, 0 fail**.
+
+**Not done, and named.** The reconstruction vocabulary is the declared relations, not every identity in the computation document; a target outside the set is a gap. The error-correction engine recognises six patterns, not every error an examiner can write; an unrecognised error is a review, not a guess. The case solver's coverage is the detector layer's coverage: a transaction with no detector is a review naming the unmatched claim. The guards are wired; the 22 are not all fully exercised by fixtures (G12 scale, G16 grading, G17 generation report `not_applicable` outside their context).
+
+**Learned.** A detector that matches a *verb* ("sold") without a *noun class* ("goods" vs "equipment") will classify a sale as a disposal, and the template then credits the wrong account — the arithmetic is internally consistent and the statement is wrong. The trap test that asserts `sold goods` never matches `asset_disposal` is the cheap way to keep it fixed. And a guard runner is only a gate if a guard that cannot decide reports `applicable=False` rather than passing: the two bugs the guards found in their own debut were both "the guard was checking the wrong field".
 
 ## 2026-11-04 — [design] The statements workbook is a workbook (build 1.98)
 

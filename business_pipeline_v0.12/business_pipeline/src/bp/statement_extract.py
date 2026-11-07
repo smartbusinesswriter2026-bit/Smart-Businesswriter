@@ -30,6 +30,7 @@ Rules, all of them absolute:
 - "entries": one entry per transaction or adjustment the text states explicitly. Every entry balances: the sum of debits equals the sum of credits. Use ONLY account codes from the chart. If nothing fits, put the text in "unplaceable".
 - "adjustments": emit an adjustment when you can identify the PARAMETERS for a registered function (below). You may derive parameters from the text (e.g. months_expired from coverage dates, receivables from billed/collected/written-off). The engine computes the amount; you never compute it. If the text states a finished figure ("depreciation 12,000"), book it as an entry, not an adjustment. If the text states an income tax rate, you must emit a tax_on_pretax adjustment.
 - "policy": only what the text states (tax rate, depreciation convention, inventory system). Omit a key rather than guess it.
+- "balances": opening balances the text states as a separate list ("opening balances: Cash 5,000, Inventory 3,000"). These are NOT transactions; they are the balances the period starts with. Use chart codes. If the text does not state opening balances separately, omit the key.
 - You may propose derived figures (sums, prorations, accruals, tax, month counts) as long as they follow from the text. The engine computes and verifies them; a proposal that does not tie is refused. Declare the derived figure and the inputs it came from in "assumptions".
 - Amounts should be traceable to the text or to a clear derivation from stated figures. Nothing is rejected for being derived; the gates decide.
 - Do not produce totals, balances or statements.
@@ -139,6 +140,18 @@ CONTRACT = {
                 },
                 "inventory_system": {"enum": ["periodic", "perpetual"]},
                 "explicitly_stated": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+        "balances": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["account"],
+                "properties": {
+                    "account": {"type": "string"},
+                    "debit": {"type": "number", "minimum": 0},
+                    "credit": {"type": "number", "minimum": 0},
+                },
             },
         },
         "unplaceable": {"type": "array", "items": {"type": "string"}},
@@ -597,6 +610,32 @@ def to_adjustments(payload):
     return out
 
 
+def to_opening(payload, default_date=None):
+    """The stated opening balances as one opening entry `statement_plan` accepts.
+
+    A problem that states "opening balances: Cash 5,000, Inventory 3,000" is not a list of
+    transactions; it is the balances the period starts with.  They become one journal entry
+    marked ``opening`` so the trial balance carries them but the cash-flow movement does not
+    count them as a receipt.
+    """
+    balances = payload.get("balances") or []
+    lines = []
+    for b in balances:
+        if not isinstance(b, dict):
+            continue
+        acct = b.get("account") or b.get("code")
+        if not acct:
+            continue
+        if b.get("debit") is not None:
+            lines.append({"account": acct, "debit": str(b["debit"])})
+        elif b.get("credit") is not None:
+            lines.append({"account": acct, "credit": str(b["credit"])})
+    if not lines:
+        return []
+    return [{"date": default_date, "description": "opening balances", "opening": True,
+             "lines": lines}]
+
+
 def to_policy(payload):
     """The policy the model stated, or None when it stated nothing."""
     p = payload.get("policy")
@@ -666,4 +705,5 @@ def extract(text, chart, models, consent=False, places=2, period=None, default_d
             "adjustments": adjustments,
             "policy": policy,
             "record": record,
+            "opening": to_opening(payload, default_date=(period or {}).get("start") or default_date),
             "unplaceable": list(payload.get("unplaceable") or [])}

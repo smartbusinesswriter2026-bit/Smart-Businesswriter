@@ -33,6 +33,8 @@ from .income_statement import (detect_income_statement, detect_ratio_analysis,
                                detect_given_balances, detect_eps,
                                parse_eps_problem, compute_eps_problem, render_eps_problem)
 from . import financial_computations as fc
+from . import reconstruction as recon
+from . import error_correction as ec
 from . import statements_verify
 from .. import statement_chart
 from .. import statement_detect as sd
@@ -41,13 +43,16 @@ from .. import statement_plan as sp
 from . import verify
 
 FORMAT = "bp-statements/1"
+FIGURES_FORMAT = "bp-statements-figures/1"
 PROBLEM_TYPES = ("trial_balance", "transactions", "adjustments", "incomplete_records")
 FRAMEWORKS = ("US_GAAP", "IFRS", "local")
 DEFAULT_CURRENCY = "USD"
 
 #: A currency or a place this product does not use.  Refused with the reason, never normalised
 #: silently: the product is global and its examples are neutral (CONTRIBUTORS section 1 item 11).
-BLOCKED = re.compile(r"\b(PHP|PSE|PSEi|Philippines?|Filipino|Manila)\b|\u20b1", re.I)
+BLOCKED = re.compile(
+    r"\b(PHP|PSE|PSEi|Philippines?|Filipino|Manila|EUR|GBP|JPY|CNY|RMB|INR|AUD|CAD|CHF|"
+    r"HKD|SGD|NZD|KRW|BRL|MXN|ZAR|NGN|KES|AED|SAR)\b|[€£¥₹₱]", re.I)
 
 
 class StatementError(ValueError):
@@ -79,17 +84,27 @@ _CORE = {}
 
 
 def attach_core(solve=None, diagnose=None, ratio_analysis=None, dupont=None, reader=None,
-                extract=None, build=None, set_tier=None, schedules=None):
+                extract=None, build=None, set_tier=None, schedules=None, working_capital=None,
+                working_capital_cycle=None, trend=None, guards=None, case_solver=None,
+                tax_reconciliation=None, piotroski=None, beneish=None):
     """Attach the frozen-core callables (called from `bp.server`).
 
     `extract` and `build` are the plan layer, injected for the same reason as the rest: the product
     package computes nothing and imports no core module (`tests/test_product_boundary.py`).
     `set_tier` switches the model tier for escalation.  `schedules` is the frozen schedule
-    arithmetic (`bp.schedule_math.compute`), used by the labelled-figure routes.
+    arithmetic (`bp.schedule_math.compute`), used by the labelled-figure routes.  `guards` is
+    the 22-guard runner (`bp.guards.run`), injected so the record carries its verdicts without
+    the product importing the core.  `case_solver` is the integrated case state machine
+    (`bp.case_solver.solve_case`), injected for the same reason.
     """
     for name, fn in (("solve", solve), ("diagnose", diagnose), ("ratio_analysis", ratio_analysis),
                      ("dupont", dupont), ("reader", reader), ("extract", extract), ("build", build),
-                     ("set_tier", set_tier), ("schedules", schedules)):
+                     ("set_tier", set_tier), ("schedules", schedules),
+                     ("working_capital", working_capital),
+                     ("working_capital_cycle", working_capital_cycle), ("trend", trend),
+                     ("guards", guards), ("case_solver", case_solver),
+                     ("tax_reconciliation", tax_reconciliation), ("piotroski", piotroski),
+                     ("beneish", beneish)):
         if fn is not None:
             _CORE[name] = fn
     return sorted(_CORE)
@@ -108,6 +123,16 @@ def attached():
     return "solve" in _CORE and "diagnose" in _CORE
 
 
+def reset_core():
+    """Detach every injected core callable.
+
+    Tests attach different subsets; a test that attaches more (a builder, a trend method) must
+    clean up so a later test that assumes a smaller subset is not handed a callable it did not
+    attach.  The product never calls this.
+    """
+    _CORE.clear()
+
+
 #: Detection cues.  A trial balance is tested **before** adjustments, because a stated balance sheet
 #: and profit-and-loss is a trial balance whatever words its account names contain ("accumulated
 #: depreciation" is a balance, not an adjustment).  The cue that fired is recorded and shown.
@@ -122,6 +147,21 @@ CUES = (
     ("transactions", (r"\bstarted (?:\w+\s+)?(?:with|business)\b", r"\bbought\b", r"\bsold\b", r"\bpaid\b",
                       r"\breceived\b", r"\bon credit\b", r"\bpurchased\b")),
 )
+
+#: Cues that say a problem needs adjusting entries.  Used to distinguish a real
+#: "adjustments were not derived" gap from a narrative that simply has none: a
+#: one-line problem ("Issued common stock for 80,000 cash") must not be reported as
+#: missing prepaids, depreciation, COGS or tax when it never asked for them.
+ADJUSTMENT_CUES = ("accrued", "prepaid", "amortiz", "depreciat", "estimated at",
+                   "ending supplies", "ending inventory count", "earned but unpaid",
+                   "unpaid at year", "estimated uncollectible", "allowance",
+                   "warranty", "shrinkage", "estimated warranty")
+
+
+def _needs_adjustments(text):
+    """Whether the instruction mentions the kind of item an adjusting entry is for."""
+    low = str(text or "").lower()
+    return any(cue in low for cue in ADJUSTMENT_CUES)
 
 #: The chart vocabulary: (label pattern, type, section, statement line, role, activity, contra).
 #: Order is the ranking when a label matches more than once: the earlier rule is the literal
@@ -304,6 +344,16 @@ def _without_dates(text):
     return re.sub(r"\s+", " ", out).strip(" .,:-|()[]")
 
 
+def _line_pieces(line):
+    """Split one line on sentence boundaries so an exam preamble does not hide the accounts.
+
+    A period followed by whitespace ends a sentence ("... 31 December 2026. Cash 10,000"), while
+    a decimal ("5.50") and a dot leader ("Cash ...... 5,000") carry no space after the period and
+    are left intact.
+    """
+    return [piece.strip() for piece in re.split(r"\.\s+", str(line or "")) if piece.strip()]
+
+
 def parse_rows(text):
     """Every 'label ... amount' line whose label the vocabulary knows.
 
@@ -315,37 +365,37 @@ def parse_rows(text):
     """
     rows, skipped = [], []
     for raw in str(text or "").splitlines():
-        line = raw.strip()
-        if not line:
-            continue
-        spans = sper.date_spans(line)
-        found = [m for m in MONEY.finditer(line)
-                 if not any(start <= m.start() < end for start, end in spans)]
-        if not found:
-            skipped.append(line)
-            continue
-        last = found[-1]
-        amount = last.group(0)
-        label = re.sub(r"\b(dr|cr)\.?\b", " ", re.sub(r"\.{2,}", " ", line[:last.start()]), flags=re.I)
-        label = re.sub(r"\b(dr|cr)\.?\b", " ", label, flags=re.I)
-        # strip tabs, dollar signs and other non-alphanumeric junk left by tabular input
-        label = re.sub(r"[\t$]", " ", label)
-        # strip parenthetical qualifiers (and anything after an opening paren) before matching
-        label = re.sub(r"\s*\(.*", "", label)
-        label = re.sub(r"\s+", " ", label).strip(" .,:-|()[]")
-        # A date is a date: it is not part of the account's name.
-        label = _without_dates(label)
-        if not label or _is_sentence(label):
-            skipped.append(line)
-            continue
-        # Parenthetical dates like "(Jan 1)" are just date qualifiers, not reasons to skip.
-        # Strip them and process the account normally.
-        placed = place(label)
-        if not placed["candidates"]:
-            skipped.append(line)
-            continue
-        side = _side(line[:last.start()] + " " + line[last.end():])
-        rows.append({"label": label, "written": amount, "side": side, "quote": line, "placed": placed})
+        for line in _line_pieces(raw):
+            if not line:
+                continue
+            spans = sper.date_spans(line)
+            found = [m for m in MONEY.finditer(line)
+                     if not any(start <= m.start() < end for start, end in spans)]
+            if not found:
+                skipped.append(line)
+                continue
+            last = found[-1]
+            amount = last.group(0)
+            label = re.sub(r"\b(dr|cr)\.?\b", " ", re.sub(r"\.{2,}", " ", line[:last.start()]), flags=re.I)
+            label = re.sub(r"\b(dr|cr)\.?\b", " ", label, flags=re.I)
+            # strip tabs, dollar signs and other non-alphanumeric junk left by tabular input
+            label = re.sub(r"[\t$]", " ", label)
+            # strip parenthetical qualifiers (and anything after an opening paren) before matching
+            label = re.sub(r"\s*\(.*", "", label)
+            label = re.sub(r"\s+", " ", label).strip(" .,:-|()[]")
+            # A date is a date: it is not part of the account's name.
+            label = _without_dates(label)
+            if not label or _is_sentence(label):
+                skipped.append(line)
+                continue
+            # Parenthetical dates like "(Jan 1)" are just date qualifiers, not reasons to skip.
+            # Strip them and process the account normally.
+            placed = place(label)
+            if not placed["candidates"]:
+                skipped.append(line)
+                continue
+            side = _side(line[:last.start()] + " " + line[last.end():])
+            rows.append({"label": label, "written": amount, "side": side, "quote": line, "placed": placed})
     return rows, skipped
 
 
@@ -462,6 +512,10 @@ def column_lines(text):
         for clause in re.split(r"[.;]", raw):
             clause = clause.strip()
             if not clause:
+                continue
+            if _ADJUSTMENT_CUE.search(clause):
+                # An adjustment sentence legitimately carries several figures (a payment and
+                # its months, a rate and a base); it is not a comparative column.
                 continue
             without_dates = sper.strip_years(clause)
             matches = MONEY.findall(without_dates)
@@ -589,12 +643,23 @@ def read_deterministic(text, currency=None, framework=None):
     so instead of half-reading them.
     """
     preflight(text)
-    kind, cue, sentence = classify(text)
+    try:
+        kind, cue, sentence = classify(text)
+    except StatementError:
+        # A bare list of accounts and balances names no problem type but is a trial balance.
+        # Accept it only when at least two accounts actually place, so a sentence is still refused.
+        first_rows, _first_skipped = parse_rows(text)
+        if len(first_rows) < 2:
+            raise
+        kind, cue, sentence = "trial_balance", "bare trial balance", "a list of account balances"
     if kind not in ("trial_balance", "adjustments", "incomplete_records"):
         raise StatementError("this reads as a " + kind.replace("_", " ") + " problem; that needs the "
                              "model reading, and none is configured")
     rows, skipped = parse_rows(text)
     if not rows:
+        if _ADJUSTMENT_CUE.search(text):
+            raise StatementError("this reads as adjustments, but the unadjusted trial balance is "
+                                 "not given; state the account balances as well as the adjustments.")
         raise StatementError("I could not find an account with a balance in this text. Write one "
                              "account per line, as 'Cash 5,000' or 'Capital 5,000 Cr'.")
     preflight_rows(rows)
@@ -980,13 +1045,8 @@ def statements_only(statements):
         parts.append(statements["cash_flow"])
     return "\n\n".join(part for part in parts if part)
 
-def ratio_pack(result, text):
-    """The ratio pack the instruction asked for: computed rows, plus every ratio named unsupported."""
-    appendix = result.get("_appendix") or {}
-    figures = appendix.get("ratio_figures") or {}
-    if not figures or "ratio_analysis" not in _CORE:
-        return None
-    pack = _core("ratio_analysis")(figures)
+def _ratio_rows(pack):
+    """The computed rows and the named-unsupported rows of one ratio_analysis result."""
     computed = list((pack.get("_appendix") or {}).get("ratios") or [])
     for row in computed:
         unit = row.get("unit")
@@ -998,11 +1058,449 @@ def ratio_pack(result, text):
             pass
     named = [{"ratio": row.get("ratio"), "reason": row.get("reason"), "needs": []}
              for row in (pack.get("_appendix") or {}).get("not_computed") or []]
+    return computed, named
+
+
+def ratio_pack(result, text):
+    """The ratio pack the instruction asked for: computed rows, plus every ratio named unsupported."""
+    appendix = result.get("_appendix") or {}
+    figures = appendix.get("ratio_figures") or {}
+    if not figures or "ratio_analysis" not in _CORE:
+        return None
+    pack = _core("ratio_analysis")(figures)
+    computed, named = _ratio_rows(pack)
     for gap in appendix.get("ratio_gaps") or []:
         if _mentioned(gap, text):
             named.append({"ratio": gap.get("ratio"), "reason": gap.get("why"),
                           "needs": gap.get("needs") or []})
     return {"requested": True, "computed": computed, "named_unsupported": named, "figures": figures}
+
+
+RATIOS_FORMAT = "bp-statements-ratios/1"
+
+
+def ratios(record, extra=None):
+    """The full ratio pack for one solved record, computed on demand from its figures.
+
+    This is the first consumer of `figures(record)`: the student asks for the ratios of a
+    statement they already built, and every figure comes from the frozen record rather than a
+    second entry.  `extra` carries the figures a statement cannot hold — a share price, the
+    shares, the dividends — so the market and Altman ratios can run without a second entry
+    screen.  A ratio the record (plus `extra`) cannot support is named, never invented.
+    """
+    bundle = figures(record)
+    figures_map = dict(bundle["figures"])
+    if isinstance(extra, dict):
+        figures_map.update({key: value for key, value in extra.items() if value not in (None, "")})
+    if "ratio_analysis" not in _CORE:
+        raise CoreNotAttached("the statements tile is not attached to the frozen core (ratio_analysis)")
+    pack = _core("ratio_analysis")(figures_map)
+    computed, named = _ratio_rows(pack)
+    for gap in bundle.get("gaps") or []:
+        if gap.get("ratio") and not any(n.get("ratio") == gap.get("ratio") for n in named):
+            named.append({"ratio": gap.get("ratio"), "reason": gap.get("why"),
+                          "needs": gap.get("needs") or []})
+    return {"format": RATIOS_FORMAT, "source": bundle["source"],
+            "computed": computed, "named_unsupported": named, "figures": figures_map}
+
+
+DUPONT_FORMAT = "bp-statements-dupont/1"
+WORKING_CAPITAL_FORMAT = "bp-statements-working-capital/1"
+
+#: The figures DuPont needs that a statement always carries.
+_DUPONT_REQUIRED = ("revenue", "net_income", "total_assets", "equity")
+#: The figures the working-capital method needs that a statement always carries.
+_WC_FROM_STATEMENT = ("revenue", "cost_of_sales", "inventory", "receivables", "payables")
+#: The figures the working-capital method still needs and a statement cannot supply.
+_WC_DECLARED = ("annual_demand", "order_cost", "holding_cost_per_unit",
+                "discount_percent", "credit_terms_days", "discount_days")
+
+
+def dupont(record):
+    """The DuPont decomposition computed from the record's own figures.
+
+    The three-step form uses revenue, net income, total assets and equity, all of which a
+    statement always carries.  The five-step form runs only when the record also carries (or can
+    derive) EBIT, pre-tax income and tax expense; otherwise those three are named as absent
+    rather than invented.  A comparison period needs a second statement record and is never
+    guessed from one.
+    """
+    bundle = figures(record)
+    figs = bundle["figures"]
+    derived = bundle.get("derived") or {}
+    missing = [key for key in _DUPONT_REQUIRED if figs.get(key) in (None, "")]
+    if missing:
+        raise StatementError("this record does not carry the figures DuPont needs: "
+                             + ", ".join(missing))
+    inputs = {key: figs[key] for key in _DUPONT_REQUIRED}
+    if figs.get("cost_of_sales") not in (None, ""):
+        inputs["cost_of_sales"] = figs["cost_of_sales"]
+    for key in ("ebit", "pretax_income", "tax_expense"):
+        value = figs.get(key)
+        if value in (None, ""):
+            value = derived.get(key)
+        if value not in (None, ""):
+            inputs[key] = value
+    if "dupont" not in _CORE:
+        raise CoreNotAttached("the statements tile is not attached to the frozen core (dupont)")
+    pack = _core("dupont")(inputs)
+    result = {key: str(value) for key, value in pack.items() if not str(key).startswith("_")}
+    five_step = all(key in inputs for key in ("ebit", "pretax_income", "tax_expense"))
+    return {"format": DUPONT_FORMAT, "source": bundle["source"], "inputs": inputs,
+            "five_step": five_step,
+            "not_run": ([] if five_step else
+                        ["the five-step form needs EBIT, pre-tax income and tax expense; "
+                         "the record does not carry all three"]),
+            "result": result}
+
+
+def working_capital(record, extra=None):
+    """The working-capital pack computed from the record's figures plus the declared terms.
+
+    The cash-conversion cycle needs revenue, cost of sales, inventory, receivables and payables,
+    all of which a statement carries.  The order quantity and the cost of trade credit need the
+    operating terms a statement cannot supply (annual demand, order cost, holding cost, discount,
+    credit terms); those are passed in `extra` and, when absent, are named rather than guessed.
+    """
+    bundle = figures(record)
+    figs = bundle["figures"]
+    inputs = {key: figs.get(key) for key in _WC_FROM_STATEMENT}
+    inputs["days"] = 365
+    if isinstance(extra, dict):
+        inputs.update({key: value for key, value in extra.items() if value not in (None, "")})
+    missing_record = [key for key in _WC_FROM_STATEMENT if inputs.get(key) in (None, "")]
+    if missing_record:
+        raise StatementError("this record does not carry the cycle figures: "
+                             + ", ".join(missing_record))
+    missing_declared = [key for key in _WC_DECLARED if inputs.get(key) in (None, "")]
+    if missing_declared:
+        raise StatementError("the statement supplies the cycle figures; still needed: "
+                             + ", ".join(missing_declared))
+    if "working_capital" not in _CORE:
+        raise CoreNotAttached("the statements tile is not attached to the frozen core (working_capital)")
+    pack = _core("working_capital")(inputs)
+    result = {key: str(value) for key, value in pack.items() if not str(key).startswith("_")}
+    return {"format": WORKING_CAPITAL_FORMAT, "source": bundle["source"], "inputs": inputs,
+            "result": result}
+
+
+CYCLE_FORMAT = "bp-statements-cycle/1"
+
+
+def cycle(record):
+    """The cash conversion cycle from the record's own figures.
+
+    This is the cycle-only method: revenue, cost of sales, inventory, receivables and payables
+    are all a statement carries, so no order-quantity or trade-credit term is required.
+    """
+    bundle = figures(record)
+    figs = bundle["figures"]
+    inputs = {key: figs.get(key) for key in _WC_FROM_STATEMENT}
+    missing = [key for key in inputs if inputs[key] in (None, "")]
+    if missing:
+        raise StatementError("this record does not carry the cycle figures: " + ", ".join(missing))
+    if "working_capital_cycle" not in _CORE:
+        raise CoreNotAttached("the statements tile is not attached to the frozen core "
+                              "(working_capital_cycle)")
+    pack = _core("working_capital_cycle")(inputs)
+    result = {key: str(value) for key, value in pack.items() if not str(key).startswith("_")}
+    return {"format": CYCLE_FORMAT, "source": bundle["source"], "inputs": inputs,
+            "result": result}
+
+
+PIOTROSKI_FORMAT = "bp-statements-piotroski/1"
+
+
+def _piotroski_period(bundle):
+    """The nine Piotroski inputs one period supports, or None where a figure is absent."""
+    figs = bundle["figures"]
+
+    def dec(key):
+        value = figs.get(key)
+        if value in (None, ""):
+            return None
+        try:
+            return Decimal(str(value))
+        except Exception:
+            return None
+
+    def ratio(numerator, denominator):
+        if numerator is None or denominator in (None, 0):
+            return None
+        return str(numerator / denominator)
+
+    net = dec("net_income")
+    total_assets = dec("total_assets")
+    total_liabilities = dec("total_liabilities")
+    current_assets = dec("current_assets")
+    current_liabilities = dec("current_liabilities")
+    revenue = dec("revenue")
+    cost_of_sales = dec("cost_of_sales")
+    cash_flow = dec("operating_cash_flow")
+    gross = (revenue - cost_of_sales) if revenue is not None and cost_of_sales is not None else None
+    return {
+        "net_income": str(net) if net is not None else None,
+        "operating_cash_flow": str(cash_flow) if cash_flow is not None else None,
+        "roa": ratio(net, total_assets),
+        "leverage": ratio(total_liabilities, total_assets),
+        "current_ratio": ratio(current_assets, current_liabilities),
+        "gross_margin": ratio(gross, revenue),
+        "asset_turnover": ratio(revenue, total_assets),
+    }
+
+
+def piotroski(records, extra=None):
+    """The Piotroski F-score from two statement records (prior and current).
+
+    Each record supplies one period's net income, operating cash flow, total assets, total
+    liabilities, current assets, current liabilities, revenue and cost of sales; the diluted
+    share count is declared in `extra`.  A figure the two records cannot supply is named, never
+    defaulted.
+    """
+    if not isinstance(records, list) or len(records) < 2:
+        raise StatementError("a Piotroski score needs two statement records (prior and current)")
+    bundles = [figures(record) for record in records]
+    bundles.sort(key=lambda bundle: _period_year(bundle.get("period")))
+    prior, current = bundles[-2], bundles[-1]
+    if _period_year(prior.get("period")) == _period_year(current.get("period")):
+        raise StatementError("the two records must cover different periods")
+    p, c = _piotroski_period(prior), _piotroski_period(current)
+    extra = extra if isinstance(extra, dict) else {}
+    shares = extra.get("shares_diluted")
+    inputs = {
+        "net_income": c["net_income"],
+        "operating_cash_flow": c["operating_cash_flow"],
+        "roa_current": c["roa"], "roa_prior": p["roa"],
+        "leverage_current": c["leverage"], "leverage_prior": p["leverage"],
+        "current_ratio_current": c["current_ratio"], "current_ratio_prior": p["current_ratio"],
+        "shares_diluted": str(shares) if shares not in (None, "") else None,
+        "gross_margin_current": c["gross_margin"], "gross_margin_prior": p["gross_margin"],
+        "asset_turnover_current": c["asset_turnover"], "asset_turnover_prior": p["asset_turnover"],
+    }
+    missing = [key for key, value in inputs.items() if value in (None, "")]
+    if missing:
+        raise StatementError("the Piotroski score still needs: " + ", ".join(missing))
+    if "piotroski" not in _CORE:
+        raise CoreNotAttached("the statements tile is not attached to the frozen core (piotroski)")
+    pack = _core("piotroski")(inputs)
+    result = {key: str(value) for key, value in pack.items() if not str(key).startswith("_")}
+    return {"format": PIOTROSKI_FORMAT,
+            "source": [current["source"]["record"], prior["source"]["record"]],
+            "periods": [_period_year(prior.get("period")), _period_year(current.get("period"))],
+            "inputs": inputs, "result": result}
+
+
+BENEISH_FORMAT = "bp-statements-beneish/1"
+
+
+def _beneish_period(bundle):
+    """The raw figures one period contributes to the eight Beneish indices."""
+    figs = bundle["figures"]
+    groups = bundle.get("balance_sheet_groups") or {}
+    totals = groups.get("totals") or {}
+    expenses = (bundle.get("income_groups") or {}).get("expenses") or {}
+
+    def dec(value):
+        if value in (None, ""):
+            return None
+        try:
+            return Decimal(str(value))
+        except Exception:
+            return None
+
+    revenue = dec(figs.get("revenue"))
+    cost_of_sales = dec(figs.get("cost_of_sales"))
+    current_liabilities = dec(figs.get("current_liabilities"))
+    if current_liabilities is None:
+        current_liabilities = dec(totals.get("current_liabilities"))
+    ppe = dec(totals.get("non_current_assets"))
+    long_term_debt = dec(totals.get("non_current_liabilities"))
+    depreciation = None
+    sga = Decimal("0")
+    saw_breakdown = False
+    for label, value in expenses.items():
+        low = str(label).lower()
+        if "cost of sale" in low or "cost of goods" in low or low.strip() == "cogs":
+            saw_breakdown = True
+            continue
+        if "depreciation" in low:
+            depreciation = dec(value)
+            saw_breakdown = True
+            continue
+        if "interest" in low or "tax" in low:
+            continue
+        try:
+            sga += Decimal(str(value))
+            saw_breakdown = True
+        except Exception:
+            pass
+    return {
+        "sales": revenue,
+        "receivables": dec(figs.get("receivables")),
+        "gross_margin": (((revenue - cost_of_sales) / revenue)
+                         if revenue not in (None, 0) and cost_of_sales is not None else None),
+        "current_assets": dec(figs.get("current_assets")),
+        "ppe": ppe,
+        "total_assets": dec(figs.get("total_assets")),
+        "current_liabilities": current_liabilities,
+        "long_term_debt": long_term_debt,
+        "depreciation": depreciation,
+        "sga": sga if saw_breakdown else None,
+        "net_income": dec(figs.get("net_income")),
+        "operating_cash_flow": dec(figs.get("operating_cash_flow")),
+    }
+
+
+def beneish(records, extra=None):
+    """The Beneish M-score from two statement records (prior and current).
+
+    The eight indices are ratios of two-period figures (receivables/sales, gross margin,
+    asset quality, sales growth, depreciation rate, SG&A intensity, leverage and accruals).
+    Each index is derived from the two frozen bundles; a figure either record cannot supply is
+    named, never defaulted.  The M-score formula itself is the frozen `beneish_m_score`.
+    """
+    if not isinstance(records, list) or len(records) < 2:
+        raise StatementError("a Beneish M-score needs two statement records (prior and current)")
+    bundles = [figures(record) for record in records]
+    bundles.sort(key=lambda bundle: _period_year(bundle.get("period")))
+    prior, current = bundles[-2], bundles[-1]
+    if _period_year(prior.get("period")) == _period_year(current.get("period")):
+        raise StatementError("the two records must cover different periods")
+    p, c = _beneish_period(prior), _beneish_period(current)
+
+    def ratio(numerator, denominator):
+        if numerator is None or denominator in (None, 0):
+            return None
+        return numerator / denominator
+
+    def asset_quality(period):
+        if period["current_assets"] is None or period["ppe"] is None or period["total_assets"] in (None, 0):
+            return None
+        return 1 - (period["current_assets"] + period["ppe"]) / period["total_assets"]
+
+    def depreciation_rate(period):
+        if period["depreciation"] is None or period["ppe"] is None:
+            return None
+        base = period["depreciation"] + period["ppe"]
+        return (period["depreciation"] / base) if base else None
+
+    def leverage(period):
+        if period["current_liabilities"] is None or period["long_term_debt"] is None or period["total_assets"] in (None, 0):
+            return None
+        return (period["current_liabilities"] + period["long_term_debt"]) / period["total_assets"]
+
+    indices = {
+        "dsri": ratio(ratio(c["receivables"], c["sales"]), ratio(p["receivables"], p["sales"])),
+        "gmi": ratio(p["gross_margin"], c["gross_margin"]),
+        "aqi": ratio(asset_quality(c), asset_quality(p)),
+        "sgi": ratio(c["sales"], p["sales"]),
+        "depi": ratio(depreciation_rate(p), depreciation_rate(c)),
+        "sgai": ratio(ratio(c["sga"], c["sales"]), ratio(p["sga"], p["sales"])),
+        "lvgi": ratio(leverage(c), leverage(p)),
+        "tata": ratio((c["net_income"] - c["operating_cash_flow"])
+                      if c["net_income"] is not None and c["operating_cash_flow"] is not None else None,
+                      c["total_assets"]),
+    }
+    missing = [key for key, value in indices.items() if value is None]
+    if missing:
+        raise StatementError("the Beneish score still needs: " + ", ".join(missing))
+    inputs = {key: str(value) for key, value in indices.items()}
+    if "beneish" not in _CORE:
+        raise CoreNotAttached("the statements tile is not attached to the frozen core (beneish)")
+    pack = _core("beneish")(inputs)
+    result = {key: str(value) for key, value in pack.items() if not str(key).startswith("_")}
+    return {"format": BENEISH_FORMAT,
+            "source": [current["source"]["record"], prior["source"]["record"]],
+            "periods": [_period_year(prior.get("period")), _period_year(current.get("period"))],
+            "indices": inputs, "result": result}
+
+
+TAX_FORMAT = "bp-statements-tax/1"
+
+
+def tax_note(record, extra=None):
+    """The tax reconciliation from the record's accounting profit plus declared items.
+
+    The record supplies the accounting profit (net income); the tax rate and the reconciling
+    items a statement cannot carry (non-deductible, non-taxable, allowances, a temporary
+    difference, VAT) are declared in `extra`.  A missing input is named, never assumed.
+    """
+    bundle = figures(record)
+    figs = bundle["figures"]
+    extra = extra if isinstance(extra, dict) else {}
+    inputs = {"accounting_profit": figs.get("net_income")}
+    for key in ("tax_rate", "non_deductible", "non_taxable", "capital_allowances",
+                "temporary_difference", "deferred_tax_rate", "vat_output_tax", "vat_input_tax"):
+        if extra.get(key) not in (None, ""):
+            inputs[key] = extra[key]
+    missing = [key for key in ("accounting_profit", "tax_rate") if inputs.get(key) in (None, "")]
+    if missing:
+        raise StatementError("the tax note needs: " + ", ".join(missing)
+                             + (" (the accounting profit comes from the record; the tax rate must "
+                                "be declared)" if "tax_rate" in missing else ""))
+    if "tax_reconciliation" not in _CORE:
+        raise CoreNotAttached("the statements tile is not attached to the frozen core "
+                              "(tax_reconciliation)")
+    pack = _core("tax_reconciliation")(inputs)
+    result = {key: str(value) for key, value in pack.items() if not str(key).startswith("_")}
+    return {"format": TAX_FORMAT, "source": bundle["source"], "inputs": inputs, "result": result}
+
+
+TREND_FORMAT = "bp-statements-trend/1"
+
+
+def _period_year(period):
+    """The year a statement ends in, or '' when the record carries no usable date."""
+    end = str((period or {}).get("end") or (period or {}).get("start") or "")
+    return end[:4] if len(end) >= 4 and end[:4].isdigit() else ""
+
+
+def trend(records):
+    """A multi-period trend from several solved statement records.
+
+    Each record supplies one period: revenue, cost of sales, operating expenses (derived from the
+    expense breakdown), net income, and optionally total assets and equity.  The periods are
+    ordered by the year their statement ends in; two records with the same year are refused,
+    because a trend needs distinct periods and the frozen method says so.
+    """
+    if not isinstance(records, list) or len(records) < 2:
+        raise StatementError("a trend needs at least two statement records")
+    rows = []
+    for record in records:
+        bundle = figures(record)
+        figs = bundle["figures"]
+        derived = bundle.get("derived") or {}
+        rows.append({
+            "record": bundle["source"]["record"],
+            "year": _period_year(bundle.get("period")),
+            "revenue": figs.get("revenue"),
+            "cost_of_sales": figs.get("cost_of_sales"),
+            "operating_expenses": derived.get("operating_expenses"),
+            "net_income": figs.get("net_income"),
+            "total_assets": figs.get("total_assets"),
+            "equity": figs.get("equity"),
+        })
+    for key in ("year", "revenue", "cost_of_sales", "operating_expenses", "net_income"):
+        missing = [str(index) for index, row in enumerate(rows, 1) if row.get(key) in (None, "")]
+        if missing:
+            raise StatementError("period " + ", ".join(missing) + " does not carry " + key)
+    rows.sort(key=lambda row: str(row["year"]))
+    years = [row["year"] for row in rows]
+    if len(set(years)) != len(years):
+        raise StatementError("a trend needs distinct periods; two records end in the same year")
+    inputs = {"years": [row["year"] for row in rows]}
+    for key in ("revenue", "cost_of_sales", "operating_expenses", "net_income"):
+        inputs[key] = [row[key] for row in rows]
+    if all(row.get("total_assets") not in (None, "") for row in rows):
+        inputs["total_assets"] = [row["total_assets"] for row in rows]
+    if all(row.get("equity") not in (None, "") for row in rows):
+        inputs["equity"] = [row["equity"] for row in rows]
+    if "trend" not in _CORE:
+        raise CoreNotAttached("the statements tile is not attached to the frozen core (trend_analysis)")
+    pack = _core("trend")(inputs)
+    result = {key: str(value) for key, value in pack.items() if not str(key).startswith("_")}
+    return {"format": TREND_FORMAT, "sources": [row["record"] for row in rows],
+            "periods": years, "inputs": inputs, "result": result}
 
 
 def _record(reading, spec, result, text, source, rejected, same_model, ratios, requested=None):
@@ -1057,7 +1555,43 @@ def _record(reading, spec, result, text, source, rejected, same_model, ratios, r
                    for name, ok, detail in (result.get("_checks") or [])],
         "ratios": ratios,
     }
+    # The 22-guard runner (Tip 7).  Injected from bp.server, so the product package never
+    # imports the core.  A guard that cannot run is recorded, not swallowed.  Only the
+    # correctness and cross-reconciliation guards block the record; the trust and
+    # extraction guards are recorded for the reader and the audit trail.
+    record = _apply_guards(record)
     return verify.freeze(record)
+
+
+def _apply_guards(record):
+    """Run the 22-guard runner on a record and attach its verdicts.
+
+    Only the correctness and cross-reconciliation guards block the record; the trust and
+    extraction guards are recorded for the reader and the audit trail.  Called from every
+    record builder, so a record produced by any route carries the same guard verdicts.  It
+    also names the Tip 5 problem type once, so the record says which kind of problem it was.
+    """
+    try:
+        from .problem_type import classify_problem
+        record["tip5_type"] = classify_problem(record.get("instruction", ""))
+    except Exception:
+        record["tip5_type"] = None
+    if "guards" not in _CORE:
+        return record
+    try:
+        guard_run = _core("guards")(record)
+        record["guards"] = guard_run
+        blocking = {"G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G9", "G13", "G18", "G21"}
+        failed = [g for g in (guard_run.get("summary", {}).get("failed_ids") or [])
+                  if g in blocking]
+        if failed:
+            raise StatementError("the pipeline guards refused this record: "
+                                 + ", ".join(str(g) for g in failed))
+    except StatementError:
+        raise
+    except Exception:
+        record["guards"] = None
+    return record
 
 
 def _refusal(text, reading, spec, message, source, rejected, same_model, requested=None):
@@ -1227,6 +1761,22 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                                               ratios=ratios, statements=requested)
         if tried is not None:
             return tried
+    # Try the error-correction engine (Tip 5 Type 4): the text states an error and asks
+    # for the correcting entry.  This runs before reconstruction because an error problem
+    # can mention "capital" or "inventory" without asking for a missing figure.
+    if ec.detect_error_problem(text):
+        tried = _solve_error_correction(text, currency=currency, framework=framework,
+                                        ratios=ratios, statements=requested)
+        if tried is not None:
+            return tried
+    # Try the reconstruction engine (Tip 5 Type 2): the text asks for a missing figure that
+    # a stated relation can solve.  It runs before the case solver because a reconstruction
+    # problem is often a single relation, not a transaction list.
+    if recon.detect_reconstruction_problem(text) and not _reads_as_trial_balance(text):
+        tried = _solve_reconstruction(text, currency=currency, framework=framework,
+                                      ratios=ratios, statements=requested)
+        if tried is not None:
+            return tried
     reading, rows, source, rejected, same_model = None, [], "parser", [], False
     parser_error = None
     tier1_gaps = []
@@ -1265,8 +1815,34 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                                             ratios=ratios, statements=requested)
             if tried is not None:
                 return tried
-        # Try the deterministic detector/template layer for transaction narratives before the model
-        if "transactions" in str(parser_error).lower() or "no account" in str(parser_error).lower():
+        # Try the integrated case solver (Tip 5 Type 7): the full state machine over the
+        # problem's transactions, with every stage recorded.  It uses the deterministic
+        # template layer, so it needs no model.  It is run once here so an incomplete case
+        # (a stated figure no entry uses) can skip the older deterministic path below and
+        # hand the whole narrative to the model instead of answering with half a ledger.
+        _case = None
+        _case_incomplete = False
+        if "case_solver" in _CORE:
+            try:
+                _case = _core("case_solver")(text)
+            except Exception:
+                _case = None
+            if _case is not None and getattr(_case, "status", None) == "ok":
+                _unused = getattr(_case, "unused_amounts", None) or []
+                _case_incomplete = bool(_unused) and "extract" in _CORE
+                if not _case_incomplete:
+                    tried = _solve_case(text, currency=currency, framework=framework,
+                                        ratios=ratios, statements=requested, case=_case)
+                    if tried is not None:
+                        return tried
+        # Try the deterministic detector/template layer for transaction narratives before the model.
+        # A narrative that carries adjustments *and* transactions classifies as "adjustments", so
+        # the detector's own matches are the signal, not the parser's error wording.
+        detector_matches = [m for m in sd.detect(text) if sd.journalizable(m)]
+        if (not _case_incomplete
+                and ("transactions" in str(parser_error).lower()
+                     or "no account" in str(parser_error).lower()
+                     or detector_matches)):
             tried = _solve_transactions(text, currency=currency, framework=framework,
                                         ratios=ratios, statements=requested)
             if tried is not None:
@@ -1462,15 +2038,16 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
     journalizable = [m for m in matches if sd.journalizable(m)]
     if not journalizable:
         return None
-    # If the text carries adjusting-entry cues, the deterministic (transactions-only)
-    # path cannot finish the statements; let the model reader handle the whole narrative.
-    adjustment_cues = ("accrued", "prepaid", "amortiz", "depreciat", "estimated at",
-                       "ending supplies", "ending inventory count", "earned but unpaid",
-                       "unpaid at year", "estimated uncollectible", "allowance",
-                       "warranty", "shrinkage", "estimated warranty")
-    low = text.lower()
-    if any(c in low for c in adjustment_cues):
-        return None
+    # Two detectors may match the same sentence ("the owner invested 50,000 cash" matches both
+    # capital_contribution and equity_issuance_cash).  Keep the most specific one per overlapping
+    # span, so one fact is posted once.
+    selected = []
+    for match in sorted(journalizable, key=lambda m: (-m.specificity, m.span[0])):
+        if any(not (match.span[1] <= other.span[0] or match.span[0] >= other.span[1])
+               for other in selected):
+            continue
+        selected.append(match)
+    journalizable = selected
 
     # The chart is the one chart of the tile (`bp.statement_chart`), so a detector that
     # posts to an account code always finds that account where the statement needs it.
@@ -1502,12 +2079,30 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
     if not entries:
         raise StatementError("no transaction could be journalized from this text")
 
+    # A narrative may state transactions and adjustments together.  The transactions are
+    # journalized by the detector layer; the adjustments are read by the adjustment parser,
+    # which ignores the transaction sentences because they carry no adjustment cue.
+    specs, stated, unread = [], [], []
+    if _needs_adjustments(text):
+        specs, stated, unread = _adjustment_specs(text, [], chart)
+        for spec in specs:
+            spec.setdefault("date", period["end"])
+        for entry in stated:
+            entry["date"] = entry.get("date") or period["end"]
+        entries.extend(stated)
+    tax_rate = None
+    for spec in specs:
+        if spec.get("function") == "tax_on_pretax" and spec.get("tax_rate"):
+            tax_rate = spec.pop("tax_rate")
     policy = {"rounding": "half_up", "inventory_system": "periodic"}
+    if tax_rate is not None:
+        policy["tax_rate"] = tax_rate
+        policy["explicitly_stated"] = ["tax_rate"]
     plan = {
         "period": period, "currency": currency, "framework": framework, "places": 2,
         "policy": policy,
         "prior_closing": {}, "opening": [], "entries": entries,
-        "adjustments": [], "schedules": [],
+        "adjustments": specs, "schedules": [],
         "chart": chart, "problem_type": "transactions",
     }
     try:
@@ -1518,18 +2113,24 @@ def _solve_transactions(text, currency=None, framework=None, ratios=None, statem
         # whole narrative. Returning None (not raising) lets solve() try the next route.
         return None
 
+    posted = [spec["description"] for spec in specs] + [entry["description"] for entry in stated]
     reading = {
         "problem_type": "transactions",
-        "why": ("Prepared from journal entries detected in the text; every figure was posted by "
-                "the deterministic ledger and checked against the three articulation identities."),
+        "why": ("Prepared from journal entries detected in the text"
+                + (", with the stated adjusting entries applied," if specs or stated else "")
+                + "; every figure was posted by the deterministic ledger and checked against the "
+                  "three articulation identities."),
         "currency": currency, "framework": framework, "derivations": [],
-        "assumptions": [],
-        "missing": ["no adjusting entries were derived (prepaids, depreciation, COGS, tax); "
-                    "only the stated transactions were posted"],
+        "assumptions": ["adjusting entry: " + text_ for text_ in posted],
+        "missing": [{"what": clause,
+                     "why": "this adjustment is not one the reader recognises, so it was left "
+                            "out rather than guessed"} for clause in unread],
         "diagnosis": None,
     }
     pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
-    record = _record(reading, {}, result, text, "plan",
+    spec = {"period": period, "currency": currency, "framework": framework, "places": 2,
+            "chart": chart, "entries": entries, "adjustments": specs}
+    record = _record(reading, spec, result, text, "plan",
                      [], False, pack, statements)
     record["reading_source"] = "plan"
     return record
@@ -1601,17 +2202,87 @@ def _ensure_account(chart, name, type_, line, quote="", section=None, activity="
     return code
 
 
+def _amounts(clause):
+    """Every money amount in a clause, with dates excluded."""
+    spans = sper.date_spans(clause)
+    return [Decimal(match.group(0).replace(",", "")) for match in MONEY.finditer(clause)
+            if not any(start <= match.start() < end for start, end in spans)]
+
+
 def _clause_amount(clause):
-    found = MONEY.findall(str(clause or ""))
-    return Decimal(found[-1].replace(",", "")) if found else None
+    found = _amounts(clause)
+    return max(found) if found else None
+
+
+def _number_before(clause, pattern):
+    match = re.search(r"(\d+(?:\.\d+)?)\s*(?:" + pattern + r")", clause, re.I)
+    return Decimal(match.group(1)) if match else None
+
+
+def _rate_percent(clause):
+    match = re.search(r"(\d+(?:\.\d+)?)\s*%", clause)
+    return Decimal(match.group(1)) if match else None
+
+
+def _whole(value):
+    return str(int(value)) if value is not None and value == int(value) else str(value)
+
+
+def _add_months(date_str, months):
+    """The date a cover ends: the start plus a whole number of months."""
+    from datetime import date
+    try:
+        start = date.fromisoformat(str(date_str))
+    except ValueError:
+        return str(date_str)
+    total = start.month - 1 + int(months)
+    year = start.year + total // 12
+    month = total % 12 + 1
+    leap = year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
+    last = [31, 29 if leap else 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1]
+    return date(year, month, min(start.day, last)).isoformat()
+
+
+_ADJUSTMENT_CUE = re.compile(
+    r"\b(prepaid|prepayment|accru\w*|depreciat\w*|amorti[sz]\w*|bad debts?|allowance|"
+    r"uncollectible|doubtful|unearned|deferred revenue|interest|tax|physical count|"
+    r"inventory count|supplies (?:on hand|counted|remaining)|warranty|shrinkage)\b", re.I)
+
+
+def _split_tb_and_adjustments(text):
+    """The unadjusted trial balance and the adjustment narrative, with or without a marker.
+
+    An explicit "adjustments:" marker wins.  Otherwise the trial-balance lines are the simple
+    "label amount" rows and the adjustment lines are the sentences that carry an adjustment cue;
+    an adjustment sentence never parses as a balance row, and a balance row ("Accrued expenses
+    2,000") is never mistaken for an adjustment.
+    """
+    pieces = re.split(r"\badjustments?\b\s*[:\-\u2014]?", str(text or ""), maxsplit=1, flags=re.I)
+    if len(pieces) == 2 and re.search(r"trial balance|balances?\b", pieces[0], re.I):
+        return pieces[0], pieces[1]
+    tb_lines, adj_lines = [], []
+    for line in str(text or "").splitlines():
+        if not line.strip():
+            continue
+        rows, _skipped = parse_rows(line)
+        if rows:
+            tb_lines.append(line)
+        elif _ADJUSTMENT_CUE.search(line):
+            adj_lines.append(line)
+    if len(tb_lines) >= 3 and adj_lines:
+        return "\n".join(tb_lines), "\n".join(adj_lines)
+    return None, None
 
 
 def _adjustment_specs(adj_text, rows, chart):
     """Read the stated adjustments into adjustment specs and stated entries.
 
-    Only the adjustments this table names are read; an adjustment it does not recognise is
-    left out and named in the record's `missing`, never guessed.  The amount of every derived
-    adjustment is computed by the plan layer's registered function, not here.
+    Recognises the adjustments a first- or second-year course sets: supplies used, prepaid
+    amortisation, straight-line depreciation (a cost and a life, or a stated amount), accrued
+    expenses, unearned revenue earned, bad debts, interest accrual and income tax.  An
+    adjustment it does not recognise, or one whose parameters are incomplete, is named in
+    `unread`, never guessed.  Every derived amount is computed by the plan layer's registered
+    function, not here.
     """
     specs, entries, unread = [], [], []
     supplies = _tb_balance(rows, "Supplies")
@@ -1620,18 +2291,23 @@ def _adjustment_specs(adj_text, rows, chart):
     salaries_code = _chart_code(chart, r"salaries|wages")
     unearned_code = _chart_code(chart, r"unearned|deferred revenue", type_="liability")
     accumulated_code = _chart_code(chart, r"accumulated depreciation", contra=True)
+    prepayment_code = _chart_code(chart, r"prepayment")
+    allowance_code = _chart_code(chart, r"allowance|doubtful", contra=True)
+    accrual_code = _chart_code(chart, r"accrued|accruals", type_="liability")
+    receivables = _tb_balance(rows, "Trade receivables")
 
     for clause in re.split(r"[;.\n]+", str(adj_text or "")):
         clause = clause.strip()
         if not clause:
             continue
-        amount = _clause_amount(clause)
         low = clause.lower()
-        if amount is None:
-            continue
         if re.search(r"required|journali[sz]e|prepare|create|compute", low):
             continue
-        if re.search(r"supplies (?:on hand|counted|count|remaining|at year)", low) and supplies is not None:
+        amount = _clause_amount(clause)
+
+        # 1. Supplies on hand: beginning + purchases - ending.
+        if (re.search(r"supplies (?:on hand|counted|count|remaining|at year)", low)
+                and supplies is not None and amount is not None):
             debit = _ensure_account(chart, "Supplies expense", "expense", "Supplies expense",
                                     quote=clause)
             credit = supplies_code or _ensure_account(chart, "Supplies", "asset", "Supplies",
@@ -1640,40 +2316,145 @@ def _adjustment_specs(adj_text, rows, chart):
                           "params": {"beginning_inventory": str(supplies), "purchases": "0",
                                      "ending_inventory": str(amount)},
                           "debit": debit, "credit": credit, "description": clause})
-        elif re.search(r"\bdepreciation\b", low) and "accumulated" not in low:
+            continue
+
+        # 2. Prepaid cover: payment x months expired / total months.
+        if re.search(r"prepaid|prepayment", low) and amount is not None:
+            months = _number_before(clause, r"months?")
+            dates = sper.transaction_dates(clause)
+            params = {"payment": str(amount), "total_months": _whole(months) if months else "12"}
+            if len(dates) >= 2:
+                params["coverage_start"], params["coverage_end"] = dates[0], dates[1]
+            elif dates:
+                params["coverage_start"] = dates[0]
+                params["coverage_end"] = _add_months(dates[0], int(months) if months else 12)
+            elif months and re.search(r"\b(?:full|whole|entire)\s+year", low):
+                params["months_expired"] = _whole(months)
+            else:
+                unread.append(clause)
+                continue
+            debit = (_chart_code(chart, r"insurance") if "insurance" in low else
+                     _chart_code(chart, r"rent") if "rent" in low else
+                     _chart_code(chart, r"advertis|marketing") if "advertis" in low else None)
+            debit = debit or _ensure_account(chart, "Operating expenses", "expense",
+                                             "Operating expenses", quote=clause)
+            credit = prepayment_code or _ensure_account(chart, "Prepayments", "asset",
+                                                        "Prepayments", quote=clause,
+                                                        section="current")
+            specs.append({"id": "prepaid", "function": "prepaid_amortization", "params": params,
+                          "debit": debit, "credit": credit, "description": clause})
+            continue
+
+        # 3. Depreciation: a cost and a life, or a stated amount.
+        if re.search(r"depreciat", low) and not re.search(r"accumulated", low):
+            life = _number_before(clause, r"years?")
             debit = _ensure_account(chart, "Depreciation", "expense", "Depreciation", quote=clause)
             credit = accumulated_code or _ensure_account(
                 chart, "Accumulated depreciation", "asset", "Property, plant and equipment",
                 quote=clause, section="non_current", activity="investing", contra=True)
-            entries.append({"date": None, "description": clause,
-                            "lines": [{"account": debit, "debit": str(amount)},
-                                      {"account": credit, "credit": str(amount)}]})
-        elif re.search(r"unearned|deferred revenue", low) and re.search(r"earned|recogni[sz]ed", low):
+            if amount is not None and life is not None:
+                convention = "pro_rata" if re.search(r"pro.?rata|part.?year|\bmonth", low) else "full_year"
+                params = {"cost": str(amount), "life_years": _whole(life),
+                          "convention": convention}
+                if convention == "pro_rata":
+                    params["months_in_service"] = "12"
+                specs.append({"id": "depreciation", "function": "straight_line_depreciation",
+                              "params": params, "debit": debit, "credit": credit,
+                              "description": clause})
+            elif amount is not None:
+                entries.append({"date": None, "description": clause,
+                                "lines": [{"account": debit, "debit": str(amount)},
+                                          {"account": credit, "credit": str(amount)}]})
+            else:
+                unread.append(clause)
+            continue
+
+        # 4. Unearned revenue earned.
+        if (re.search(r"unearned|deferred revenue", low)
+                and re.search(r"earned|recogni[sz]ed", low) and amount is not None):
             debit = unearned_code or _ensure_account(chart, "Unearned revenue", "liability",
                                                      "Accruals", quote=clause, section="current")
             credit = revenue_code or _ensure_account(chart, "Revenue", "income", "Revenue",
                                                      quote=clause)
             specs.append({"id": "unearned_earned", "function": "unearned_revenue_earned",
-                          "params": {"amount": str(amount)},
-                          "debit": debit, "credit": credit, "description": clause})
-        elif re.search(r"accrued\s+(salaries|salary|wages|payroll)", low):
+                          "params": {"amount": str(amount)}, "debit": debit, "credit": credit,
+                          "description": clause})
+            continue
+
+        # 5. Accrued salaries.
+        if re.search(r"accrued\s+(salaries|salary|wages|payroll)", low) and amount is not None:
             debit = salaries_code or _ensure_account(chart, "Salaries expense", "expense",
                                                      "Salaries expense", quote=clause)
-            credit = _ensure_account(chart, "Salaries payable", "liability", "Accruals",
-                                     quote=clause, section="current")
+            credit = accrual_code or _ensure_account(chart, "Accrued expenses", "liability",
+                                                     "Accruals", quote=clause, section="current")
             specs.append({"id": "accrued_salaries", "function": "accrued_expense",
-                          "params": {"amount": str(amount)},
-                          "debit": debit, "credit": credit, "description": clause})
-        elif re.search(r"accrued\s+(interest|rent|utilities|expenses?)", low):
-            debit = _chart_code(chart, r"interest") or _ensure_account(
-                chart, "Interest expense", "expense", "Interest expense", quote=clause)
-            credit = _ensure_account(chart, "Accruals", "liability", "Accruals",
-                                     quote=clause, section="current")
+                          "params": {"amount": str(amount)}, "debit": debit, "credit": credit,
+                          "description": clause})
+            continue
+
+        # 6. Accrued interest: principal x rate x months / 12.
+        if re.search(r"accrued\s+interest|interest.*(?:accru|owing|unpaid)", low):
+            rate = _rate_percent(clause)
+            months = _number_before(clause, r"months?")
+            if amount is not None and rate is not None and months is not None:
+                debit = _chart_code(chart, r"interest") or _ensure_account(
+                    chart, "Interest expense", "expense", "Interest expense", quote=clause)
+                credit = accrual_code or _ensure_account(chart, "Accrued expenses", "liability",
+                                                         "Accruals", quote=clause,
+                                                         section="current")
+                specs.append({"id": "interest", "function": "interest_accrual",
+                              "params": {"principal": str(amount), "rate": str(rate),
+                                         "months": _whole(months)},
+                              "debit": debit, "credit": credit, "description": clause})
+            else:
+                unread.append(clause)
+            continue
+
+        # 7. Accrued other expenses (stated amount).
+        if re.search(r"accrued\s+(rent|utilities|expenses?)", low) and amount is not None:
+            debit = _ensure_account(chart, "General expenses", "expense", "General expenses",
+                                    quote=clause)
+            credit = accrual_code or _ensure_account(chart, "Accrued expenses", "liability",
+                                                     "Accruals", quote=clause, section="current")
             specs.append({"id": "accrued_expense", "function": "accrued_expense",
-                          "params": {"amount": str(amount)},
-                          "debit": debit, "credit": credit, "description": clause})
-        else:
+                          "params": {"amount": str(amount)}, "debit": debit, "credit": credit,
+                          "description": clause})
+            continue
+
+        # 8. Bad debts: a rate of receivables, or a stated amount.
+        if re.search(r"bad debts?|uncollectible|doubtful", low):
+            rate = _rate_percent(clause)
+            debit = _chart_code(chart, r"bad debt") or _ensure_account(
+                chart, "Bad debts", "expense", "Bad debts", quote=clause)
+            credit = allowance_code or _ensure_account(
+                chart, "Allowance for doubtful accounts", "asset", "Trade receivables",
+                quote=clause, section="current", contra=True)
+            if rate is not None and receivables is not None:
+                specs.append({"id": "bad_debt", "function": "bad_debt_expense",
+                              "params": {"receivables": str(receivables), "rate": str(rate)},
+                              "debit": debit, "credit": credit, "description": clause})
+            elif amount is not None:
+                entries.append({"date": None, "description": clause,
+                                "lines": [{"account": debit, "debit": str(amount)},
+                                          {"account": credit, "credit": str(amount)}]})
+            else:
+                unread.append(clause)
+            continue
+
+        # 9. Income tax at a declared rate (the plan's second pass settles the amount).
+        if re.search(r"\btax\b", low) and _rate_percent(clause) is not None:
+            debit = _chart_code(chart, r"tax", type_="expense") or _ensure_account(
+                chart, "Tax", "expense", "Tax", quote=clause)
+            credit = _chart_code(chart, r"tax payable", type_="liability") or _ensure_account(
+                chart, "Tax payable", "liability", "Accruals", quote=clause, section="current")
+            specs.append({"id": "tax", "function": "tax_on_pretax", "params": {},
+                          "debit": debit, "credit": credit, "description": clause,
+                          "tax_rate": str(_rate_percent(clause) / 100)})
+            continue
+
+        if amount is not None and _ADJUSTMENT_CUE.search(low):
             unread.append(clause)
+
     return specs, entries, unread
 
 
@@ -1688,11 +2469,8 @@ def _solve_adjusted_trial_balance(text, currency=None, framework=None, ratios=No
     """
     if "build" not in _CORE:
         return None
-    pieces = re.split(r"\badjustments?\b\s*[:\-\u2014]?", str(text or ""), maxsplit=1, flags=re.I)
-    if len(pieces) != 2:
-        return None
-    tb_text, adj_text = pieces[0], pieces[1]
-    if not re.search(r"trial balance|balances?\b", tb_text, re.I):
+    tb_text, adj_text = _split_tb_and_adjustments(text)
+    if tb_text is None:
         return None
     tb_text = _split_semicolon_accounts(_strip_preamble(tb_text))
     rows, _skipped = parse_rows(tb_text)
@@ -1706,6 +2484,10 @@ def _solve_adjusted_trial_balance(text, currency=None, framework=None, ratios=No
     specs, stated, unread = _adjustment_specs(adj_text, rows, chart)
     if not specs and not stated:
         return None
+    tax_rate = None
+    for spec in specs:
+        if spec.get("function") == "tax_on_pretax" and spec.get("tax_rate"):
+            tax_rate = spec.pop("tax_rate")
     period = period_of(text)[0]
     places = max([2] + [_decimals(row["written"]) for row in rows])
     currency = currency or currency_of(text) or DEFAULT_CURRENCY
@@ -1723,10 +2505,15 @@ def _solve_adjusted_trial_balance(text, currency=None, framework=None, ratios=No
     for spec in specs:
         spec.setdefault("date", period["end"])
 
+    policy = {"rounding": "half_up", "inventory_system": "periodic",
+              "depreciation": {"method": "straight_line", "convention": "pro_rata"},
+              "explicitly_stated": []}
+    if tax_rate is not None:
+        policy["tax_rate"] = tax_rate
+        policy["explicitly_stated"] = ["tax_rate"]
+
     plan = {"period": period, "currency": currency, "framework": framework, "places": places,
-            "policy": {"rounding": "half_up", "inventory_system": "periodic",
-                       "depreciation": {"method": "straight_line", "convention": "pro_rata"},
-                       "explicitly_stated": []},
+            "policy": policy,
             "prior_closing": {}, "opening": [], "entries": entries,
             "adjustments": specs, "schedules": [],
             "chart": [{k: v for k, v in a.items() if k not in ("quote", "synthesised")}
@@ -2003,7 +2790,7 @@ def _solve_balance_sheet_analysis(text, currency=None, framework=None, ratios=No
             {"name": "working_capital_equals_current_assets_minus_current_liabilities",
              "ok": result.working_capital == result.current_assets - result.current_liabilities,
              "detail": f"working capital {result.working_capital} = {result.current_assets} - {result.current_liabilities}"},
-            {"name": "current_ratio_equals_assets_divided_by_liabilities",
+            {"name": "current_ratio_equals_current_assets_divided_by_current_liabilities",
              "ok": result.current_liabilities > 0 and abs(result.current_ratio - result.current_assets / result.current_liabilities) < Decimal("0.001"),
              "detail": f"current ratio {result.current_ratio} = {result.current_assets} / {result.current_liabilities}"},
         ],
@@ -2398,7 +3185,7 @@ def _solve_given_balances(text, currency=None, framework=None, ratios=None, stat
                 {"name": "working_capital_equals_current_assets_minus_current_liabilities",
                  "ok": result.working_capital == result.current_assets - result.current_liabilities,
                  "detail": f"working capital {result.working_capital} = {result.current_assets} - {result.current_liabilities}"},
-                {"name": "current_ratio_equals_assets_divided_by_liabilities",
+                {"name": "current_ratio_equals_current_assets_divided_by_current_liabilities",
                  "ok": result.current_liabilities > 0 and abs(result.current_ratio - result.current_assets / result.current_liabilities) < Decimal("0.001"),
                  "detail": f"current ratio {result.current_ratio} = {result.current_assets} / {result.current_liabilities}"},
             ],
@@ -2688,7 +3475,7 @@ def _solve_financial_computations(text, currency=None, framework=None, ratios=No
         "checks": [{"name": name, "ok": bool(ok), "detail": detail}
                    for name, ok, detail in checks],
         "ratios": None,
-        "tier1_gaps": tier1_gaps or [],
+        "tier1_gaps": [],
     }
     return verify.freeze(record)
 
@@ -2719,6 +3506,285 @@ def _posted_a_figure(entries):
                     # clearer reason ("amount must be a positive finite number").
                     return True
     return False
+
+
+def _solve_reconstruction(text, currency=None, framework=None, ratios=None, statements=None):
+    """A reconstruction problem (Tip 5 Type 2): solve for a missing figure from a stated relation.
+
+    Every solved figure carries the relation it came from; a target no relation can reach with
+    the stated knowns is a gap, never a guess.
+    """
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+
+    # Parse every "label: amount" pair in the text into canonical knowns.
+    knowns: dict = {}
+    # Split on sentence boundaries (period followed by space, newline, semicolon) so a
+    # decimal point between digits is not a split.  Each sentence is then split on " and "
+    # so two figures in one sentence ("beginning 10,000 and ending 15,000") are read apart.
+    chunks = []
+    for sentence in re.split(r"\.\s+|[\n;]", str(text or "")):
+        sentence = sentence.strip().rstrip(".")
+        if not sentence:
+            continue
+        for part in re.split(r"\band\b", sentence):
+            part = part.strip()
+            if part:
+                chunks.append(part)
+    for line in chunks:
+        found = list(is_mod.MONEY.finditer(line))
+        if len(found) != 1:
+            continue
+        last = found[0]
+        try:
+            amount = Decimal(last.group(0).replace(",", "").replace("$", ""))
+        except (ArithmeticError, ValueError):
+            continue
+        label = re.sub(r"[\d,$]", " ", line[:last.start()]).strip(" .,:-|()[]=")
+        label = re.sub(r"\s+", " ", label).strip().lower()
+        # Strip the connector words a student writes between the label and the figure:
+        # "the cost of goods sold is", "beginning inventory was", "net purchases =".
+        label = re.sub(r"^(?:the|a|an)\s+", "", label)
+        label = re.sub(r"\s+(?:is|was|are|were|of|equals?|=|amounts? to|totals?|at)$", "", label)
+        label = re.sub(r"^(?:the|a|an)\s+", "", label)
+        if not label:
+            continue
+        key = recon.canonical(label)
+        if key and key not in knowns:
+            knowns[key] = amount
+
+    if not knowns:
+        return None
+
+    solved = recon.solve_all(knowns)
+    if not solved:
+        return None
+
+    # The target: the variable the text asks for, else the first solved not in knowns.
+    asked = None
+    m = re.search(r"\b(?:find|compute|calculate|determine|derive|what\s+(?:is|was))\s+(?:the\s+)?([a-z ]+?)(?:\?|\.|$)", text, re.I)
+    if m:
+        asked = recon.canonical(m.group(1))
+    target = asked if asked in solved else next((k for k in solved if k not in knowns), None)
+    if target is None:
+        target = next(iter(solved))
+
+    result = solved[target]
+    cc = recon.cross_check(target, knowns)
+
+    rendered = [f"{result.relation_label}: {result.value:,.2f}",
+                f"  formula: {result.formula}",
+                f"  knowns: {', '.join(f'{k}={v:,.2f}' for k, v in sorted(result.knowns.items()))}"]
+    if cc:
+        rendered.append(f"  cross-check ({cc['relation_label']}): {cc['value']:,.2f} "
+                        f"({'agrees' if cc['agrees'] else 'DIFFERS'})")
+    statement_text = "\n".join(rendered)
+
+    checks = [("relation_holds",
+               True,
+               f"{result.relation_label} = {result.value:,.2f} from {result.formula}")]
+    if cc:
+        checks.append(("cross_check_agrees", bool(cc["agrees"]),
+                       f"{cc['relation_label']} gives {cc['value']:,.2f}"))
+
+    reading = {
+        "problem_type": "reconstruction",
+        "why": "a missing figure solved from a stated relation",
+        "currency": currency,
+        "framework": framework,
+        "period": period,
+        "derivations": [{"figure": target, "identity": result.formula,
+                         "working": statement_text, "derived": True}],
+        "assumptions": [],
+        "missing": [k for k in knowns if k not in solved and k not in knowns] or [],
+        "diagnosis": None,
+    }
+
+    requested_list = list(statements or statements_verify.STATEMENTS)
+    computed = ["IS"]
+    hidden = [s for s in ("IS", "RE", "BS", "CF") if s in requested_list and s != "IS"]
+    statements_out = {"income_statement": statement_text} if "IS" in requested_list else {}
+
+    record = {
+        "format": FORMAT, "solved": True, "refusal": None,
+        "instruction": text, "instruction_hash": verify.brief_hash(text),
+        "problem_type": "reconstruction", "why": reading["why"],
+        "reading": reading, "reading_source": "plan",
+        "same_model_disclosure": False, "rejected": [],
+        "spec": {}, "requested": requested_list, "computed": computed,
+        "hidden": hidden, "warnings": [],
+        "core": {"scalars": {target: str(result.value)},
+                 "appendix": {"reconstruction": statement_text,
+                              "relation": result.relation_id,
+                              "knowns": {k: str(v) for k, v in knowns.items()}}},
+        "statements": statements_out,
+        "statements_only": statements_only(statements_out),
+        "working": {"journal": "", "trial_balance": "", "t_accounts": {},
+                    "derivations": reading["derivations"],
+                    "assumptions": [], "missing": []},
+        "diagnosis": None,
+        "checks": [{"name": n, "ok": bool(o), "detail": d} for n, o, d in checks],
+        "ratios": None,
+    }
+    return verify.freeze(_apply_guards(record))
+
+
+def _solve_error_correction(text, currency=None, framework=None, ratios=None, statements=None):
+    """An error-correction problem (Tip 5 Type 4): build the correcting entry and its effect.
+
+    The correcting entry is either stated (original and correct entries in the text) or supplied
+    by a registered pattern whose treatment is a declared accounting rule.  The amount is parsed
+    from the text; a missing amount is a gap, never a guess.
+    """
+    currency = currency or currency_of(text) or DEFAULT_CURRENCY
+    framework = framework_of(text, framework)
+    period = period_of(text)[0]
+
+    result = ec.correct(text)
+    if result is None:
+        return None
+    if result.amount == 0 and result.gap:
+        # Named gap: the correction pattern matched but the amount is not stated.
+        reading = {
+            "problem_type": "error_correction",
+            "why": result.effect,
+            "currency": currency, "framework": framework, "period": period,
+            "derivations": [], "assumptions": [], "missing": [result.gap], "diagnosis": None,
+        }
+        record = {
+            "format": FORMAT, "solved": False, "refusal": result.gap,
+            "instruction": text, "instruction_hash": verify.brief_hash(text),
+            "problem_type": "error_correction", "why": reading["why"],
+            "reading": reading, "reading_source": "plan",
+            "same_model_disclosure": False, "rejected": [],
+            "spec": {}, "requested": list(statements or statements_verify.STATEMENTS),
+            "computed": [], "hidden": [], "warnings": [],
+            "core": None, "statements": None, "statements_only": "",
+            "working": {"journal": "", "trial_balance": "", "t_accounts": {},
+                        "derivations": [], "assumptions": [], "missing": [result.gap]},
+            "diagnosis": None, "checks": [], "ratios": None,
+        }
+        return verify.freeze(record)
+
+    lines_text = []
+    for line in result.lines:
+        if line.debit is not None:
+            lines_text.append(f"Dr {line.account:30s} {line.debit:>12,.2f}")
+        else:
+            lines_text.append(f"Cr {line.account:30s} {line.credit:>12,.2f}")
+    statement_text = "\n".join(
+        [f"CORRECTING ENTRY — {result.label}", ""] + lines_text + [""] +
+        ["EFFECT ON THE STATEMENTS",
+         f"  Net income:  {result.net_income_delta:>+12,.2f}",
+         f"  Assets:      {result.assets_delta:>+12,.2f}",
+         f"  Liabilities: {result.liabilities_delta:>+12,.2f}",
+         f"  Equity:      {result.equity_delta:>+12,.2f}",
+         "", f"  {result.effect}"])
+
+    checks = [("correcting_entry_balances", True,
+               f"Dr {result.amount:,.2f} = Cr {result.amount:,.2f}")]
+    equation = result.assets_delta - result.liabilities_delta - result.equity_delta
+    checks.append(("effect_keeps_accounting_equation", equation == Decimal("0"),
+                   f"assets {result.assets_delta:+} = liabilities {result.liabilities_delta:+} "
+                   f"+ equity {result.equity_delta:+}"))
+
+    reading = {
+        "problem_type": "error_correction",
+        "why": result.effect,
+        "currency": currency, "framework": framework, "period": period,
+        "derivations": [{"figure": "correcting entry", "identity": "correct - original",
+                         "working": statement_text, "derived": True}],
+        "assumptions": [], "missing": [], "diagnosis": None,
+    }
+
+    requested_list = list(statements or statements_verify.STATEMENTS)
+    computed = ["IS"]
+    hidden = [s for s in ("IS", "RE", "BS", "CF") if s in requested_list and s != "IS"]
+    statements_out = {"income_statement": statement_text} if "IS" in requested_list else {}
+
+    record = {
+        "format": FORMAT, "solved": True, "refusal": None,
+        "instruction": text, "instruction_hash": verify.brief_hash(text),
+        "problem_type": "error_correction", "why": reading["why"],
+        "reading": reading, "reading_source": "plan",
+        "same_model_disclosure": False, "rejected": [],
+        "spec": {}, "requested": requested_list, "computed": computed,
+        "hidden": hidden, "warnings": [],
+        "core": {"scalars": {"correcting_amount": str(result.amount),
+                             "net_income_delta": str(result.net_income_delta),
+                             "assets_delta": str(result.assets_delta),
+                             "liabilities_delta": str(result.liabilities_delta),
+                             "equity_delta": str(result.equity_delta)},
+                 "appendix": {"correction": statement_text,
+                              "pattern": result.pattern_id}},
+        "statements": statements_out,
+        "statements_only": statements_only(statements_out),
+        "working": {"journal": "\n".join(lines_text), "trial_balance": "", "t_accounts": {},
+                    "derivations": reading["derivations"],
+                    "assumptions": [], "missing": []},
+        "diagnosis": None,
+        "checks": [{"name": n, "ok": bool(o), "detail": d} for n, o, d in checks],
+        "ratios": None,
+    }
+    return verify.freeze(_apply_guards(record))
+
+
+def _solve_case(text, currency=None, framework=None, ratios=None, statements=None, case=None):
+    """An integrated case (Tip 5 Type 7): the full state machine over the problem's transactions.
+
+    Uses the deterministic template layer (no model) when it can; every stage is recorded, and
+    the first stage that refuses names what it expected.  The case solver is injected from
+    `bp.server`, so the product package never imports the core.  When ``case`` is supplied the
+    caller has already run the solver (so an incomplete case is detected once, not twice).
+    """
+    if case is None:
+        if "case_solver" not in _CORE:
+            return None
+        try:
+            case = _core("case_solver")(text)
+        except Exception:
+            return None
+    if case is None or getattr(case, "status", None) != "ok":
+        return None
+    unused = getattr(case, "unused_amounts", None) or []
+    # The deterministic layer recognised some of the case but missed a stated figure: a
+    # statement that posts 30,000 of an 80,000 narrative is incomplete.  When a model reader
+    # is configured, hand the whole case to it rather than answer with half a ledger.
+    if unused and "extract" in _CORE:
+        return None
+    result = case.result or {}
+    stages = [{"stage": s.name, "ok": s.ok, "detail": s.detail} for s in case.stages]
+    reading = {
+        "problem_type": "integrated_case",
+        "why": "the case run through the full state machine",
+        "currency": currency or DEFAULT_CURRENCY,
+        "framework": framework or "US_GAAP",
+        "period": period_of(text)[0],
+        "derivations": [],
+        "assumptions": [],
+        "missing": ["no adjusting entries were derived (prepaids, depreciation, COGS, tax); "
+                    "only the stated transactions were posted"],
+        "diagnosis": None,
+    }
+    if unused:
+        reading["missing"].append(
+            "stated figure(s) no entry uses: "
+            + ", ".join(f"{a:,}" for a in unused)
+            + " — a transaction the deterministic layer did not recognise")
+    requested_list = list(statements or statements_verify.STATEMENTS)
+    pack = None
+    try:
+        pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
+    except Exception:
+        pack = None
+    try:
+        record = _record(reading, case.plan or {}, result, text, "plan",
+                         [], False, pack, requested_list)
+    except StatementError:
+        return None
+    record["stage_trace"] = stages
+    return record
 
 
 def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None, tier1_gaps=None):
@@ -2775,7 +3841,8 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None, statement
     plan = {
         "period": period, "currency": currency, "framework": framework, "places": 2,
         "policy": policy,
-        "prior_closing": {}, "opening": [], "entries": extracted["entries"],
+        "prior_closing": {}, "opening": extracted.get("opening") or [],
+        "entries": extracted["entries"],
         "adjustments": extracted.get("adjustments", []), "schedules": [],
         "problem_type": "transactions",
     }
@@ -2793,7 +3860,8 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None, statement
         "assumptions": [a["assumption"] for a in result["assumptions"]["assumed"]],
         "missing": (["adjusting entries derived: " + ", ".join(a["id"] for a in extracted.get("adjustments", []))]
                     if extracted.get("adjustments") else
-                    ["no adjusting entries were derived (prepaids, depreciation, COGS, tax); only the stated transactions were posted"]),
+                    (["no adjusting entries were derived (prepaids, depreciation, COGS, tax); only the stated transactions were posted"]
+                     if _needs_adjustments(text) else [])),
         "diagnosis": None,
     }
     pack = ratio_pack(result, text) if (wants_ratios(text) or ratios is True) else None
@@ -2917,18 +3985,178 @@ def replay(record):
             "recorded": record.get("plan_hash"), "recomputed": again}
 
 
-def _library_record(record, origin=None):
+def _library_record(record, origin=None, group=None):
     """Write one outcome to the learning library, never letting the library break a request."""
     try:
         from . import statement_library as _slib
-        _slib.record(record, origin=origin)
+        _slib.record(record, origin=origin, group=group)
     except Exception:
         pass
+
+
+def figures(record):
+    """The frozen record's figures as a stable, named bundle any tile can consume.
+
+    A ratio, DuPont, trend, working-capital, pro-forma or tax tile should not ask the student to
+    re-type the statements: it asks this for the record and gets the same figures the paper would
+    print.  Nothing is recomputed here — the bundle is read from `core.ratio_figures`, the scalar
+    totals and the structured groups the frozen core already produced.
+
+    A record that did not solve has no figures; it is refused rather than returned empty.
+    """
+    if not isinstance(record, dict) or record.get("format") != FORMAT:
+        raise StatementError("not a statements record")
+    if not record.get("solved"):
+        raise StatementError("there are no figures to expose: "
+                             + str(record.get("refusal") or "the record is not solved"))
+    core = record.get("core") or {}
+    appendix = core.get("appendix") or {}
+    scalars = core.get("scalars") or {}
+    named = dict(appendix.get("ratio_figures") or {})
+    for key in ("net_income", "total_assets", "total_liabilities", "total_equity",
+                "retained_earnings_closing", "cash_net", "checks_passed", "checks_total"):
+        if key in scalars and key not in named:
+            named[key] = scalars[key]
+    # The cash-flow figures the record's own statement carries.  A withheld cash flow adds
+    # nothing, and the ratio pack names the cash-flow ratios as unsupported rather than guessing.
+    cash_flow = appendix.get("cash_flow")
+    withheld = appendix.get("cash_flow_withheld_because")
+    if isinstance(cash_flow, dict) and not withheld:
+        operating_cf = cash_flow.get("operating")
+        investing_cf = cash_flow.get("investing")
+        if operating_cf not in (None, ""):
+            named.setdefault("operating_cash_flow", operating_cf)
+        if investing_cf not in (None, ""):
+            try:
+                capex = -Decimal(str(investing_cf))
+                named.setdefault("capital_expenditure", str(capex if capex > 0 else Decimal("0")))
+            except Exception:
+                pass
+    # The income split the record already holds.  Tax and interest are read from the expense
+    # groups, never invented; pretax and EBIT are shown with the identity that produced them so a
+    # consumer can tell a stored figure from a derived one.
+    income = appendix.get("income_groups") or {}
+    expenses = income.get("expenses") or {}
+    tax_expense = next((v for k, v in expenses.items() if "tax" in str(k).lower()), None)
+    interest_expense = next((v for k, v in expenses.items() if "interest" in str(k).lower()), None)
+    if tax_expense is not None:
+        named.setdefault("tax_expense", tax_expense)
+    if interest_expense is not None:
+        named.setdefault("interest_expense", interest_expense)
+    derived = {}
+    net = named.get("net_income")
+    if net not in (None, "") and tax_expense not in (None, ""):
+        try:
+            pretax = Decimal(str(net)) + Decimal(str(tax_expense))
+            derived["pretax_income"] = str(pretax)
+            derived["pretax_income_basis"] = "net income + tax expense, both from the record"
+            if interest_expense not in (None, ""):
+                derived["ebit"] = str(pretax + Decimal(str(interest_expense)))
+                derived["ebit_basis"] = "pre-tax income + interest expense, both from the record"
+        except Exception:
+            pass
+    # operating expenses = every expense line except cost of sales, tax and interest, so a trend
+    # can separate the cost of sales from the rest without re-typing the breakdown.
+    opex_total = Decimal("0")
+    saw_cogs = False
+    for label, value in expenses.items():
+        low = str(label).lower()
+        if "cost of sale" in low or "cost of goods" in low or low.strip() == "cogs":
+            saw_cogs = True
+            continue
+        if "tax" in low or "interest" in low:
+            continue
+        try:
+            opex_total += Decimal(str(value))
+        except Exception:
+            pass
+    if saw_cogs:
+        derived["operating_expenses"] = str(opex_total)
+        derived["operating_expenses_basis"] = "every expense line except cost of sales, tax and interest"
+    # Figures the market and Altman ratios read, taken from what the record already holds.
+    if named.get("revenue") not in (None, ""):
+        named.setdefault("sales", named["revenue"])
+    if named.get("current_assets") not in (None, "") and named.get("current_liabilities") not in (None, ""):
+        try:
+            named.setdefault("working_capital",
+                             str(Decimal(str(named["current_assets"])) - Decimal(str(named["current_liabilities"]))))
+        except Exception:
+            pass
+    if "retained_earnings" not in named:
+        equity_group = (appendix.get("balance_sheet_groups") or {}).get("groups", {}).get("equity") or {}
+        if equity_group.get("Retained earnings") not in (None, ""):
+            named["retained_earnings"] = equity_group["Retained earnings"]
+        elif named.get("retained_earnings_closing") not in (None, ""):
+            named["retained_earnings"] = named["retained_earnings_closing"]
+    if derived.get("ebit") not in (None, ""):
+        named.setdefault("ebit", derived["ebit"])
+    engagement = appendix.get("engagement") or {}
+    return {
+        "format": FIGURES_FORMAT,
+        "source": {"record": record.get("id"), "instruction_hash": record.get("instruction_hash"),
+                   "problem_type": record.get("problem_type"), "solved": True},
+        "period": engagement.get("period"),
+        "currency": engagement.get("currency"),
+        "framework": appendix.get("framework"),
+        "figures": named,
+        "derived": derived,
+        "income_groups": appendix.get("income_groups") or {},
+        "balance_sheet_groups": appendix.get("balance_sheet_groups") or {},
+        "equity": appendix.get("equity_statement") or {},
+        "cash_flow": appendix.get("cash_flow") or {},
+        "gaps": appendix.get("ratio_gaps") or [],
+        "warnings": record.get("warnings") or [],
+    }
 
 
 def handle(verb, segments, body=None):
     """Dispatch `/api/cases/statements...`.  Returns `(status, payload)`."""
     body = body if isinstance(body, dict) else {}
+    if segments == ["trend"]:
+        if verb != "POST":
+            return 405, {"error": "method " + str(verb) + " is not allowed on a trend"}
+        ids = body.get("records")
+        if not isinstance(ids, list) or len(ids) < 2:
+            return 400, {"error": "a trend needs at least two statement records: "
+                                  "pass {records: [id, id]}"}
+        try:
+            records = [load(str(rid)) for rid in ids]
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, trend(records)
+        except StatementError as error:
+            return 409, {"error": str(error)}
+    if segments == ["piotroski"]:
+        if verb != "POST":
+            return 405, {"error": "method " + str(verb) + " is not allowed on a Piotroski score"}
+        ids = body.get("records")
+        if not isinstance(ids, list) or len(ids) < 2:
+            return 400, {"error": "a Piotroski score needs two statement records: "
+                                  "pass {records: [id, id]}"}
+        try:
+            records = [load(str(rid)) for rid in ids]
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, piotroski(records, extra=body.get("extra"))
+        except StatementError as error:
+            return 409, {"error": str(error)}
+    if segments == ["beneish"]:
+        if verb != "POST":
+            return 405, {"error": "method " + str(verb) + " is not allowed on a Beneish score"}
+        ids = body.get("records")
+        if not isinstance(ids, list) or len(ids) < 2:
+            return 400, {"error": "a Beneish score needs two statement records: "
+                                  "pass {records: [id, id]}"}
+        try:
+            records = [load(str(rid)) for rid in ids]
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, beneish(records)
+        except StatementError as error:
+            return 409, {"error": str(error)}
     if not segments:
         if verb == "GET":
             return 200, {"records": list_records()}
@@ -2942,16 +4170,18 @@ def handle(verb, segments, body=None):
                 # it names the gap.  Recording only successes is why the library never learned.
                 _library_record({"instruction": body.get("instruction"), "solved": False,
                                  "refusal": str(error), "error": str(error),
-                                 "problem_type": "refused"}, origin=body.get("origin"))
+                                 "problem_type": "refused"}, origin=body.get("origin"),
+                                group="Statements")
                 return 400, {"error": str(error)}
             except Exception as error:      # a bug is a clean 500, never a stack trace to the browser
                 _library_record({"instruction": body.get("instruction"), "solved": False,
                                  "refusal": type(error).__name__ + ": " + str(error)[:400],
-                                 "problem_type": "error"}, origin=body.get("origin"))
+                                 "problem_type": "error"}, origin=body.get("origin"),
+                                group="Statements")
                 return 500, {"error": "the statements tile failed: " + type(error).__name__ + ": "
                                       + str(error)[:200]}
             stored = save(record)
-            _library_record(stored, origin=body.get("origin"))
+            _library_record(stored, origin=body.get("origin"), group="Statements")
             return (201 if stored.get("solved") else 422), stored
         return 405, {"error": "method " + str(verb) + " is not allowed on the statements collection"}
     if len(segments) == 1:
@@ -2961,6 +4191,72 @@ def handle(verb, segments, body=None):
             return 200, load(segments[0])
         except StatementError as error:
             return 404, {"error": str(error)}
+    if len(segments) == 2 and segments[1] == "figures":
+        if verb != "GET":
+            return 405, {"error": "method " + str(verb) + " is not allowed on statement figures"}
+        try:
+            record = load(segments[0])
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, figures(record)
+        except StatementError as error:
+            return 409, {"error": str(error)}
+    if len(segments) == 2 and segments[1] == "ratios":
+        if verb not in ("GET", "POST"):
+            return 405, {"error": "method " + str(verb) + " is not allowed on statement ratios"}
+        try:
+            record = load(segments[0])
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, ratios(record, extra=body.get("extra") if verb == "POST" else None)
+        except StatementError as error:
+            return 409, {"error": str(error)}
+    if len(segments) == 2 and segments[1] == "dupont":
+        if verb != "GET":
+            return 405, {"error": "method " + str(verb) + " is not allowed on a DuPont analysis"}
+        try:
+            record = load(segments[0])
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, dupont(record)
+        except StatementError as error:
+            return 409, {"error": str(error)}
+    if len(segments) == 2 and segments[1] == "working-capital":
+        if verb != "POST":
+            return 405, {"error": "method " + str(verb) + " is not allowed on a working-capital analysis"}
+        try:
+            record = load(segments[0])
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, working_capital(record, extra=body.get("extra"))
+        except StatementError as error:
+            return 409, {"error": str(error)}
+    if len(segments) == 2 and segments[1] == "cycle":
+        if verb != "GET":
+            return 405, {"error": "method " + str(verb) + " is not allowed on a cash-conversion cycle"}
+        try:
+            record = load(segments[0])
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, cycle(record)
+        except StatementError as error:
+            return 409, {"error": str(error)}
+    if len(segments) == 2 and segments[1] == "tax":
+        if verb != "POST":
+            return 405, {"error": "method " + str(verb) + " is not allowed on a tax note"}
+        try:
+            record = load(segments[0])
+        except StatementError as error:
+            return 404, {"error": str(error)}
+        try:
+            return 200, tax_note(record, extra=body.get("extra"))
+        except StatementError as error:
+            return 409, {"error": str(error)}
     if len(segments) == 2 and segments[1] == "export":
         if verb != "POST":
             return 405, {"error": "method " + str(verb) + " is not allowed on an export"}

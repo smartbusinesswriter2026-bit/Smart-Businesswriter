@@ -69,7 +69,13 @@ def build(plan):
 
 
 def record(statements_requested=None):
-    """The record, built the way `bp.server` builds it, with the model step stubbed."""
+    """The record, built the way `bp.server` builds it, with the model step stubbed.
+
+    The core is reset first: another test may have imported `bp.server`, which attaches the
+    guard runner and the case solver to the global core.  A fixture must not depend on which
+    module another test imported, so this builder starts from a clean core every time.
+    """
+    statements.reset_core()
     statements.attach_core(extract=extract, build=build)
     return statements.solve(INSTRUCTION, statements=statements_requested)
 

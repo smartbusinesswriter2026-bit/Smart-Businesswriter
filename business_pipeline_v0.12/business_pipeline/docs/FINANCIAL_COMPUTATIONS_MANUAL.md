@@ -64,10 +64,12 @@ came from the model. It now comes from the deterministic layer, and the model's 
 | Reader seams (period model, distinct expense lines, account-name extraction, partition grounding, one chart) | **closed** — 7 of 7 measured | `src/bp/statement_period.py`, `src/bp/statement_chart.py`, `src/bp/statement_extract.py`, `src/bp/product/statements.py` |
 | Deterministic transaction narratives | built & tested | `src/bp/statement_detect.py` |
 | **Comprehensive computation engine (Sections A–K)** | **built, wired, tested — with a thin vocabulary in front of it (§3)** | **`src/bp/product/financial_computations.py`** |
-| Error correction engine (Tip 5 Type 4) | **NOT BUILT** | — see §5.1 |
-| Integrated case solver (Tip 5 Type 7) | **the seams, not an engine — six of them, now closed (§5.2)** | — see §5.2 |
+| **Reconstruction engine (Tip 5 Type 2)** | **built, wired, tested** | **`src/bp/product/reconstruction.py`** |
+| **Error correction engine (Tip 5 Type 4)** | **built, wired, tested** | **`src/bp/product/error_correction.py`** |
+| **Integrated case solver (Tip 5 Type 7 / Tip 6)** | **built, wired, tested — nine-stage state machine** | **`src/bp/case_solver.py`** |
+| **Guards G1–G22 (Tip 7)** | **built, wired into every record** | **`src/bp/guards.py`** |
 
-**Build:** 1.99 (see `docs/CHANGELOG.md`) · **Branch:** `corpus/merge-v1`
+**Build:** 1.121 (see `docs/CHANGELOG.md`) · **Branch:** `corpus/merge-v1`
 **Repo:** `D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline`
 
 ### What the engine can actually do — measured
@@ -210,57 +212,77 @@ ComputationSpec (id, section, label, formula, inputs, output_name, compute_fn, d
 These items are named in `TIPS_FINANCIAL_STATEMENTS.md` §Tip 5 (§Tip 5 problem types), §Tip 6 (state machine), §Tip 7
 (22 guards), and in `STATEMENTS_TILE_PLAN.md` §15 (out of scope):
 
-### 5.1 Error correction engine (Tip 5 Type 4)
-Detect and correct erroneous entries: equipment expensed, unearned revenue recorded as revenue, depreciation omitted,
-ending inventory overstated, accrued expense not recorded. Needs:
-- A detector that flags inconsistent articulations (e.g., NI from IS ≠ NI from RE)
-- A correcting-entry builder that produces the JE and re-posts
-- A trace showing which statements change and by how much
+### 5.1 Error correction engine (Tip 5 Type 4) — **BUILT** (build 1.119)
 
-**This is the one real engine left.** No "this entry is wrong, here is the correcting entry" machinery exists anywhere in
-the codebase. It needs a new contract concept, not a router.
+`src/bp/product/error_correction.py`. Six registered patterns (equipment expensed, unearned revenue,
+depreciation omitted, ending inventory overstated, accrued expense omitted, capex charged to repairs)
+each declare the correcting debit/credit and the signed effect on net income, assets, liabilities and
+equity; `correct_stated(original, correct)` handles a stated original-vs-correct pair. A missing amount
+is a named gap. The tile route is `_solve_error_correction`. What remains: more patterns — the set is
+the six an examiner is most likely to write, not every error.
 
-### 5.2 Integrated case solver (Tip 5 Type 7 / Tip 6 state machine)
-**Correction to the previous version of this manual, which said "NOT BUILT". That was wrong in the owner's favour.**
-The solver is not missing an engine; it is missing **six seams in the reader**, and all six are closed (measured by
-`qa/manual/reader-seams-probe.py`):
+### 5.2 Integrated case solver (Tip 5 Type 7 / Tip 6 state machine) — **BUILT** (build 1.119)
 
-| seam | before | now |
-|---|---|---|
-| a narrative that opens with a transaction date | period collapsed to one day | `2025-01-01` to `2025-12-31` |
-| one fiscal year, both ends stated | read as two periods | one period |
-| a month-day date on a transaction line | read as a comparative | not a comparative |
-| Salaries and Rent on one trial balance | one "Operating expenses" line, refused | Salaries expense and Rent expense, solved |
-| a stated sales figure beside prose | rewritten to "Other income", dropped | Sales 70,000 → Revenue |
-| a partition the text states ("of which 55,000 was cash") | refused by the grounding rule | accepted, and proved by code (90,000 − 55,000 = 35,000) |
-| a detector code the chart does not carry | eight codes had no home | none; the tile has **one** chart (`bp.statement_chart`) |
+`src/bp/case_solver.py`. The nine-stage machine INGEST → PARSE → DETECT → RESOLVE → JOURNALIZE → POST →
+ADJUST → PROJECT → VALIDATE, with every stage recorded and the first refusal naming what it expected.
+The deterministic template layer supplies the journal; `statement_plan.build` supplies the projection and
+the articulation gate. The tile route is `_solve_case`; the record carries `stage_trace`.
 
-What is still open on Type 7: the **policy layer** (a `balances` key in the extract contract, and the timing rules in
-`src/bp/timing.py` that the model currently guesses at), and the **coverage-based classifier** — see the discussion
-notebook's Increment 2 and Increment 3.
+The six reader seams the previous version of this manual named are closed (measured by
+`qa/manual/reader-seams-probe.py`), and two detector gaps were closed while proving the engine:
+`sold goods for X cash` was matched as an asset disposal (crediting PPE) and is now `goods_sale_cash`;
+a bare `started the business with X cash` had no detector and is now `capital_contribution`.
 
-### 5.3 The engine's vocabulary — 131 input names
-The engine's formulas are done; the text→input vocabulary is not. Closing it means writing a parse pattern for each
-of the 131 names nothing can supply, and **each pattern is a judgement about what a student writes**. That is a
-decision, not a mechanical task, and it belongs to the owner.
+What is still open on Type 7: the **policy layer** (a `balances` key in the extract contract, and the
+timing rules in `src/bp/timing.py` that the model currently guesses at), and the **coverage-based
+classifier** — see the discussion notebook's Increment 2 and Increment 3.
 
-### 5.4 Reconstruction engine (Tip 5 Type 2)
-Partially covered by Section A specs (COGS from BI + Purchases − EI; Net Purchases; Goods Available; COGM). Still
-needed:
-- Balance sheet reconstruction from A = L + E (deriving capital as the balancing figure)
-- Net income from margin × sales
-- RE rollforward from beginning + NI − dividends
+### 5.3 The engine's vocabulary — **CLOSED** (build 1.120)
 
-### 5.5 Request detection / problem-type classification
-`detect_sections()` in `financial_computations.py` detects sections A–K from compute-cue keywords, but there is no
-unified classifier mapping problem text to problem type (Type 1–7 from Tip 5). The notebook proposes a coverage-based
-classifier in which the **model proposes and the code verifies** — the shape this repository already uses everywhere
-else.
+Every **raw input** the 128 specs declare (168 distinct names that are never another spec's
+output) now has a parse pattern in `COMMON_PATTERNS`.  The extended vocabulary is in
+`_EXTRA_PATTERNS` with a `_p()` helper that builds a word-bounded `label [of|is|was|:] amount`
+pattern.  A rich sample ("beginning inventory 10,000 … depreciation expense 3,000 … dividends
+declared 5,000 … number of years 5") parses all of them.  Two false-positive traps were found
+and fixed while proving it: `depreciation_expense` no longer reads "accumulated depreciation",
+and `payments` no longer reads "repayments".  The 42 inputs that are *outputs* of another spec
+(capex, gross profit, ebitda) are computed, not parsed — that is correct, not a gap.
 
-### 5.6 Guards G1–G22 (Tip 7)
-The 22 guards are specified in `TIPS_FINANCIAL_STATEMENTS.md` §Tip 7 but not all implemented as code guards. Phase 1
-(correctness): G1–G4, G7–G8. Phase 2 (verification): G5–G6, G9, G11, G13, G18. Phase 3 (trust): G10, G12, G14–G17,
-G22. Phase 4 (extraction containment): G19–G21.
+### 5.4 Reconstruction engine (Tip 5 Type 2) — **BUILT** (build 1.119)
+
+`src/bp/product/reconstruction.py`. Linear identities solve for any variable; ratio identities solve for the
+ratio, the numerator or the denominator; `solve_all` chains solved values across relations. It covers
+COGS, net sales, net purchases, gross profit, net income, A = L + E (capital as the balancing figure),
+ending RE rollforward, working capital, CFO and the common ratios (current, quick, cash, debt, equity,
+gross/net margin, ROA, ROE, ROCE, inventory/asset turnover, times interest, book value). `cross_check`
+looks for a second relation that agrees. The tile route is `_solve_reconstruction`. What remains: more
+relations — the set is the identities Tip 5 and the computation document name, not every identity.
+
+### 5.5 Request detection / problem-type classification — **BUILT** (build 1.120)
+
+`src/bp/product/problem_type.py` classifies a problem into one of Tip 5's seven types and the
+record carries the verdict as `tip5_type`. The order is specific-to-general: correcting an error
+(4), an explicit missing raw figure (2), ratio analysis (3), any other reconstruction (2), trial
+balance (6), cash-flow statement (5), integrated case (7, three or more transaction cues),
+preparing from transactions (1). A text no cue matches is `type=None`, never a guess.
+
+### 5.6 Guards G1–G22 (Tip 7) — **BUILT** (build 1.119)
+
+`src/bp/guards.py`. One runner over all 22 guards, reporting pass/fail/not-applicable for each. The
+correctness guards (G1–G9, G13, G18, G21) block the record; the trust and extraction guards are recorded
+for the audit trail. Injected from `bp.server` so the product package imports no core module. Every record
+carries `record["guards"]`.
+
+### 5.7 What is genuinely still open
+
+- **The policy layer** (§5.2): a `balances` key was added to the extract contract and converted to
+  an opening entry (`to_opening`), so a problem that states opening balances separately is read. The
+  timing rules the model guesses at (a `provenance` tag per policy) are the remaining piece.
+- **A live model key:** the reader needs OpenCode Go credentials. `bp.server` now loads them from
+  `Backend/.env` (`OPENCODE_API_KEY` → `BP_OPENGO_API_KEY`, `LLM_PROVIDER` → `BP_LLM_PROVIDER`,
+  `PROSE_MODEL` → `BP_LLM_MODEL`) when the `BP_*` names are unset, so live mode works without a
+  manual export. Proved with a live extraction: a grant-and-van narrative returned 50,000 other
+  income, assets 50,000, 11/11 checks.
 
 ---
 
@@ -420,6 +442,77 @@ failures**, and the five are named in `docs/OPEN_ISSUES.md` (Item 18):
 
 ---
 
+## 8A. The four engines built in this increment
+
+These four capabilities close the "handle any financial-statement problem" gap without a model for the
+cases that a relation or a declared error can answer. Every one is deterministic, uses `Decimal`, and
+names a gap rather than inventing a figure.
+
+### 8A.1 Reconstruction engine (Tip 5 Type 2) — `src/bp/product/reconstruction.py`
+
+Solves a missing figure from a stated relation. Two relation shapes:
+
+- **linear** (`a = b + c − d`), solved for any variable by moving terms;
+- **ratio** (`ratio = numerator / denominator`), solved for the ratio, the numerator or the denominator.
+
+`solve_for(target, knowns)` returns the first relation that reaches the target, with the formula and the
+knowns it used. `solve_all(knowns)` chains solved values across relations, so `cogs` feeds `gross_profit`
+feeds `gross_margin` in one pass. `cross_check(target, knowns)` looks for a second relation that agrees.
+
+The tile route is `_solve_reconstruction` in `statements.py`; detection is
+`reconstruction.detect_reconstruction_problem` (a "find/compute/determine/what is" cue plus a named
+variable). A target no relation can reach is a gap, never a guess.
+
+### 8A.2 Error correction engine (Tip 5 Type 4) — `src/bp/product/error_correction.py`
+
+Detects a wrong entry and builds the correcting entry plus its effect on the statements. Two modes:
+
+- **pattern**: the text says "X was expensed instead of capitalised" and a registered `ErrorPattern`
+  supplies the declared correcting treatment (debit/credit accounts and the signed effect on net income,
+  assets, liabilities, equity). Six patterns: equipment expensed, unearned revenue, depreciation omitted,
+  ending inventory overstated, accrued expense omitted, capital expenditure charged to repairs.
+- **stated**: the problem gives the original and correct entries; `correct_stated` computes
+  `correct − original`.
+
+The amount is parsed from the text; a missing amount is a named gap. The tile route is
+`_solve_error_correction`; detection is `error_correction.detect_error_problem` (a correction cue plus a
+matching pattern).
+
+### 8A.3 Integrated case solver (Tip 5 Type 7 / Tip 6) — `src/bp/case_solver.py`
+
+Runs one case problem through the explicit nine-stage state machine:
+
+```
+INGEST -> PARSE -> DETECT -> RESOLVE -> JOURNALIZE -> POST -> ADJUST -> PROJECT -> VALIDATE
+```
+
+Each stage records its outcome; the first stage that refuses returns a `CaseResult` with `status="review"`
+and names what it expected. The deterministic template layer (`statement_detect`) supplies the journal;
+`statement_plan.build` supplies the projection, the adjustment DAG and the articulation gate. The tile
+route is `_solve_case`; the record carries a `stage_trace` array so the reader can see every stage.
+
+Two detector gaps were found and closed while proving it: `sold goods for X cash` was matched as an
+**asset disposal** (it credited PPE); it is now a `goods_sale_cash` detector. A bare
+`started the business with X cash` had no detector at all; it is now `capital_contribution`. `paid rent
+of X` now matches `rent_payment2`.
+
+### 8A.4 Guards G1–G22 (Tip 7) — `src/bp/guards.py`
+
+One runner over the frozen record. Every guard has a stable id and reports `ok`, `applicable` and a
+`detail`. A guard that cannot run is `applicable=False`, never a silent pass; a guard that raises is
+`ok=False`. The runner is injected from `bp.server` as `_core("guards")`, so the product package never
+imports the core.
+
+The **blocking** guards are the correctness and cross-reconciliation ones (G1–G9, G13, G18, G21): a
+failure there refuses the record. The trust and extraction guards (G10–G12, G14–G17, G19–G20, G22) are
+recorded for the reader and the audit trail but do not block. The full verdicts travel with every record
+under `record["guards"]`.
+
+The guards are pinned in `tests/test_financial_engines.py`, together with the reconstruction, error
+correction and case-solver contracts (27 tests).
+
+---
+
 ## 9. Pick-up order (if this session is cut off)
 
 1. Read `docs/TIPS_FINANCIAL_STATEMENTS.md` §Tip 5 (§problem types), §Tip 6 (state machine), §Tip 7 (guards).
@@ -435,6 +528,12 @@ failures**, and the five are named in `docs/OPEN_ISSUES.md` (Item 18):
 
 - **Source computation document:** `C:\Users\Roderick\Desktop\Financial_Statement_Computations.docx` (198 computations, sections A–K)
 - **Engine module:** `src/bp/product/financial_computations.py`
+- **Problem-type classifier:** `src/bp/product/problem_type.py` (Tip 5 Types 1–7)
+- **Reconstruction engine:** `src/bp/product/reconstruction.py` (Tip 5 Type 2)
+- **Error-correction engine:** `src/bp/product/error_correction.py` (Tip 5 Type 4)
+- **Integrated case solver:** `src/bp/case_solver.py` (Tip 5 Type 7 / Tip 6 state machine)
+- **Guards runner:** `src/bp/guards.py` (Tip 7, G1–G22)
+- **Live credentials loader:** `src/bp/server.py` (`_load_opencode_env`, maps `Backend/.env` names to `BP_*`)
 - **Reader layer:** `src/bp/statement_period.py` (one period model), `src/bp/statement_chart.py` (one chart), `src/bp/statement_detect.py` (deterministic transactions), `src/bp/statement_extract.py` (the model boundary and the grounding rule), `src/bp/statement_plan.py` (the plan layer)
 - **Tile wiring:** `src/bp/product/statements.py` (`_solve_financial_computations`, `_solve_eps`, `_solve_income_statement`, `_solve_balance_sheet_analysis`, `_solve_given_balances`)
 - **Measurements:** `qa/manual/reader-seams-probe.py`, `qa/manual/ashgrove-remeasure.py`, `qa/manual/statements-case-study.md`
