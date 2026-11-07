@@ -11,9 +11,9 @@ Three layers:
 * **profiles** - data: which blocks an artefact contains, which formats can carry it, and the default.
 * **renderers** - format-specific, handed the blocks.
 
-A format is only offered when a renderer exists for it. `presentation` is declared but not offered: the
-PowerPoint renderer is not built, and pretending otherwise would produce an artefact nobody has looked at
-opening.
+A format is only offered when a renderer exists for it. `presentation` offers
+PowerPoint because `bp/product/deck.py` writes a real .pptx; it is a deck of
+claims, not the Word document in landscape.
 """
 
 import os
@@ -64,10 +64,9 @@ PROFILES = {
         "label": "Case presentation",
         "audience": "A tutorial group or a viva panel.",
         "blocks": ["headline", "statements", "checks"],
-        "formats": [],
-        "default": None,
-        "available": False,
-        "reason": "the PowerPoint renderer is not built yet; use the submission for now",
+        "formats": ["pptx"],
+        "default": "pptx",
+        "available": True,
     },
 }
 
@@ -215,7 +214,9 @@ def write_export(bundle, profile_name, fmt, destination):
     entry = check_pair(profile_name, fmt)
     if fmt == "docx":
         from . import docx
-        result = docx.render_file(_title(bundle), sections(bundle, profile_name), destination)
+        from . import figures as figure_store
+        result = docx.render_file(_title(bundle), sections(bundle, profile_name), destination,
+                                  figures=figure_store.prepare(bundle.get("figures"), bundle))
     elif fmt == "html":
         from . import report_html
         result = report_html.render_file(_title(bundle), sections(bundle, profile_name), destination)
@@ -224,10 +225,22 @@ def write_export(bundle, profile_name, fmt, destination):
         result = {"path": spreadsheets.export_csv(bundle, destination)}
     elif fmt == "xlsx":
         from . import spreadsheets
-        result = dict(spreadsheets.export_xlsx(bundle, destination))
+        from . import figures as figure_store
+        result = dict(spreadsheets.export_xlsx(
+            bundle, destination, figures=figure_store.prepare(bundle.get("figures"), bundle)))
     elif fmt == "spreadsheetml":
         from . import spreadsheets
         result = dict(spreadsheets.export_spreadsheetml(bundle, destination, sha=True))
+    elif fmt == "pptx":
+        from . import deck
+        from . import figures as figure_store
+        pairs = sections(bundle, profile_name)
+        from . import figure_plan
+        stored = figure_store.prepare(bundle.get("figures"), bundle)
+        blocks = [{"heading": heading, "level": 1, "lines": lines} for heading, lines in pairs]
+        blocks, _placed, _unplaced = figure_plan.attach(blocks, stored)
+        built = deck.from_sections(blocks, _title(bundle))
+        result = deck.render_file(built, {figure["id"]: figure for figure in stored}, destination)
     else:                                                                   # pragma: no cover - guarded above
         raise DeliverableError(f"no renderer for {fmt}")
     return {"deliverable": profile_name, "label": entry["label"], "format": fmt, **result}

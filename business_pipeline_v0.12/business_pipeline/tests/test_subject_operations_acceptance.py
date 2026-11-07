@@ -451,14 +451,17 @@ class FillPolicyTest(unittest.TestCase):
                          [block["key"] for block in
                           framework_profiles.PROFILES["template_value_stream_map"]["blocks"]])
 
-    def test_E_ops_026__the_chart_and_export_cards_keep_their_ids_and_stay_hidden(self):
+    def test_E_ops_026__the_chart_and_export_cards_keep_their_ids(self):
         page_html = open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8").read()
         for bound in ('id="chartbtn"', 'id="expbtn"', 'id="expzip"'):
             self.assertIn(bound, page_html, "%s is bound unguarded by the inline script" % bound)
-        for card in ("Charts", "Export"):
-            index = page_html.index("<h3>%s</h3>" % card)
-            self.assertIn('style="display:none"', page_html[max(0, index - 120):index],
-                          "%s card must stay hidden" % card)
+        # the Charts card is a live feature now; the Export card is still half-built.
+        index = page_html.index("<h3>Charts</h3>")
+        self.assertNotIn('style="display:none"', page_html[max(0, index - 120):index],
+                         "the Charts card is live")
+        index = page_html.index("<h3>Export</h3>")
+        self.assertIn('style="display:none"', page_html[max(0, index - 120):index],
+                      "the Export card must stay hidden")
 
 
 class ToolTest(unittest.TestCase):

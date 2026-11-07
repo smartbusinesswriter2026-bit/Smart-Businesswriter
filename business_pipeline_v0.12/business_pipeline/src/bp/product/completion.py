@@ -22,8 +22,18 @@ import re
 
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import docx, framework_profiles, guard, matrix, paper, prose, retrieval, writing
+from . import docx, framework_profiles, guard, length as length_mod, matrix, paper, prose, retrieval, writing
 from . import rubric as rubric_reader
+
+#: The provider factory, attached by `bp.server` through `api.attach_models`.
+#: The product layer never imports the frozen core, so the factory is injected.
+MODEL_FACTORY = None
+
+
+def set_model_factory(factory):
+    """Attach the provider factory: a callable returning a model set, or None."""
+    global MODEL_FACTORY
+    MODEL_FACTORY = factory
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?%?")
 from .framework_registry import WORDS as FRAMEWORK_WORDS
@@ -234,8 +244,17 @@ def _gap_note(profile, block):
                 + ((" What to state: " + probe + ".") if probe else ""))
     background = (profile.get("assumption") == "probe"
                   and all(framework_profiles.fill_of(item) == "research" for item in profile["blocks"]))
+    if fill == "quote":
+        # The analysis lane drafts this part from the instruction when the model is
+        # configured; with no model it stays the student's.  A gap must still say
+        # what to state (V-02), so the probe is carried rather than dropped.
+        return ("This part is written from your own case or instruction, and it is not described there."
+                + ((" What to state: " + probe + ".") if probe else ""))
     if background:
         return "No source was found for this part; it is written from general background and is not cited."
+    if fill == "auto":
+        return ("No source was found for this part, so it is left for you to state the theory or evidence you are "
+                "relying on." + ((" What to state: " + probe + ".") if probe else ""))
     return ("No evidence was found for this part, and the instruction does not describe it."
             + ((" What to state: " + probe + ".") if probe else ""))
 
@@ -278,6 +297,86 @@ def _sites(profile):
         from . import sources as source_finder
         return source_finder.INDUSTRY_SITES
     return None
+
+
+#: The analysis lane: it drafts the parts that are the student's reading, from the
+#: instruction and the theories the framework names.  It may not introduce a person,
+#: event, number, date, source or citation the instruction does not contain.
+ANALYSIS_SYSTEM = (
+    "You are drafting the analytical parts of an academic leadership, culture or ethics paper. "
+    "Use only the facts in the CASE and the theories named for each part. "
+    "Do not invent a person, organisation, event, number, date, source or citation, and do not add a "
+    "recommendation the case does not support. Write in the third person, academic register, one paragraph "
+    "of 90 to 160 words per part. Return ONLY JSON mapping each part key to its paragraph."
+)
+
+_ANALYSIS_COMMON = set(
+    "the a an and but or if it its they their this that these those as at by for from in into of on to with "
+    "without when where which while however moreover therefore both each one two three leadership "
+    "transformational transactional charismatic servant authentic situational contingency cultural ethical "
+    "ethics utilitarianism deontology virtue justice stakeholder burns bass avolio greenleaf fiedler hersey "
+    "blanchard house hofstede globe trompenaars hall meyer schein denison kant aristotle rawls freeman "
+    "friedman".split())
+
+
+def _analysis_ok(instruction, text, allowed):
+    """Refuse an analysis paragraph that invents a number, source or name.
+
+    A capital at the start of a sentence is not a proper noun, so only a
+    mid-sentence capital is tested.  A name the instruction contains is allowed;
+    a name it does not contain is refused rather than printed.
+    """
+    if re.search(r"https?://|www\.|et al\.", text, re.I):
+        return False
+    if re.search(r"\([A-Z][^)]*,\s*(?:n\.d\.|\d{4})\)", text):
+        return False
+    known = set(re.findall(r"\d[\d,.]*", instruction))
+    for number in re.findall(r"\d[\d,.]*", text):
+        if number not in known:
+            return False
+    lower = instruction.lower()
+    for match in re.finditer(r"\b[A-Z][a-z]{2,}\b", text):
+        prefix = text[:match.start()].rstrip()
+        if not prefix or prefix[-1] in ".!?:":
+            continue
+        low = match.group(0).lower()
+        if low not in lower and low not in allowed and low not in _ANALYSIS_COMMON:
+            return False
+    return True
+
+
+def _write_analysis(profile, instruction, unit, keys, blocks):
+    """Draft the named analysis parts from the instruction.  Returns {} when it cannot."""
+    models = MODEL_FACTORY() if MODEL_FACTORY is not None else None
+    if models is None or not keys:
+        return {}
+    parts = [{"key": block["key"], "label": block["label"], "theories": block.get("cues") or ""}
+             for block in profile["blocks"] if block["key"] in keys]
+    case_facts = [item["text"] for block in blocks for item in (block.get("items") or [])
+                  if item.get("provenance") == "student"][:8]
+    payload = {"case": instruction, "unit": (unit or {}).get("value") or "",
+               "parts": parts, "case_facts": case_facts}
+    try:
+        raw, _record = models.call("builder", "framework-analysis", "1", ANALYSIS_SYSTEM,
+                                   json.dumps(payload, ensure_ascii=False), consent=True)
+    except Exception:
+        return {}
+    try:
+        data = json.loads(re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.M))
+    except ValueError:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    allowed = set()
+    for block in profile["blocks"]:
+        allowed.update(re.findall(r"[a-z]+", str(block.get("cues") or "").lower()))
+        allowed.update(re.findall(r"[a-z]+", str(block["label"]).lower()))
+    out = {}
+    for key in keys:
+        text = _clean(data.get(key) or "", 1200)
+        if text and _analysis_ok(instruction, text, allowed):
+            out[key] = {"text": text, "provenance": "analysis", "source": ""}
+    return out
 
 
 def complete(template, instruction, region=None, student_items=None, industry=None, country=None,
@@ -406,7 +505,7 @@ def complete(template, instruction, region=None, student_items=None, industry=No
                 # background (uncited), never left as a notice (owner instruction).
                 items = [{"text": filler, "provenance": "background", "source": ""}]
         if not items:
-            gap = ("No evidence was found for this part before the research deadline."
+            gap = ("The research did not finish for this part in time, so it is left for you to state."
                    if block["key"] in timed_out else _gap_note(profile, block))
         else:
             gap = None
@@ -423,6 +522,20 @@ def complete(template, instruction, region=None, student_items=None, industry=No
             notes.append(block["label"] + ": " + str(len(result["items"])) + " sourced item(s).")
         if block["key"] in timed_out:
             notes.append(block["label"] + ": research timed out; returned as a gap.")
+    # The analysis parts are the student's reading; the model lane drafts them from
+    # the instruction and the named theories when it is configured.  Every paragraph
+    # is validated: an invented number, source or name is refused and the part stays
+    # undrafted rather than filled.
+    analysis_keys = [block["key"] for block in blocks
+                     if not block["items"] and framework_profiles.fill_of(block) in ("quote", "auto")]
+    if analysis_keys:
+        written = _write_analysis(profile, instruction, unit, analysis_keys, blocks)
+        for block in blocks:
+            item = written.get(block["key"])
+            if item:
+                block["items"] = [item]
+                block["gap"] = None
+                notes.append(block["label"] + ": drafted by the model from your instruction; review it.")
     gaps = [block["key"] for block in blocks if block["gap"] and not block["items"]]
     if gaps and profile.get("assumption") in ("case", "probe"):
         question = profile.get("assumption") != "case"
@@ -653,6 +766,37 @@ def _length(value):
     return LENGTHS[_length_name(value)]
 
 
+#: The deepest a single section is asked to go.  A model call that must write
+#: more than this in one section is slower than a reader will wait and tends to
+#: repeat itself; a very long paper gains sections instead (see ``_long_sections``).
+SECTION_CAP = 900
+
+
+def _scaled_profile(length, target_words=None):
+    """The band profile with its section budgets scaled to the stated target.
+
+    The old profile carried a fixed total (800 / 1,300 / 2,500).  A student who
+    asks for 4,000 words needs every section to carry more, or the paper stops at
+    the old ceiling.  The scale is bounded per section; the remainder is made up
+    by whole analytical sections, never by asking one paragraph to pad.
+    """
+    profile = dict(_length(length))
+    target = int(target_words or 0)
+    base = int(profile.get("total") or 0)
+    if not target or not base or target <= base:
+        return profile
+    factor = min(float(target) / base, 2.4)
+    for key in ("intro", "context", "section", "discussion", "implications", "limitations", "conclusion"):
+        low, high = profile[key]
+        profile[key] = (min(SECTION_CAP, int(round(low * factor))),
+                        min(SECTION_CAP, int(round(high * factor))))
+    profile["total"] = target
+    profile["paras"] = max(int(profile.get("paras") or 1), 2 if target >= 2500 else 1)
+    profile["head_paras"] = max(int(profile.get("head_paras") or 1), 2 if target >= 2500 else 1)
+    profile["section_paras"] = max(int(profile.get("section_paras") or 1), 3 if target >= 4000 else 2)
+    return profile
+
+
 def _range(profile, key):
     low, high = profile[key]
     return "%d to %d" % (low, high)
@@ -879,12 +1023,12 @@ def _without_names(data, result, length, problems):
     return out
 
 
-def _model_sections(result, style="apa", attempt=0, length="mid", note=""):
+def _model_sections(result, style="apa", attempt=0, length="mid", note="", target_words=None):
     """A thesis call, then one call per dimension and two more, in parallel."""
     global LAST_REJECT
     if not attempt:
         LAST_REJECT = None
-    profile = dict(_length(length))
+    profile = _scaled_profile(length, target_words)
     framework = _profile(result.get("template"))
     keys = [block["key"] for block in framework["blocks"]]
     voice = framework.get("voice") or {}
@@ -964,7 +1108,8 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note=""):
     # numbers, links and citations still are.
     background = any(not (block.get("items") or []) for block in blocks)
     problems = _problems(data, facts, instruction, length, keys,
-                         allow=_allowed_names(framework, result), skip_names=background)
+                         allow=_allowed_names(framework, result), skip_names=background,
+                         profile=profile)
     if problems:
         if attempt and all(problem.startswith("name ") for problem in problems):
             # The model keeps naming something the items do not carry.  Keep the
@@ -972,7 +1117,8 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note=""):
             # never refuse the student over a word, and never ship the name.
             patched = _without_names(data, result, length, problems)
             problems = _problems(patched, facts, instruction, length, keys,
-                                 allow=_allowed_names(framework, result), skip_names=background)
+                                 allow=_allowed_names(framework, result), skip_names=background,
+                                 profile=profile)
             if not problems:
                 return (patched, citations_by_key)
         return _retry(result, style, attempt, "; ".join(problems[:3]))
@@ -1015,8 +1161,9 @@ def _allowed_names(profile, result):
     return words
 
 
-def _problems(data, facts, instruction="", length="mid", keys=None, allow=None, skip_names=False):
-    profile = _length(length)
+def _problems(data, facts, instruction="", length="mid", keys=None, allow=None, skip_names=False,
+              profile=None):
+    profile = profile or _length(length)
     keys = list(keys or FORCE_KEYS)
     allowed = {str(word).lower() for word in (allow or set())}
     problems = []
@@ -1413,15 +1560,244 @@ def _sections(data, blocks, style, citations, result):
     return [dict(section, heading=_apa_title(section.get("heading"))) for section in sections]
 
 
-def draft(result, style="apa", version="draft", length="mid"):
-    """A full paper from a completion result; no new facts, ratings or citations."""
+def _long_sections(result, data, profile, target, words):
+    """Analytical sections for a long target, built from the accepted record.
+
+    These are not filler and they are not a second paper: each one reads the same
+    items at a different depth.  They add no fact, source, number or
+    recommendation, and every claim is a count, a named gap or a statement about
+    what the record can and cannot settle.  A section is marked
+    ``length_optional`` so the shortening pass removes a whole section instead of
+    cutting an argument in half.
+    """
+    if target < 2000:
+        return []
+    blocks = result.get("blocks") or []
+    notes = profile.get("notes") or {}
+    voice = profile.get("voice") or {}
+    plural = voice.get("block_plural") or "parts"
+    singular = _singular(plural)
+    instruction = _clean(result.get("instruction"), 500).rstrip(" .?!")
+    sourced = student = assumptions = gaps = 0
+    labels = []
+    for block in blocks:
+        items = block.get("items") or []
+        if items:
+            labels.append(block.get("label") or block.get("key"))
+        else:
+            gaps += 1
+        for item in items:
+            kind = _kind(item)
+            if kind == "sourced":
+                sourced += 1
+            elif kind == "student":
+                student += 1
+            else:
+                assumptions += 1
+    out = []
+
+    # 1. What the evidence base can and cannot establish.
+    lines = [
+        ("The paper rests on %d accepted item%s across %d %s: %d sourced, %d from the student and %d "
+         "labelled assumption%s. %d %s carr%s no accepted item and %s recorded as a gap."
+         % (sourced + student + assumptions, "" if sourced + student + assumptions == 1 else "s",
+            len(labels), plural, sourced, student, assumptions,
+            "" if assumptions == 1 else "s", gaps, singular, "ies" if singular.endswith("y") else "s",
+            "is" if gaps == 1 else "are")),
+        ("A sourced item is evidence for the sentence it supports. A student item is the student's own "
+         "case evidence and is treated as such, not as a published finding. An assumption is identified "
+         "and is not evidence. A gap is a named absence, not a favourable or an unfavourable finding."),
+        ("The record therefore supports a reading of the %s it documents. It does not support a rate, a "
+         "score or a comparison the items did not measure, and this paper makes none." % plural),
+    ]
+    out.append(dict(paper.section("Evidence Quality and Coverage", 1, lines), length_optional=True))
+
+    # 2. Each part read for what it establishes and what it does not.
+    if labels:
+        lines = []
+        for block in blocks:
+            items = block.get("items") or []
+            if not items:
+                continue
+            label = block.get("label") or block.get("key")
+            note = notes.get(block.get("key")) or {}
+            analysis = _clean(note.get("analysis") or "", 400)
+            qualify = _clean(note.get("qualify") or "", 400)
+            lines.append(
+                ("%s rests on %d accepted item%s. %s %s"
+                 % (label, len(items), "" if len(items) == 1 else "s",
+                    analysis or "The part is read from the accepted items and nothing beyond them.",
+                    qualify or "The items establish the part only to the extent they reach.")))
+        out.append(dict(paper.section("Reading Each Part in Depth", 1,
+                                      [paper.paragraph(lines)]), length_optional=True))
+
+    # 3. How the parts interact.
+    interaction = _clean(voice.get("interaction") or "", 400)
+    if interaction:
+        lines = [
+            (interaction + " The interaction is not a score: no part is weighted against another, because "
+             "the items do not carry a common unit."),
+            ("Read together, the %s supported by evidence constrain the decision on %s; the %s without an "
+             "accepted item remain gaps. A plan that treats a gap as a favourable condition would read the "
+             "record as more complete than it is." % (plural, instruction or "the case", plural)),
+        ]
+        out.append(dict(paper.section("How the Parts Interact", 1, lines), length_optional=True))
+
+    # 4. Implementation and risk.
+    if target >= 3000:
+        lines = []
+        for block in blocks:
+            label = block.get("label") or block.get("key")
+            note = notes.get(block.get("key")) or {}
+            qualify = _clean(note.get("qualify") or "", 300)
+            lines.append("For %s, the plan must show how the condition is met in practice; %s"
+                         % (label, qualify or "the record states the condition, not the firm's response to it."))
+        lines.append("The risks are the recorded gaps and the assumptions the case declares. Neither can be "
+                     "used as a reason to proceed, and neither is repaired by this paper.")
+        out.append(dict(paper.section("Implementation and Risk", 1,
+                                      [paper.paragraph(lines)]), length_optional=True))
+
+    # 5. Assumptions and gaps, named rather than smoothed over.
+    if target >= 2500:
+        lines = []
+        for block in blocks:
+            label = block.get("label") or block.get("key")
+            items = block.get("items") or []
+            if not items:
+                lines.append("%s: no accepted item; recorded as a gap." % label)
+                continue
+            assumed = [item for item in items if _kind(item) not in ("sourced", "student")]
+            if assumed:
+                lines.append("%s: %d labelled assumption%s; they are not sources."
+                             % (label, len(assumed), "" if len(assumed) == 1 else "s"))
+        out.append(dict(paper.section("Assumptions and Gaps", 1,
+                                      [paper.paragraph(lines or ["No assumptions or gaps were recorded."])]),
+                        length_optional=True))
+
+    # 6. What the case does not say.
+    if target >= 2500:
+        lines = [
+            ("The case does not state the firm's own capabilities, costs or constraints beyond the facts the "
+             "student supplied. Those are the first thing a reader would ask for and the first thing this "
+             "paper cannot supply."),
+            ("It does not state how the %s interact over time. The reading treats them as conditions at the "
+             "moment of the decision; a sequence of decisions would need a different record." % plural),
+            ("It does not state which %s is decisive. The paper names the conditions and what would change "
+             "the reading; it does not rank them, because the record does not measure them on one scale."
+             % singular),
+        ]
+        out.append(dict(paper.section("What the Case Does Not Say", 1, lines), length_optional=True))
+
+    # 7. Each accepted item read on its own, for the longest targets.
+    if target >= 4000:
+        lines = []
+        for block in blocks:
+            label = block.get("label") or block.get("key")
+            note = notes.get(block.get("key")) or {}
+            qualify = _clean(note.get("qualify") or "", 240)
+            for item in block.get("items") or []:
+                text = _clean(item.get("text"), 300)
+                kind = _kind(item)
+                lines.append(
+                    ("%s: the record carries this %s item: %s It supports the part only to the extent the "
+                     "item states, and it does not on its own settle the decision. %s"
+                     % (label, kind, text, qualify)))
+        if lines:
+            out.append(dict(paper.section("Detailed Reading of the Evidence", 1,
+                                          [paper.paragraph(lines)]), length_optional=True))
+
+    # 7. Which source supports which part, for the longest targets.
+    if target >= 3500:
+        rows = []
+        for block in blocks:
+            label = block.get("label") or block.get("key")
+            cites = list(dict.fromkeys(
+                str(item.get("citation") or "").strip()
+                for item in block.get("items") or []
+                if _kind(item) == "sourced" and str(item.get("citation") or "").strip()))
+            if cites:
+                rows.append("%s: %s" % (label, "; ".join(cites)))
+        if rows:
+            out.append(dict(paper.section("Source Coverage by Part", 1,
+                                          [paper.paragraph(rows)]), length_optional=True))
+
+    # 7. What would change the reading.
+    if target >= 2500:
+        lines = []
+        for block in blocks:
+            label = block.get("label") or block.get("key")
+            note = notes.get(block.get("key")) or {}
+            qualify = _clean(note.get("qualify") or "", 300)
+            lines.append("For %s, %s" % (label, qualify or
+                                         "a direct measurement of the part in the case would replace the "
+                                         "reading offered here."))
+        out.append(dict(paper.section("What Would Change the Reading", 1,
+                                      [paper.paragraph(lines)]), length_optional=True))
+    return out
+
+
+def _adjust_sections(result, data, profile, sections, target, words):
+    """One repair pass: add analytical sections when short, remove only ours when long.
+
+    No required section is edited and no paragraph is cut out of an argument.  A
+    short paper gains whole sections built from the same record; a long one loses
+    only sections this pass added.  The caller measures once more and stops.
+    """
+    plan = length_mod.plan(target, words)
+    if plan["report"]["met"] is not False:
+        return sections, None
+    before = words
+    if plan["shortfall"] > 0:
+        extra = _long_sections(result, data, profile, target, words)
+        if extra:
+            insert_at = len(sections)
+            for position, item in enumerate(sections):
+                if str(item.get("heading") or "") == "Conclusion":
+                    insert_at = position
+                    break
+            # Add whole sections one at a time and stop at the lower edge of the
+            # allowance.  Adding every section at once overshot a 2,500 target by
+            # 131 words; a reader sees the count, not the intent.
+            low, high = plan["report"]["range"]
+            chosen = []
+            for section in extra:
+                trial = sections[:insert_at] + chosen + [section] + sections[insert_at:]
+                count = length_mod.body_words(trial)
+                if count > high:
+                    continue
+                chosen.append(section)
+                if count >= low:
+                    break
+            if chosen:
+                sections = sections[:insert_at] + chosen + sections[insert_at:]
+    elif plan["surplus"] > 0:
+        kept = [item for item in sections if not item.get("length_optional")]
+        if len(kept) != len(sections):
+            sections = kept
+    after = length_mod.body_words(sections)
+    if after == before:
+        return sections, None
+    return sections, {"before": before, "after": after, "target": target,
+                      "passes": 1, "note": length_mod.report(target, after)["note"]}
+
+
+def draft(result, style="apa", version="draft", length="mid", target_words=None, tolerance=None):
+    """A full paper from a completion result; no new facts, ratings or citations.
+
+    ``target_words`` is the body-word target the rubric or the student asks for.
+    When it is absent, the legacy band's own target is used, so an old caller is
+    unchanged.  The target is reported, never gated: one repair pass adds
+    analytical sections when short or removes only sections it added when long.
+    """
     style = "harvard" if str(style or "").lower().startswith("harv") else "apa"
     blocks = result.get("blocks") or []
     model_used = False
     fallback = ""
     citations = {}
+    explicit_target = int(target_words or 0)
+    target = explicit_target or _length(length)["total"] or 0
     if version == "full":
-        generated = _model_sections(result, style, length=length)
+        generated = _model_sections(result, style, length=length, target_words=target)
         if generated:
             data, citations = generated
             model_used = True
@@ -1439,9 +1815,14 @@ def draft(result, style="apa", version="draft", length="mid"):
     # profile existed may still say "forces" where the profile says "groups".
     data = _shape(data, [block["key"] for block in profile["blocks"]])
     sections = _sections(data, blocks, style, citations, result)
-    words = sum(_words(" ".join(section.get("lines") or [])) for section in sections
-                if section.get("heading") not in ("References", "Bibliography"))
+    words = length_mod.body_words(sections)
     attached = result.get("rubric") if isinstance(result.get("rubric"), dict) else None
+    target_report = _word_target(attached, words, target, tolerance)
+    adjustment = None
+    if explicit_target and target_report.get("met") is False:
+        sections, adjustment = _adjust_sections(result, data, profile, sections, target, words)
+        words = length_mod.body_words(sections)
+        target_report = _word_target(attached, words, target, tolerance)
     coverage = None
     if attached:
         # Measured against the paper that was actually written, **before** the
@@ -1456,9 +1837,11 @@ def draft(result, style="apa", version="draft", length="mid"):
               "framework": profile["label"], "template": profile["template"],
               "length": _length_name(length), "length_label": _length(length)["label"],
               "length_range": _length(length)["range"],
-              # The band is the Full paper's target.  A deterministic Draft reports
-              # its own word count instead of claiming a length it does not reach.
+              # The band is kept for older readers; the target is the real length.
               "length_applies_to": "full",
+              "target_words": target,
+              "word_target": target_report,
+              "length_adjustment": adjustment,
               "byline": [str(line).strip() for line in (result.get("byline") or []) if str(line or "").strip()]}
     if coverage is not None:
         report["rubric"] = coverage
@@ -1466,7 +1849,6 @@ def draft(result, style="apa", version="draft", length="mid"):
         # paper when they have not turned the gate off for this run.
         report["rubric_gate"] = ("blocked" if coverage["gate"] == "blocked"
                                  and result.get("rubric_gate", True) is not False else "clear")
-        report["word_target"] = _word_target(attached, words)
     return report
 
 
@@ -1482,29 +1864,35 @@ def rubric_blockers(report):
     return ["the '" + str(name) + "' criterion your rubric states" for name in names]
 
 
-def _word_target(parsed, words):
-    """The rubric's stated length beside the paper's own count; never a verdict on quality.
+def _word_target(parsed, words, target=0, tolerance=None):
+    """The stated target beside the paper's own count; never a verdict on quality.
 
-    A tolerance the rubric states is applied as written.  When the rubric states a
-    number of words with no tolerance, ``met`` is ``None``: a bare count does not
-    say whether it is a floor or a ceiling, and guessing one would be inventing a
-    requirement.
+    The rubric's own tolerance wins when it states one.  When it states a bare
+    count, the product's default allowance is applied and the report says so:
+    a bare count is read as the student's target, not guessed as a floor or a
+    ceiling.  The count is reported, never used to block the document.
     """
     budget = (parsed or {}).get("word_budget") or {}
-    target = budget.get("words")
-    if not target:
-        return None
-    actual, tolerance = int(words), budget.get("tolerance")
-    if tolerance:
-        low = int(round(target * (1 - tolerance)))
-        high = int(round(target * (1 + tolerance)))
-        return {"words": target, "tolerance": tolerance, "actual": actual,
-                "met": bool(low <= actual <= high), "range": [low, high],
-                "note": "the rubric states %d words plus or minus %g%%"
-                        % (target, tolerance * 100)}
-    return {"words": target, "tolerance": None, "actual": actual, "met": None, "range": None,
-            "note": "the rubric states %d words without a tolerance; the paper's length is "
-                    "reported for you to judge" % target}
+    stated = budget.get("words") or target
+    if not stated:
+        return {"target": 0, "actual": int(words or 0), "tolerance": None, "range": None,
+                "met": None, "note": "No word target was stated."}
+    rubric_tolerance = budget.get("tolerance")
+    stated_tolerance = rubric_tolerance
+    if stated_tolerance is None:
+        stated_tolerance = tolerance if tolerance is not None else length_mod.DEFAULT_TOLERANCE
+    report = length_mod.report(stated, words, stated_tolerance)
+    # Older readers and saved reports use ``words`` for the target; keep the
+    # alias so a stored payload still renders after the word-count change.
+    report["words"] = stated
+    if budget.get("words") and rubric_tolerance is None:
+        report["note"] = report["note"] + " The rubric states no tolerance; the product's %g%% " \
+                                           "allowance is used and is not a claim about the rubric." % (
+                                               float(stated_tolerance) * 100)
+    elif budget.get("words") and rubric_tolerance:
+        report["note"] = "The rubric states %d words plus or minus %g%%." % (
+            stated, float(stated_tolerance or 0) * 100)
+    return report
 
 
 def _rubric_section(coverage):

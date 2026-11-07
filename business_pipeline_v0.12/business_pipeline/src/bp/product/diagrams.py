@@ -23,10 +23,13 @@ import re
 import tempfile
 from pathlib import Path
 
+from . import theme
+
 FORMAT = "bp-diagram/1"
-KINDS = ("process", "matrix2x2", "pyramid", "funnel", "tree")
+KINDS = ("process", "matrix2x2", "pyramid", "funnel", "tree", "board", "journey", "kpi")
 WIDTH, HEIGHT = 720, 420
-PALETTE = ("#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc948")
+#: The diagram palette is the chart palette, defined once in `theme`.
+PALETTE = theme.SERIES[:6]
 _DIGIT = re.compile(r"\d")
 
 
@@ -69,6 +72,77 @@ def validate_spec(spec):
             raise DiagramError("a tree diagram needs a non-empty 'children' list")
         labels = [_text(entry.get("label") if isinstance(entry, dict) else None, "child label") for entry in children]
         return kind, title, labels
+    if kind == "kpi":
+        items = spec.get("items")
+        if not isinstance(items, list) or not items:
+            raise DiagramError("a KPI board needs at least one item")
+        clean = []
+        for index, item in enumerate(items):
+            if not isinstance(item, dict):
+                raise DiagramError("items[%d] must be an object" % index)
+            label = _text(item.get("label"), "KPI label")
+            value = item.get("value")
+            if not isinstance(value, str) or not value.strip():
+                raise DiagramError("KPI %r needs a stored artifact id in 'value'" % label)
+            entry = {"label": label, "value": value.strip()}
+            for key in ("target", "status"):
+                if item.get(key) is not None:
+                    if not isinstance(item[key], str) or not item[key].strip():
+                        raise DiagramError("KPI %r %r must be a stored artifact id" % (label, key))
+                    entry[key] = item[key].strip()
+            clean.append(entry)
+        return kind, title, clean
+
+    if kind == "journey":
+        stages = spec.get("stages")
+        if not isinstance(stages, list) or len(stages) < 2:
+            raise DiagramError("a journey needs at least two stages")
+        clean_stages = [_text(stage.get("label") if isinstance(stage, dict) else None,
+                              "stage %d label" % (index + 1))
+                        for index, stage in enumerate(stages)]
+        lanes = spec.get("lanes")
+        if not isinstance(lanes, list) or not lanes:
+            raise DiagramError("a journey needs at least one lane")
+        clean_lanes = []
+        for index, lane in enumerate(lanes):
+            if not isinstance(lane, dict):
+                raise DiagramError("lanes[%d] must be an object" % index)
+            label = _text(lane.get("label"), "lane %d label" % (index + 1))
+            cells = lane.get("cells") or []
+            if not isinstance(cells, list):
+                raise DiagramError("lanes[%d] cells must be a list" % index)
+            if len(cells) > len(clean_stages):
+                raise DiagramError("lanes[%d] has more cells than stages" % index)
+            clean_cells = []
+            for cell in cells:
+                text = cell.get("label") if isinstance(cell, dict) else cell
+                clean_cells.append(_text(text, "lane %d cell" % (index + 1)) if text else "")
+            clean_lanes.append({"label": label, "cells": clean_cells})
+        return kind, title, {"stages": clean_stages, "lanes": clean_lanes}
+
+    if kind == "board":
+        columns = spec.get("columns")
+        if not isinstance(columns, list) or len(columns) < 2:
+            raise DiagramError("a board needs at least two columns")
+        clean_columns = []
+        for index, column in enumerate(columns, 1):
+            if not isinstance(column, dict):
+                raise DiagramError("columns[%d] must be an object" % (index - 1))
+            label = _text(column.get("label"), "column %d label" % index)
+            cards = column.get("cards")
+            if cards is None:
+                cards = []
+            if not isinstance(cards, list):
+                raise DiagramError("columns[%d] cards must be a list" % (index - 1))
+            clean_cards = []
+            for card_index, card in enumerate(cards, 1):
+                if not isinstance(card, dict):
+                    raise DiagramError("columns[%d] cards[%d] must be an object"
+                                       % (index - 1, card_index - 1))
+                clean_cards.append({"label": _text(card.get("label"), "card label")})
+            clean_columns.append({"label": label, "cards": clean_cards})
+        return kind, title, clean_columns
+
     items = spec.get("items")
     if not isinstance(items, list) or len(items) < 2:
         raise DiagramError("a %s diagram needs at least two 'items'" % kind)
@@ -177,7 +251,142 @@ def _tree(spec, labels, title):
     return _open(title) + _title(title) + "".join(body) + _close()
 
 
-def render_svg(spec):
+def _wrap(text, width):
+    """Split a label at word boundaries, so a card shows the words it was given."""
+    words, lines, current = str(text).split(), [], ""
+    for word in words:
+        candidate = (current + " " + word).strip()
+        if len(candidate) <= width:
+            current = candidate
+            continue
+        if current:
+            lines.append(current)
+        current = word
+    if current:
+        lines.append(current)
+    return lines or [""]
+
+
+def _board(columns, title):
+    """Columns of cards: a sprint board, a Kanban board or a retrospective."""
+    top, bottom, margin, gap = 74, HEIGHT - 40, 20, 12
+    count = max(1, len(columns))
+    width = (WIDTH - 2 * margin - gap * (count - 1)) / count
+    body = []
+    for index, column in enumerate(columns):
+        x = margin + index * (width + gap)
+        body.append('<rect x="%.2f" y="%d" width="%.2f" height="34" rx="6" fill="%s"/>'
+                    % (x, top, width, PALETTE[0]))
+        body.append('<text x="%.2f" y="%d" text-anchor="middle" font-family="Georgia, serif" '
+                    'font-size="13" fill="#ffffff">%s</text>'
+                    % (x + width / 2, top + 22, html.escape(column["label"])))
+        y = top + 44
+        for card in column.get("cards") or []:
+            lines = _wrap(card["label"], max(8, int(width / 7.2)))
+            height = 18 + 15 * len(lines)
+            if y + height > bottom:
+                break
+            body.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%d" rx="4" '
+                        'fill="#ffffff" stroke="#c9c9c4"/>' % (x, y, width, height))
+            for line_index, line in enumerate(lines):
+                body.append('<text x="%.2f" y="%.2f" text-anchor="middle" font-family="Georgia, serif" '
+                            'font-size="11" fill="#1b1b1b">%s</text>'
+                            % (x + width / 2, y + 18 + 14 * line_index, html.escape(line)))
+            y += height + 8
+    return _open(title) + _title(title) + "".join(body) + _close()
+
+
+def _journey(spec, title):
+    """Stages across the top, lanes down the side: a journey, a story map or a roadmap."""
+    stages = spec["stages"]
+    lanes = spec["lanes"]
+    top, bottom, margin, lane_width = 78, HEIGHT - 40, 16, 108
+    stage_width = (WIDTH - 2 * margin - lane_width) / max(1, len(stages))
+    body = []
+    for index, stage in enumerate(stages):
+        x = margin + lane_width + index * stage_width
+        body.append('<rect x="%.2f" y="%d" width="%.2f" height="30" rx="4" fill="%s"/>'
+                    % (x, top, stage_width, PALETTE[0]))
+        body.append('<text x="%.2f" y="%d" text-anchor="middle" font-family="Georgia, serif" '
+                    'font-size="12" fill="#ffffff">%s</text>'
+                    % (x + stage_width / 2, top + 20, html.escape(stage)))
+    rows_top = top + 36
+    row_height = (bottom - rows_top) / max(1, len(lanes))
+    for row, lane in enumerate(lanes):
+        y = rows_top + row * row_height
+        body.append('<text x="%d" y="%.2f" font-family="Georgia, serif" font-size="12" fill="#1b1b1b">%s</text>'
+                    % (margin, y + 18, html.escape(lane["label"])))
+        for column, cell in enumerate(lane["cells"]):
+            if column >= len(stages):
+                break
+            x = margin + lane_width + column * stage_width
+            body.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="#ffffff" '
+                        'stroke="#c9c9c4"/>' % (x, y, stage_width, row_height))
+            if not cell:
+                continue
+            lines = _wrap(cell, max(8, int(stage_width / 6.4)))
+            for line_index, line in enumerate(lines[:4]):
+                body.append('<text x="%.2f" y="%.2f" text-anchor="middle" font-family="Georgia, serif" '
+                            'font-size="10" fill="#1b1b1b">%s</text>'
+                            % (x + stage_width / 2, y + 16 + 13 * line_index, html.escape(line)))
+    return _open(title) + _title(title) + "".join(body) + _close()
+
+
+STATUS_COLOURS = {
+    "on track": "#59a14f", "green": "#59a14f", "met": "#59a14f",
+    "at risk": "#f28e2b", "amber": "#f28e2b", "watch": "#f28e2b",
+    "off track": "#e15759", "red": "#e15759", "missed": "#e15759",
+}
+
+
+def _kpi(items, title, bundle):
+    """A KPI card per item: the recorded value, its target, and its recorded status."""
+    from . import export as case_export
+
+    if bundle is None:
+        raise DiagramError("a KPI board reads stored values, so it needs the case record")
+    stored = case_export.artifact_rows(bundle)
+
+    def value_of(key):
+        for row in stored:
+            if row.get("metric") == key or row.get("id") == key:
+                return row.get("value")
+        return None
+
+    body = []
+    columns = 2
+    margin, gap = 24, 16
+    width = (WIDTH - 2 * margin - gap * (columns - 1)) / columns
+    height = 86
+    for index, item in enumerate(items):
+        column, row = index % columns, index // columns
+        x = margin + column * (width + gap)
+        y = 78 + row * (height + gap)
+        if y + height > HEIGHT - 40:
+            break
+        status = str(value_of(item.get("status")) or "").strip().lower() if item.get("status") else ""
+        colour = STATUS_COLOURS.get(status, "#c9c9c4")
+        body.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%d" rx="6" fill="#ffffff" '
+                    'stroke="#c9c9c4"/>' % (x, y, width, height))
+        body.append('<rect x="%.2f" y="%.2f" width="6" height="%d" rx="3" fill="%s"/>'
+                    % (x, y, height, colour))
+        body.append('<text x="%.2f" y="%.2f" font-family="Georgia, serif" font-size="11" fill="#555550">%s</text>'
+                    % (x + 16, y + 20, html.escape(item["label"])))
+        value = value_of(item["value"])
+        body.append('<text x="%.2f" y="%.2f" font-family="Georgia, serif" font-size="22" fill="#1b1b1b">%s</text>'
+                    % (x + 16, y + 50, html.escape("not recorded" if value is None else str(value))))
+        if item.get("target"):
+            target = value_of(item["target"])
+            body.append('<text x="%.2f" y="%.2f" font-family="Georgia, serif" font-size="10" fill="#6b6b6b">%s</text>'
+                        % (x + 16, y + 68, html.escape("Target " + ("not recorded" if target is None else str(target)))))
+        if status:
+            body.append('<text x="%.2f" y="%.2f" text-anchor="end" font-family="Georgia, serif" font-size="10" '
+                        'fill="%s">%s</text>'
+                        % (x + width - 12, y + 20, colour, html.escape(status)))
+    return _open(title) + _title(title) + "".join(body) + _close()
+
+
+def render_svg(spec, bundle=None):
     """Draw one diagram as deterministic SVG. Returns the SVG string."""
     kind, title, labels = validate_spec(spec)
     if kind == "process":
@@ -188,6 +397,12 @@ def render_svg(spec):
         return _pyramid(labels, title)
     if kind == "funnel":
         return _funnel(labels, title)
+    if kind == "board":
+        return _board(labels, title)
+    if kind == "journey":
+        return _journey(labels, title)
+    if kind == "kpi":
+        return _kpi(labels, title, bundle)
     return _tree(spec, labels, title)
 
 

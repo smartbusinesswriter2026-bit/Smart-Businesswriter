@@ -34,6 +34,8 @@ SUITES = {
         "tests/test_conductor_frameworks.py",
         "tests/test_pestel_completion.py",
         "tests/test_framework_profiles.py",
+        "tests/test_leadership_culture_ethics.py",
+        "tests/test_word_count_length.py",
     ],
     "prose": [
         "tests/test_prose.py",
@@ -46,6 +48,7 @@ SUITES = {
         "tests/test_business_plan_profile.py",
         "tests/test_capability_papers.py",
         "tests/test_paper_documents.py",
+        "tests/test_project_plan.py",
     ],
     # ── Accounting ──
     "accounting": [
@@ -205,6 +208,7 @@ SUITES = {
         "tests/test_product_boundary.py",
         "tests/test_product_cases.py",
         "tests/test_product_ops.py",
+        "tests/test_product_paper_batch.py",
         "tests/test_product_routes.py",
         "tests/test_product_server.py",
         "tests/test_product_subjects.py",

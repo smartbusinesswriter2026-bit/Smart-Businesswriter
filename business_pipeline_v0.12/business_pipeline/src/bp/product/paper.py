@@ -30,18 +30,15 @@ def section(heading, level, lines=None, figure=None):
 
 
 def figure_text(figure):
-    """Every string a figure carries, joined, for the template-text scan."""
+    """Every string a figure carries, joined, for the template-text scan.
+
+    A figure may carry a framework grid, a chart spec or a diagram spec; all
+    three are scanned, so a template instruction cannot hide inside a drawing.
+    """
     if not figure:
         return ""
-    parts = [str(figure.get("caption") or ""), str(figure.get("note") or "")]
-    for grid in figure.get("grids") or []:
-        parts.append(str(grid.get("title") or ""))
-        for row in grid.get("rows") or []:
-            for cell in row or []:
-                parts.append(str(cell.get("label") or ""))
-                parts.extend(str(bullet) for bullet in cell.get("bullets") or [])
-                parts.append(str(cell.get("gap") or ""))
-    return " ".join(part for part in parts if part)
+    from . import figures
+    return figures.text(figure)
 
 
 def paragraph(lines):
@@ -155,7 +152,7 @@ def _missing_base(state, implications=""):
 #: an "implications" sentence no plan profile has a field for.  `chat` owns the
 #: profile names; `tests/test_document_profile_doors.py` fails if the two drift.
 DRAFT_PROFILES = frozenset({"business_plan", "marketing_plan", "feasibility_study",
-                            "project_proposal"})
+                            "project_proposal", "project_plan"})
 
 
 def _plan_missing(state):
@@ -181,6 +178,12 @@ def _plan_missing(state):
         elif not data.get("ok"):
             required.append(str(block.get("label") or block.get("key")) + ": " +
                              str(data.get("error") or "the computation did not run"))
+    if (state.get("profile") or "") == "project_plan":
+        from . import project_plan
+        required.extend(project_plan.validate(project_plan.normalise(state.get("project") or {})))
+        scheduled = state.get("project_schedule") or {}
+        if not scheduled.get("ok"):
+            required.append("the critical path schedule: " + str(scheduled.get("error") or "it did not run"))
     return required
 
 

@@ -259,6 +259,17 @@ TEMPLATE_LINKS = {"STR-07": "template_swot", "STR-18": "template_swot", "STR-01"
                   "PPL-04": "template_nine_box",
                   "CHG-01": "template_kotter", "CHG-12": "template_competing_values",
                   "CHG-11": "template_org_design",
+                  # Leadership, culture and ethics worksheets.
+                  "LDR-01": "template_leadership_theory_comparison",
+                  "LDR-02": "template_situational_leadership",
+                  "LDR-03": "template_leader_effectiveness",
+                  "LDR-04": "template_leadership_development",
+                  "CUL-01": "template_culture_framework_comparison",
+                  "CUL-02": "template_cross_cultural_leadership",
+                  "CUL-03": "template_organisational_culture",
+                  "ETH-01": "template_ethical_dilemma",
+                  "ETH-02": "template_stakeholder_csr",
+                  "ETH-03": "template_ethical_decision_process",
                   # The change, strategy and marketing worksheets.  Each one was
                   # written for the catalogue id it is linked to here.
                   "CHG-02": "template_adkar", "CHG-03": "template_lewin",

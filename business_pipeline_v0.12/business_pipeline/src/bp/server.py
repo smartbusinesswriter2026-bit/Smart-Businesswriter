@@ -14,6 +14,7 @@ from .product import chat_heal as product_chat_heal
 from .product import auto_resolve as product_auto_resolve
 from .product import hallucination_check as product_hallucination_check
 from .product import autoresearch as product_autoresearch
+from .product import paper_batch as product_paper_batch
 from .product import framework_profiles as product_profiles
 product_api.attach_compute(lambda inputs: methods.breakeven(inputs))
 
@@ -28,6 +29,7 @@ def _plan_method(method_id, inputs):
 
 
 product_api.attach_methods(_plan_method, methods.describe)
+product_api.attach_models(llm.from_env)
 from .product import statements as product_statements, statements_council as product_statement_council
 from . import statement_extract, statement_plan, schedule_math
 
@@ -595,6 +597,10 @@ PRESETS = {
 # drifted from `accounts.EXAMPLE_SPEC` and broke the statement modules that build on it.
 PRESETS["accounts"]["inputs"]["spec"] = copy.deepcopy(accounts.EXAMPLE_SPEC)
 
+# The automated-testing previews read the same published presets as the calculator,
+# so a tile's instruction is the tile's own example, not a second copy of it.
+product_paper_batch.configure(_plan_method, methods.describe, PRESETS)
+
 def _template_payload(template_id):
     """A template description plus the completion profile, when it has one."""
     payload = templates.describe(template_id)
@@ -712,6 +718,34 @@ class H(BaseHTTPRequestHandler):
                 _qs = parse_qs(_ops_url.query)
                 _limit = int((_qs.get("limit") or ["20"])[0])
                 return self._send(200, {"results": product_test_runner.list_results(limit=_limit)})
+            if _ops_url.path == "/api/ops/papers/tiles":
+                _qs = parse_qs(_ops_url.query)
+                _refresh = ((_qs.get("refresh") or [""])[0] or "").lower() in ("1", "true", "yes")
+                return self._send(200, product_paper_batch.sections(refresh=_refresh))
+            if _ops_url.path == "/api/ops/papers/runs":
+                _qs = parse_qs(_ops_url.query)
+                _limit = int((_qs.get("limit") or ["20"])[0])
+                _subject = (_qs.get("subject") or [""])[0] or None
+                return self._send(200, {"runs": product_paper_batch.runs(limit=_limit, subject=_subject)})
+            _paper_dl = __import__("re").fullmatch(
+                r"/api/ops/papers/batch/([0-9a-f]{8,})/download", _ops_url.path)
+            if _paper_dl:
+                _qs = parse_qs(_ops_url.query)
+                _fmt = ((_qs.get("format") or ["zip"])[0] or "zip").lower()
+                try:
+                    _data, _name = product_paper_batch.download(_paper_dl[1], _fmt)
+                except KeyError as e:
+                    return self._send(404, {"error": str(e)})
+                _ctype = ("application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          if _fmt == "docx" else "application/zip")
+                return self._send(200, _data, _ctype, filename=_name)
+            _paper_run = __import__("re").fullmatch(
+                r"/api/ops/papers/batch/([0-9a-f]{8,})", _ops_url.path)
+            if _paper_run:
+                try:
+                    return self._send(200, product_paper_batch.status(_paper_run[1]))
+                except KeyError as e:
+                    return self._send(404, {"error": str(e)})
             if urlparse(self.path).path == "/":
                 with open(os.path.join(WEB, "index.html"), "rb") as f: return self._send(200, f.read(), "text/html; charset=utf-8")
             if self.path == "/account.html":
@@ -920,6 +954,25 @@ class H(BaseHTTPRequestHandler):
                 if not isinstance(body, dict): raise ValueError("body must be an object")
                 s.confirm(m[2] == "confirm", body.get("frameworks")); return self._send(200, s.to_dict())
             # ── Ops / self-healing monitor (admin) ──
+            if self.path == "/api/ops/papers/batch":
+                body = self._body()
+                if not isinstance(body, dict):
+                    return self._send(422, {"error": "batch needs {subject, tile_keys}"})
+                subject = str(body.get("subject") or "").strip()
+                keys = body.get("tile_keys") or []
+                if not subject or not isinstance(keys, list) or not keys:
+                    return self._send(422, {"error": "batch needs {subject, tile_keys}"})
+                try:
+                    started = product_paper_batch.start_run(
+                        subject, [str(k) for k in keys],
+                        style=body.get("style") or "apa",
+                        evidence=body.get("evidence") or "corpus",
+                        length=int(body.get("length") or 1200))
+                except KeyError as e:
+                    return self._send(404, {"error": str(e)})
+                except ValueError as e:
+                    return self._send(422, {"error": str(e)})
+                return self._send(200, started)
             if self.path == "/api/ops/tests/run":
                 body = self._body()
                 suite = body.get("suite", "computations") if isinstance(body, dict) else "computations"

@@ -2713,6 +2713,7 @@ function renderChat() {
       '<p class="muted">' + esc(plan.output) + "</p>" +
       reportLengthRow(plan) +
       capabilityPanel(c, plan) +
+      figurePanel(plan) +
       blockGraphHtml(c) +
       evidenceLedgerHtml(c) +
       (Array.isArray(c.chart_specs) && c.chart_specs.length
@@ -2803,7 +2804,7 @@ function renderChat() {
          style === "oscola" ? "OSCOLA" : "Chicago notes-bibliography") + "</option>").join("") +
       "</select>" +
       '<button class="btn primary" id="chatdraft">Draft the section</button></div></div>' +
-      capabilityPanel(c, c.plan) + "</div>";
+      capabilityPanel(c, c.plan) + figurePanel(c.plan) + "</div>";
     out.innerHTML = html;
     $("#chatreset").onclick = resetChat;
     bindCapabilityControls(out);
@@ -3032,6 +3033,29 @@ function evidenceLedgerHtml(c) {
   return html + "</div>";
 }
 
+function figurePanel(plan) {
+  const figures = (plan && plan.figures) || {};
+  const proposed = figures.proposed || [];
+  const excluded = figures.not_included || [];
+  if (!proposed.length && !excluded.length) return "";
+  let html = '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
+    '<h4 class="levelhead" style="margin-top:0">Figures</h4>' +
+    '<p class="muted" style="margin:0 0 8px">The plan can draw these from your recorded figures. ' +
+    "Tick one to put it in the paper and the deck; untick it and the plan records why.</p>";
+  proposed.forEach((row) => {
+    html += '<label class="wblock" style="display:block;cursor:pointer">' +
+      '<span><input type="checkbox" data-figtick="' + esc(row.id) + '"' +
+      (row.selected ? " checked" : "") + "> <strong>" + esc(row.chart || row.kind) + "</strong> &middot; " +
+      esc(row.section || "the paper") + "</span>" +
+      '<span class="muted" style="display:block;margin:4px 0 0 22px">' + esc(row.why) + "</span></label>";
+  });
+  if (excluded.length) {
+    html += '<p class="muted" style="margin:8px 0 0">Not included: ' +
+      excluded.map((row) => esc(row.reason || row.id)).join("; ") + ".</p>";
+  }
+  return html + "</div>";
+}
+
 function capabilityPanel(c, plan) {
   plan = plan || {};
   const caps = plan.capabilities || [];
@@ -3195,6 +3219,9 @@ function capabilityPanel(c, plan) {
 }
 
 function bindCapabilityControls(root) {
+  $$("[data-figtick]", root).forEach((box) => {
+    box.onchange = () => setFigure(box.dataset.figtick, box.checked);
+  });
   $$("[data-capdrop]", root).forEach((button) => {
     button.onclick = () => setCapability(button.dataset.capdrop, false);
   });
@@ -3250,6 +3277,16 @@ function bindCapabilityControls(root) {
   });
   const add = $("#capaddgo", root);
   if (add) add.onclick = () => { const pick = $("#capadd", root); if (pick) setCapability(pick.value, true); };
+}
+
+async function setFigure(id, enabled) {
+  const out = $("#chatout");
+  out.innerHTML = loading(enabled ? "Adding the figure" : "Removing the figure");
+  try {
+    state.chat = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/figures",
+      { id: id, enabled: enabled });
+    renderChat();
+  } catch (error) { out.innerHTML = errorBanner(error); }
 }
 
 async function setCapability(key, enabled) {
@@ -3548,13 +3585,18 @@ const PLAN_PROFILES = {
     blurb: "A project proposal states the problem, the objectives, the work plan, the budget and how delivery will be " +
       "monitored. The export is blocked until every required field is supplied and every required computation has run.",
   },
+  project_plan: {
+    label: "Complete project plan", subject: "project-management", convention: "Project-plan convention",
+    heading: "Build the complete project plan", start: "Start the project plan",
+    blurb: "Charter, scope, WBS, CPM schedule, cost roll-up, RACI and risk register in one document.",
+  },
 };
 
 /* Which doors a subject page offers.  A subject with no long document offers none. */
 const SUBJECT_PLAN_DOORS = {
   entrepreneurship: ["business_plan", "feasibility_study"],
   marketing: ["marketing_plan"],
-  "project-management": ["project_proposal"],
+  "project-management": ["project_proposal", "project_plan"],
 };
 
 RENDERERS.plan = function () { renderPlan(); };
@@ -3775,7 +3817,20 @@ function renderPlan() {
     });
     html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="plansaveinputs">Save the inputs</button></div></div>';
 
+    if (plan.profile === "project_plan") {
+      html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Project record</h3>' +
+        '<textarea id="projectrecord" rows="10" style="width:100%;font-family:monospace;font-size:12px">' +
+        esc(JSON.stringify(d.project || {}, null, 2)) + "</textarea>" +
+        '<div class="row" style="margin-top:8px"><input type="file" id="projectfile" accept=".json,.csv" hidden>' +
+        '<button class="btn" id="projectupload">Upload JSON or CSV</button>' +
+        '<button class="btn" id="projectblank">Blank record</button>' +
+        '<button class="btn primary" id="projectsave">Save the record</button></div>' +
+        ((d.project_problems || []).length
+          ? '<p class="muted">' + d.project_problems.map(esc).join("; ") + "</p>" : "") + "</div>";
+    }
+
     // -- computations
+    if ((plan.blocks || []).length) {
     html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Declared figures and computations</h3>' +
       '<p class="sub">Every figure below is declared by you and computed by the frozen core. The projected statements ' +
       "refuse an opening balance sheet that does not balance, and the export stays blocked until every required block runs.</p>";
@@ -3785,26 +3840,31 @@ function renderPlan() {
       html += planResultTable(block, (d.computations || {})[block.key]);
     });
     html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="plancompute">Run the declared computations</button></div></div>';
+    }
 
     // -- evidence
-    html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Market evidence</h3>' +
-      '<p class="sub">Retrieval fills the market dimensions from academic and vetted sources. A dimension with no source is a named gap, never filled.</p>';
-    if (d.evidence && d.evidence.length) {
-      const sources = {};
-      (d.sources || []).forEach((source) => { sources[source.id] = source; });
-      html += '<div class="stack">' + d.evidence.map((item) => {
-        const source = sources[item.source_id] || {};
-        return '<label class="check"><input type="checkbox" data-planevidence value="' + esc(item.id) + '" checked> ' +
-          esc(item.quote) + ' <span class="muted">- ' + esc(source.title || "source") +
-          (source.year ? " (" + esc(source.year) + ")" : "") + "</span></label>";
-      }).join("") + "</div>";
+    if (plan.profile === "project_plan") {
+      html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="plandraft">Draft the plan</button></div>';
+    } else {
+      html += '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Market evidence</h3>' +
+        '<p class="sub">Retrieval fills the market dimensions from academic and vetted sources. A dimension with no source is a named gap, never filled.</p>';
+      if (d.evidence && d.evidence.length) {
+        const sources = {};
+        (d.sources || []).forEach((source) => { sources[source.id] = source; });
+        html += '<div class="stack">' + d.evidence.map((item) => {
+          const source = sources[item.source_id] || {};
+          return '<label class="check"><input type="checkbox" data-planevidence value="' + esc(item.id) + '" checked> ' +
+            esc(item.quote) + ' <span class="muted">- ' + esc(source.title || "source") +
+            (source.year ? " (" + esc(source.year) + ")" : "") + "</span></label>";
+        }).join("") + "</div>";
+      }
+      if (d.gaps && d.gaps.length) {
+        html += '<p class="muted">Named gaps: ' + d.gaps.map((gap) => esc(gap.label)).join(", ") + ".</p>";
+      }
+      (d.notes || []).slice(0, 5).forEach((note) => { html += '<p class="muted">' + esc(note) + "</p>"; });
+      html += '<div class="row" style="margin-top:10px"><button class="btn" id="planresearch">Find market evidence</button>' +
+        '<button class="btn primary" id="plandraft">Draft the plan</button></div></div>';
     }
-    if (d.gaps && d.gaps.length) {
-      html += '<p class="muted">Named gaps: ' + d.gaps.map((gap) => esc(gap.label)).join(", ") + ".</p>";
-    }
-    (d.notes || []).slice(0, 5).forEach((note) => { html += '<p class="muted">' + esc(note) + "</p>"; });
-    html += '<div class="row" style="margin-top:10px"><button class="btn" id="planresearch">Find market evidence</button>' +
-      '<button class="btn primary" id="plandraft">Draft the plan</button></div></div>';
   }
 
   if (d.draft) {
@@ -3843,6 +3903,45 @@ function renderPlan() {
     capturePlanForms();
     planPost("inputs", { values: state.plan.student || {} });
   };
+  const projectSave = $("#projectsave");
+  if (projectSave) projectSave.onclick = () => {
+    try {
+      planPost("project", { record: JSON.parse(($("#projectrecord") || {}).value || "{}") });
+    } catch (error) {
+      toast("The project record is not valid JSON.");
+    }
+  };
+  const projectBlank = $("#projectblank");
+  if (projectBlank) projectBlank.onclick = () => {
+    const box = $("#projectrecord");
+    if (box) box.value = "{}";
+  };
+  const projectUpload = $("#projectupload");
+  if (projectUpload) projectUpload.onclick = () => { const pick = $("#projectfile"); if (pick) pick.click(); };
+  const projectFile = $("#projectfile");
+  if (projectFile) projectFile.onchange = () => {
+    const file = projectFile.files && projectFile.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const box = $("#projectrecord");
+      const text = String(reader.result || "");
+      try {
+        let parsed;
+        if (/\.json$/i.test(file.name)) {
+          parsed = JSON.parse(text);
+        } else {
+          const rows = parseProjectCsv(text);
+          parsed = JSON.parse(box.value || "{}");
+          Object.assign(parsed, rows);
+        }
+        box.value = JSON.stringify(parsed, null, 2);
+      } catch (error) {
+        toast("The file could not be read as JSON or a simple CSV.");
+      }
+    };
+    reader.readAsText(file);
+  };
   const compute = $("#plancompute");
   if (compute) compute.onclick = () => {
     capturePlanForms();
@@ -3857,6 +3956,33 @@ function renderPlan() {
   const download = $("#plandownload"); if (download) download.onclick = downloadPlan;
   const rubricGate = $("#planrubricgate");
   if (rubricGate) rubricGate.onclick = () => planPost("rubric-gate", { enabled: false });
+}
+
+function parseProjectCsv(text) {
+  const lines = String(text || "").split(/\r?\n/).filter((line) => line.trim());
+  if (!lines.length) return {};
+  const split = (line) => {
+    const out = [];
+    let cell = "", quoted = false;
+    for (let i = 0; i < line.length; i += 1) {
+      const ch = line[i];
+      if (ch === '"') { quoted = !quoted; continue; }
+      if (ch === "," && !quoted) { out.push(cell.trim()); cell = ""; continue; }
+      cell += ch;
+    }
+    out.push(cell.trim());
+    return out;
+  };
+  const head = split(lines.shift()).map((name) => name.toLowerCase());
+  const rows = lines.map((line) => {
+    const cells = split(line), row = {};
+    head.forEach((name, index) => { row[name] = cells[index] || ""; });
+    return row;
+  });
+  if (head.includes("duration") || head.includes("wbs") || head.includes("predecessors")) {
+    return { activities: rows };
+  }
+  return { wbs: rows };
 }
 
 async function planPost(action, body) {
@@ -10697,3 +10823,4 @@ if (new URLSearchParams(location.search).get("pricing")) {
 </script></body>
 
 </html>
+>

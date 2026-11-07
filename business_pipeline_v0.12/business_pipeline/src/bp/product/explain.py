@@ -40,11 +40,7 @@ _DATA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "explai
 
 #: The conductor framework as a reader knows it.  A chat paper has no profile label
 #: on its plan, so the explainer names the framework here.
-_FRAMEWORK_LABELS = {
-    "pestel": "PESTEL", "swot": "SWOT", "pestel_swot": "PESTEL and SWOT",
-    "five_forces": "Five Forces", "five_forces_breakeven": "Five Forces and break-even",
-    "value_chain": "Value chain", "ansoff": "Ansoff", "vrio": "VRIO", "breakeven": "Break-even",
-}
+from .framework_registry import LABELS as _FRAMEWORK_LABELS
 
 
 class ExplainError(ValueError):

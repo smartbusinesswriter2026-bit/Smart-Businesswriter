@@ -791,6 +791,8 @@ def handle(method, path, body=None):
                                                 data.get("words"), data.get("style"))
             elif action == "inputs":
                 state = chat_conductor.set_inputs(state, data.get("values") or data.get("inputs") or {})
+            elif action == "project":
+                state = chat_conductor.set_project(state, data.get("record") or data.get("project") or {})
             elif action == "compute":
                 state = chat_conductor.compute(state, data.get("blocks") or data.get("inputs") or {})
             elif action == "research":
@@ -806,6 +808,13 @@ def handle(method, path, body=None):
                 if accepted is not None and not isinstance(accepted, list):
                     return _error("accepted must be a list of evidence ids")
                 state = chat_conductor.draft(state, accepted, data.get("implications"), data.get("style"))
+            elif action == "figures":
+                ident = str(data.get("id") or "").strip()
+                if not ident:
+                    return _error("a figure id is required")
+                state = chat_conductor.set_figure(state, ident,
+                                                  bool(data.get("enabled", True)),
+                                                  str(data.get("reason") or ""))
             elif action == "rubric-gate":
                 state = chat_conductor.set_rubric_gate(state, data.get("enabled", True))
             elif action == "assist":

@@ -37,6 +37,24 @@ Target="word/document.xml"/>
 </Relationships>"""
 
 
+def _simple_content_types(media):
+    """The plain report's content types, plus a PNG default when pictures are present."""
+    extra = '<Default Extension="png" ContentType="image/png"/>' if media else ""
+    return CONTENT_TYPES.replace("</Types>", extra + "</Types>")
+
+
+def _simple_document_rels(media):
+    """The plain report's document relationships: one image per figure, from rId1."""
+    extra = "".join(
+        '<Relationship Id="rId%d" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+        'Target="media/%s"/>' % (index + 1, name)
+        for index, (name, _) in enumerate(media))
+    return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            + extra + "</Relationships>")
+
+
 def _para(text, bold=False, mono=False, size=None):
     """One paragraph. `xml:space="preserve"` keeps the fixed-width padding of the statements."""
     props = []
@@ -68,14 +86,35 @@ def document_xml(title, sections, mono=True):
             "<w:body>" + "".join(parts) + "</w:body></w:document>")
 
 
-def render_bytes(title, sections, mono=True):
-    """The whole .docx as bytes, deterministic for the same input."""
+def render_bytes(title, sections, mono=True, figures=None):
+    """The whole .docx as bytes, deterministic for the same input.
+
+    `figures` is a list of rendered figure records; each one is appended after the
+    report with its APA label and its picture (or, with no rasterizer, its stored
+    values).  A workbook that asks for none keeps the bytes it had.
+    """
+    media = []
     body = document_xml(title, sections, mono=mono)
+    if figures:
+        extra = "".join(_figure_xml(figure, index, media)
+                        for index, figure in enumerate(figures, 1))
+        body = body.replace("<w:body>", "<w:body>" + extra, 1)
+        body = body.replace(
+            '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">',
+            '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+            'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" '
+            'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">', 1)
+    parts = [("[Content_Types].xml", _simple_content_types(media)),
+             ("_rels/.rels", RELS),
+             ("word/document.xml", body)]
+    if media:
+        parts.append(("word/_rels/document.xml.rels", _simple_document_rels(media)))
+    parts.extend(("word/media/" + name, data) for name, data in media)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        for name, text in (("[Content_Types].xml", CONTENT_TYPES),
-                           ("_rels/.rels", RELS),
-                           ("word/document.xml", body)):
+        for name, text in parts:
             # a fixed timestamp keeps two exports of the same content byte-identical
             z.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), text)
     return buf.getvalue()
@@ -302,10 +341,102 @@ def _figure_grid_xml(grid):
     return "".join(parts)
 
 
-def _figure_xml(figure, number):
-    """The Word XML for one figure: its APA label, its grids and its note."""
+#: The text column is 6.5 in between the 1-inch margins; 914400 EMU per inch.
+FIGURE_WIDTH_EMU = 5943600
+#: The signature every PNG starts with.
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def _png_size(data):
+    """(width, height) in pixels from a PNG's IHDR, or None."""
+    if not isinstance(data, (bytes, bytearray)) or len(data) < 24:
+        return None
+    if bytes(data[:8]) != PNG_SIGNATURE or bytes(data[12:16]) != b"IHDR":
+        return None
+    width = int.from_bytes(data[16:20], "big")
+    height = int.from_bytes(data[20:24], "big")
+    return (width, height) if width and height else None
+
+
+def _attr(text):
+    return escape(str(text or ""), {'"': "&quot;"})
+
+
+def _image_xml(rel_id, number, name, width, height, alt):
+    """One inline picture, sized to the text column."""
+    return (
+        '<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing>'
+        '<wp:inline distT="0" distB="0" distL="0" distR="0">'
+        '<wp:extent cx="%d" cy="%d"/>'
+        '<wp:docPr id="%d" name="Figure %d" descr="%s"/>'
+        '<a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'
+        '<pic:pic>'
+        '<pic:nvPicPr><pic:cNvPr id="%d" name="%s"/><pic:cNvPicPr/></pic:nvPicPr>'
+        '<pic:blipFill><a:blip r:embed="%s"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'
+        '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="%d" cy="%d"/></a:xfrm>'
+        '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr>'
+        '</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>'
+        % (width, height, number, number, _attr(alt), number, _attr(name),
+           rel_id, width, height))
+
+
+def _figure_values_xml(rows):
+    """The stored values of a chart, as a small table.
+
+    This is the honest fallback when no rasterizer is installed: the reader
+    still sees every stored string, and nothing is drawn that cannot be checked.
+    """
+    parts = ['<w:tbl><w:tblPr><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>'
+             '<w:gridCol w:w="4680"/><w:gridCol w:w="4680"/></w:tblGrid>']
+    for label, value in rows:
+        parts.append("<w:tr>"
+                     + _figure_cell([_academic_para(str(label), size=19, after=20)], 4680)
+                     + _figure_cell([_academic_para(str(value), size=19, after=20)], 4680)
+                     + "</w:tr>")
+    parts.append("</w:tbl>")
+    return "".join(parts)
+
+
+def _figure_table_xml(table):
+    """A business table as a Word table: the declared columns, then every row."""
+    columns = [str(column) for column in table.get("columns") or []]
+    rows = table.get("rows") or []
+    if not columns:
+        return ""
+    width = int(FIGURE_WIDTH / len(columns))
+    parts = ['<w:tbl><w:tblPr><w:tblLayout w:type="fixed"/></w:tblPr><w:tblGrid>']
+    parts.extend('<w:gridCol w:w="%d"/>' % width for _ in columns)
+    parts.append("</w:tblGrid>")
+    parts.append("<w:tr>" + "".join(
+        _figure_cell([_academic_para(column, bold=True, size=19, after=20, shade=LABEL_FILL)], width)
+        for column in columns) + "</w:tr>")
+    for row in rows:
+        parts.append("<w:tr>" + "".join(
+            _figure_cell([_academic_para(str(cell), size=19, after=20)], width)
+            for cell in row) + "</w:tr>")
+    parts.append("</w:tbl>")
+    return "".join(parts)
+
+
+def _figure_xml(figure, number, media=None, first_rel=3):
+    """The Word XML for one figure: its APA label, its picture or grid, its note."""
     parts = [_academic_para("Figure %d. %s" % (number, figure.get("caption") or ""),
                             bold=False, size=22, after=60, keep_next=True)]
+    asset = figure.get("asset") or {}
+    picture = asset.get("png")
+    if picture and media is not None:
+        size = _png_size(picture)
+        width = FIGURE_WIDTH_EMU
+        height = int(width * size[1] / size[0]) if size else int(width * 0.42)
+        name = "figure%d.png" % number
+        rel_id = "rId%d" % (len(media) + first_rel)
+        media.append((name, picture))
+        parts.append(_image_xml(rel_id, number, name, width, height, figure.get("caption")))
+    elif figure.get("rows"):
+        parts.append(_figure_values_xml(figure["rows"]))
+        parts.append(_academic_para("Values as recorded.", italic=True, size=17, after=60))
+    if figure.get("table"):
+        parts.append(_figure_table_xml(figure["table"]))
     for grid in figure.get("grids") or []:
         if grid.get("title"):
             parts.append(_academic_para(str(grid["title"]), bold=True, size=20,
@@ -318,7 +449,7 @@ def _figure_xml(figure, number):
 
 
 
-def academic_document_xml(title, sections, style="apa", byline=()):
+def academic_document_xml(title, sections, style="apa", byline=(), media=None):
     """An APA/Harvard-style student paper: title page, double spacing, hanging references.
 
     `byline` is the student's own title-page lines (name, institution, course,
@@ -369,7 +500,7 @@ def academic_document_xml(title, sections, style="apa", byline=()):
         figure = item.get("figure") if isinstance(item, dict) else None
         if figure:
             figure_number += 1
-            parts.append(_figure_xml(figure, figure_number))
+            parts.append(_figure_xml(figure, figure_number, media))
         for line in lines:
             text = line if isinstance(line, str) else str(line)
             if text.startswith("\u2022") or text.startswith("-"):
@@ -381,21 +512,56 @@ def academic_document_xml(title, sections, style="apa", byline=()):
     parts.append('<w:sectPr>' + section + '</w:sectPr>')
     return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '
-            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+            'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" '
+            'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">'
             "<w:body>" + "".join(parts) + "</w:body></w:document>")
 
 
-def render_academic(title, sections, style="apa", byline=()):
-    """The whole academic .docx as bytes, deterministic for the same input."""
-    body = academic_document_xml(title, sections, style, byline=byline)
+def _content_types(media):
+    """The academic content types, plus a PNG default when pictures are present."""
+    extra = '<Default Extension="png" ContentType="image/png"/>' if media else ""
+    return ACADEMIC_CONTENT_TYPES.replace("</Types>", extra + "</Types>")
+
+
+def _document_rels(media):
+    """The document relationships: header, styles, then one image per figure."""
+    extra = "".join(
+        '<Relationship Id="rId%d" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
+        'Target="media/%s"/>' % (index + 3, name)
+        for index, (name, _) in enumerate(media))
+    return DOCUMENT_RELS.replace("</Relationships>", extra + "</Relationships>")
+
+
+def render_academic(title, sections, style="apa", byline=(), bundle=None, plan=None, scale=3):
+    """The whole academic .docx as bytes, deterministic for the same input.
+
+    A figure that carries a rendered PNG is embedded as an inline picture; a
+    figure with no rasterizer falls back to a table of its stored values, so the
+    document is never broken by a missing optional package.
+
+    When `bundle` is supplied, every figure the plan's recorded data earns is
+    proposed, drawn and placed before the document is written.  Without a
+    bundle the sections are rendered exactly as given.
+    """
+    if bundle is not None:
+        from . import figure_plan
+        sections, _ = figure_plan.build(bundle, sections, plan, scale=scale)
+    media = []
+    body = academic_document_xml(title, sections, style, byline=byline, media=media)
+    parts = [("[Content_Types].xml", _content_types(media)),
+             ("_rels/.rels", ACADEMIC_RELS),
+             ("word/document.xml", body),
+             ("word/styles.xml", STYLES),
+             ("word/header1.xml", HEADER),
+             ("word/_rels/document.xml.rels", _document_rels(media))]
+    parts.extend(("word/media/" + name, data) for name, data in media)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        for name, text in (("[Content_Types].xml", ACADEMIC_CONTENT_TYPES),
-                           ("_rels/.rels", ACADEMIC_RELS),
-                           ("word/document.xml", body),
-                           ("word/styles.xml", STYLES),
-                           ("word/header1.xml", HEADER),
-                           ("word/_rels/document.xml.rels", DOCUMENT_RELS)):
+        for name, text in parts:
+            # a fixed timestamp keeps two exports of the same content byte-identical
             z.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), text)
     return buf.getvalue()
 
@@ -487,8 +653,8 @@ def render_note(title, subtitle, sections):
     return buf.getvalue()
 
 
-def render_file(title, sections, path):
-    data = render_bytes(title, sections)
+def render_file(title, sections, path, figures=None):
+    data = render_bytes(title, sections, figures=figures)
     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
     with open(path, "wb") as fh:
         fh.write(data)

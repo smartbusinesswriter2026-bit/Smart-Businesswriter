@@ -1110,3 +1110,38 @@ chrome. The pricing sheet's "Choose" buttons stay filled navy: one filled button
 one strong signal, and quieting it further would cost the sheet its clearest action. The
 per-subject catalogue colours stay on the subject tiles — only the rail lost its rainbow.
 
+## 26. The Rates and FX panel folds
+
+The owner's instruction: *make the Rates and FX block at the top of the Finance shelf collapsible.* It sat open above the tiles on every visit; now it starts closed and the reader unfolds it when they need a figure.
+
+**What changed.** `ratesPanel()` now returns `<details class="marketpanel">` with a `<summary>` header (`<h3>` "Rates and FX" plus a quiet read-then-type hint) instead of a plain `<div class="marketpanel">`. No `open` attribute, so it starts closed. Child-scoped CSS draws the disclosure row: chevron rotates 45° closed / −135° open, hover darkens the heading, focus ring, and `.marketpanel[open] > summary` gains a bottom margin so the cards sit below the header with air. The macro and securities panels keep their plain `.marketpanel` box — no selector touches them.
+
+**The cards survive.** The intro sentence, both `.lookupcard`s, every id (`fxbase`, `fxquote`, `fxdate`, `rfmat`, `fxlookup`, `rflookup`, `ratesout`) and the `"type it into the tool that needs it"` instruction are byte-identical, so `tests/test_market_panels.py` keeps passing unchanged except for the one new pin.
+
+**The fetch defers.** `bindRatesPanel()` binds the lookup handlers eagerly but defers `/api/currencies` to the first `toggle` to open — a Finance visit that never unfolds the panel makes no request.
+
+**Verification.** `tests/test_market_panels.py` passes; served page on 8021 carries `<details class="marketpanel">` and not `<details class="marketpanel" open>`.
+
+## 27. The Finance shelf loses its guide, its summary, and its "published method" instruction
+
+Three deletions on the same page: the **Student guide** block, the **shelf summary** line, and the *"published method"* instruction under Quantitative Finance. The shelf now opens on its tiles, with nothing above them but the foldable Rates and FX header.
+
+**The Student guide.** Removed from `renderSubject()`: the guidance sentence, the *Start here* path, and *What this shelf does not do*. Nothing is lost — the same guidance lives in `docs/FINANCE_STUDENT_GUIDE.md` and in the baked subject data — it is simply no longer printed above the tiles.
+
+**The summary.** *"Corporate finance, valuation and the investments, debt, risk and international tools a finance student needs."* no longer appears under the shelf heading, nor on the all-subjects card. The mechanism is a new helper:
+
+```js
+const SHELVES_WITHOUT_SUMMARY = ["finance"];
+function shelfSummary(subject) { … }
+```
+
+**The "published method" instruction.** *"These run a published method. Supply the figures and confirm; the server computes the result and its checks."* no longer appears under the *Quantitative Finance* heading. It was removed outright — presentational text only, not catalogue data, so `src/bp/product/subjects.py` and the baked snapshots are untouched.
+
+Both render sites — the subject heading and `subjectCard()` — now ask the helper, and **skip the element entirely** when the answer is empty, so there is no orphan empty line. The helper exists because the catalogue still holds the sentence: `src/bp/product/subjects.py` is the computation owner's lane, and the page must not print the line in the meantime. The handover is in `docs/WORKLOG.md`; once the catalogue is blank the helper becomes redundant and may be dropped.
+
+**A dangling parenthesis, and why it killed every button.** The Student guide was removed by deleting a conditional block, and the edit left a stray `) +` in `renderSubject()` with no matching `(`. The whole inline `<script>` then failed to parse — and a script that does not parse binds nothing, so *every* control on the page was dead: the finance button, the rail, the quick links. The symptom looked like a layout fault and was a syntax fault.
+
+The lesson is now a guard: `tests/test_web_inline_script.py::test_the_inline_script_parses` fails the moment the inline script stops parsing. `qa/manual/finance_page_probe.py` goes further and drives headless Chromium to prove the behaviour — no uncaught exception, `show` and `renderSubject` exist, the guide and summary are absent, the panel starts closed, its header opens it, and **a click on "All subjects" really moves the view**.
+
+**Verification.** 14 tests (`test_web_inline_script` + `test_market_panels`) pass; the browser probe reports 10 checks, 0 failures, against the served page on 8021.
+

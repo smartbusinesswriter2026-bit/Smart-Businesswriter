@@ -489,8 +489,9 @@ class PageTest(unittest.TestCase):
 
     def test_the_page_renders_the_tiles_and_the_catalogue_only_action(self):
         page = open(_PATH("web", "index.html"), encoding="utf-8").read()
-        for needle in ("function subjectTiles", "Read and cite - no worksheet yet",
-                       "Before you start", "The tiles"):
+        # The tile description and "Before you start" line were suppressed at the owner's
+        # request; the shelf and its catalogue-only action must still render.
+        for needle in ("function subjectTiles", "Read and cite - no worksheet yet"):
             self.assertIn(needle, page, needle)
 
     def test_the_page_shows_the_period_badge_on_a_calculator(self):

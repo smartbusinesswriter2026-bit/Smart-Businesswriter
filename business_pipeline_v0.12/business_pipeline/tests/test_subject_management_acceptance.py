@@ -133,8 +133,10 @@ class InventoryTest(unittest.TestCase):
         self.assertTrue(preset["inputs"])
 
     def test_E_mgt_002__the_shelf_declares_31_worksheets_with_distinct_catalogue_ids(self):
-        self.assertEqual(len(sheets()), 31)
-        self.assertEqual(len(catalogue_ids()), 31)
+        # The shelf was expanded by owner request with the leadership, culture and
+        # ethics worksheets (10), so the count moves from 31 to 41.
+        self.assertEqual(len(sheets()), 41)
+        self.assertEqual(len(catalogue_ids()), 41)
         self.assertEqual(sorted(catalogue_ids()), sorted(set(catalogue_ids())))
 
     def test_E_mgt_003__every_worksheet_resolves_to_an_installed_profile(self):
@@ -142,10 +144,14 @@ class InventoryTest(unittest.TestCase):
             self.assertIn(sheet["template"], framework_profiles.PROFILES, sheet["catalogue_id"])
             self.assertTrue(profile(sheet["template"])["blocks"], sheet["catalogue_id"])
 
-    def test_E_mgt_004__the_shelf_declares_no_records_theories_or_glossary_terms(self):
+    def test_E_mgt_004__the_shelf_declares_its_reading_lenses_and_no_glossary(self):
         measured = page()
         self.assertEqual(measured["records"], [], "the shelf advertised a record that is not there")
-        self.assertEqual(measured["theories"], [])
+        # The shelf now carries the leadership, culture and ethics reading lenses.
+        # They are theories (form == "theory"), never launchable as a worksheet.
+        self.assertTrue(measured["theories"], "the reading lenses are missing")
+        for row in measured["theories"]:
+            self.assertEqual(row["form"], "theory")
         self.assertEqual(len(measured["glossary"] or []), 0)
 
     def test_E_mgt_005__every_worksheet_is_a_form_the_page_can_render(self):
@@ -177,12 +183,13 @@ class InventoryTest(unittest.TestCase):
         self.assertEqual(entry["tool_count"], len(page()["tools"]))
         self.assertEqual(entry["worksheet_count"], len(sheets()))
         self.assertEqual(entry["record_count"], 0)
-        self.assertEqual(entry["theory_count"], 0)
+        self.assertEqual(entry["theory_count"], len(page()["theories"]))
 
     def test_E_mgt_010__every_worksheet_group_is_one_the_page_declares(self):
         groups = sorted({sheet.get("group") for sheet in sheets()})
         self.assertEqual(groups, ["business_model", "change_organisation", "competitive_position",
-                                 "diagnosis", "portfolio_growth"])
+                                 "culture_organisation", "diagnosis", "ethics_dilemmas",
+                                 "leadership", "portfolio_growth"])
 
 
 class ToolTest(unittest.TestCase):
@@ -402,14 +409,18 @@ class PresentationTest(unittest.TestCase):
         api_py = open(os.path.join(SRC, "bp", "product", "api.py"), encoding="utf-8").read()
         self.assertNotIn('"md"', api_py)
 
-    def test_E_mgt_034__the_chart_and_export_cards_keep_their_ids_and_stay_hidden(self):
+    def test_E_mgt_034__the_chart_and_export_cards_keep_their_ids(self):
         page_html = open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8").read()
         for bound in ('id="chartbtn"', 'id="expbtn"', 'id="expzip"'):
             self.assertIn(bound, page_html, "%s is bound unguarded by the inline script" % bound)
-        for card in ("Charts", "Export"):
-            index = page_html.index("<h3>%s</h3>" % card)
-            head = page_html[max(0, index - 120):index]
-            self.assertIn('style="display:none"', head, "%s card must stay hidden" % card)
+        # the Charts card is a live feature now (render, then save the figure to the case);
+        # the Export card is still a half-built path and stays hidden.
+        index = page_html.index("<h3>Charts</h3>")
+        self.assertNotIn('style="display:none"', page_html[max(0, index - 120):index],
+                         "the Charts card is live")
+        index = page_html.index("<h3>Export</h3>")
+        self.assertIn('style="display:none"', page_html[max(0, index - 120):index],
+                      "the Export card must stay hidden")
 
     def test_E_mgt_035__no_paper_path_prints_a_specification_footer(self):
         """P3, read on the artefacts: the computation paper, the worksheet paper, the export."""
@@ -601,8 +612,9 @@ class ReachabilityTest(unittest.TestCase):
         shown = {sheet["catalogue_id"] for sheet in sheets()}
         self.assertEqual(sorted(shown - declared), ["STR-01", "STR-07", "STR-18"])
         entry = next(row for row in subjects.catalogue()["subjects"] if row["id"] == SUBJECT)
-        self.assertEqual(entry["catalogue_count"], 28)
-        self.assertEqual(entry["worksheet_count"], 31)
+        # 28 original + 10 new worksheets + 43 reading lenses.
+        self.assertEqual(entry["catalogue_count"], 81)
+        self.assertEqual(entry["worksheet_count"], 41)
 
 
 

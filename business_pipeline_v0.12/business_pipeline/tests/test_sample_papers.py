@@ -109,7 +109,7 @@ class Shape(unittest.TestCase):
     def test_a_value_chain_sample_names_the_unsupported_activity(self):
         text = self.text("value-chain", "apa")
         self.assertIn("Service", self.headings("value-chain", "apa"))
-        self.assertIn("did not cover this dimension", text)
+        self.assertIn("No retrieved evidence covered this dimension", text)
 
     def test_the_break_even_sample_reports_the_core_figures(self):
         text = self.text("break-even", "apa")

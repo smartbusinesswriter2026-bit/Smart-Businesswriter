@@ -2824,6 +2824,23 @@ STRATEGY_TILES = [
     {"key": "change_organisation", "label": "Change and organisation",
      "what": "Carry the chosen strategy through the organisation that has to deliver it.",
      "need": "The organisation, the change you are planning and who has to carry it."},
+    {"key": "leadership", "label": "Leadership",
+     "what": "Name the leadership theory you begin from, compare it with others on a stated criterion, "
+             "and read a situation against a contingency model. The theory is yours to cite; the comparison "
+             "and the evidence are yours to supply.",
+     "need": "The leadership question, the theory or theories you are comparing, and the case evidence "
+             "behind each claim."},
+    {"key": "culture_organisation", "label": "Culture and organisation",
+     "what": "Describe a context through cultural frameworks (Hofstede, GLOBE, Trompenaars, Hall, Meyer, "
+             "Schwartz and others), compare where they agree and conflict, and diagnose an organisation's "
+             "culture at the artefact, espoused-value and assumption layers.",
+     "need": "The country or organisation, the frameworks you are using, and the evidence for each "
+             "dimension or layer."},
+    {"key": "ethics_dilemmas", "label": "Ethics and dilemmas",
+     "what": "State an ethical dilemma, apply two or three ethical theories, compare where they agree and "
+             "diverge, and weigh stakeholder claims and CSR obligations. The justification is yours; the "
+             "system names what is unsupported.",
+     "need": "The dilemma, the stakeholders affected, and the ethical theories you are applying to the facts."},
 ]
 
 STRATEGY_WORKSHEET_GROUPS = {
@@ -2844,6 +2861,10 @@ STRATEGY_WORKSHEET_GROUPS = {
     "CHG-09": "change_organisation", "CHG-10": "change_organisation",
     "CHG-11": "change_organisation", "CHG-12": "change_organisation",
     "CHG-13": "change_organisation",
+    # Leadership, culture and ethics worksheets.
+    "LDR-01": "leadership", "LDR-02": "leadership", "LDR-03": "leadership", "LDR-04": "leadership",
+    "CUL-01": "culture_organisation", "CUL-02": "culture_organisation", "CUL-03": "culture_organisation",
+    "ETH-01": "ethics_dilemmas", "ETH-02": "ethics_dilemmas", "ETH-03": "ethics_dilemmas",
 }
 
 #: The tiles the Project management page shows, in the order a student meets
@@ -3331,6 +3352,47 @@ GLOSSARIES["project-management"] = PROJECT_MANAGEMENT_GLOSSARY
 #: T4 worksheets that exist today.  A worksheet is structure plus an evidence
 #: audit; it scores and ranks nothing.
 WORKSHEETS = {
+    # ---- Leadership, culture and ethics (strategy shelf) --------------------
+    "LDR-01": {"catalogue_id": "LDR-01", "template": "template_leadership_theory_comparison",
+               "label": "Leadership theory profile and comparison", "draftable": True,
+               "before": "",
+               "what": "State the theory you begin from, place the case evidence against it, and compare it with two or three other theories on a stated criterion."},
+    "LDR-02": {"catalogue_id": "LDR-02", "template": "template_situational_leadership",
+               "label": "Situational and contingency leadership", "draftable": True,
+               "before": "Have the situation: task structure, follower readiness, leader-member relations and position power for the model you choose. A variable you cannot evidence stays empty and is named.",
+               "what": "Read a situation against a contingency model, name the style it implies, and compare it with the style observed."},
+    "LDR-03": {"catalogue_id": "LDR-03", "template": "template_leader_effectiveness",
+               "label": "Leader effectiveness appraisal", "draftable": True,
+               "before": "Name the leader, the period and who set the criteria. For each criterion, write the evidence and at least one piece of counter-evidence or an alternative explanation; a criterion with no evidence is named.",
+               "what": "Appraise a leader against stated criteria using sourced evidence, including counter-evidence and alternative explanations."},
+    "LDR-04": {"catalogue_id": "LDR-04", "template": "template_leadership_development",
+               "label": "Leadership development plan", "draftable": True,
+               "before": "Name the model you assess against, the evidence of the gap, the actions you will take, and how change would be observed. An action with no observable result is named.",
+               "what": "Name a capability gap against a model, the evidence for it, the development actions, and how change would be observed."},
+    "CUL-01": {"catalogue_id": "CUL-01", "template": "template_culture_framework_comparison",
+               "label": "Cultural framework comparison", "draftable": True,
+               "before": "Name the context and two or more frameworks. For each framework, describe its dimensions as the framework names them, then say where the two agree and where they conflict. A dimension with no evidence is named.",
+               "what": "Describe a context through two or more cultural frameworks, compare where they agree and conflict, and state the implication and the limits."},
+    "CUL-02": {"catalogue_id": "CUL-02", "template": "template_cross_cultural_leadership",
+               "label": "Cross-cultural leadership and organisation", "draftable": True,
+               "before": "Choose one cultural framework and one leadership situation. State what the framework predicts, what the evidence shows, and where it fails. A prediction with no observed evidence is a named gap.",
+               "what": "Apply one cultural framework to a leadership situation, compare what it predicts with what the evidence shows, and name what it cannot settle."},
+    "CUL-03": {"catalogue_id": "CUL-03", "template": "template_organisational_culture",
+               "label": "Organisational culture diagnosis", "draftable": True,
+               "before": "Collect what you can observe: artefacts, what the organisation says it values, and what it takes for granted. Every claim needs a source; a layer with no evidence is named.",
+               "what": "Read an organisation's culture at the artefact, espoused-value and basic-assumption layers, with sourced evidence for each."},
+    "ETH-01": {"catalogue_id": "ETH-01", "template": "template_ethical_dilemma",
+               "label": "Ethical dilemma analysis", "draftable": True,
+               "before": "State the dilemma and the competing obligations, then the stakeholders. Apply two or three named theories to the facts; a theory applied with no reasoning is flagged, and a decision with no basis is named.",
+               "what": "State a dilemma, apply two or three ethical theories, compare where they agree and diverge, and justify a decision."},
+    "ETH-02": {"catalogue_id": "ETH-02", "template": "template_stakeholder_csr",
+               "label": "Stakeholder and CSR analysis", "draftable": True,
+               "before": "Map the stakeholders and what each claims, with the evidence. Compare shareholder primacy with stakeholder theory, then weigh Carroll's obligations and the triple bottom line. A stakeholder with no evidence is named.",
+               "what": "Map stakeholders and their claims, compare shareholder primacy with stakeholder theory, and weigh CSR obligations and the triple bottom line."},
+    "ETH-03": {"catalogue_id": "ETH-03", "template": "template_ethical_decision_process",
+               "label": "Ethical decision-making process", "draftable": True,
+               "before": "Trace the decision through moral sensitivity, judgment, motivation and character, with the evidence for each stage and the factors that made the issue serious. A stage with no evidence is named.",
+               "what": "Trace a decision through the stages of moral sensitivity, judgment, motivation and character, with the factors that made it serious."},
     "PM-01": {"catalogue_id": "PM-01", "template": "template_balanced_scorecard",
               "label": "Balanced Scorecard", "draftable": True,
               "before": "Have the perspectives you steer by, and for each one the objective, the measure, the target and the initiative. If a target is not agreed, enter it as an assumption; a cell you cannot fill stays empty and is named.",
@@ -3746,12 +3808,28 @@ SUBJECT_DEFS = [
                        "STR-13", "STR-14", "STR-15", "STR-16", "STR-17", "STR-18",
                        "CHG-01", "CHG-11", "CHG-12",
                        "CHG-02", "CHG-03", "CHG-04", "CHG-05", "CHG-06", "CHG-07",
-                       "CHG-08", "CHG-09", "CHG-10", "CHG-13"],
+                       "CHG-08", "CHG-09", "CHG-10", "CHG-13",
+                       "LDR-01", "LDR-02", "LDR-03", "LDR-04",
+                       "CUL-01", "CUL-02", "CUL-03",
+                       "ETH-01", "ETH-02", "ETH-03"],
         "catalogue_ids": [
             "STR-02", "STR-03", "STR-04", "STR-05", "STR-06", "STR-08", "STR-09",
             "STR-10", "STR-11", "STR-12", "STR-13", "STR-14", "STR-15", "STR-16", "STR-17",
             "CHG-01", "CHG-02", "CHG-03", "CHG-04", "CHG-05", "CHG-06", "CHG-07",
             "CHG-08", "CHG-09", "CHG-10", "CHG-11", "CHG-12", "CHG-13",
+            "LDR-01", "LDR-02", "LDR-03", "LDR-04",
+            "CUL-01", "CUL-02", "CUL-03",
+            "ETH-01", "ETH-02", "ETH-03",
+            "LDR-T01", "LDR-T02", "LDR-T03", "LDR-T04", "LDR-T05",
+            "LDR-T06", "LDR-T07", "LDR-T08", "LDR-T09", "LDR-T10",
+            "LDR-T11", "LDR-T12", "LDR-T13", "LDR-T14", "LDR-T15",
+            "CUL-T01", "CUL-T02", "CUL-T03", "CUL-T04", "CUL-T05",
+            "CUL-T06", "CUL-T07", "CUL-T08", "CUL-T09", "CUL-T10",
+            "CUL-T11", "CUL-T12",
+            "ETH-T01", "ETH-T02", "ETH-T03", "ETH-T04", "ETH-T05",
+            "ETH-T06", "ETH-T07", "ETH-T08", "ETH-T09", "ETH-T10",
+            "ETH-T11", "ETH-T12", "ETH-T13", "ETH-T14", "ETH-T15",
+            "ETH-T16",
         ],
     },
     {
@@ -6614,6 +6692,105 @@ CATALOGUE = {'CHG-01': {'disciplines': ['change and organization'],
             'summary': 'Prospect Theory and other behavioral-economics theories, when relevant to a decision problem.',
             'template': None,
             'type': 'T'}}
+
+
+# ---- Leadership, culture and ethics catalogue records ----------------------
+_LDR_WORKSHEET_CATALOGUE = {
+    "LDR-01": ("Leadership theory profile and comparison", "template_leadership_theory_comparison",
+               "Leadership theory comparison: the theory you begin from, its core claim, the case evidence, and a comparison with two or three other theories on a stated criterion.",
+               "The leadership question, the theory or theories, and the case evidence behind each claim."),
+    "LDR-02": ("Situational and contingency leadership", "template_situational_leadership",
+               "Situational and contingency leadership: task structure, follower readiness, leader-member relations and position power read through a named contingency model.",
+               "The situation, the model applied and the style observed."),
+    "LDR-03": ("Leader effectiveness appraisal", "template_leader_effectiveness",
+               "Leader effectiveness appraisal against stated criteria, with sourced evidence, counter-evidence and alternative explanations.",
+               "The leader, the criteria and the evidence for and against."),
+    "LDR-04": ("Leadership development plan", "template_leadership_development",
+               "Leadership development: a capability gap against a named model, the development actions and how change would be observed.",
+               "The model, the evidence of the gap and the observable result."),
+    "CUL-01": ("Cultural framework comparison", "template_culture_framework_comparison",
+               "Cultural framework comparison: a context described through two or more frameworks, where they agree and conflict, and the limits.",
+               "The context, the frameworks and the evidence for each dimension."),
+    "CUL-02": ("Cross-cultural leadership and organisation", "template_cross_cultural_leadership",
+               "Cross-cultural leadership: one cultural framework applied to a leadership situation, its predictions against the evidence, and what it cannot settle.",
+               "The situation, the framework and the observed evidence."),
+    "CUL-03": ("Organisational culture diagnosis", "template_organisational_culture",
+               "Organisational culture diagnosis at the artefact, espoused-value and basic-assumption layers, with sourced evidence for each.",
+               "What is visible, what is said and what is taken for granted, each with a source."),
+    "ETH-01": ("Ethical dilemma analysis", "template_ethical_dilemma",
+               "Ethical dilemma analysis: the competing obligations, the stakeholders, two or three ethical theories applied, and a justified decision.",
+               "The dilemma, the stakeholders and the theories applied to the facts."),
+    "ETH-02": ("Stakeholder and CSR analysis", "template_stakeholder_csr",
+               "Stakeholder and CSR analysis: stakeholder claims, shareholder primacy against stakeholder theory, Carroll's obligations and the triple bottom line.",
+               "The stakeholders, their claims and the theories applied."),
+    "ETH-03": ("Ethical decision-making process", "template_ethical_decision_process",
+               "Ethical decision-making: a decision traced through moral sensitivity, judgment, motivation and character, with the factors that made it serious.",
+               "The decision, the stages and the evidence for each."),
+}
+for _cid, (_name, _tpl, _summary, _needs) in _LDR_WORKSHEET_CATALOGUE.items():
+    CATALOGUE[_cid] = {
+        "id": _cid, "name": _name, "type": "M", "form": "worksheet",
+        "status_short": "Worksheet",
+        "status_note": "worksheet available: structure and evidence audit only; the evidence is yours",
+        "implementation_status": "worksheet available: structure and evidence audit only; the evidence is yours",
+        "summary": _summary, "structures": _summary, "evidence_needs": _needs,
+        "template": _tpl, "linked_methods": [], "disciplines": ["strategy"],
+    }
+
+_LDR_LENSES = {
+    "LDR-T01": ("Trait and Great Man theory", "Leadership as disposition: the traits associated with leaders and the criticism that the list is endless and context-free."),
+    "LDR-T02": ("Behavioural leadership theory", "Leadership as what leaders do: Ohio State initiating structure and consideration, Michigan task and relationship orientations, and the Blake-Mouton managerial grid."),
+    "LDR-T03": ("Situational leadership (Hersey-Blanchard)", "Leadership style matched to follower readiness: telling, selling, participating and delegating."),
+    "LDR-T04": ("Contingency theory (Fiedler)", "Leader effectiveness as the fit between the leader's LPC orientation and situational favourableness."),
+    "LDR-T05": ("Path-goal theory (House)", "The leader clears the path to goals through directive, supportive, participative and achievement-oriented behaviour."),
+    "LDR-T06": ("Transformational leadership (Burns, Bass)", "Idealized influence, inspirational motivation, intellectual stimulation and individualized consideration."),
+    "LDR-T07": ("Transactional leadership (Bass)", "Contingent reward and management by exception as the exchange between leader and follower."),
+    "LDR-T08": ("Full Range Leadership Model", "Laissez-faire, transactional and transformational styles on one continuum."),
+    "LDR-T09": ("Charismatic leadership", "Leader charisma, its attribution and its risks, as described by House and by Conger and Kanungo."),
+    "LDR-T10": ("Servant leadership (Greenleaf)", "The leader as servant: follower development and community placed before the leader's own interests."),
+    "LDR-T11": ("Authentic leadership", "Self-awareness, relational transparency, balanced processing and an internalized moral perspective."),
+    "LDR-T12": ("Leader-member exchange (LMX)", "Leadership as a differentiated relationship: in-group and out-group exchanges between leader and members."),
+    "LDR-T13": ("Ethical leadership", "The demonstration of normatively appropriate conduct and its promotion to followers."),
+    "LDR-T14": ("Adaptive leadership (Heifetz)", "Leading through adaptive challenges by distinguishing technical from adaptive work."),
+    "LDR-T15": ("Distributed and shared leadership", "Leadership as a property of the group rather than of one appointed individual."),
+    "CUL-T01": ("Hofstede's cultural dimensions", "Power distance, individualism-collectivism, masculinity-femininity, uncertainty avoidance, long-term orientation and indulgence-restraint."),
+    "CUL-T02": ("GLOBE cultural dimensions and leadership styles", "Nine cultural dimensions, six leadership styles and culture clusters from the GLOBE programme."),
+    "CUL-T03": ("Trompenaars and Hampden-Turner", "Seven dimensions of culture, including universalism-particularism and specific-diffuse."),
+    "CUL-T04": ("Edward T. Hall", "High- and low-context communication, monochronic and polychronic time, and proxemics."),
+    "CUL-T05": ("Schwartz's cultural value orientations", "Embeddedness-autonomy, hierarchy-egalitarianism and mastery-harmony."),
+    "CUL-T06": ("Inglehart and the World Values Survey", "Traditional versus secular-rational values and survival versus self-expression values."),
+    "CUL-T07": ("Kluckhohn and Strodtbeck", "Value orientations: human nature, person-nature, time, activity and relational."),
+    "CUL-T08": ("Richard Lewis's model", "Linear-active, multi-active and reactive cultural types."),
+    "CUL-T09": ("Erin Meyer's Culture Map", "Eight scales: communicating, evaluating, persuading, leading, deciding, trusting, disagreeing and scheduling."),
+    "CUL-T10": ("Schein's organisational culture", "Artefacts, espoused values and basic assumptions as three layers of culture."),
+    "CUL-T11": ("Denison organisational culture model", "Mission, adaptability, involvement and consistency as cultural dimensions."),
+    "CUL-T12": ("Cultural intelligence (CQ)", "Metacognitive, cognitive, motivational and behavioural capability to work across cultures."),
+    "ETH-T01": ("Utilitarianism and consequentialism", "The right action is the one that produces the greatest good, judged by consequences."),
+    "ETH-T02": ("Deontology (Kant)", "Duty-based ethics: the categorical imperative, universalisability and respect for persons."),
+    "ETH-T03": ("Virtue ethics (Aristotle)", "Character and the virtues: what a good person would do and the mean between extremes."),
+    "ETH-T04": ("Justice as fairness (Rawls)", "Principles chosen behind a veil of ignorance, including the difference principle."),
+    "ETH-T05": ("Rights-based ethics", "Moral and human rights that constrain what may be done to a person."),
+    "ETH-T06": ("Ethics of care", "Relational ethics that centres care, dependence and responsiveness to particular others."),
+    "ETH-T07": ("Social contract theory", "Obligations arising from an implicit contract among members of a society."),
+    "ETH-T08": ("Stakeholder theory (Freeman)", "The firm is accountable to all who affect or are affected by it, not only shareholders."),
+    "ETH-T09": ("Shareholder primacy (Friedman)", "The firm's social responsibility is to increase profit within the rules of the game."),
+    "ETH-T10": ("Ethical egoism", "The right action is the one that best serves the agent's own self-interest."),
+    "ETH-T11": ("Discourse ethics (Habermas)", "Norms are valid when they could be agreed by all affected in free and reasoned discourse."),
+    "ETH-T12": ("Capability approach (Sen, Nussbaum)", "Development judged by the real freedoms people have to choose lives they value."),
+    "ETH-T13": ("Confucian ethics", "Relational virtues, roles and the cultivation of the person in social context."),
+    "ETH-T14": ("Ubuntu ethics", "A relational African ethic: a person is a person through other persons."),
+    "ETH-T15": ("Moral relativism and universalism", "Whether moral standards are culture-bound or hold across cultures."),
+    "ETH-T16": ("Rest and Jones decision models", "Rest's four components and Jones's moral intensity as a process model of ethical decision-making."),
+}
+for _cid, (_name, _summary) in _LDR_LENSES.items():
+    CATALOGUE[_cid] = {
+        "id": _cid, "name": _name, "type": "T", "form": "theory",
+        "status_short": "Reading lens",
+        "status_note": "supporting theory: an interpretive lens, not a worksheet by design",
+        "implementation_status": "supporting theory: an interpretive lens, not a worksheet by design",
+        "summary": _summary, "structures": _summary, "evidence_needs": "",
+        "template": None, "linked_methods": [], "disciplines": ["supporting theory"],
+    }
 
 
 def _fill_catalogue_ids():

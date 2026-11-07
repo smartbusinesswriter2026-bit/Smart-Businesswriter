@@ -145,7 +145,7 @@ class WiringInvariantTest(unittest.TestCase):
                          "a shared key gave a different paper from a different group")
 
     def test_E_calc_007__every_tool_resolves_to_a_library_method_or_the_documented_composite(self):
-        """W-04 -- 131 of the 148 keys are not method ids; resolve `method`, never `key`."""
+        """W-04 -- 130 of the 148 keys are not method ids; resolve `method`, never `key`."""
         unknown = []
         for tool in tools():
             if tool["method"] == COMPOSITE:
@@ -159,7 +159,7 @@ class WiringInvariantTest(unittest.TestCase):
         self.assertEqual(composites, [COMPOSITE])
         # trap 1, made explicit: the key is NOT the method for most of the shelf
         key_hits = [tool["key"] for tool in tools() if tool["key"] in LIBRARY]
-        self.assertEqual(len(tools()) - len(key_hits), 131)
+        self.assertEqual(len(tools()) - len(key_hits), 130)
 
     def test_E_calc_008__every_preset_exists_and_runs_its_declared_method(self):
         """W-05 -- a preset retargeted at another method is a wrong number on the page."""
@@ -365,9 +365,9 @@ class HarnessHygieneTest(unittest.TestCase):
     def test_E_calc_025__the_library_and_the_frozen_fixture_are_the_numbers_measured(self):
         fixture = json.load(open(os.path.join(ROOT, "tests", "fixtures", "frozen_contract.json"),
                                  encoding="utf-8"))
-        self.assertEqual(len(LIBRARY), 142)
+        self.assertEqual(len(LIBRARY), 209)
         self.assertEqual(len(server.PRESETS), 144)
-        self.assertEqual(len(fixture["methods"]), 142)
+        self.assertEqual(len(fixture["methods"]), 209)
         self.assertEqual(len(fixture["presets"]), 144)
         for method_id in {tool["method"] for tool in tools()}:
             if method_id == COMPOSITE:

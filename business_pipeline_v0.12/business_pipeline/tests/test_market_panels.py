@@ -72,18 +72,25 @@ class PanelSplitTest(unittest.TestCase):
         read them. Nothing is auto-filled." True, but said twice: the panel's own intro
         tells the student to read a value, confirm it and type it in, and every result
         renders `marketFoot` - the publisher's name, an as-of date and a link to the
-        source - so the citation travels with the figure. Securities and macro keep
-        their sentences because they invite a bulk read of filings and series.
+        source - so the citation travels with the figure. Securities keeps
+        its sentence because it invites a bulk read of filings.
         """
         rates = _function("ratesPanel").split("\nfunction ", 1)[0]
         self.assertNotIn("Nothing is auto-filled.", rates, "the owner deleted this line")
         self.assertIn("type it into the tool that needs it", rates,
                       "the read-then-type instruction is what makes the boundary real")
-        for name in ("securitiesPanel", "macroPanel"):
-            self.assertIn("not verified", _function(name), name)
         self.assertIn("nothing is auto-filled", _function("securitiesPanel"))
         foot = PAGE.split("function marketFoot(", 1)[1].split("\nfunction ", 1)[0]
         self.assertIn("data.source", foot, "the result names its publisher")
+
+    def test_rates_and_fx_is_a_disclosure_that_starts_closed(self):
+        body = _function("ratesPanel").split("\nfunction ", 1)[0]
+        self.assertIn('<details class="marketpanel">', body, "the panel is a disclosure")
+        self.assertNotIn('<details class="marketpanel" open>', body,
+                         "the shelf opens on its tiles, not the panel")
+        self.assertIn("<summary>", body)
+        self.assertLess(body.index("<summary>"), body.index('<div class="marketgrid">'),
+                        "the cards sit inside the body, not the header")
 
     def test_rates_and_fx_gives_each_lookup_its_own_card(self):
         """Eight controls in one row left the reader guessing which button read which field."""

@@ -131,7 +131,7 @@ class InventoryTest(unittest.TestCase):
         self.assertIn(SUBJECT, subjects.SUBJECT_TILES)
         html = io.open("web/index.html", encoding="utf-8").read()
         self.assertIn("if ((s.tiles || []).length) {", html)
-        self.assertIn("The tiles", html)                      # the tile branch is live
+        self.assertIn('class="capgrid"', html)                # the tile grid is live
         self.assertIn("Complete a framework", html)          # the fallback is still there
 
     def test_E_pm_007__every_worksheet_on_the_shelf_is_draftable(self):

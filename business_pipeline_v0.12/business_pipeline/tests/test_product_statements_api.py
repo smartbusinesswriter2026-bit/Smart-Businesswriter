@@ -31,10 +31,17 @@ def attach():
 
 
 class RouteTest(unittest.TestCase):
+    #: A model configured by another test would read the instruction, so a shape
+    #: this suite means to refuse would be accepted instead.  The suite is hermetic.
+    MODEL_VARS = ("BP_LLM_PROVIDER", "BP_LLM_MODEL", "BP_LLM_REVIEWER_MODEL",
+                  "BP_DEEPSEEK_API_KEY", "BP_OPENAI_API_KEY", "BP_ANTHROPIC_API_KEY",
+                  "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "DEEPSEEK_API_KEY")
+
     def setUp(self):
         self.root = tempfile.mkdtemp(prefix="bp-statements-")
         self.previous = os.environ.get("BP_CASES_DIR")
         os.environ["BP_CASES_DIR"] = self.root
+        self._model_vars = {name: os.environ.pop(name, None) for name in self.MODEL_VARS}
         attach()
 
     def tearDown(self):
@@ -42,6 +49,9 @@ class RouteTest(unittest.TestCase):
             os.environ.pop("BP_CASES_DIR", None)
         else:
             os.environ["BP_CASES_DIR"] = self.previous
+        for name, value in self._model_vars.items():
+            if value is not None:
+                os.environ[name] = value
         shutil.rmtree(self.root, ignore_errors=True)
 
     def post(self, text, **extra):

@@ -233,7 +233,8 @@ class CaseExplanationTest(unittest.TestCase):
             self.assertIn(value, text)
         self.assertIn("Declared formula", text)
         self.assertIn("How you know it is right", text)
-        self.assertIn("If your professor asks", text)
+        self.assertIn("What was the question?", text)
+        self.assertIn("What does it not prove?", text)
         # every figure is tagged with its source; no figure is untraceable
         for figure in document["figures"]:
             self.assertIn(figure["source"], ("input", "output"))

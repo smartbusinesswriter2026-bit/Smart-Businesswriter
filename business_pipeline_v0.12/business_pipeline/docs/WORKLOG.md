@@ -1,3 +1,72 @@
+## 2026-11-07 - [product] Automated testing: a real paper per tile
+
+**Ask.** Replace the admin Tests button row with an Automated testing section: subjects are permanent sections, subsections collapse, tiles are tickable, a tick survives a subsection switch, and the ZIP download sits at the bottom of each section. Each paper is a real writer paper generated from a prefilled instruction that shows the tile's ideal behaviour, with references.
+
+**Did.**
+
+- **`paper_batch.py`** - one tile -> one paper. The instruction is the published preset objective plus its declared figures; the frozen method runs once; the conductor drafts a no-framework paper; the corpus is searched by the tile's own words, and a sentence is quoted only when it is in the page returned. No match is a named gap. A run directory under `state/paper_previews/<run_id>/` holds the `.docx` papers, a combined `docx`, `instructions.md`, `manifest.json` and an index.
+- **Routes** - `GET /api/ops/papers/tiles`, `POST /api/ops/papers/batch`, `GET /api/ops/papers/batch/{id}`, `GET /api/ops/papers/batch/{id}/download`, `GET /api/ops/papers/runs`.
+- **Page** - the Tests card is gone. The new card renders 11 subject sections, 50 collapsible subsections and 246 usable tile checkboxes, with per-section Generate/Clear, progress, a results table and download links at the bottom. Ticks are kept in `localStorage` under `sbwPaperTicks`.
+- **A real chart defect fixed** - `_chart_specs_for`/`_figure_plan` turned a result key such as `count_1` into the label "Count 1"; the figure layer refuses a digit in a label. The label now uses the declared stage name or a digit-free form, while the artifact id is unchanged.
+- **Sweep** - 246 tiles with published defaults generated 246 papers with no failure; 5 tiles are named `needs_input` because they are decision frameworks or have no preset.
+
+**Left open.** The paper is a tile report, not a strategic paper: a student run can still add a framework. References carry the corpus title and author/year where the corpus metadata has them, and `n.d.` where it does not; enriching the 159 unenriched corpus documents is the durable fix. XLSX per tile is phase 2.
+
+## 2026-11-07 - [product] A visual layer: figures, decks, workbook charts
+
+**Ask.** Integrate professional charts, graphs, illustrations, pitch decks, KPIs and roadmaps into the pipeline - accurate, professionally made, and better than what a raw model produces.
+
+**Did.**
+
+- **The principle held throughout: no model draws a chart.** A picture that cannot be checked is an invented citation. The model may draft a `bp-chart/1` spec; code validates it; the geometry and every number come from stored artifacts.
+- **`figures.py`** - the record (`id`, `kind`, `spec`, `caption`, `note`, `sources`, `why`, `place`, `digest`), validation (digit-free caption and note, a mandatory `why`), staleness, and a registry. A figure is referenced by id, never copied, so a paper and a deck cannot disagree about one number.
+- **`figure_plan.py`** - the auto-triggers and placement: declared series, composition, alternatives, an explicit spec, and a CPM record to a Gantt. Every proposal carries its reason; every block that drew nothing is named.
+- **`renderers.py`** - the builtin SVG always runs; Plotly + kaleido draw charts; the Chrome kaleido carries rasterizes the builtin SVG; `cairosvg` is tried and skipped when its cairo DLL is absent. `dot_source()` and `mermaid_source()` turn a validated `tree` or `process` into Graphviz or Mermaid source.
+- **`theme.py`** - one palette and type scale, read by Plotly, Graphviz, Mermaid, python-pptx colours and the builtin SVG.
+- **`deck.py`** - a hand-built `.pptx` in the `docx.py` style (stdlib only, because the runtime rule forbids a third-party writer and python-pptx is not installed): title/claim/figure/section slides, a claim required on every content slide, figures by id, speaker notes, a fade.
+- **`docx.py` / `spreadsheets.py`** - a rendered PNG becomes a real inline picture in Word and an anchored drawing in Excel; the values-table fallback keeps the paper honest when no rasterizer is present.
+- **Routes and page** - `presentation` is offered and routed; `POST/GET /api/cases/{id}/figures` creates, previews and confirms a figure; the Deliverables Charts card is live with a **Save to this case** button.
+- **Four errors fixed** - `set_enabled` allows a drop; the chat helper follows `current_question`; the session test tolerates methods registered by `finance_methods`.
+
+**Left open.** Native Excel charts (`<c:chart>`, editable) are not built; auto-figures do not fire in the chat paper path because the chat state carries no bundle; the builtin SVG's font families match the tokens but are not read from them; Mermaid and Graphviz binaries are not installed, so their source is tested but not drawn.
+
+## 2026-11-07 - [finance] Rates and FX folds, Student guide and shelf summary go
+
+**Ask.** Four things on the Finance subject page: make the Rates and FX block at the top collapsible, delete the Student guide, delete the shelf summary, and delete the "published method" instruction under Quantitative Finance. Then: the buttons stopped working.
+
+**Did.**
+
+- **The Rates and FX panel is a disclosure.** `ratesPanel()` now returns `<details class="marketpanel">` with a `<summary>` header (`<h3>` "Rates and FX" plus a read-then-type hint); starts closed (no `open` attribute). The intro sentence, both `.lookupcard`s, every id (`fxbase`, `fxquote`, `fxdate`, `rfmat`, `fxlookup`, `rflookup`, `ratesout`) and the `"type it into the tool that needs it"` instruction are byte-identical. CSS is child-scoped (`.marketpanel > summary`), so the macro and securities panels keep their plain boxes. `bindRatesPanel()` defers the `/api/currencies` fill to the first `toggle` to open.
+- **The Student guide is gone** from `renderSubject()` - the guidance sentence, the *Start here* path and *What this shelf does not do*.
+- **The Finance shelf summary is gone** from the page. A new `shelfSummary()` helper (with `SHELVES_WITHOUT_SUMMARY = ["finance"]`) returns an empty string for that shelf, and both the subject heading and the all-subjects card skip the line when it is empty. The baked `__SBW_SUBJECTS__` block carries `"summary": ""`.
+- **The "published method" instruction is gone** — *"These run a published method. Supply the figures and confirm; the server computes the result and its checks."* was presentational text in `renderSubject()` under the *Quantitative Finance* heading; it is removed outright. It was not catalogue data, so `src/bp/product/subjects.py` and the baked snapshots are unchanged.
+- **The syntax error is fixed.** Removing the Student guide block had left a dangling `) +` in `renderSubject()` with no matching `(`. The whole inline script failed to parse, so no handler was registered and every control on the page was dead. The remnant is gone.
+- **Tests.** `tests/test_market_panels.py` gains `test_rates_and_fx_is_a_disclosure_that_starts_closed`. `qa/manual/finance_page_probe.py` (new) drives headless Chromium over the DevTools Protocol to prove the script parses, no exception is raised, the Student guide and summary are absent, the panel starts closed, its header opens it, and **a click on "All subjects" really moves the view**.
+
+**Did not move.** No method, preset, input, check, computed number or frozen-core entry changed; macro and securities panels untouched. `src/bp/product/subjects.py` and the two baked snapshots are unchanged - that is the computation owner's lane (HANDOFF §1.9).
+
+**Verified.** `tests/test_web_inline_script.py` + `tests/test_market_panels.py`: 14 tests, OK. `qa/manual/finance_page_probe.py --url http://127.0.0.1:8021`: 10 checks, 0 failures. The two failures in `tests/test_web_static_snapshot.py` are pre-existing and unrelated - both compare `web/subjects.json` against `bp.product.subjects.catalogue()` and never read `web/index.html`.
+
+### Handover to the computation owner (DeepSeek) — the catalogue still holds the summary
+
+The page no longer prints the Finance shelf summary, but the **data layer still carries it**. `src/bp/product/subjects.py` and the two baked snapshots are the source of truth for the API and for the public static site, so the sentence must go there too. This is the computation owner's lane; the steps are:
+
+1. **`src/bp/product/subjects.py` (line ~3644)** — in the `finance` subject record, replace
+   `"summary": "Corporate finance, valuation and the investments, debt, risk and international tools a finance student needs.",`
+   with `"summary": "",`.
+   Keep the key. Do **not** remove it: the rail and the snapshot guard both expect the same object shape for every subject.
+2. **Rebuild the baked snapshots** from `business_pipeline_v0.12/business_pipeline`:
+   ```
+   $env:PYTHONPATH="src"
+   python scripts/build_web_subjects_snapshot.py
+   ```
+   This rewrites `web/subjects.json` and `web/subject-finance.json`. They are generated files - never hand-edit them.
+3. **`web/index.html`, the `__SBW_SUBJECTS__` block** - already carries `"summary": ""` for finance, so it will agree with the rebuilt `web/subjects.json`. If the rebuild changes the block, prefer the rebuilt file and keep the two in step.
+4. **The frontend suppression can then be simplified.** `SHELVES_WITHOUT_SUMMARY` in `web/index.html` exists so the page is correct before the catalogue catches up. Once the catalogue is blank, the helper becomes redundant; removing it is optional and safe either way - the empty summary renders no line.
+5. **Run the guard:** `python -m unittest tests.test_web_static_snapshot.py -v`. It must pass: the two failures present now are pre-existing drift between the committed snapshot and the catalogue, and rebuilding is what clears them.
+
+**Do not** touch `src/bp/methods/**`, any fixture, or `tests/fixtures/frozen_contract.json`. No method, input, check or computed number changes in this handover.
+
 ## 2026-11-06 - [statements] The tile's workbook opens in Excel
 
 **Ask.** The statements tile's `.xlsx` download came back as a file Excel would not open - "empty content" - while the API answered with a valid base64 payload of a valid zip of valid XML, and openpyxl read it without complaint. The export had to be fixed so that the student receives a workbook Excel opens, carrying the statements the render brief asks for.

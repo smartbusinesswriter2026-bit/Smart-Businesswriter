@@ -166,12 +166,12 @@ class DeliverableProfileTest(unittest.TestCase):
         self.assertEqual(catalogue["workpapers"]["formats"], ["xlsx", "spreadsheetml", "csv"])
         self.assertNotIn("docx", catalogue["workpapers"]["formats"])
 
-    def test_a_presentation_is_declared_but_not_offered(self):
+    def test_a_presentation_is_offered_as_a_real_deck(self):
         catalogue = {entry["id"]: entry for entry in self.d.catalogue()}
-        self.assertFalse(catalogue["presentation"]["available"])
-        self.assertIn("PowerPoint", catalogue["presentation"]["reason"])
-        with self.assertRaises(self.d.DeliverableError):
-            self.d.profile("presentation")
+        self.assertTrue(catalogue["presentation"]["available"])
+        self.assertEqual(catalogue["presentation"]["formats"], ["pptx"])
+        self.assertEqual(catalogue["presentation"]["default"], "pptx")
+        self.assertEqual(self.d.profile("presentation")["label"], "Case presentation")
 
     def test_an_impossible_pair_is_refused_and_names_what_works(self):
         with self.assertRaises(self.d.DeliverableError) as ctx:

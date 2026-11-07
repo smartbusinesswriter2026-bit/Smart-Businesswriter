@@ -1,0 +1,251 @@
+{
+  "shelf": "operations",
+  "standard": [
+    "Cover",
+    "Summary",
+    "Inputs",
+    "Working",
+    "Results",
+    "Checks",
+    "Notes",
+    "Record"
+  ],
+  "tiles": [
+    {
+      "key": "breakeven",
+      "method": "breakeven",
+      "sha256": "0e96ce0002363f08395e6fe0b6d0e845a37ce4d39355c5f34dc230b7c1b3b9e2",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "multibreakeven",
+      "method": "multi_product_breakeven",
+      "sha256": "f635d466a39c542e0cbb49e3193efb39473225154f5a2fc5e15fb27c57a1d052",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "unitecon",
+      "method": "unit_economics",
+      "sha256": "ed01e2e729ded130e33f4929b8cbd07b66b9f2681a4baa799662a1ca235d7e1e",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "forecast",
+      "method": "trend_forecast",
+      "sha256": "74c8daa74e98a30de25c9c9c03599445b0bbab38131e829d547231798988814c",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "inventory",
+      "method": "inventory_policy",
+      "sha256": "838401a929eb98c70e9d9137787aa8097b2461fd66443be2a984fff215939c86",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "queue",
+      "method": "queue_analysis",
+      "sha256": "d7a3b5125bb7095faf9942246891e1ee1007dbb1b44ef9e756083da3cd34231c",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "capacity",
+      "method": "capacity_analysis",
+      "sha256": "5c0b30712ad33b04abeb57929537505e73f78c707eea6001304e48907fdd9342",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "linebalance",
+      "method": "line_balancing",
+      "sha256": "c7f8be40413882469f4f0b157f955040177c54281612158dc4b23982ebfa15e7",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "oee",
+      "method": "oee_analysis",
+      "sha256": "192f1c58ae0215f1342c8abeb7a66b0e503644f32624b2c538d8026f49f82acc",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "spc",
+      "method": "process_control",
+      "sha256": "bb627de9157062d3d08c551ba8d5e38f9df8abd39bd80452ee3ac5fb973de8aa",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "chi_square",
+      "method": "chi_square",
+      "sha256": "aef06dd248fe00d1db789e2f46238e021d45d74c2c4e9e241e61821e038a5093",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "power",
+      "method": "power_analysis",
+      "sha256": "e25cdb4237531e5f36cc51db5de75efcdea9f0a68f86a09e589f6e0ce9d9ad24",
+      "sheets": [
+        "Case",
+        "Income statement",
+        "Changes in equity",
+        "Balance sheet",
+        "Working",
+        "Recorded values",
+        "Report"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "missing",
+      "method": "missing_data_bounds",
+      "sha256": "bd6b9bded8360b2592e88204ca262368c2c43bfd6e01f4553244c027d86102d8",
+      "sheets": [
+        "Case",
+        "Income statement",
+        "Changes in equity",
+        "Balance sheet",
+        "Working",
+        "Recorded values",
+        "Report"
+      ],
+      "stable": true,
+      "status": "delivered"
+    },
+    {
+      "key": "descriptive",
+      "method": "descriptive_stats",
+      "sha256": "c74dea6dea757a28d1ff5349c5e069a7eddb7cb3ea345e4aa1ae791ff2b68ff5",
+      "sheets": [
+        "Cover",
+        "Summary",
+        "Inputs",
+        "Working",
+        "Results",
+        "Checks",
+        "Notes",
+        "Record"
+      ],
+      "stable": true,
+      "status": "delivered"
+    }
+  ]
+}

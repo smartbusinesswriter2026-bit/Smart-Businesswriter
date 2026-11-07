@@ -15,6 +15,30 @@ import product_fixtures  # noqa: E402
 from bp.product import spreadsheets  # noqa: E402
 
 SS = "{urn:schemas-microsoft-com:office:spreadsheet}"
+R_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
+PKG_REL = "{http://schemas.openxmlformats.org/package/2006/relationships}"
+
+
+def sheet_parts(archive):
+    """The workbook's sheets, by name: `{name: the sheet's XML}`.
+
+    A sheet is found by its name, not by its position: the working paper's order is the working
+    paper's own (cover, summary, inputs, working, results, checks, notes, record), and the
+    schedule sheet rides at the end of it.  The test below is about what the schedule sheet
+    carries, so it asks for that sheet by name.
+    """
+    workbook = ET.fromstring(archive.read("xl/workbook.xml"))
+    rels = ET.fromstring(archive.read("xl/_rels/workbook.xml.rels"))
+    targets = {rel.get("Id"): rel.get("Target") for rel in rels.findall(PKG_REL + "Relationship")}
+    parts = {}
+    for sheet in workbook.findall("{http://schemas.openxmlformats.org/spreadsheetml/2006/main}sheets/"
+                                  "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}sheet"):
+        target = targets.get(sheet.get(R_NS + "id"))
+        if not target:
+            continue
+        name = target.split("/")[-1]
+        parts[sheet.get("name")] = archive.read("xl/worksheets/" + name).decode("utf-8")
+    return parts
 
 
 def bundle():
@@ -85,7 +109,7 @@ class SpreadsheetTest(unittest.TestCase):
             "critical_count": "1", "activity_count": "1"}
         data = spreadsheets.to_xlsx(base)
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
-            schedule = archive.read("xl/worksheets/sheet2.xml").decode("utf-8")
+            schedule = sheet_parts(archive)["Schedule"]
         self.assertIn('s="3"', schedule)          # the critical bar fill
         self.assertNotIn('s="2"', schedule)       # no non-critical bar in a one-activity case
         self.assertIn(">0</t>", schedule)         # the period header is present

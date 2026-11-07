@@ -133,6 +133,155 @@
    "unsupported_use": "Choosing cost drivers; idle or unused capacity cost; activity hierarchies; time-driven ABC; cost of poor quality.",
    "version": "1.0.0"
   },
+  "accruals_ratio": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "average_total_assets": {
+     "desc": "average total assets",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "operating_cash_flow": {
+     "desc": "operating cash flow",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "accruals_ratio",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "altman_z_score": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "ebit": {
+     "desc": "ebit",
+     "required": true,
+     "type": "string"
+    },
+    "market_value_equity": {
+     "desc": "market value equity",
+     "required": true,
+     "type": "string"
+    },
+    "retained_earnings": {
+     "desc": "retained earnings",
+     "required": true,
+     "type": "string"
+    },
+    "sales": {
+     "desc": "sales",
+     "required": true,
+     "type": "string"
+    },
+    "total_assets": {
+     "desc": "total assets",
+     "required": true,
+     "type": "string"
+    },
+    "total_liabilities": {
+     "desc": "total liabilities",
+     "required": true,
+     "type": "string"
+    },
+    "working_capital": {
+     "desc": "working capital",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "altman_z_score",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "amortization_payment": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "debt",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pv": {
+     "desc": "pv",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Loan amortization payment.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "amortization_payment",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "anova": {
    "assumptions": [
     "Observations are independent within and between groups.",
@@ -206,6 +355,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Repeated measures; two-way or factorial designs; post-hoc pairwise tests; causal claims; fewer than three groups.",
+   "version": "1.0.0"
+  },
+  "asset_turnover_advanced": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "average_total_assets": {
+     "desc": "average total assets",
+     "required": true,
+     "type": "string"
+    },
+    "revenue": {
+     "desc": "revenue",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "asset_turnover_advanced",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "attribution_split": {
@@ -321,6 +508,165 @@
    "unsupported_use": "Retrieving balance-of-payments data; choosing a sign convention; reserve valuation effects; debt-service or sustainability analysis.",
    "version": "1.0.0"
   },
+  "beneish_m_score": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "aqi": {
+     "desc": "aqi",
+     "required": true,
+     "type": "string"
+    },
+    "depi": {
+     "desc": "depi",
+     "required": true,
+     "type": "string"
+    },
+    "dsri": {
+     "desc": "dsri",
+     "required": true,
+     "type": "string"
+    },
+    "gmi": {
+     "desc": "gmi",
+     "required": true,
+     "type": "string"
+    },
+    "lvgi": {
+     "desc": "lvgi",
+     "required": true,
+     "type": "string"
+    },
+    "sgai": {
+     "desc": "sgai",
+     "required": true,
+     "type": "string"
+    },
+    "sgi": {
+     "desc": "sgi",
+     "required": true,
+     "type": "string"
+    },
+    "tata": {
+     "desc": "tata",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "beneish_m_score",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "beta_simple": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "portfolio",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "covariance": {
+     "desc": "covariance",
+     "required": true,
+     "type": "string"
+    },
+    "market_variance": {
+     "desc": "market variance",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Beta from covariance.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "beta_simple",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "black_scholes_call": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "derivatives",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    },
+    "spot": {
+     "desc": "spot",
+     "required": true,
+     "type": "string"
+    },
+    "strike": {
+     "desc": "strike",
+     "required": true,
+     "type": "string"
+    },
+    "time": {
+     "desc": "time",
+     "required": true,
+     "type": "string"
+    },
+    "volatility": {
+     "desc": "volatility",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Black-Scholes call option price.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "black_scholes_call",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "bond_analysis": {
    "assumptions": [
     "The bond is plain-vanilla: fixed coupon, fixed maturity, no embedded options.",
@@ -393,6 +739,54 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Accrued interest between coupon dates; day-count conventions; callable, convertible, floating or amortizing bonds; a spot/forward curve; credit spreads; a traded quote.",
+   "version": "1.0.0"
+  },
+  "bond_price": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "fixed income",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "coupon": {
+     "desc": "coupon",
+     "required": true,
+     "type": "string"
+    },
+    "face": {
+     "desc": "face",
+     "required": true,
+     "type": "string"
+    },
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "yield": {
+     "desc": "yield",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Bond price from coupons and face value.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "bond_price",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "breakeven": {
@@ -851,6 +1245,49 @@
    "unsupported_use": "Choosing the market index, the risk-free proxy or the return interval; multi-factor models; testing whether beta is stable; a market risk premium that is retrieved rather than declared.",
    "version": "1.0.0"
   },
+  "cash_conversion_cycle": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "dio": {
+     "desc": "dio",
+     "required": true,
+     "type": "string"
+    },
+    "dpo": {
+     "desc": "dpo",
+     "required": true,
+     "type": "string"
+    },
+    "dso": {
+     "desc": "dso",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "cash_conversion_cycle",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "cash_runway": {
    "assumptions": [
     "The net flow is the same every month except for the declared growth.",
@@ -910,6 +1347,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Forecasting revenue or costs; a cash-flow statement with receipts and payments; seasonality; financing inflows; tax and working-capital timing.",
+   "version": "1.0.0"
+  },
+  "cash_tax_rate": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "cash_taxes_paid": {
+     "desc": "cash taxes paid",
+     "required": true,
+     "type": "string"
+    },
+    "pretax_income": {
+     "desc": "pretax income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "cash_tax_rate",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "channel_economics": {
@@ -1463,6 +1938,82 @@
    "unsupported_use": "Resource levelling or calendars; cost crashing; probabilistic simulation; multiple projects sharing resources; activity durations that are not declared.",
    "version": "1.0.0"
   },
+  "currency_appreciation": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "international finance",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "begin": {
+     "desc": "begin",
+     "required": true,
+     "type": "string"
+    },
+    "end": {
+     "desc": "end",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Currency appreciation/depreciation.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "currency_appreciation",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "currency_appreciation_calc": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "international finance",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "begin": {
+     "desc": "begin",
+     "required": true,
+     "type": "string"
+    },
+    "end": {
+     "desc": "end",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Currency appreciation.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "currency_appreciation_calc",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "currency_convert": {
    "assumptions": [
     "The rate is the owner's declaration and describes the instant it is intended for.",
@@ -1539,6 +2090,120 @@
    "unsupported_use": "Retrieving or verifying exchange rates; interpolation, forward rates or triangulation; translating a set of statements; multi-currency consolidation; tax or fee conversion.",
    "version": "1.0.0"
   },
+  "current_ratio": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "liquidity",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "current_assets": {
+     "desc": "current assets",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Current ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "current_ratio",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "current_ratio_calc": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "liquidity",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "current_assets": {
+     "desc": "current assets",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Current ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "current_ratio_calc",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "current_yield": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "fixed income",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "annual_coupon": {
+     "desc": "annual coupon",
+     "required": true,
+     "type": "string"
+    },
+    "price": {
+     "desc": "price",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Annual coupon divided by market price.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "current_yield",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "customer_profitability": {
    "assumptions": [
     "Revenue and costs cover the same period and the same segment definition.",
@@ -1588,6 +2253,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Choosing what to allocate; activity-based costing from activities and drivers; fixed-cost absorption; customer-level profitability; significance tests or forecasts; a decision about which segment to drop.",
+   "version": "1.0.0"
+  },
+  "days_payable_outstanding": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "accounts_payable": {
+     "desc": "accounts payable",
+     "required": true,
+     "type": "string"
+    },
+    "cogs": {
+     "desc": "cogs",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "days_payable_outstanding",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "dcf_valuation": {
@@ -1651,6 +2354,64 @@
    "status": "implemented_tested",
    "tier": "T2",
    "unsupported_use": "Forecasting the cash flows; choosing the discount rate or growth (declare them, or use wacc and your own inputs); tax computation; real-option or scenario valuation; equity value claims beyond the separate equity_bridge method.",
+   "version": "1.0.0"
+  },
+  "dcf_with_sensitivity": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "portfolio",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "discount_rate": {
+     "desc": "discount rate",
+     "required": true,
+     "type": "string"
+    },
+    "free_cash_flow": {
+     "desc": "free cash flow",
+     "required": true,
+     "type": "string"
+    },
+    "growth_rate": {
+     "desc": "growth rate",
+     "required": true,
+     "type": "string"
+    },
+    "projection_years": {
+     "desc": "projection years",
+     "required": true,
+     "type": "string"
+    },
+    "shares_outstanding": {
+     "desc": "shares outstanding",
+     "required": true,
+     "type": "string"
+    },
+    "terminal_growth_rate": {
+     "desc": "terminal growth rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "portfolio selection computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "dcf_with_sensitivity",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "decision_tree": {
@@ -1879,6 +2640,49 @@
    "unsupported_use": "Tax depreciation rules, mid-year or monthly conventions, revaluations, impairment, disposals or component accounting.",
    "version": "1.0.0"
   },
+  "depreciation_sl": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "fixed assets",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "cost": {
+     "desc": "cost",
+     "required": true,
+     "type": "string"
+    },
+    "life": {
+     "desc": "life",
+     "required": true,
+     "type": "string"
+    },
+    "salvage": {
+     "desc": "salvage",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Straight-line depreciation.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "depreciation_sl",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "descriptive_stats": {
    "assumptions": [
     "Observations are numeric and the listed codes fully identify missing values."
@@ -2041,6 +2845,130 @@
    "unsupported_use": "Outlays the cash flows never recover; a positive first cash flow; comparing liquidity across projects of different scale; choosing the discount rate; timing inside a period.",
    "version": "1.0.0"
   },
+  "dividend_payout": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "dividend policy",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "dividends": {
+     "desc": "dividends",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Dividend payout ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "dividend_payout",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "dividend_payout_ratio": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "dividend policy",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "dividends": {
+     "desc": "dividends",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Dividend payout ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "dividend_payout_ratio",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "dupont": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "profitability",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "equity": {
+     "desc": "equity",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "sales": {
+     "desc": "sales",
+     "required": true,
+     "type": "string"
+    },
+    "total_assets": {
+     "desc": "total assets",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "DuPont analysis (ROE decomposition).",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "dupont",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "dupont_analysis": {
    "assumptions": [
     "The figures are one period on one accounting basis and in one currency.",
@@ -2150,6 +3078,54 @@
    "unsupported_use": "Average balances; more than one comparison period; index or trend series; industry benchmarks or verdicts; restating or adjusting the reported figures.",
    "version": "1.0.0"
   },
+  "dupont_simple": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "profitability",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "equity": {
+     "desc": "equity",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "sales": {
+     "desc": "sales",
+     "required": true,
+     "type": "string"
+    },
+    "total_assets": {
+     "desc": "total assets",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "DuPont analysis (simplified).",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "dupont_simple",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "earned_value": {
    "assumptions": [
     "The three figures are cumulative and measured at the same status date.",
@@ -2214,6 +3190,82 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Deriving the status figures from a schedule; forecasting the final cost beyond the declared EAC convention; earned schedule or time-based EVM; quality or scope performance.",
+   "version": "1.0.0"
+  },
+  "ebitdar": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "ebitda": {
+     "desc": "ebitda",
+     "required": true,
+     "type": "string"
+    },
+    "rent_expense": {
+     "desc": "rent expense",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "ebitdar",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "effective_tax_rate_advanced": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "income_tax_expense": {
+     "desc": "income tax expense",
+     "required": true,
+     "type": "string"
+    },
+    "pretax_income": {
+     "desc": "pretax income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "effective_tax_rate_advanced",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "elasticity": {
@@ -2359,6 +3411,168 @@
    "unsupported_use": "Reading an email platform; deduplicating lists; deliverability, consent or spam-complaint analysis; testing subject lines; revenue attribution beyond the declared amount.",
    "version": "1.0.0"
   },
+  "eoq": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "working capital",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "demand": {
+     "desc": "demand",
+     "required": true,
+     "type": "string"
+    },
+    "holding_cost": {
+     "desc": "holding cost",
+     "required": true,
+     "type": "string"
+    },
+    "ordering_cost": {
+     "desc": "ordering cost",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Economic order quantity.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "eoq",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "eoq_calc": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "working capital",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "demand": {
+     "desc": "demand",
+     "required": true,
+     "type": "string"
+    },
+    "holding_cost": {
+     "desc": "holding cost",
+     "required": true,
+     "type": "string"
+    },
+    "ordering_cost": {
+     "desc": "ordering cost",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Economic order quantity.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "eoq_calc",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "eps": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "equity",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "shares": {
+     "desc": "shares",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Earnings per share.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "eps",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "eps_simple": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "equity",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "shares": {
+     "desc": "shares",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Earnings per share (simplified).",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "eps_simple",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "equity_bridge": {
    "assumptions": [
     "The enterprise value and every claim are the owner's declared inputs at one valuation date.",
@@ -2428,6 +3642,44 @@
    "status": "implemented_tested",
    "tier": "T2",
    "unsupported_use": "Supplying or estimating the enterprise value; discovering claims the owner did not declare (pensions, leases, options, contingent liabilities); choosing a control premium, liquidity discount or tax rate; stating a market price.",
+   "version": "1.0.0"
+  },
+  "ev_ebitda": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "ebitda": {
+     "desc": "ebitda",
+     "required": true,
+     "type": "string"
+    },
+    "enterprise_value": {
+     "desc": "enterprise value",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "ev_ebitda",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "exchange_rate_ppp": {
@@ -2688,6 +3940,216 @@
    "unsupported_use": "Estimating the mpc or tax rate; crowding out, confidence, supply-side effects, lags, open-economy leakages or a full macro model.",
    "version": "1.0.0"
   },
+  "forward_price": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "derivatives",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    },
+    "spot": {
+     "desc": "spot",
+     "required": true,
+     "type": "string"
+    },
+    "time": {
+     "desc": "time",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Forward price of an asset.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "forward_price",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "forward_price_calc": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "derivatives",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    },
+    "spot": {
+     "desc": "spot",
+     "required": true,
+     "type": "string"
+    },
+    "time": {
+     "desc": "time",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Forward price.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "forward_price_calc",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "free_cash_flow_conversion": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "free_cash_flow": {
+     "desc": "free cash flow",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "free_cash_flow_conversion",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "future_value": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "time value",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pv": {
+     "desc": "pv",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Future value of a lump sum.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "future_value",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "fv_annuity": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "time value",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pmt": {
+     "desc": "pmt",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Future value of an ordinary annuity.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "fv_annuity",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "fx_parity": {
    "assumptions": [
     "The declared rates and inflation are annual and compound over the horizon.",
@@ -2832,6 +4294,92 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Estimating incomes; equivalence scales; taxes and transfers; in-kind income; decomposing inequality by source or group; a policy verdict.",
+   "version": "1.0.0"
+  },
+  "gordon": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "equity valuation",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "dividend": {
+     "desc": "dividend",
+     "required": true,
+     "type": "string"
+    },
+    "growth": {
+     "desc": "growth",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Gordon growth model.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "gordon",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "gordon_growth": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "equity valuation",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "dividend": {
+     "desc": "dividend",
+     "required": true,
+     "type": "string"
+    },
+    "growth": {
+     "desc": "growth",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Gordon growth model stock value.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "gordon_growth",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "growth_rate": {
@@ -3087,6 +4635,44 @@
    "unsupported_use": "Over-identified models; weak instruments; controls; robust or clustered inference; testing the exclusion restriction; causal claims without a defended design.",
    "version": "1.0.0"
   },
+  "interest_burden": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "ebit": {
+     "desc": "ebit",
+     "required": true,
+     "type": "string"
+    },
+    "ebt": {
+     "desc": "ebt",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "interest_burden",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "interest_rate_parity": {
    "assumptions": [
     "The spot rate is domestic per foreign.",
@@ -3281,6 +4867,49 @@
    "unsupported_use": "Ranking or choosing between projects; non-conventional cash flows (more than one sign change) where several IRRs can exist; comparing IRRs of projects of unequal scale or life; choosing or assuming a reinvestment rate.",
    "version": "1.0.0"
   },
+  "justified_pe": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "equity valuation",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "growth": {
+     "desc": "growth",
+     "required": true,
+     "type": "string"
+    },
+    "payout_ratio": {
+     "desc": "payout ratio",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Fundamental P/E multiple.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "justified_pe",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "kruskal_wallis": {
    "assumptions": [
     "Observations are independent within and between groups.",
@@ -3416,6 +5045,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Estimating wages or productivity; hours, composition, taxes, benefits or bargaining; an unemployment rate or a labour-force survey; a full labour-market model.",
+   "version": "1.0.0"
+  },
+  "lease_adjusted_debt": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "annual_lease_payment": {
+     "desc": "annual lease payment",
+     "required": true,
+     "type": "string"
+    },
+    "total_debt": {
+     "desc": "total debt",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "lease_adjusted_debt",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "leverage_analysis": {
@@ -3657,6 +5324,49 @@
    "unsupported_use": "Variable or teaser rates; interest-only or balloon structures; fees, insurance or prepayment penalties; a full period-by-period schedule export.",
    "version": "1.0.0"
   },
+  "loan_payment": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "debt",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pv": {
+     "desc": "pv",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Level payment that retires a loan.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "loan_payment",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "logistic_regression": {
    "assumptions": [
     "The outcome is binary 0/1 and observations are independent.",
@@ -3712,6 +5422,82 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Causal claims; categorical predictors, interactions or non-linear terms; regularisation; separation or collinear designs (refused); predicted probabilities outside the observed range without support.",
+   "version": "1.0.0"
+  },
+  "macaulay_dur": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "fixed income",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "yield": {
+     "desc": "yield",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Macaulay duration.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "macaulay_dur",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "macaulay_duration": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "fixed income",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "yield": {
+     "desc": "yield",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Macaulay duration of a bond.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "macaulay_duration",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "management_accounts": {
@@ -4486,6 +6272,49 @@
    "unsupported_use": "Choosing the project priority; inter-project dependencies; calendars, preemption, multiple resources per activity or optimal multi-project scheduling.",
    "version": "1.0.0"
   },
+  "multi_year_cagr": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "portfolio",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "end_value": {
+     "desc": "end value",
+     "required": true,
+     "type": "string"
+    },
+    "start_value": {
+     "desc": "start value",
+     "required": true,
+     "type": "string"
+    },
+    "years": {
+     "desc": "years",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "portfolio selection computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "multi_year_cagr",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "multiple_comparison": {
    "assumptions": [
     "Each test is individually valid (its own assumptions hold).",
@@ -4794,6 +6623,44 @@
    "unsupported_use": "Choosing the discount rate; ranking mutually exclusive projects of unequal scale or life; unequal period lengths.",
    "version": "1.0.0"
   },
+  "npv_simple": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "capital budgeting",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "cashflows": {
+     "desc": "cashflows",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Net present value of cash flows.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "npv_simple",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "oee_analysis": {
    "assumptions": [
     "The planned time, downtime, ideal cycle and counts share one period and one time unit.",
@@ -5089,6 +6956,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Comparing two samples; one-sided tests; trimmed means or medians; causal claims; clustered or weighted data.",
+   "version": "1.0.0"
+  },
+  "operating_margin_advanced": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "ebit": {
+     "desc": "ebit",
+     "required": true,
+     "type": "string"
+    },
+    "revenue": {
+     "desc": "revenue",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "operating_margin_advanced",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "optimal_pollution": {
@@ -5402,6 +7307,158 @@
    "unsupported_use": "Unbalanced panels; time-invariant regressors; dynamic panels with lagged outcomes; clustered or robust standard errors; causal claims.",
    "version": "1.0.0"
   },
+  "payback_calc": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "capital budgeting",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "cashflows": {
+     "desc": "cashflows",
+     "required": true,
+     "type": "string"
+    },
+    "investment": {
+     "desc": "investment",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Payback period.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "payback_calc",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "payback_period": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "capital budgeting",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "cashflows": {
+     "desc": "cashflows",
+     "required": true,
+     "type": "string"
+    },
+    "investment": {
+     "desc": "investment",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Payback period.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "payback_period",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "pe_ratio": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "equity valuation",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "eps": {
+     "desc": "eps",
+     "required": true,
+     "type": "string"
+    },
+    "price": {
+     "desc": "price",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Price-to-earnings ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "pe_ratio",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "pe_ratio_calc": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "equity valuation",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "eps": {
+     "desc": "eps",
+     "required": true,
+     "type": "string"
+    },
+    "price": {
+     "desc": "price",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Price-to-earnings ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "pe_ratio_calc",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "pearson": {
    "assumptions": [
     "Pairs are independent observations.",
@@ -5483,6 +7540,195 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Causal claims; non-linear relationships; clustered, weighted or repeated-measures data; more than two variables.",
+   "version": "1.0.0"
+  },
+  "peer_relative_multiples": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "portfolio",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "company_ev_ebitda": {
+     "desc": "company ev ebitda",
+     "required": true,
+     "type": "string"
+    },
+    "company_pb": {
+     "desc": "company pb",
+     "required": true,
+     "type": "string"
+    },
+    "company_pe": {
+     "desc": "company pe",
+     "required": true,
+     "type": "string"
+    },
+    "peer_ev_ebitda_median": {
+     "desc": "peer ev ebitda median",
+     "required": true,
+     "type": "string"
+    },
+    "peer_pb_median": {
+     "desc": "peer pb median",
+     "required": true,
+     "type": "string"
+    },
+    "peer_pe_median": {
+     "desc": "peer pe median",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "portfolio selection computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "peer_relative_multiples",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "peg_ratio_advanced": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "eps_growth_rate": {
+     "desc": "eps growth rate",
+     "required": true,
+     "type": "string"
+    },
+    "pe_ratio": {
+     "desc": "pe ratio",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "peg_ratio_advanced",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "piotroski_f_score": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "portfolio",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "asset_turnover_current": {
+     "desc": "asset turnover current",
+     "required": true,
+     "type": "string"
+    },
+    "asset_turnover_prior": {
+     "desc": "asset turnover prior",
+     "required": true,
+     "type": "string"
+    },
+    "current_ratio_current": {
+     "desc": "current ratio current",
+     "required": true,
+     "type": "string"
+    },
+    "current_ratio_prior": {
+     "desc": "current ratio prior",
+     "required": true,
+     "type": "string"
+    },
+    "gross_margin_current": {
+     "desc": "gross margin current",
+     "required": true,
+     "type": "string"
+    },
+    "gross_margin_prior": {
+     "desc": "gross margin prior",
+     "required": true,
+     "type": "string"
+    },
+    "leverage_current": {
+     "desc": "leverage current",
+     "required": true,
+     "type": "string"
+    },
+    "leverage_prior": {
+     "desc": "leverage prior",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "operating_cash_flow": {
+     "desc": "operating cash flow",
+     "required": true,
+     "type": "string"
+    },
+    "roa_current": {
+     "desc": "roa current",
+     "required": true,
+     "type": "string"
+    },
+    "roa_prior": {
+     "desc": "roa prior",
+     "required": true,
+     "type": "string"
+    },
+    "shares_diluted": {
+     "desc": "shares diluted",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "portfolio selection computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "piotroski_f_score",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "portfolio_analysis": {
@@ -5864,6 +8110,49 @@
    "unsupported_use": "Exact power under the noncentral t distribution; proportions or counts; cluster, weighted or repeated-measures designs; multiplicity; treating a high power as a guarantee of significance.",
    "version": "1.0.0"
   },
+  "present_value": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "time value",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "fv": {
+     "desc": "fv",
+     "required": true,
+     "type": "string"
+    },
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Present value of a future amount.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "present_value",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "price_control": {
    "assumptions": [
     "Linear demand and supply, all else equal.",
@@ -6001,6 +8290,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Estimating demand; arbitrage or market separation; first- or second-degree discrimination; menu costs, capacity or welfare comparison with a single price.",
+   "version": "1.0.0"
+  },
+  "price_to_book_advanced": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "book_value_per_share": {
+     "desc": "book value per share",
+     "required": true,
+     "type": "string"
+    },
+    "share_price": {
+     "desc": "share price",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "price_to_book_advanced",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "pricing_decision": {
@@ -6748,6 +9075,49 @@
    "unsupported_use": "Choosing the conversion weights for you; sampling, non-response or representativeness; turning stated intent into a forecast; statistical inference.",
    "version": "1.0.0"
   },
+  "pv_annuity": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "time value",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pmt": {
+     "desc": "pmt",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Present value of an ordinary annuity.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "pv_annuity",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "queue_analysis": {
    "assumptions": [
     "Arrivals are random and independent at a constant average rate.",
@@ -6804,6 +9174,92 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Priorities; balking, reneging or batch arrivals; non-exponential service or arrival patterns; heterogeneous servers; scheduling or simulation.",
+   "version": "1.0.0"
+  },
+  "quick_ratio": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "liquidity",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "cash": {
+     "desc": "cash",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    },
+    "receivables": {
+     "desc": "receivables",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Quick ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "quick_ratio",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "quick_ratio_simple": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "liquidity",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "cash": {
+     "desc": "cash",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    },
+    "receivables": {
+     "desc": "receivables",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Quick ratio (simplified).",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "quick_ratio_simple",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "ratio_analysis": {
@@ -7108,6 +9564,54 @@
    "unsupported_use": "Validity, unidimensionality or factor structure (see factor analysis, not implemented); ordinal-item or missing-data models; comparing alphas across different samples without caution.",
    "version": "1.0.0"
   },
+  "remaining_balance": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "debt",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "payments_made": {
+     "desc": "payments made",
+     "required": true,
+     "type": "string"
+    },
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pmt": {
+     "desc": "pmt",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Outstanding principal after k payments.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "remaining_balance",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "resource_leveling": {
    "assumptions": [
     "Each activity consumes one declared resource at a constant demand for its whole duration.",
@@ -7158,6 +9662,82 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Choosing the priority rule that a real project should use; calendars; multiple resources per activity; preemption; cost or resource smoothing beyond a capacity check.",
+   "version": "1.0.0"
+  },
+  "retention_ratio": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "dividend policy",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "dividends": {
+     "desc": "dividends",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Retention ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "retention_ratio",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "retention_ratio_calc": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "dividend policy",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "dividends": {
+     "desc": "dividends",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Retention ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "retention_ratio_calc",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "return_on_investment": {
@@ -7329,6 +9909,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Forecasting volatility; a full Monte Carlo simulation; credit, liquidity or operational risk; backtesting; regulatory capital.",
+   "version": "1.0.0"
+  },
+  "roic_advanced": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "invested_capital": {
+     "desc": "invested capital",
+     "required": true,
+     "type": "string"
+    },
+    "nopat": {
+     "desc": "nopat",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "roic_advanced",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "sales_from_market": {
@@ -7749,6 +10367,92 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Cost-change tables; probability-weighted scenarios; demand response to price; Monte Carlo; ranking or recommending a scenario.",
+   "version": "1.0.0"
+  },
+  "sharpe_ratio": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "portfolio",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "return": {
+     "desc": "return",
+     "required": true,
+     "type": "string"
+    },
+    "risk_free": {
+     "desc": "risk free",
+     "required": true,
+     "type": "string"
+    },
+    "sigma": {
+     "desc": "sigma",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Sharpe ratio.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "sharpe_ratio",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "simple_interest": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "interest",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "principal": {
+     "desc": "principal",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    },
+    "time": {
+     "desc": "time",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Simple interest earned on principal.",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "simple_interest",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "social_engagement": {
@@ -8262,6 +10966,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Large-country terms-of-trade effects; retaliation; quotas; transport costs; general-equilibrium or dynamic effects.",
+   "version": "1.0.0"
+  },
+  "tax_burden": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "ebt": {
+     "desc": "ebt",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "tax_burden",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "tax_declared": {
@@ -8898,6 +11640,54 @@
    "unsupported_use": "Estimating churn, retention curves or customer lifetime modelling; discounting LTV to present value; tax, financing or cross-sell; segment-level CAC.",
    "version": "1.0.0"
   },
+  "var_simple": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "risk",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "mean": {
+     "desc": "mean",
+     "required": true,
+     "type": "string"
+    },
+    "sigma": {
+     "desc": "sigma",
+     "required": true,
+     "type": "string"
+    },
+    "value": {
+     "desc": "value",
+     "required": true,
+     "type": "string"
+    },
+    "z": {
+     "desc": "z",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "Value at Risk (parametric).",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "var_simple",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
   "wacc": {
    "assumptions": [
     "The market values and costs are the owner's declared inputs.",
@@ -8957,6 +11747,59 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Estimating the cost of equity (CAPM is not implemented); computing tax; using one WACC for cash flows of materially different risk; leverage-dependent WACC recalculations.",
+   "version": "1.0.0"
+  },
+  "wacc_simple": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "cost_of_debt": {
+     "desc": "cost of debt",
+     "required": true,
+     "type": "string"
+    },
+    "cost_of_equity": {
+     "desc": "cost of equity",
+     "required": true,
+     "type": "string"
+    },
+    "debt_value": {
+     "desc": "debt value",
+     "required": true,
+     "type": "string"
+    },
+    "equity_value": {
+     "desc": "equity value",
+     "required": true,
+     "type": "string"
+    },
+    "tax_rate": {
+     "desc": "tax rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "wacc_simple",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   },
   "web_analytics": {
@@ -9270,6 +12113,44 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Forecasting working capital; seasonal or step demand; quantity discounts; bad-debt and credit-scoring models; a full cash budget.",
+   "version": "1.0.0"
+  },
+  "working_capital_ratio": {
+   "assumptions": [
+    "The declared inputs are the values used; nothing is defaulted or inferred."
+   ],
+   "category": "advanced",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "None: every input is declared by the student.",
+     "question": "Inputs"
+    }
+   ],
+   "inputs": {
+    "current_assets": {
+     "desc": "current assets",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "intended_use": "financial statement computation",
+   "limitations": [
+    "It returns the single figure it declares; it does not test, forecast or explain that figure."
+   ],
+   "method_id": "working_capital_ratio",
+   "planned_checks": [
+    "execution_ok"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
    "version": "1.0.0"
   }
  },

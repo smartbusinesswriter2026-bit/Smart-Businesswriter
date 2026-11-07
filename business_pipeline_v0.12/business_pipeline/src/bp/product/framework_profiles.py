@@ -11382,6 +11382,245 @@ NINE_BOX, KOTTER, COMPETING_VALUES, ORG_DESIGN, ADKAR, LEWIN, THEORY_OF_CHANGE, 
 BMC, LEAN_CANVAS, VALUE_PROPOSITION_CANVAS, PROJECT_CHARTER, BALANCED_SCORECARD, STRATEGY_MAP, KPI_TREE, OKRS, WBS, RISK_REGISTER, STAKEHOLDER_PLAN, LESSONS_LEARNED,
 STRATEGIC_POSITIONING, CHANGE_ORGANIZATION, MARKETING_PLAN, KANO, PAID_MEDIA_PLAN, MEASUREMENT_PLAN, STP, AIDA, CUSTOMER_JOURNEY, FUNNEL, SERVQUAL, RFM, TAM, UTAUT, BRAND_EQUITY, DIGITAL_MIX, SEO_CONTENT, EMAIL_CRM, SOCIAL_MEDIA, ATTRIBUTION, CRO, MARKETING_AUTOMATION, STP_EVIDENCE,)
 }
+# ---------------------------------------------------------------------------
+# Leadership, culture and ethics completion profiles.
+#
+# These are argument frameworks, not retrieval frameworks.  Most blocks are
+# `quote` (the student's own sentences from the brief) or `gap` (the student
+# states it), so the worksheet completes from the paper and never writes the
+# argument.  The few `auto` blocks search for the named theory and fall back to
+# the student's words; a part no source settles is a named gap.
+# ---------------------------------------------------------------------------
+def _qblock(key, label, cues, fill="quote", queries=None, category=None, quote=None):
+    block = {"key": key, "label": label,
+             "prompt": "State your analysis for this part.",
+             "cues": cues, "fill": fill,
+             "probe": "state the " + label.lower() + " you are relying on"}
+    if queries:
+        block["queries"] = list(queries)
+    if category:
+        block["category"] = category
+    if quote:
+        # The words that mark a sentence of the case as belonging to this part.
+        # Separate from the retrieval cues, so a narrative case is read on its
+        # own vocabulary (what was seen, said, delayed) without weakening search.
+        block["quote_cues"] = quote
+    return block
+
+
+def _qprofile(template, key, label, unit_label, unit_help, blocks, lead):
+    notes = {}
+    for block in blocks:
+        notes[block["key"]] = {
+            "analysis": (block["label"] + " is stated from the case and the evidence the student supplied; "
+                         "the worksheet adds no claim of its own."),
+            "qualify": ("The evidence does not settle this part, so it is stated rather than measured or proven."),
+            "short": (block["label"] + " is stated from the supplied evidence."),
+            "probe": block.get("probe"),
+        }
+    return {
+        "template": template, "key": key, "label": label, "title_prefix": label,
+        "unit": {"field": "process", "label": unit_label, "help": unit_help,
+                 "example": "", "refuse": unit_help},
+        "ratings": False, "assumption": "probe", "sites": "academic",
+        "providers": ["brave", "deepseek", "firecrawl"],
+        "gate": {"title_cue": True, "title_context": True, "require_geography": False},
+        "blocks": blocks,
+        "outline": {"framework": label, "context": "Context and unit", "discussion": "Discussion",
+                    "implications": "Implications", "limitations": "Limitations",
+                    "conclusion": "Conclusion", "lead": lead},
+        "voice": {
+            "thesis_question": "whether the evidence supports the reading the paper argues",
+            "unit_noun": unit_label.lower(), "block_plural": "sections",
+            "lens": "the terms the framework supplies",
+            "closing": "separates the parts the evidence supports from the parts it does not",
+            "intro_frame": "The unit is the one named in the brief.",
+            "context_frame": "Context is limited to the unit named and the evidence supplied.",
+            "interaction": "Read together, the sections show which parts the evidence supports.",
+            "implication_frame": "The decision itself remains the student's.",
+            "reference_heading": "References",
+        },
+        "notes": notes,
+    }
+
+
+LDR_01_PROFILE = _qprofile(
+    "template_leadership_theory_comparison", "leadership_theory_comparison",
+    "Leadership theory profile and comparison", "Leader or organisation",
+    "Name the leader or organisation the paper is about.",
+    [
+        _qblock("question", "The leadership question", "decision question leadership",
+                quote="decide decision whether should"),
+        _qblock("starting_theory", "Starting theory", "transformational transactional charismatic servant authentic leadership theory",
+                "auto", ["transformational leadership theory"],
+                quote="transformational transactional charismatic servant authentic leadership theory"),
+        _qblock("evidence", "Evidence in this case", "case evidence observed leader follower",
+                quote="observed notice saw reported report said told find found behind late delay slipping risk issue problem deadline project team staff junior senior members task work own"),
+        _qblock("comparison", "Comparison", "compare theory difference contrast",
+                quote="compare compared whereas unlike different similar contrast approach style"),
+        _qblock("best_fit", "Best fit", "best fit criterion argument",
+                quote="should best recommend choose because fit suitable rather"),
+        _qblock("limits", "Limits", "limitation cannot settle",
+                quote="limit limitation cannot unknown unclear only small assumption"),
+    ],
+    ("A leadership paper names the theory it begins from, places the case evidence against it, and compares it "
+     "with other theories on a stated criterion. The comparison and the judgment are the student's."))
+
+LDR_02_PROFILE = _qprofile(
+    "template_situational_leadership", "situational_leadership",
+    "Situational and contingency leadership", "Leader or organisation",
+    "Name the leader or organisation the paper is about.",
+    [
+        _qblock("situation", "The situation", "situation task structure readiness position power"),
+        _qblock("model", "Contingency model", "fiedler contingency hersey blanchard situational path-goal",
+                "auto", ["situational leadership contingency model"]),
+        _qblock("implied_style", "Style implied", "style directive supportive participative delegating"),
+        _qblock("observed_style", "Style observed", "observed behaviour style"),
+        _qblock("gap", "The gap", "gap mismatch consequence"),
+        _qblock("limits", "Limits", "limitation cannot predict"),
+    ],
+    ("A situational paper reads the situation against a named contingency model, names the style the model "
+     "implies, and compares it with the style observed. The model does not predict behaviour."))
+
+LDR_03_PROFILE = _qprofile(
+    "template_leader_effectiveness", "leader_effectiveness",
+    "Leader effectiveness appraisal", "Leader or organisation",
+    "Name the leader and the period the appraisal covers.",
+    [
+        _qblock("subject", "Whose effectiveness", "leader period standard"),
+        _qblock("criteria", "Criteria", "criteria standard judge"),
+        _qblock("evidence", "Evidence", "evidence outcome result"),
+        _qblock("counter", "Counter-evidence", "counter-evidence alternative explanation"),
+        _qblock("verdict", "Verdict", "verdict judgment confidence"),
+        _qblock("limits", "Limits", "limitation cannot claim"),
+    ],
+    ("An effectiveness appraisal states the criteria, the evidence for and against, and a verdict with its "
+     "confidence. The judgment is the student's."))
+
+LDR_04_PROFILE = _qprofile(
+    "template_leadership_development", "leadership_development",
+    "Leadership development plan", "Leader or organisation",
+    "Name the leader or team the plan is for.",
+    [
+        _qblock("current", "Current capability", "current capability model"),
+        _qblock("gap", "The gap", "gap evidence"),
+        _qblock("actions", "Development actions", "action development plan"),
+        _qblock("observation", "How it will be observed", "observe measure result"),
+        _qblock("limits", "Limits", "limitation cannot claim"),
+    ],
+    ("A development plan names the gap, the actions and the evidence that would show change. It does not "
+     "predict who will succeed."))
+
+CUL_01_PROFILE = _qprofile(
+    "template_culture_framework_comparison", "culture_framework_comparison",
+    "Cultural framework comparison", "Country or organisation",
+    "Name the country or organisation the paper is about.",
+    [
+        _qblock("context", "Context", "context country organisation"),
+        _qblock("framework_a", "Framework A", "hofstede globe culture dimension",
+                "auto", ["hofstede cultural dimensions"]),
+        _qblock("framework_b", "Framework B", "trompenaars hall meyer schwartz culture dimension",
+                "auto", ["trompenaars cultural dimensions"]),
+        _qblock("agreement", "Agreement and conflict", "agree conflict difference"),
+        _qblock("implication", "Implication", "implication leadership organisation"),
+        _qblock("limits", "Limits", "limitation ecological fallacy within-country"),
+    ],
+    ("A cultural comparison describes a context through two or more frameworks, where they agree and "
+     "conflict, and the limits. A dimension is not a fact about a person."))
+
+CUL_02_PROFILE = _qprofile(
+    "template_cross_cultural_leadership", "cross_cultural_leadership",
+    "Cross-cultural leadership and organisation", "Country or organisation",
+    "Name the country or organisation the paper is about.",
+    [
+        _qblock("situation", "Situation", "situation leadership organisation"),
+        _qblock("framework", "Framework applied", "cross-cultural leadership culture dimension",
+                "auto", ["cross-cultural leadership"]),
+        _qblock("expectations", "Expectations", "predict expectation"),
+        _qblock("observed", "Observed behaviour", "observed evidence behaviour"),
+        _qblock("fit", "Where it predicts and fails", "predict fail compare"),
+        _qblock("limits", "Limits", "limitation cannot settle"),
+    ],
+    ("A cross-cultural paper applies one framework to a leadership situation and compares its predictions "
+     "with the evidence. A prediction is not an outcome."))
+
+CUL_03_PROFILE = _qprofile(
+    "template_organisational_culture", "organisational_culture",
+    "Organisational culture diagnosis", "Organisation",
+    "Name the organisation the diagnosis is about.",
+    [
+        _qblock("artefacts", "Artefacts", "artefact symbol ritual layout language"),
+        _qblock("espoused", "Espoused values", "espoused value stated"),
+        _qblock("assumptions", "Basic assumptions", "assumption taken for granted"),
+        _qblock("evidence", "Evidence", "evidence source observation"),
+        _qblock("diagnosis", "Diagnosis", "diagnosis reading"),
+        _qblock("limits", "Limits", "limitation cannot conclude"),
+    ],
+    ("A culture diagnosis reads artefacts, espoused values and assumptions, each with a source. It assigns "
+     "no type and no score."))
+
+ETH_01_PROFILE = _qprofile(
+    "template_ethical_dilemma", "ethical_dilemma",
+    "Ethical dilemma analysis", "Decision or case",
+    "Name the decision or case the dilemma is about.",
+    [
+        _qblock("dilemma", "The dilemma", "dilemma obligation conflict"),
+        _qblock("stakeholders", "Stakeholders", "stakeholder affected"),
+        _qblock("theory_a", "Theory A", "utilitarian consequentialist deontology virtue ethics",
+                "auto", ["utilitarianism deontology virtue ethics"]),
+        _qblock("theory_b", "Theory B", "justice rights care ethics",
+                "auto", ["justice ethics of care"]),
+        _qblock("theory_c", "Theory C", "theory ethics"),
+        _qblock("divergence", "Agreement and divergence", "agree diverge compare"),
+        _qblock("decision", "Decision", "decision justification"),
+        _qblock("limits", "Limits", "limitation cannot settle"),
+    ],
+    ("An ethical analysis states the dilemma, applies two or three theories, compares where they agree and "
+     "diverge, and justifies a decision. The justification is the student's."))
+
+ETH_02_PROFILE = _qprofile(
+    "template_stakeholder_csr", "stakeholder_csr",
+    "Stakeholder and CSR analysis", "Decision or case",
+    "Name the decision or case the analysis is about.",
+    [
+        _qblock("stakeholders", "Stakeholders", "stakeholder power legitimacy urgency"),
+        _qblock("claims", "Claims", "claim evidence"),
+        _qblock("shareholder", "Shareholder primacy", "shareholder primacy friedman profit",
+                "auto", ["shareholder primacy Friedman"]),
+        _qblock("stakeholder_theory", "Stakeholder theory", "stakeholder theory freeman",
+                "auto", ["stakeholder theory Freeman"]),
+        _qblock("csr", "CSR obligations", "CSR carroll economic legal ethical philanthropic",
+                "auto", ["corporate social responsibility Carroll"]),
+        _qblock("triple_bottom_line", "Triple bottom line", "triple bottom line profit people planet"),
+        _qblock("decision", "Decision", "decision judgment"),
+        _qblock("limits", "Limits", "limitation cannot settle"),
+    ],
+    ("A stakeholder analysis maps claims, compares shareholder primacy with stakeholder theory, and weighs "
+     "CSR obligations. It assigns no weights and declares no decision ethical without a basis."))
+
+ETH_03_PROFILE = _qprofile(
+    "template_ethical_decision_process", "ethical_decision_process",
+    "Ethical decision-making process", "Decision or case",
+    "Name the decision the paper traces.",
+    [
+        _qblock("decision", "The decision", "decision choice close board"),
+        _qblock("sensitivity", "Moral sensitivity", "sensitivity recognise issue"),
+        _qblock("judgment", "Moral judgment", "judgment reason"),
+        _qblock("motivation", "Moral motivation", "motivation value"),
+        _qblock("character", "Moral character", "character action"),
+        _qblock("intensity", "Moral intensity", "intensity seriousness jones"),
+        _qblock("breakdown", "Where it broke down", "breakdown remedy"),
+        _qblock("limits", "Limits", "limitation cannot conclude"),
+    ],
+    ("An ethical-process paper traces a decision through sensitivity, judgment, motivation and character, "
+     "with the factors that made it serious. It scores no one."))
+
+for _qp in (LDR_01_PROFILE, LDR_02_PROFILE, LDR_03_PROFILE, LDR_04_PROFILE,
+            CUL_01_PROFILE, CUL_02_PROFILE, CUL_03_PROFILE,
+            ETH_01_PROFILE, ETH_02_PROFILE, ETH_03_PROFILE):
+    PROFILES[_qp["template"]] = _qp
+
+
 #: The default profile for a payload that predates the template field.
 
 DEFAULT = "template_five_forces"

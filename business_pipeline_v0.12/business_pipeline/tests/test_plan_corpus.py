@@ -30,6 +30,11 @@ class BriefCorpusTest(unittest.TestCase):
                 state = chat.start(row["brief"], "management", row["requested_framework"])
                 self.assertNotEqual(state["stage"], "not_supported", "the guard refused the brief")
                 self.assertEqual(state.get("framework"), row["expected_framework"])
+                if row["expected_framework"] is None:
+                    # a brief that names no framework is left to the student; the system
+                    # never fills the gap with a default, and a question is still owed.
+                    self.assertIsNotNone(chat.current_question(state),
+                                         "a brief that names no framework must leave a question owed")
                 selected = sorted(item["key"] for item in state["selection"]["selected"])
                 self.assertEqual(selected, sorted(row["expected_capabilities"]))
                 question = (state["selection"].get("question") or {}).get("id")
@@ -49,6 +54,10 @@ class BriefCorpusTest(unittest.TestCase):
         for row in self.rows:
             state = chat.start(row["brief"], "management", row["requested_framework"])
             framework = state.get("framework")
+            if framework is None:
+                # nothing is committed to a framework yet, so there is no applies_to to
+                # check against; the capability is provisional until the student answers.
+                continue
             for item in state["selection"]["selected"]:
                 applies = capabilities.ENTRIES[item["key"]]["applies_to"]
                 self.assertIn(framework, applies, item["key"] + " on " + str(framework))

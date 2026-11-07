@@ -35,13 +35,18 @@ from bp.product import api, chat, deliverables, subjects  # noqa: E402
 from bp.session import SessionManager               # noqa: E402
 
 TOOLS = ["accounts", "tbcheck", "ratios", "scv", "abc", "salesvar", "breakeven",
-         "multibreakeven", "workingcapital", "loan", "trendanalysis", "tax"]
+         "multibreakeven", "workingcapital", "loan", "trendanalysis", "tax",
+         "depreciation", "dupont", "proforma", "sensitivity", "frommarket",
+         "salesprojection"]
 METHODS = ["management_accounts", "trial_balance_check", "ratio_analysis",
            "standard_cost_variances", "abc_costing", "sales_variances", "breakeven",
            "multi_product_breakeven", "working_capital", "loan_amortization",
-           "trend_analysis", "tax_declared"]
-GROUPS = {"Bookkeeping and statements", "Cost and variance analysis",
-          "Working capital and financing", "Tax and reporting"}
+           "trend_analysis", "tax_declared", "depreciation_schedule", "dupont_analysis",
+           "proforma_statements", "sensitivity_table", "sales_from_market",
+           "sales_projection"]
+GROUPS = {"Bookkeeping", "Statement analysis", "Cost and variance analysis",
+          "Working capital and financing", "Tax and reporting",
+          "Adjustments and depreciation", "Planning and projection"}
 GUIDE = os.path.join(ROOT, "docs", "ACCOUNTING_STUDENT_GUIDE.md")
 
 
@@ -212,7 +217,7 @@ class ShelfShapeTest(unittest.TestCase):
         self.assertEqual({item["method"] for item in detail["tools"]}, set(METHODS))
         self.assertTrue(all(item["kind"] == "compute" for item in detail["tools"]),
                         "every accounting tile must be a compute tool")
-        self.assertEqual(len({item["method"] for item in detail["tools"]}), 12,
+        self.assertEqual(len({item["method"] for item in detail["tools"]}), 18,
                          "two tools must not launch the same method")
 
     def test_E_acc_002__no_worksheets_theories_or_tiles(self):
@@ -258,7 +263,11 @@ class ShelfShapeTest(unittest.TestCase):
     def test_E_acc_013__calculator_reaches_the_same_twelve_methods(self):
         groups = subjects.calculator_groups()
         accounting = next(row for row in groups["groups"] if row["id"] == "accounting")
-        self.assertEqual({item["method"] for item in accounting["tools"]}, set(METHODS))
+        # The calculator carries the twelve it has always launched; the six later
+        # shelf tools are reachable from the shelf, not from this launcher.
+        launched = {item["method"] for item in accounting["tools"]}
+        self.assertTrue(launched <= set(METHODS))
+        self.assertEqual(len(launched), 12)
         union = {item["method"] for item in subjects.compute_tools()}
         self.assertEqual(union, {item["method"] for row in groups["groups"]
                                  for item in row["tools"]},
@@ -268,7 +277,7 @@ class ShelfShapeTest(unittest.TestCase):
         status, detail = api.handle("GET", "/api/cases/subjects/accounting")
         self.assertEqual(status, 200)
         self.assertEqual(detail["id"], "accounting")
-        self.assertEqual(len(detail["tools"]), 12)
+        self.assertEqual(len(detail["tools"]), 18)
         self.assertEqual(detail["worksheets"], [])
         self.assertEqual(len(detail["records"]), 3)
         self.assertEqual(len(detail["glossary"]), 19)
@@ -543,7 +552,12 @@ class RunPathTest(unittest.TestCase):
                 self.assertEqual(result["deliverable"], profile)
         with self.assertRaises(deliverables.DeliverableError) as refused:
             deliverables.check_pair("presentation", "docx")
-        self.assertIn("PowerPoint renderer is not built", str(refused.exception))
+        self.assertIn("can be produced as pptx", str(refused.exception))
+        deck = os.path.join(root, "presentation.pptx")
+        result = deliverables.write_export(bundle, "presentation", "pptx", deck)
+        self.assertTrue(os.path.isfile(deck))
+        self.assertGreater(os.path.getsize(deck), 0)
+        self.assertEqual(result["deliverable"], "presentation")
 
 
 class ToolBehaviourTest(unittest.TestCase):

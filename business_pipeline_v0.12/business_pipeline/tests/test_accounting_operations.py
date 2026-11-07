@@ -197,8 +197,9 @@ class ShelfWiring(unittest.TestCase):
             self.assertTrue(tool["formula"], tool["key"])
             if tool["group"] not in order:
                 order.append(tool["group"])
-        self.assertEqual(order, ["Bookkeeping and statements", "Cost and variance analysis",
-                                 "Working capital and financing", "Tax and reporting"])
+        self.assertEqual(order, ["Bookkeeping", "Statement analysis", "Cost and variance analysis",
+                                 "Working capital and financing", "Tax and reporting",
+                                 "Adjustments and depreciation", "Planning and projection"])
         self.assertGreaterEqual(len(page["glossary"]), 15)
 
     def test_operations_and_supply_chain_carry_the_process_tools(self):

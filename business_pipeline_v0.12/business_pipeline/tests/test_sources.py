@@ -215,7 +215,12 @@ class SearchTest(unittest.TestCase):
         post.return_value = {"data": {"web": [
             {"title": "Congress bill", "url": "https://www.congress.gov/bill/example", "description": "A bill"},
             {"title": "Unvetted", "url": "https://example.com/post", "description": "Not vetted"}]}}
-        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "test-key", "BP_FIRECRAWL_KEYLESS": "1", "BP_DEEPSEEK_API_KEY": ""}, clear=False):
+        # A rate-limit recorded by an earlier test is a 24-hour cooldown in this
+        # module; clear it so the fallback is measured, not the cooldown.
+        sources._FIRECRAWL_COOLDOWN.update({"until": 0, "error": ""})
+        with mock.patch.dict(os.environ, {"BP_BRAVE_API_KEY": "test-key", "BP_FIRECRAWL_KEYLESS": "1",
+                                       "BP_FIRECRAWL_API_KEY": "", "BP_DEEPSEEK_API_KEY": "",
+                                       "BP_SOURCE_CACHE_TTL": "0"}, clear=False):
             result = sources.search_web("legislation", "US", category="legal")
         self.assertEqual(result["provider"], "firecrawl")
         self.assertEqual([item["domain"] for item in result["results"]], ["congress.gov"])

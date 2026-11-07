@@ -27,11 +27,14 @@ import re
 from decimal import Decimal, InvalidOperation
 
 from . import export as case_export
+from . import theme
 
 FORMAT = "bp-chart/1"
 KINDS = ("bar", "line", "stacked_bar", "waterfall", "pie", "sparkline", "table", "gantt")
 WIDTH, HEIGHT = 720, 300
-PALETTE = ("#4e79a7", "#f28e2b", "#e15759", "#76b7b2", "#59a14f", "#edc948", "#b07aa1", "#9c755f")
+#: The categorical palette is defined once, in `theme`, so the builtin drawing and
+#: the Plotly template cannot drift apart.
+PALETTE = theme.SERIES
 _DIGIT = re.compile(r"\d")
 
 
@@ -135,10 +138,36 @@ def validate_spec(spec):
         for entry in series:
             if not isinstance(entry, dict):
                 raise ChartError("each series entry must be an object")
-            _text(entry.get("label"), "series label")
+            source = entry.get("label_artifact")
+            if source is not None:
+                # A label that carries a digit (a sprint number, a year) is allowed
+                # only when it is the recorded value of an artifact, and the render
+                # then checks the two agree.  A typed number is still refused.
+                if not isinstance(source, str) or not source.strip():
+                    raise ChartError("'label_artifact' must be a stored artifact id")
+                if not isinstance(entry.get("label"), str) or not entry["label"].strip():
+                    raise ChartError("each series entry needs a 'label'")
+            else:
+                _text(entry.get("label"), "series label")
+            if entry.get("group") is not None:
+                _text(entry["group"], "series group")
             if not isinstance(entry.get("artifact"), str) or not entry["artifact"].strip():
                 raise ChartError("each series entry needs an 'artifact' id or metric")
     return kind, title, series or []
+
+
+def verify_labels(spec, rows):
+    """A label that carries a digit must equal the recorded value it names."""
+    for entry in spec.get("series") or []:
+        source = entry.get("label_artifact")
+        if not source:
+            continue
+        row = _row_for(rows, source.strip())
+        stored = str(row.get("value"))
+        numbers = re.findall(r"\d+(?:\.\d+)?", str(entry.get("label")))
+        if stored not in numbers:
+            raise ChartError("the label %r does not carry the recorded value %r of %r"
+                             % (entry.get("label"), stored, source))
 
 
 def _series_values(spec, rows):
@@ -146,7 +175,8 @@ def _series_values(spec, rows):
     for entry in spec["series"]:
         row = _row_for(rows, entry["artifact"].strip())
         series.append({"label": entry["label"].strip(), "value": _number(row, entry["artifact"].strip()),
-                       "stored": str(row.get("value")), "unit": row.get("unit")})
+                       "stored": str(row.get("value")), "unit": row.get("unit"),
+                       "group": str(entry.get("group") or "").strip()})
     return series
 
 
@@ -188,9 +218,47 @@ def _bar(series, title):
     return _frame(title, "".join(body))
 
 
+def _line_multi(series, groups, title):
+    """One line per group, on one scale, with a legend: a burndown or a control chart."""
+    top, bottom, left, right = 64, HEIGHT - 60, 40, WIDTH - 40
+    values = [item["value"] for item in series]
+    low, high = min(values), max(values)
+    span = (high - low) or Decimal(1)
+    longest = max(len([item for item in series if item["group"] == group]) for group in groups)
+    body = []
+    for index, group in enumerate(groups):
+        members = [item for item in series if item["group"] == group]
+        colour = PALETTE[index % len(PALETTE)]
+        points = []
+        for position, item in enumerate(members):
+            x = Decimal(left) + Decimal(right - left) * Decimal(position) / Decimal(max(1, longest - 1))
+            y = Decimal(bottom) - Decimal(bottom - top) * (item["value"] - low) / span
+            points.append((x, y, item))
+        body.append('<polyline fill="none" stroke="%s" stroke-width="2" points="%s"/>'
+                    % (colour, " ".join("%s,%s" % (_fmt(x), _fmt(y)) for x, y, _ in points)))
+        for x, y, item in points:
+            body.append('<circle cx="%s" cy="%s" r="3.5" fill="%s"/>' % (_fmt(x), _fmt(y), colour))
+        legend_x = WIDTH - 24 - (len(groups) - index) * 118
+        body.append('<rect x="%d" y="22" width="10" height="10" fill="%s"/>' % (legend_x, colour))
+        body.append('<text x="%d" y="31" font-family="Georgia, serif" font-size="11" fill="#1b1b1b">%s</text>'
+                    % (legend_x + 14, html.escape(group)))
+    first = [item for item in series if item["group"] == groups[0]]
+    for position, item in enumerate(first):
+        x = Decimal(left) + Decimal(right - left) * Decimal(position) / Decimal(max(1, longest - 1))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Georgia, serif" font-size="11" '
+                    'fill="#555550">%s</text>' % (_fmt(x), _fmt(bottom + 22), html.escape(item["label"])))
+    return _frame(title, "".join(body))
+
+
 def _line(series, title, sparkline=False):
     if len(series) < 2:
         raise ChartError("a line chart needs at least two series points")
+    groups = []
+    for item in series:
+        if item["group"] and item["group"] not in groups:
+            groups.append(item["group"])
+    if len(groups) > 1 and not sparkline:
+        return _line_multi(series, groups, title)
     top, bottom, left, right = (20, HEIGHT - 46, 24, WIDTH - 24) if sparkline else (64, HEIGHT - 60, 40, WIDTH - 40)
     values = [item["value"] for item in series]
     low, high = min(values), max(values)
@@ -382,6 +450,7 @@ def render_svg(bundle, spec):
     """Draw one chart as deterministic SVG. Returns the SVG string."""
     kind, title, payload = validate_spec(spec)
     rows = _stored_rows(bundle)
+    verify_labels(spec, rows)
     if kind == "table":
         return _table(rows, title)
     if kind == "gantt":

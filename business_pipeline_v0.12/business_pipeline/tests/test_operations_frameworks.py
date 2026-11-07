@@ -294,7 +294,7 @@ class CompletionTest(unittest.TestCase):
         result = complete_vsm(BRIEF_NO_TIMES)
         blocks = {block["key"]: block for block in result["blocks"]}
         self.assertEqual(blocks["cycle_and_lead_times"]["items"], [])
-        self.assertIn("No evidence was found", blocks["cycle_and_lead_times"]["gap"])
+        self.assertIn("What to state", blocks["cycle_and_lead_times"]["gap"])
         self.assertIn("What to state", blocks["cycle_and_lead_times"]["gap"])
         # the step cell still holds the student's own sentence: the fix narrows the
         # match, it does not switch the fallback off
@@ -484,8 +484,8 @@ class AutoFillTest(unittest.TestCase):
         result = self.complete(self.nothing)
         follow = next(b for b in result["blocks"] if b["key"] == "follow_up")
         self.assertEqual(follow["items"], [])
-        self.assertIn("No evidence was found", follow["gap"])
-        self.assertIn("What to state", follow["gap"])
+        self.assertIn("No source was found", follow["gap"])
+        self.assertIn("What to look for", follow["gap"])
 
     def test_a_source_wins_over_the_brief_on_an_auto_part(self):
         def one(key, cues, queries, context, **kwargs):

@@ -41,9 +41,9 @@ class AccountingTileTest(unittest.TestCase):
         self.assertEqual(first["service"], "statements")
         self.assertEqual((first["tools"], first["worksheets"], first["records"]), ([], [], []))
 
-    def test_the_shelf_still_offers_its_twelve_calculators(self):
-        self.assertEqual(len(self.detail["tools"]), 12)
-        self.assertEqual(len(self.tiles), 5)
+    def test_the_shelf_still_offers_its_calculators(self):
+        self.assertEqual(len(self.detail["tools"]), 18)
+        self.assertEqual(len(self.tiles), 8)
 
     def test_the_served_ui_carries_the_tile_and_its_hook(self):
         with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:

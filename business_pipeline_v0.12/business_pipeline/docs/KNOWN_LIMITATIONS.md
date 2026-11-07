@@ -701,3 +701,27 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - The export is plain text: a DOCX wrapper is not wired yet. Single entity only; no comparative period,
   segment or multi-currency analysis. A second set of balances, a second period, a comparative column or
   a consolidation mention is **refused by name with the reason** (B-212), not merged and not crashed on.
+
+## Added with the figure layer (B-220)
+- **A chart reaches a Word paper only when a rasterizer is installed.** `plotly` with `kaleido` draws a chart
+  and returns its PNG; the headless Chrome that kaleido carries rasterizes the builtin SVG (diagrams, Gantt,
+  table). `cairosvg` needs a native cairo DLL that is not on every machine, so it is tried first and skipped
+  when absent. With no rasterizer at all the figure prints its stored values as a table under its caption:
+  never a broken image, and never a figure that silently disappears.
+- **Plotly, Mermaid and Graphviz are optional and never required at runtime.** The builtin
+  standard-library SVG renderer always runs; the professional engines are used when present and fall
+  back to it when absent, so a missing package costs polish, not the document.
+- **The builtin chart look is still the old frame.** The Plotly template and the shared theme tokens
+  are not built yet, so a Plotly chart carries the restrained inline layout in `renderers.py`, not the
+  full design system.
+- **Auto-placement is by section heading.** A figure names its section; a figure whose section the paper
+  does not carry is reported as unplaced, never dropped into an arbitrary heading.
+- **A stale figure is detectable, not yet blocked.** `figures.stale()` compares the record's digest with
+  the stored values, but no export gate refuses a stale figure yet.
+- **A chart in a spreadsheet is a picture, not a native Excel chart.** It cannot be edited in the workbook, and a
+  workbook only carries one when a rasterizer produced the PNG; without one the figure is skipped, never broken.
+- **Native Excel charts are not built.** A chart in a workbook is an anchored picture, not a `<c:chart>` the student can
+  edit, and it is only carried when a rasterizer produced the PNG.
+- **A deck is a minimal .pptx.** `deck.py` writes title, claim, figure and section slides with one theme,
+  no speaker notes, no native charts and no transitions. A figure reaches a slide as a picture, or as its
+  stored values when no rasterizer is installed. The deck route and its credit price are not wired yet.

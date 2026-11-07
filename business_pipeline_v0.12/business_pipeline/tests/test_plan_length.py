@@ -54,10 +54,10 @@ def _seed(state):
     return state
 
 
-def build(length=None):
+def build(length=None, words=None):
     """Run a case to a draft; `length` is a band name or a count, as a student gives it."""
     brief = BRIEF if length is None else BRIEF + " Write a " + str(length) + " report."
-    state = chat.start(brief, "management", "pestel")
+    state = chat.start(brief, "management", "pestel", words=words)
     answers = {"decision": "Should the retailer open a device store in Tehran?",
                "geography": "Middle East", "period": "5", "style": "apa"}
     while chat.current_question(state):
@@ -117,6 +117,13 @@ class LengthOptionTest(unittest.TestCase):
         state = chat.start(BRIEF, "management", "pestel", words="long")
         self.assertEqual(state["answers"]["length"], str(chat.LONG_WORDS))
         self.assertEqual(chat.length_band(chat.target_words(state)), "long")
+
+    def test_a_numeric_target_is_the_body_and_is_reported(self):
+        state = build(words="2400")
+        self.assertEqual(state["draft"]["target_words"], 2400)
+        self.assertEqual(state["draft"]["word_target"]["target"], 2400)
+        self.assertIn("range", state["draft"]["word_target"])
+        self.assertEqual(state["draft"]["missing"], [])
 
 
 class FullReportTest(unittest.TestCase):

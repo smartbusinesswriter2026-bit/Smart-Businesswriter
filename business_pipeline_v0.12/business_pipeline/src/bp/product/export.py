@@ -68,6 +68,11 @@ def artifact_rows(bundle):
             continue
         if value is None and isinstance(artifact_id, str):
             value = outputs.get(artifact_id)
+        if value is None and isinstance(metric, str):
+            # a single-output method records its one artifact under the id `result` and its
+            # output under the metric's own name, so the id alone drops a figure the record
+            # holds.  The record's value is read, never recomputed.
+            value = outputs.get(metric)
         rows.append({"id": artifact_id, "metric": metric, "unit": unit,
                      "precision": precision, "value": value, "derivation": derivation})
     return rows
@@ -138,7 +143,7 @@ def export_html(bundle, path, charts=None, diagrams=None):
     diagram_section = ""
     if diagrams:
         from . import diagrams as diagram_renderer
-        figures = "".join('<figure class="chart">%s</figure>' % diagram_renderer.render_svg(spec)
+        figures = "".join('<figure class="chart">%s</figure>' % diagram_renderer.render_svg(spec, bundle)
                           for spec in diagrams)
         diagram_section = '<section id="diagrams">\n<h2>Business graphics</h2>\n%s\n</section>\n' % figures
     target = Path(path)

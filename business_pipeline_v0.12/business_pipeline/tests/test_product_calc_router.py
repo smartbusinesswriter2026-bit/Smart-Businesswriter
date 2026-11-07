@@ -147,8 +147,12 @@ class GoldenRoutingTest(unittest.TestCase):
             for tool in tools:
                 self.assertIn(tool, subjects.TOOL_INFO)
         method_ids = {info["method"] for info in subjects.TOOL_INFO.values()}
-        self.assertTrue(set(calc_router.INPUTS) <= method_ids,
-                        "the slice names a method the catalogue does not launch")
+        # `case_decision` is a documented composite, not a frozen method, so it has no
+        # schema in the slice.  Every launched frozen method must have one; the slice may
+        # carry more, because the library registers methods no calculator launches yet.
+        composites = {"case_decision"}
+        self.assertTrue((method_ids - composites) <= set(calc_router.INPUTS),
+                        "the catalogue launches a method the slice does not carry")
         from bp import methods  # test-side only
         self.assertEqual(len(calc_router.INPUTS), len(methods.list_methods()))
 

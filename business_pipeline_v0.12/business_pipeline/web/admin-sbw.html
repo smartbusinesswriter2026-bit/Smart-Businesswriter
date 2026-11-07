@@ -225,6 +225,26 @@
     .rail { width: 100%; display: flex; overflow-x: auto; }
     .rail button { width: auto; white-space: nowrap; }
   }
+  /* ── Automated testing: subject sections, collapsible subsections ── */
+  .at-subject { border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:14px; background:var(--surface); }
+  .at-subject-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+  .at-subject-head h3 { margin:0; font-size:15px; }
+  .at-group { border-top:1px solid var(--line); padding:6px 0; }
+  .at-group summary { cursor:pointer; font-size:12.5px; font-weight:600; padding:4px 0; user-select:none; }
+  .at-group summary span { font-weight:400; color:var(--muted); font-size:10.5px; margin-left:6px; }
+  .at-tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:4px 14px; padding:6px 0 2px 20px; }
+  .at-tile { display:flex; align-items:flex-start; gap:7px; font-size:11.5px; line-height:1.35; padding:2px 0; }
+  .at-tile input { margin-top:2px; }
+  .at-tile.disabled { color:var(--muted); }
+  .at-tile em { color:var(--muted); font-style:normal; font-size:10px; }
+  .at-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .at-status { font-size:11px; color:var(--muted); }
+  .at-results { margin-top:8px; font-size:11px; }
+  .at-results table { width:100%; border-collapse:collapse; }
+  .at-results th, .at-results td { text-align:left; padding:4px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .at-results th { font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  .at-downloads { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); }
+  .at-downloads a.btn { text-decoration:none; }
 </style>
 </head>
 <body>
@@ -349,34 +369,26 @@
               <button class="btn" id="wfRunTests">Run tests</button>
             </div>
           </div>
-          <div class="card">
-            <h2>Tests</h2>
-            <div class="row">
-              <button class="btn" data-suite="computations">Computations</button>
-              <button class="btn" data-suite="frameworks">Frameworks</button>
-              <button class="btn" data-suite="prose">Prose</button>
-              <button class="btn" data-suite="paper">Whole paper</button>
-              <button class="btn" data-suite="accounting">Accounting</button>
-              <button class="btn" data-suite="economics">Economics</button>
-              <button class="btn" data-suite="finance">Finance</button>
-              <button class="btn" data-suite="statistics">Statistics</button>
-              <button class="btn" data-suite="marketing">Marketing</button>
-              <button class="btn" data-suite="management">Management</button>
-              <button class="btn" data-suite="operations">Operations</button>
-              <button class="btn" data-suite="project">Project Mgmt</button>
-              <button class="btn" data-suite="entrepreneurship">Entrepreneurship</button>
-              <button class="btn" data-suite="people">People</button>
-              <button class="btn" data-suite="research">Research</button>
-              <button class="btn" data-suite="supply_chain">Supply Chain</button>
-              <button class="btn" data-suite="meta">Meta/Product</button>
-              <button class="btn" data-suite="all">Run ALL</button>
-              <button class="btn primary" id="runAllTests">Run core 4</button>
-            <button class="btn" id="exportTests">Export JSON</button>
-            </div>
-            <div class="progress" id="testProgress"><div class="bar" style="width:0%"></div></div>
-            <div id="testResults"></div>
-          </div>
         </div>
+      </div>
+
+      <!-- ═══ AUTOMATED TESTING — paper previews per subject tile ═══ -->
+      <div class="card" id="autoTestCard">
+        <h2>Automated testing — paper previews</h2>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">
+          Each tile is a real paper from the writer, generated from that tile's prefilled example
+          instruction and its declared figures. Every subject is a section; its subsections are
+          collapsible, and a tick survives a switch to another subsection so tiles can be gathered
+          across the whole subject. A corpus source is cited only when a page matches the tile; an
+          empty result is a named gap, never a filled reference.
+        </p>
+        <div class="row">
+          <label>Style: <select id="atStyle"><option value="apa" selected>APA 7</option><option value="harvard">Harvard</option></select></label>
+          <label>Length: <select id="atLength"><option value="600">Short (600 words)</option><option value="1200" selected>Mid (1,200 words)</option><option value="2500">Long (2,500 words)</option></select></label>
+          <button class="btn" id="atRefresh" title="Re-read the subject shelves">Reload subjects</button>
+          <span id="atGlobalStatus" style="font-size:11px;color:var(--muted);"></span>
+        </div>
+        <div id="atSections"></div>
       </div>
 
       <!-- Hallucination checker -->
@@ -531,7 +543,7 @@ document.querySelectorAll('.rail button').forEach(btn => {
 function loadPanel(name) {
   if (name === 'runs') loadRuns();
   else if (name === 'validation') { loadFindings(); loadProposals(); }
-  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadTestResults(); }
+  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadPaperTesting(); }
   else if (name === 'autoresearch') { loadAutoresearch(); }
   else if (name === 'chat') { /* chat panel loaded on demand */ }
   else if (name === 'health') loadHealth();
@@ -1070,7 +1082,6 @@ document.getElementById('wfRunTests').addEventListener('click', async () => {
     }
     wfLog.scrollTop = wfLog.scrollHeight;
   }
-  loadTestResults();
 });
 
 // Auto-fix: full loop
@@ -1153,7 +1164,6 @@ document.getElementById('wfAutoFix').addEventListener('click', async () => {
   wfLog.scrollTop = wfLog.scrollHeight;
   loadErrors();
   loadHealHistory();
-  loadTestResults();
 });
 
 /* ── Heal ── */
@@ -1228,67 +1238,225 @@ document.getElementById('modalOverlay').addEventListener('click', (e) => {
   if (e.target.id === 'modalOverlay') closeModal();
 });
 
-/* ── Tests ── */
-async function loadTestResults() {
-  const r = await apiFetch('/api/ops/tests/results');
-  const container = document.getElementById('testResults');
-  if (r.status === 200 && r.data.results) {
-    renderTestResults(r.data.results, container);
-  } else if (r.status === 404) {
-    container.innerHTML = '<div class="empty"><div class="icon">🧪</div>Test runner endpoint not yet wired.<br><span style="font-size:10.2px;">Backend route <code>/api/ops/tests/run</code> needed (design lane).</span></div>';
-  } else {
-    container.innerHTML = '<div class="empty"><div class="icon">🧪</div>' + escapeHtml(r.data.error || 'No data') + '</div>';
+/* ── Automated testing: paper previews per subject tile ── */
+const AT_TICKS_KEY = 'sbwPaperTicks';
+let atData = null;
+let atPolling = {};
+let atLoadedOnce = false;
+
+function atTicks() {
+  try { return JSON.parse(localStorage.getItem(AT_TICKS_KEY) || '{}') || {}; }
+  catch (e) { return {}; }
+}
+function atSaveTicks(ticks) {
+  try { localStorage.setItem(AT_TICKS_KEY, JSON.stringify(ticks)); } catch (e) {}
+}
+function atKey(subject, tile) { return subject + '|' + tile; }
+function atSelected(subject) {
+  const ticks = atTicks();
+  return Object.keys(ticks).filter(k => ticks[k] && k.indexOf(subject + '|') === 0)
+    .map(k => k.slice(subject.length + 1));
+}
+function atUpdateCount(subject) {
+  const el = document.getElementById('at-count-' + subject);
+  if (!el) return;
+  const n = atSelected(subject).length;
+  el.textContent = n + (n === 1 ? ' tile selected' : ' tiles selected');
+  el.className = 'pill ' + (n ? 'ok' : '');
+}
+
+async function loadPaperTesting(force) {
+  if (atLoadedOnce && !force) return;
+  const host = document.getElementById('atSections');
+  host.innerHTML = '<div class="empty">Loading subject shelves…</div>';
+  const r = await apiFetch('/api/ops/papers/tiles' + (force ? '?refresh=1' : ''));
+  if (r.status !== 200 || !r.data || !Array.isArray(r.data.subjects)) {
+    host.innerHTML = '<div class="empty"><div class="icon">📄</div>'
+      + escapeHtml((r.data && r.data.error) || 'The paper-preview endpoint is not available.') + '</div>';
+    return;
   }
+  atData = r.data;
+  atLoadedOnce = true;
+  renderPaperTesting();
 }
-function renderTestResults(results, container) {
+
+function renderPaperTesting() {
+  const ticks = atTicks();
+  const host = document.getElementById('atSections');
   let html = '';
-  results.forEach(suite => {
-    const cls = suite.failed > 0 ? 'err' : 'ok';
-    html += '<div class="card" style="margin-bottom:8px;"><h3>' + escapeHtml(suite.name) + ' ' + pill(suite.passed + '/' + suite.total + ' passed', cls) + '</h3>';
-    if (suite.failed > 0 && suite.failures) {
-      html += '<ul style="font-size:10.2px;margin-top:8px;">';
-      suite.failures.forEach(f => { html += '<li>' + escapeHtml(f) + '</li>'; });
-      html += '</ul>';
-    }
-    html += '</div>';
+  atData.subjects.forEach(subject => {
+    const sid = escapeHtml(subject.id);
+    let tileCount = 0;
+    let groupHtml = '';
+    (subject.groups || []).forEach(group => {
+      let tiles = '';
+      (group.tiles || []).forEach(tile => {
+        tileCount += 1;
+        const key = atKey(subject.id, tile.key);
+        const checked = ticks[key] ? ' checked' : '';
+        const disabled = tile.has_defaults ? '' : ' disabled';
+        const note = tile.has_defaults ? '' : ' <em>' + (tile.supported ? 'needs inputs' : 'decision framework') + '</em>';
+        tiles += '<label class="at-tile' + (tile.has_defaults ? '' : ' disabled') + '">'
+          + '<input type="checkbox" data-at-sub="' + sid + '" data-at-tile="' + escapeHtml(tile.key) + '"'
+          + checked + disabled + '> <span>' + escapeHtml(tile.label) + note + '</span></label>';
+      });
+      groupHtml += '<details class="at-group" data-at-group="' + sid + '">'
+        + '<summary>' + escapeHtml(group.label || 'General') + '<span>' + (group.tiles || []).length + ' tile(s)</span></summary>'
+        + '<div class="at-tiles">' + tiles + '</div></details>';
+    });
+    html += '<div class="at-subject" data-at-subject="' + sid + '">'
+      + '<div class="at-subject-head"><h3>' + escapeHtml(subject.label) + '</h3>'
+      + '<span class="pill" id="at-count-' + sid + '">0 tiles selected</span></div>'
+      + (groupHtml || '<div class="empty">No tiles on this shelf.</div>')
+      + '<div class="at-actions">'
+      + '<button class="btn primary" data-at-run="' + sid + '">Generate selected</button>'
+      + '<button class="btn" data-at-clear="' + sid + '">Clear</button>'
+      + '<span class="at-status" id="at-status-' + sid + '">' + tileCount + ' tile(s) on this shelf</span>'
+      + '</div>'
+      + '<div class="progress" id="at-progress-' + sid + '" style="display:none;"><div class="bar" style="width:0%"></div></div>'
+      + '<div class="at-results" id="at-results-' + sid + '"></div>'
+      + '<div class="at-downloads" id="at-downloads-' + sid + '"></div>'
+      + '</div>';
   });
-  container.innerHTML = html || '<div class="empty">No test results yet.</div>';
+  host.innerHTML = html || '<div class="empty">No subjects.</div>';
+  atData.subjects.forEach(subject => atUpdateCount(subject.id));
+  atLoadRecentRuns();
 }
-document.querySelectorAll('[data-suite]').forEach(btn => {
-  btn.addEventListener('click', () => runSuite(btn.dataset.suite));
-});
-document.getElementById('runAllTests').addEventListener('click', async () => {
-  for (const s of ['computations','frameworks','prose','paper']) await runSuite(s);
+
+async function atLoadRecentRuns() {
+  const r = await apiFetch('/api/ops/papers/runs?limit=100');
+  if (r.status !== 200 || !r.data || !Array.isArray(r.data.runs)) return;
+  const bySubject = {};
+  r.data.runs.forEach(run => {
+    if (run.status !== 'done') return;
+    (bySubject[run.subject] = bySubject[run.subject] || []).push(run);
+  });
+  Object.keys(bySubject).forEach(sid => {
+    const host = document.getElementById('at-downloads-' + sid);
+    if (!host) return;
+    const runs = bySubject[sid].slice(0, 3);
+    host.innerHTML = '<span class="at-status">Recent runs:</span>' + runs.map(run => {
+      const when = String(run.created_at || '').slice(0, 16).replace('T', ' ');
+      return '<a class="btn" href="/api/ops/papers/batch/' + encodeURIComponent(run.run_id)
+        + '/download?format=zip" title="Download the ZIP">ZIP · ' + escapeHtml(when) + '</a>';
+    }).join('');
+  });
+}
+
+document.getElementById('atSections').addEventListener('change', (event) => {
+  const input = event.target;
+  if (!input || !input.matches('input[data-at-tile]')) return;
+  const ticks = atTicks();
+  const key = atKey(input.dataset.atSub, input.dataset.atTile);
+  if (input.checked) ticks[key] = true; else delete ticks[key];
+  atSaveTicks(ticks);
+  atUpdateCount(input.dataset.atSub);
 });
 
-document.getElementById('exportTests').addEventListener('click', async () => {
-  const r = await apiFetch('/api/ops/tests/results');
-  if (r.status === 200 && r.data.results) {
-    const blob = new Blob([JSON.stringify(r.data.results, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'test-results-' + new Date().toISOString().slice(0,10) + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('Exported test results');
-  } else {
-    toast('No test results to export');
+document.getElementById('atSections').addEventListener('click', (event) => {
+  const runBtn = event.target.closest('button[data-at-run]');
+  if (runBtn) { atGenerate(runBtn.dataset.atRun, runBtn); return; }
+  const clearBtn = event.target.closest('button[data-at-clear]');
+  if (clearBtn) {
+    const sid = clearBtn.dataset.atClear;
+    const ticks = atTicks();
+    Object.keys(ticks).forEach(k => { if (k.indexOf(sid + '|') === 0) delete ticks[k]; });
+    atSaveTicks(ticks);
+    document.querySelectorAll('#atSections input[data-at-sub="' + sid + '"]').forEach(i => { i.checked = false; });
+    atUpdateCount(sid);
+    toast('Cleared ' + sid);
   }
 });
-async function runSuite(suite) {
-  toast('Running ' + suite + '…');
-  const r = await apiFetch('/api/ops/tests/run', {
+
+document.getElementById('atRefresh').addEventListener('click', () => loadPaperTesting(true));
+
+async function atGenerate(subject, button) {
+  const keys = atSelected(subject);
+  if (!keys.length) { toast('Tick at least one tile first'); return; }
+  button.disabled = true;
+  const status = document.getElementById('at-status-' + subject);
+  status.textContent = 'Starting ' + keys.length + ' paper(s)…';
+  const r = await apiFetch('/api/ops/papers/batch', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ suite })
+    body: JSON.stringify({
+      subject: subject,
+      tile_keys: keys,
+      style: document.getElementById('atStyle').value,
+      length: parseInt(document.getElementById('atLength').value, 10) || 1200,
+      evidence: 'corpus'
+    })
   });
-  if (r.status === 200) {
-    toast(suite + ': ' + (r.data.passed || 0) + '/' + (r.data.total || 0) + ' passed');
-  } else {
-    toast(suite + ': ' + (r.data.error || 'endpoint not wired'));
+  if (r.status !== 200 || !r.data || !r.data.run_id) {
+    status.textContent = 'Could not start: ' + ((r.data && r.data.error) || r.status);
+    button.disabled = false;
+    return;
   }
-  loadTestResults();
+  atPolling[subject] = r.data.run_id;
+  document.getElementById('at-downloads-' + subject).innerHTML = '';
+  atRenderProgress(subject, r.data);
+  atPollRun(subject, r.data.run_id, button);
+}
+
+function atRenderProgress(subject, state) {
+  const wrap = document.getElementById('at-progress-' + subject);
+  if (!wrap) return;
+  wrap.style.display = '';
+  const total = state.total || 1;
+  const done = state.completed || 0;
+  wrap.querySelector('.bar').style.width = Math.round(100 * done / total) + '%';
+  const status = document.getElementById('at-status-' + subject);
+  status.textContent = (state.status === 'running' ? 'Generating ' : 'Generated ')
+    + done + ' / ' + total + ' paper(s)';
+}
+
+async function atPollRun(subject, runId, button) {
+  const r = await apiFetch('/api/ops/papers/batch/' + runId);
+  if (r.status !== 200 || !r.data) {
+    document.getElementById('at-status-' + subject).textContent = 'Run lost: ' + ((r.data && r.data.error) || r.status);
+    if (button) button.disabled = false;
+    return;
+  }
+  atRenderProgress(subject, r.data);
+  atRenderResults(subject, r.data);
+  if (r.data.status === 'running') {
+    setTimeout(() => atPollRun(subject, runId, button), 1500);
+    return;
+  }
+  if (button) button.disabled = false;
+  if (r.data.status === 'done') atRenderDownloads(subject, runId, r.data);
+  else toast('Paper run ended: ' + (r.data.error || r.data.status));
+}
+
+function atRenderResults(subject, state) {
+  const host = document.getElementById('at-results-' + subject);
+  if (!host) return;
+  const rows = (state.results || []).map(row => {
+    const cls = row.status === 'ok' ? 'ok' : (row.status === 'queued' ? '' : 'err');
+    const err = row.error ? escapeHtml(row.error) : '';
+    const detail = row.status === 'ok'
+      ? (row.sources || 0) + ' source(s)'
+        + (row.background ? ', ' + row.background + ' background' : '')
+        + (row.gaps ? ', ' + row.gaps + ' gap(s)' : '')
+      : '';
+    return '<tr><td>' + escapeHtml(row.label || row.tile_key) + '</td>'
+      + '<td>' + pill(row.status || 'queued', cls) + '</td>'
+      + '<td>' + (row.duration_ms ? (row.duration_ms / 1000).toFixed(1) + 's' : '—') + '</td>'
+      + '<td>' + detail + err + '</td></tr>';
+  }).join('');
+  host.innerHTML = rows
+    ? '<table><thead><tr><th>Tile</th><th>Status</th><th>Time</th><th>Evidence / error</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    : '';
+}
+
+function atRenderDownloads(subject, runId, state) {
+  const host = document.getElementById('at-downloads-' + subject);
+  if (!host) return;
+  const base = '/api/ops/papers/batch/' + runId + '/download';
+  const ok = (state.results || []).filter(r => r.status === 'ok').length;
+  host.innerHTML = '<a class="btn primary" href="' + base + '?format=zip">Download ZIP (' + ok + ' paper(s))</a>'
+    + (state.combined ? '<a class="btn" href="' + base + '?format=docx">Download combined DOCX</a>' : '')
+    + '<span class="at-status">Run ' + escapeHtml(runId) + ' · ' + escapeHtml(state.label || subject) + '</span>';
 }
 
 /* ── Chat ── */
@@ -1502,7 +1670,7 @@ document.getElementById('wfRegen').addEventListener('click', () => {
 loadHealth();
 loadErrors();
 loadHealHistory();
-loadTestResults();
+loadPaperTesting();
 </script>
 </body>
 </html>

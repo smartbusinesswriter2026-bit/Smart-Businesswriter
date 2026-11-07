@@ -1,0 +1,505 @@
+Advanced Financial Statement Computations
+Supplement to the original list of 186 computations
+Numbering continues from item 187. Covers IFRS/US GAAP topics, consolidation, financial instruments, forensic analysis and industry measures.
+A. Revenue Recognition (IFRS 15 / ASC 606)
+Allocation by Standalone Selling PriceFormula: Allocated Price(i) = Transaction Price × SSP(i) ÷ Σ SSPSpreads a bundled price across performance obligations.
+Residual Approach to SSPFormula: SSP(i) = Transaction Price − Σ Observable SSP of Other ItemsEstimates SSP when it is highly variable or uncertain.
+Expected Cost Plus Margin SSPFormula: Expected Cost × (1 + Margin %)Estimates SSP when no observable price exists.
+Discount Allocation to Specific ItemsFormula: Discount(i) = Total Discount × SSP(i) ÷ Σ SSP of Affected ItemsAllocates a discount only where evidence supports it.
+Variable Consideration – Expected ValueFormula: Σ pᵢ × AmountᵢProbability-weighted transaction price estimate.
+Variable Consideration – Most Likely AmountFormula: Single most likely outcome among a few discrete resultsBest estimate when outcomes are binary.
+Constraint on Variable ConsiderationFormula: Revenue = min(Estimate, Amount unlikely to reverse)Limits revenue to what is highly probable.
+Significant Financing ComponentFormula: Transaction Price = PV of Payments at the Customer&apos;s Borrowing RateSeparates revenue from interest.
+Interest Income on Financing ComponentFormula: Contract Balance × Implicit Rate × TimeInterest recognized on deferred payment.
+Refund Liability (Right of Return)Formula: Sales × Expected Return RateAmount expected to be refunded.
+Right-of-Return AssetFormula: Cost of Goods × Expected Return Rate − Recovery CostsInventory expected to come back.
+Loyalty Points – Deferred RevenueFormula: Transaction Price × Points SSP ÷ (Goods SSP + Points SSP)Revenue deferred for points awarded.
+Loyalty Points SSPFormula: Points Issued × Expected Redemption Rate × Value per PointEstimated stand-alone value of points.
+Revenue on Points RedeemedFormula: Deferred Revenue × Points Redeemed ÷ Total Points Expected to Be RedeemedRecognizes deferred revenue as points are used.
+Gift Card Breakage (Proportional)Formula: Breakage Revenue = Redemptions × Breakage % ÷ (1 − Breakage %)Recognizes unredeemed amounts in proportion to usage.
+Principal versus Agent (Net Revenue)Formula: Revenue = Gross Billing − Amount Remitted to SupplierRevenue reported by an agent.
+Contract Asset or LiabilityFormula: Cumulative Revenue Recognized − Cumulative Amounts BilledPositive = contract asset; negative = contract liability.
+Progress with Uninstalled MaterialsFormula: (Cost Incurred − Uninstalled Materials) ÷ (Total Est. Cost − Uninstalled Materials)Adjusts cost-to-cost progress for unused materials.
+Cumulative Catch-Up AdjustmentFormula: New Progress % × Price − Revenue Recognized to DateCorrects revenue after an estimate changes.
+Amortization of Contract Acquisition CostsFormula: Capitalized Commission ÷ Expected Customer Life × Months ElapsedSpreads incremental costs over the benefit period.
+Onerous Contract ProvisionFormula: Unavoidable Cost (lower of fulfilment cost or penalty) − Expected Economic BenefitsLoss recognized on loss-making contracts.
+Service-Type Warranty RevenueFormula: Allocated Warranty Price ÷ Warranty PeriodStraight-line revenue on extended warranties.
+Prospective Contract ModificationFormula: (Remaining Original Consideration + Added Consideration) ÷ Remaining PeriodRevenue after a modification that is not a separate contract.
+Sale with Repurchase Option (Financing)Formula: Repurchase Price − Sale Price = Interest Expense over TermTreats the sale as a borrowing.
+Franchise Continuing FeeFormula: Franchisee Sales × Fee RateSales-based royalty revenue.
+B. Leases (Advanced)
+Lessor Net Investment in a Finance LeaseFormula: PV of Lease Payments + PV of Unguaranteed Residual (at implicit rate)Receivable recognized by the lessor.
+Gross Investment in the LeaseFormula: Lease Payments Receivable + Unguaranteed ResidualUndiscounted amount to be received.
+Unearned Finance IncomeFormula: Gross Investment − Net InvestmentInterest to be earned over the lease term.
+Implicit Rate in the LeaseFormula: Rate where PV(Payments + Unguaranteed Residual) = Fair Value + Initial Direct CostsDiscount rate built into lease pricing.
+Lessor Finance IncomeFormula: Opening Net Investment × Implicit RatePeriodic interest income.
+Sales-Type Lease RevenueFormula: Lower of Fair Value and PV of Lease PaymentsRevenue at commencement for a dealer lessor.
+Sales-Type Lease Cost of SalesFormula: Carrying Amount − PV of Unguaranteed ResidualCost matched to lease revenue.
+Selling Profit on a Sales-Type LeaseFormula: Lease Revenue − Cost of SalesDealer profit recognized at inception.
+Operating Lease Income (Lessor)Formula: Total Lease Payments ÷ Lease TermStraight-line rental income.
+Single Lease Cost (Lessee, US GAAP Operating)Formula: Total Payments + Initial Direct Costs − Incentives ÷ Lease TermStraight-line expense.
+ROU Amortization Plug (US GAAP Operating)Formula: Straight-Line Cost − Interest on Lease LiabilityBalancing amortization of the right-of-use asset.
+Lease Liability RemeasurementFormula: PV of Revised Payments at Revised Discount RateAdjusts the liability after a modification or reassessment.
+Index-Linked Lease PaymentFormula: Base Payment × (CPI Current ÷ CPI Base)Payment adjusted for an inflation index.
+Expected Payment under Residual GuaranteeFormula: max(Guaranteed Value − Expected Residual Value, 0)Amount included in the lease liability.
+Right-of-Use Asset in Sale and LeasebackFormula: Carrying Amount × PV of Lease Payments ÷ Fair ValuePortion of the asset retained by the seller-lessee.
+Gain on Sale and LeasebackFormula: (Fair Value − Carrying Amount) × (Fair Value − PV of Lease Payments) ÷ Fair ValueGain relating to rights actually transferred.
+Above-Market Sale Price AdjustmentFormula: Excess of Sale Price over Fair Value = Additional FinancingTreats excess proceeds as a loan.
+Current Portion of Lease LiabilityFormula: Σ (Payments − Interest) due within 12 monthsPrincipal reduction next year.
+Finance Lease Expense (Lessee)Formula: ROU Depreciation + Interest on Lease LiabilityFront-loaded total expense.
+Capitalized Operating Leases (Analyst)Formula: Annual Rent × Multiple (e.g., 8) or PV of commitmentsEstimated debt-like lease obligation.
+Lease-Adjusted DebtFormula: Reported Debt + Capitalized Operating LeasesDebt including lease obligations.
+EBITDARFormula: EBITDA + Rent ExpenseEarnings before lease costs.
+Lease-Adjusted LeverageFormula: (Debt + Capitalized Leases) ÷ EBITDARLeverage comparable across lease strategies.
+C. Financial Instruments (IFRS 9 / ASC 326 / ASC 815)
+Effective Interest on Amortized Cost InvestmentFormula: Opening Amortized Cost × EIRInterest income on a debt investment.
+EIR Including Transaction CostsFormula: Rate where PV(Contractual Cash Flows) = Net Proceeds or Net OutlaySpreads fees and costs over the life.
+Loan Origination Fee EffectFormula: Net Loan = Principal − Fees; EIR &gt; Stated RateFees increase the effective yield.
+12-Month Expected Credit LossFormula: PD₁₂ × LGD × EAD ÷ (1 + EIR)Loss allowance for Stage 1 assets.
+Lifetime Expected Credit LossFormula: Σ Marginal PD(t) × LGD × EAD(t) × Discount Factor(t)Loss allowance for Stage 2 and 3 assets.
+Marginal Probability of DefaultFormula: Survival(t−1) × PD(t)Default probability within a single period.
+Cumulative Probability of DefaultFormula: 1 − Π (1 − PD(t))Default probability over multiple periods.
+Probability-Weighted ECLFormula: Σ Scenario Weight × ECL(scenario)Reflects multiple economic scenarios.
+Provision Matrix (Simplified Approach)Formula: Σ Receivables in Bucket × Loss RateAllowance for trade receivables.
+Historical Loss RateFormula: Write-offs ÷ Receivables in Bucket ± Forward-Looking AdjustmentRate used in the matrix.
+Stage 3 Interest IncomeFormula: (Gross Carrying Amount − Loss Allowance) × EIRInterest on credit-impaired assets.
+POCI Interest IncomeFormula: Amortized Cost × Credit-Adjusted EIRInterest on purchased credit-impaired assets.
+CECL Allowance (Loss-Rate Method)Formula: Pool Balance × Expected Lifetime Loss RateUS GAAP current expected credit loss.
+FVOCI Debt – OCI BalanceFormula: Fair Value − Amortized Cost (net of allowance)Unrealized gain or loss held in OCI.
+Recycling on Sale of FVOCI DebtFormula: P&amp;L Gain = Proceeds − Amortized Cost; Reclassification = Cumulative OCIMoves OCI into profit or loss.
+Fair Value Hedge AdjustmentFormula: Hedged Item Carrying Amount ± Fair Value Change from the Hedged RiskBasis adjustment on the hedged item.
+Hedge IneffectivenessFormula: Δ FV Hedging Instrument + Δ FV Hedged ItemNet amount recognized in profit or loss.
+Dollar-Offset EffectivenessFormula: Δ FV Hedging Instrument ÷ Δ FV Hedged Item (80%–125%)Legacy effectiveness test.
+Cash Flow Hedge ReserveFormula: Lower (in absolute terms) of Cumulative Gain/Loss on Instrument and Cumulative Change in PV of Hedged Cash FlowsEffective portion held in OCI.
+Basis Adjustment on a Hedged PurchaseFormula: Initial Cost = Purchase Price + Cumulative Hedge ReserveMoves the reserve into inventory or asset cost.
+Time Value of an Option Excluded from HedgeFormula: Premium − Intrinsic ValueCost of hedging held in OCI.
+Forward Points AmortizationFormula: (Forward Rate − Spot Rate) × Notional ÷ TermCost of a forward hedge over time.
+Derivative Value (Forward)Formula: (F market − F contract) × Notional ÷ (1 + r)^TFair value of a forward position.
+Swap SettlementFormula: (Floating Rate − Fixed Rate) × Notional × Day FractionNet periodic swap payment.
+Net Investment Hedge in OCIFormula: Lower of FX Gain on Hedging Instrument and FX Loss on Net InvestmentEffective portion in the translation reserve.
+Convertible Bond – Liability ComponentFormula: PV of Coupons and Principal at Market Rate of Straight DebtDebt portion of a compound instrument.
+Convertible Bond – Equity ComponentFormula: Proceeds − Liability ComponentResidual conversion option.
+Accretion of Convertible LiabilityFormula: Opening Liability × Market Rate of Straight DebtInterest expense on the debt component.
+Induced Conversion ExpenseFormula: Fair Value of Extra Consideration GivenCost of sweeteners offered for early conversion.
+Debt Extinguishment Gain or LossFormula: Carrying Amount − Reacquisition Price (incl. costs)Result of retiring debt early.
+10% Test for Debt ModificationFormula: |PV of New Cash Flows at Original EIR − PV of Old Cash Flows| ÷ PV of OldSubstantial modification if ≥ 10%.
+Non-Substantial Modification Gain or LossFormula: PV of Modified Cash Flows at Original EIR − Carrying AmountAdjustment when the loan is not derecognized.
+Debt-for-Equity Swap GainFormula: Carrying Amount of Debt − Fair Value of Equity IssuedGain on settling debt with shares.
+Troubled Debt Restructuring Impairment (US)Formula: Carrying Amount − PV of Restructured Cash Flows at Original RateCreditor&apos;s loss on restructured loan.
+Financial Guarantee LiabilityFormula: Higher of ECL Allowance and Premium Received − Cumulative IncomeMeasurement after initial recognition.
+Host Contract with Embedded DerivativeFormula: Total Instrument − Fair Value of Embedded DerivativeResidual value allocated to the host.
+Redeemable Preference Share LiabilityFormula: PV of Redemption Amount and Fixed DividendsDebt classification of mandatory preferred stock.
+Cost of Receivables FactoringFormula: Fee + Discount; Annualized = (Cost ÷ Advance) × (365 ÷ Days)Effective cost of selling receivables.
+Gain or Loss on DerecognitionFormula: Proceeds + New Assets Obtained − New Liabilities − Carrying AmountResult of transferring a financial asset.
+Own Credit Risk in OCIFormula: Change in FV of Liability Attributable to Own CreditFair value option liabilities.
+Credit Valuation Adjustment (CVA)Formula: Σ Expected Exposure(t) × PD(t) × LGD × DF(t)Fair value deduction for counterparty default.
+D. Income Taxes (Advanced)
+Effective Tax Rate ReconciliationFormula: ETR = Statutory Rate ± (Permanent Difference × Rate) ÷ Pre-Tax IncomeExplains why ETR differs from the statutory rate.
+Deferred Tax Asset on Tax Loss CarryforwardFormula: Unused Tax Loss × Enacted RateFuture tax saving from losses.
+Valuation AllowanceFormula: DTA × Portion Not More Likely Than Not to Be RealizedReduces DTA to realizable amount.
+Net Deferred Tax Asset RecognizedFormula: DTA − Valuation AllowanceAmount recognized on the balance sheet.
+Remeasurement for a Rate ChangeFormula: Temporary Difference × (New Rate − Old Rate)Adjusts deferred tax when rates change.
+Deferred Tax on Fair Value Step-UpFormula: (Fair Value − Tax Base) × Tax RateIncreases goodwill in a business combination.
+Deferred Tax on Revaluation SurplusFormula: (Revalued Amount − Tax Base) × Tax RateCharged to OCI.
+Deferred Tax on Undistributed Subsidiary ProfitFormula: Undistributed Earnings × Withholding or Dividend Tax RateRecognized if reversal is foreseeable.
+Deferred Tax on Intercompany ProfitFormula: Unrealized Profit × Buyer&apos;s Tax RateTax effect of eliminated profit.
+Deferred Tax on Lease AccountingFormula: (Lease Liability − ROU Asset) × Tax RateTemporary difference from lease recognition.
+Deferred Tax on Share-Based PaymentsFormula: min(Cumulative Expense, Intrinsic Value) × Rate; excess to equityTax effect of employee awards.
+Deferred Tax on Equity Component of ConvertibleFormula: Equity Component × Rate (charged to equity)Tax effect of compound instruments.
+Uncertain Tax Position – Expected ValueFormula: Σ p × Tax OutcomeProbability-weighted tax exposure.
+Uncertain Tax Position – Most Likely AmountFormula: Single most likely tax outcomeAlternative measurement.
+Unrecognized Tax Benefit (US Two-Step)Formula: Benefit Claimed − Largest Amount &gt; 50% Likely to Be RealizedReserve for uncertain positions.
+Interest on Uncertain Tax LiabilityFormula: Unpaid Tax × Interest Rate × TimeAccrual for interest on disputed tax.
+Intraperiod Tax AllocationFormula: Tax on Item = Tax with Item − Tax without ItemAllocates tax to discontinued ops or OCI.
+Estimated Annual Effective Tax RateFormula: Expected Annual Tax ÷ Expected Annual Ordinary IncomeRate applied in interim reporting.
+Interim Tax ProvisionFormula: YTD Ordinary Income × Estimated Annual ETR − Tax Previously ProvidedQuarter&apos;s tax expense.
+Minimum Corporate Income TaxFormula: Payable = Higher of Regular Tax and Minimum Tax (e.g., 2% of Gross Income)Alternative minimum tax test.
+Excess Minimum Tax CreditFormula: Minimum Tax Paid − Regular TaxCarried forward against future regular tax.
+Tax Loss Carryback RefundFormula: Carryback Loss × Prior Year Tax RateRefund from applying current losses to prior years.
+Interest Deduction LimitationFormula: Disallowed Interest = Net Interest − Cap % × Tax EBITDAExcess interest carried forward as a DTA.
+Cash Tax RateFormula: Cash Taxes Paid ÷ Pre-Tax IncomeActual tax burden.
+Deferred Tax Share of Total TaxFormula: Deferred Tax Expense ÷ Total Tax ExpenseIndicates timing-based tax deferral.
+Tax Effect of OCI ItemsFormula: Pre-Tax OCI × (1 − Tax Rate)OCI presented net of tax.
+Investment Tax Credit (Deferral Method)Formula: Credit = Qualifying Cost × Credit Rate, amortized over asset lifeSpreads the credit into income.
+Offsetting DTA and DTLFormula: Net = DTA − DTL (same taxation authority)Balance sheet presentation.
+E. Employee Benefits and Share-Based Payment (Advanced)
+Past Service CostFormula: PV of Additional Benefits × Employees AffectedExpense from a plan amendment.
+Settlement Gain or LossFormula: PV of DBO Settled − Settlement PriceResult of settling plan obligations.
+Net Interest on Net DB LiabilityFormula: (DBO − Plan Assets) × Discount RateInterest component in profit or loss.
+Time-Weighted Interest on MovementsFormula: Contribution or Benefit × Rate × Months Remaining ÷ 12Adjusts interest for mid-year cash flows.
+Return on Plan Assets Excluding InterestFormula: Actual Return − Opening Assets × Discount RateRemeasurement recognized in OCI.
+Actuarial Gain or LossFormula: Expected DBO − Actual DBORemeasurement due to changed assumptions or experience.
+Asset CeilingFormula: Recognized Asset = min(Surplus, PV of Economic Benefits Available)Limits pension asset recognition.
+Projected Benefit Obligation Roll-ForwardFormula: Opening PBO + Service + Interest + Prior Service Cost ± Actuarial − Benefits PaidClosing obligation.
+Accumulated Benefit ObligationFormula: PBO excluding projected future salary increasesObligation based on current pay.
+Service Cost (Projected Unit Credit)Formula: Benefit Earned in Year × Annuity Factor ÷ (1 + r)^(Years to Retirement)Current year&apos;s benefit cost.
+Expected Return on Plan Assets (US)Formula: Expected Rate × Market-Related Value of AssetsSmoothed return component.
+Corridor Amortization (US GAAP)Formula: (Net Loss − 10% × max(PBO, Plan Assets)) ÷ Average Remaining Service PeriodAmortization of unrecognized actuarial losses.
+Prior Service Cost AmortizationFormula: Unamortized PSC ÷ Remaining Service YearsSpreads plan amendment cost.
+Net Periodic Pension Cost (US GAAP)Formula: Service + Interest − Expected Return + PSC Amortization + Gain/Loss AmortizationTotal pension expense.
+Funded StatusFormula: Fair Value of Plan Assets − PBOBalance sheet amount for a plan.
+Defined Contribution ExpenseFormula: Salary × Contribution % − Forfeitures AppliedEmployer contribution expense.
+Termination BenefitsFormula: Employees Affected × Benefit per Employee (discounted if &gt; 12 months)Liability when the plan is committed.
+Compensated Absences AccrualFormula: Unused Days × Daily Rate × Probability of Use or PayoutAccrued vacation liability.
+Bonus Accrual (After-Bonus Basis)Formula: Net Income before Bonus × Rate ÷ (1 + Rate)Bonus computed on income after bonus.
+Cash-Settled SAR LiabilityFormula: Rights × Fair Value per Right × Elapsed ÷ Vesting PeriodRemeasured each reporting date.
+Cash-Settled SAR ExpenseFormula: Closing Liability − Opening Liability + Cash PaidPeriod expense.
+Graded Vesting Expense (Each Tranche)Formula: Σ [Tranche Fair Value × Expected to Vest × Years Elapsed ÷ Tranche Years]Treats each tranche as a separate award.
+Option Modification Incremental Fair ValueFormula: FV of Modified Option − FV of Original Option (at modification)Additional cost to be recognized.
+Non-Market Performance Condition ExpenseFormula: Awards × Expected to Vest % × Grant-Date FV × Elapsed ÷ VestingTrue-up expected vesting each period.
+Market-Condition AwardFormula: Expense recognized regardless of whether the condition is metCondition built into grant-date fair value.
+Option Exercise EntryFormula: Cash + Equity Reserve = Share Capital + Share PremiumReclassifies reserve on exercise.
+Restricted Stock Unit ExpenseFormula: Units × Grant-Date Price × (1 − Forfeiture) ÷ Vesting PeriodStraight-line RSU cost.
+Employee Share Purchase Plan DiscountFormula: (Market Price − Purchase Price) × SharesCompensation from discounted share purchases.
+Deferred Compensation LiabilityFormula: PV of Promised PaymentsObligation for deferred pay.
+Dilutive Shares from RSUsFormula: Units − (Unrecognized Compensation ÷ Average Price)Treasury-method shares for EPS.
+Leveraged ESOP CompensationFormula: Shares Allocated × Fair ValueExpense as loan payments release shares.
+F. Business Combinations and Consolidation (Advanced)
+Bargain Purchase GainFormula: FV Net Identifiable Assets − (Consideration + NCI + Previously Held Interest)Gain when the price is below net asset fair value.
+Goodwill in a Step AcquisitionFormula: Consideration + FV Previously Held Interest + NCI − FV Net AssetsGoodwill when control is obtained in stages.
+Gain on Previously Held InterestFormula: FV at Acquisition Date − Carrying Amount (incl. recycled OCI)Remeasurement upon gaining control.
+Contingent Consideration at AcquisitionFormula: Σ p × Payment ÷ (1 + r)^tFair value of earn-outs.
+Contingent Consideration RemeasurementFormula: New Fair Value − Previous Fair ValueRecognized in profit or loss.
+Share Consideration Fair ValueFormula: Shares Issued × Acquisition-Date Share PriceConsideration paid in equity.
+NCI at Fair Value (Full Goodwill)Formula: NCI Shares × Market Price (adjusted for control premium)Non-controlling interest at acquisition.
+NCI at Proportionate ShareFormula: NCI % × FV Identifiable Net AssetsAlternative measurement.
+Goodwill Attributable to NCIFormula: NCI at Fair Value − NCI % × FV Net AssetsFull-goodwill component of NCI.
+Fair Value Excess AmortizationFormula: FV Excess ÷ Remaining Useful LifeExtra depreciation on consolidation.
+Consolidated Net IncomeFormula: Parent Income (excl. sub dividends) + Sub Income − FV Amortization − Unrealized Profit − Goodwill ImpairmentGroup profit.
+Consolidated Retained EarningsFormula: Parent RE + Parent % × (Sub Post-Acquisition RE − Adjustments)Group retained earnings.
+Cost-to-Equity ConversionFormula: Equity Income = Parent % × (Sub NI − Amortization) − Dividends RecordedAdjusts parent books to equity method.
+Downstream Unrealized Inventory ProfitFormula: Ending Inventory from Parent × Gross Profit % (all to parent)Eliminated profit on parent-to-sub sales.
+Upstream Unrealized Inventory ProfitFormula: Ending Inventory from Sub × Gross Profit % (shared with NCI)Eliminated profit on sub-to-parent sales.
+Intercompany Asset Transfer GainFormula: Selling Price − Carrying AmountUnrealized gain to be eliminated.
+Excess Depreciation on Transferred AssetFormula: Unrealized Gain ÷ Remaining LifeRealization of the eliminated gain.
+Gain or Loss on Intercompany BondsFormula: Carrying Amount of Bonds − Purchase PriceConstructive retirement gain or loss.
+NCI Share of Adjusted IncomeFormula: NCI % × (Sub NI − FV Amortization ± Upstream Profit)Profit attributable to NCI.
+Ending NCI BalanceFormula: NCI at Acquisition + NCI % × Adjusted Post-Acquisition Income − NCI Dividends − NCI Share of ImpairmentNon-controlling interest on the balance sheet.
+Mid-Year Acquisition Income IncludedFormula: Annual Sub Income × Months Owned ÷ 12Post-acquisition income consolidated.
+Effective Interest in Indirect HoldingsFormula: Parent % in S1 × S1 % in S2Parent&apos;s look-through ownership.
+NCI in Indirect HoldingsFormula: 1 − Effective InterestAggregate outside interest.
+Change in Ownership without Loss of ControlFormula: Equity Adjustment = Consideration − Carrying Amount of NCI TransferredRecorded directly in equity.
+Gain on Loss of ControlFormula: FV Consideration + FV Retained Interest + Carrying NCI − Carrying Net Assets (incl. goodwill) ± OCI RecycledGain on deconsolidation.
+Put Option over NCI LiabilityFormula: PV of Exercise PriceFinancial liability for NCI redemption rights.
+Reverse Acquisition – Deemed Shares IssuedFormula: Acquirer Shares × (1 − Acquirer-Holders&apos; Ownership %) ÷ Acquirer-Holders&apos; Ownership %Deemed consideration shares.
+Reverse Acquisition ConsiderationFormula: Deemed Shares × Fair Value per ShareCost of the legal acquiree.
+Consolidated EPSFormula: (Consolidated NI Attributable to Parent − Preferred Dividends) ÷ Parent Weighted SharesGroup earnings per share.
+Goodwill Impairment (US Reporting Unit)Formula: min(Carrying Amount − Fair Value of Reporting Unit, Goodwill)Loss capped at goodwill.
+Impairment Allocation in a CGUFormula: Goodwill first, then Asset Loss = Remaining Loss × Carrying ÷ Σ CarryingAllocates loss within a cash-generating unit.
+Reversal of ImpairmentFormula: min(Recoverable Amount, Carrying Amount had no impairment) − Current Carrying AmountReversal limit (not for goodwill).
+Proportionate Consolidation of a Joint OperationFormula: Share % × Each Asset, Liability, Revenue and ExpenseLine-by-line share.
+Equity-Method Excess of Cost over Net AssetsFormula: Cost − Share % × FV Net AssetsBasis difference allocated and amortized.
+Equity-Method Share of Losses LimitFormula: Losses Recognized ≤ Investment + Long-Term InterestsStops at zero.
+Gain on Loss of Significant InfluenceFormula: FV Retained + Proceeds − Carrying Amount ± OCI RecycledResult of changing to fair value accounting.
+Share of Associate&apos;s OCIFormula: Investee OCI × Ownership %Recorded in investor&apos;s OCI.
+Acquisition Cash Flow (Net of Cash)Formula: Cash Consideration − Cash AcquiredInvesting outflow for acquisitions.
+Common-Control CombinationFormula: Difference between Carrying Amount of Net Assets and Consideration → EquityPredecessor accounting.
+Dividend in Kind GainFormula: Fair Value of Asset − Carrying AmountGain on distributing non-cash assets.
+Variable Interest Entity Equity-at-Risk TestFormula: Equity Investment at Risk ÷ Total AssetsSufficiency of equity (about 10% rule of thumb).
+G. Foreign Currency Translation, Hyperinflation and Current-Cost Accounting
+Current Rate Method TranslationFormula: Assets and Liabilities at Closing Rate; Income at Average Rate; Equity at Historical RateTranslation of a foreign operation.
+Cumulative Translation AdjustmentFormula: Net Assets × Closing Rate − [Opening Net Assets × Opening Rate + NI × Average Rate − Dividends × Dividend-Date Rate]Plug that balances translated statements.
+Translation Adjustment (Simplified)Formula: Opening Net Assets × (Closing − Opening Rate) + NI × (Closing − Average Rate)Annual translation difference.
+Translated Retained EarningsFormula: Opening RE (translated) + NI × Average Rate − Dividends × Historical RateRetained earnings in reporting currency.
+Remeasurement Gain or Loss (Temporal Method)Formula: Σ Monetary Items × (Closing Rate − Historical Rate)Foreign exchange result in profit or loss.
+Net Monetary ExposureFormula: Monetary Assets − Monetary LiabilitiesBasis for remeasurement gain or loss.
+Temporal COGSFormula: Beginning Inventory (historical) + Purchases (average) − Ending Inventory (historical)Cost of sales under the temporal method.
+Temporal DepreciationFormula: Depreciation × Historical Rate of the AssetNon-monetary item at historical rate.
+Hyperinflation Restatement FactorFormula: General Price Index at Reporting Date ÷ Index at Transaction DateUpdates historical amounts to current purchasing power.
+Restated Non-Monetary AssetFormula: Historical Cost × Restatement FactorAsset in current measuring unit.
+Gain or Loss on Net Monetary PositionFormula: Restated Net Monetary Position − Nominal Net Monetary PositionPurchasing-power result.
+Restated Income Statement ItemFormula: Amount × (Closing Index ÷ Index at Transaction Date)Expresses income items in current units.
+Constant-Currency RevenueFormula: Current Local Revenue × Prior-Period Exchange RateExcludes exchange rate effects.
+Foreign Exchange Impact on RevenueFormula: Reported Revenue − Constant-Currency RevenueCurrency effect on growth.
+Organic GrowthFormula: Reported Growth − FX Effect − Acquisition/Disposal EffectUnderlying growth.
+Exchange Effect on Cash BalancesFormula: Opening Foreign Cash × (Closing − Opening Rate) + Flows × (Closing − Flow Rate)Cash flow statement reconciling item.
+Translated Cash Flow ItemFormula: Local Currency Flow × Rate on the Flow Date (or Average)Foreign operation cash flows.
+Intragroup Foreign Loan Gain or LossFormula: Foreign Amount × Rate ChangeProfit or loss unless part of a net investment.
+Cost of Sales Adjustment (Current Cost)Formula: Current Cost of Goods Sold − Historical Cost of Goods SoldHolding gain element in COGS.
+Depreciation Adjustment (Current Cost)Formula: Current Cost Depreciation − Historical DepreciationReplacement-cost depreciation.
+Monetary Working Capital AdjustmentFormula: Average Monetary Working Capital × Price ChangeExtra funding needed due to inflation.
+Gearing AdjustmentFormula: (Net Debt ÷ (Net Debt + Equity at Current Cost)) × (COSA + DA + MWCA)Share of adjustments financed by debt.
+Real Holding GainFormula: Holding Gain − Inflation Adjustment on Opening ValueGain above general inflation.
+Current Cost Operating ProfitFormula: Historical Profit − COSA − DA − MWCAProfit after maintaining operating capability.
+H. Long-Lived Assets, Inventory and Specialized Assets (Advanced)
+Capitalization of Borrowing Costs (Specific)Formula: Actual Interest − Investment Income on Temporary InvestmentInterest included in asset cost.
+Weighted-Average Accumulated ExpendituresFormula: Σ Expenditure × Months Outstanding ÷ 12Base for interest capitalization.
+Capitalization Rate (General Borrowings)Formula: Total General Interest ÷ Weighted-Average General BorrowingsRate applied to expenditures.
+Avoidable InterestFormula: min[(WAAE − Specific Loans) × Cap Rate + Specific Interest, Actual Interest]Interest capitalized.
+Component DepreciationFormula: Σ (Component Cost − Residual) ÷ Component LifeSeparate depreciation for major parts.
+Change in Estimate – Revised DepreciationFormula: (Carrying Amount − New Residual) ÷ Remaining LifeProspective adjustment.
+Asset Retirement Obligation (Initial)Formula: Expected Cost ÷ (1 + r)^nPresent value of decommissioning cost.
+ARO AccretionFormula: Opening ARO × Discount RateUnwinding of discount.
+Change in ARO EstimateFormula: Revised PV − Carrying ARO → adjusts asset costUpdates asset and liability together.
+Exchange with Commercial SubstanceFormula: Gain/Loss = FV Given − Carrying Amount; New Asset = FV Given ± CashExchange of non-monetary assets.
+Exchange without Commercial SubstanceFormula: New Asset = Carrying Amount Given + Cash PaidDeferral of gain.
+Gain Recognized when Boot Is Received (US)Formula: Total Gain × Boot ÷ (Boot + FV of Asset Received)Partial gain recognition.
+Government Grant – Deferred IncomeFormula: Grant ÷ Useful Life per YearRecognized as income over the asset&apos;s life.
+Government Grant – Netted against AssetFormula: Asset Cost − Grant, then depreciateAlternative presentation.
+Grant Repayment ExpenseFormula: Repayment − Unamortized Deferred IncomeImmediate expense.
+Investment Property Fair Value GainFormula: Closing FV − Opening FV − Additions + Disposals at FVFair value model result.
+Biological Asset GainFormula: (FV less Costs to Sell) closing − opening − Purchases + SalesTotal change in fair value.
+Price Change (Biological Assets)Formula: (Closing Price − Opening Price) × Closing QuantityPrice component of the gain.
+Physical Change (Biological Assets)Formula: (Closing Quantity − Opening Quantity) × Opening PriceGrowth and procreation component.
+Agricultural Produce at HarvestFormula: Fair Value less Costs to Sell at HarvestInitial cost of inventory.
+Successful Efforts Capitalized CostFormula: Drilling Cost of Successful Wells; Dry-Hole Costs ExpensedOil and gas cost capitalization.
+Units-of-Production Depletion (Oil and Gas)Formula: Capitalized Cost × Production ÷ Proved ReservesDepletion expense.
+Held-for-Sale MeasurementFormula: Lower of Carrying Amount and FV less Costs to SellClassification adjustment.
+Inventory Write-Down ReversalFormula: min(New NRV, Original Cost) − Current Carrying AmountReversal limited to original write-down.
+Dollar-Value LIFO Cumulative IndexFormula: Ending Inventory at Current Cost ÷ Ending Inventory at Base-Year CostPrice index for DV-LIFO.
+Dollar-Value LIFO LayerFormula: Increase in Base-Year Cost × Current-Year IndexCost of a new LIFO layer.
+Link-Chain IndexFormula: (Current Cost ÷ Prior-Year Cost of Ending Inventory) × Prior Cumulative IndexIndex when item mix changes.
+LIFO ReserveFormula: FIFO Inventory − LIFO InventoryCumulative difference between methods.
+COGS Converted from LIFO to FIFOFormula: COGS(LIFO) − Change in LIFO ReserveComparability adjustment.
+Inventory Converted from LIFO to FIFOFormula: Inventory(LIFO) + LIFO ReserveBalance sheet adjustment.
+Equity Adjustment for LIFOFormula: LIFO Reserve × (1 − Tax Rate)After-tax equity difference.
+Cumulative Tax Deferred by LIFOFormula: LIFO Reserve × Tax RateTax savings from using LIFO.
+LIFO Liquidation EffectFormula: Units Liquidated × (Current Cost − Old Layer Cost)Profit boost from selling old layers.
+Purchase Commitment LossFormula: (Contract Price − Market Price) × QuantityLoss on firm purchase commitments.
+Fixed Overhead Allocation to InventoryFormula: Fixed Overhead × Actual Production ÷ Normal CapacityPrevents inflating unit cost at low volume.
+US GAAP Recoverability TestFormula: Σ Undiscounted Cash Flows vs. Carrying AmountImpairment indicator for held-and-used assets.
+US GAAP Impairment LossFormula: Carrying Amount − Fair Value (if test failed)Write-down amount.
+Capitalized Internal-Use SoftwareFormula: Application Development Costs (excl. training and data conversion)Costs that qualify for capitalization.
+Relief-from-Royalty ValueFormula: Σ Revenue × Royalty Rate × (1 − t) × Discount FactorFair value of trademarks and technology.
+Multi-Period Excess Earnings ValueFormula: Σ [After-Tax Operating Profit − Contributory Asset Charges] × Discount FactorFair value of customer relationships.
+Contributory Asset ChargeFormula: Fair Value of Contributory Asset × Required ReturnReturn charged for supporting assets.
+Tax Amortization Benefit FactorFormula: 1 ÷ (1 − t × PV Annuity Factor ÷ n)Adds value of tax deductibility.
+Customer Relationship Attrition AmortizationFormula: Value × Customers Lost in Year ÷ Total Customers Expected to Be LostPattern-based amortization.
+Average Age of Fixed AssetsFormula: Accumulated Depreciation ÷ Depreciation ExpenseYears already used.
+Remaining Useful Life of Fixed AssetsFormula: Net PPE ÷ Depreciation ExpenseYears left (approximate).
+Implied Useful LifeFormula: Gross PPE ÷ Depreciation ExpenseAverage life assumed.
+I. Provisions, Contingencies and Other Liabilities
+Provision – Single ObligationFormula: Most Likely OutcomeBest estimate for one item.
+Provision – Large PopulationFormula: Σ pᵢ × AmountᵢExpected value for many similar items.
+Unwinding of Provision DiscountFormula: Opening Provision × Discount RateFinance cost on discounted provisions.
+Restructuring ProvisionFormula: Direct Expenditure Necessarily Entailed − Costs of Ongoing ActivitiesAmount that qualifies for provision.
+Environmental Remediation LiabilityFormula: Σ p × PV(Clean-up Cost)Expected remediation cost.
+Loss Contingency Range (US GAAP)Formula: Low End of Range if No Better EstimateAmount accrued when probable and estimable.
+Litigation ProvisionFormula: Σ Probability × Expected Judgment + Legal Costs (if policy)Expected legal exposure.
+Volume Rebate AccrualFormula: Expected Annual Purchases × Rebate Rate × Months Elapsed ÷ 12Customer rebate liability.
+Coupon LiabilityFormula: Coupons Issued × Redemption % × Face Value − Coupons Redeemed × Face ValueOutstanding coupon obligation.
+Premium Offer LiabilityFormula: (Estimated Redemptions − Actual) × (Cost − Customer Payment) ÷ Coupons per PremiumPromotion cost liability.
+Self-Insurance ReserveFormula: Expected Claims Incurred but Not PaidLiability for retained risks.
+Customer Deposit LiabilityFormula: Deposits Received − Deposits Applied or RefundedAmounts held for customers.
+Dividends in ArrearsFormula: Preferred Dividend Rate × Par × Shares × Years UnpaidDisclosed, not accrued, until declared.
+Estimated Recovery for Unsecured CreditorsFormula: (Free Assets − Preferred Liabilities) ÷ Unsecured LiabilitiesStatement of affairs recovery rate.
+J. Equity Instruments and EPS (Advanced)
+Theoretical Ex-Rights Price (TERP)Formula: (Cum-Rights Price × Old Shares + Subscription Proceeds) ÷ (Old + New Shares)Share price after a rights issue.
+Bonus Factor (Rights Issue)Formula: Fair Value Before Exercise ÷ TERPAdjusts EPS for the bonus element.
+Restated Prior-Year EPS (Rights)Formula: Prior EPS ÷ Bonus FactorComparative EPS after a rights issue.
+Weighted Shares with a Rights IssueFormula: Pre-Rights Shares × Bonus Factor × Months Before ÷ 12 + Post-Rights Shares × Months After ÷ 12Weighted-average share count.
+Two-Class Method EPSFormula: (Distributed + Participation Share of Undistributed) ÷ SharesEPS with participating securities.
+Contingently Issuable SharesFormula: Include shares if conditions would be met at period-endDilution from earn-out shares.
+Written Put Options (Reverse Treasury Method)Formula: Incremental Shares = (Exercise Price − Average Price) × Options ÷ Average PriceDilution from put options.
+If-Converted Method (Preferred)Formula: Add back preferred dividends; add conversion sharesDiluted EPS for convertible preferred.
+Antidilution RankingFormula: Incremental EPS = After-Tax Earnings Effect ÷ Incremental SharesOrders securities for inclusion.
+Accelerated Share Repurchase Share ReductionFormula: Initial Shares Delivered × Time Fraction OutstandingEffect on weighted shares.
+Scrip Dividend Shares IssuedFormula: Dividend ÷ Reference Price × Shareholders Electing Scrip %Shares issued in lieu of cash.
+Liquidating DividendFormula: Dividend − Retained Earnings PortionReturn of capital.
+Redeemable Preferred AccretionFormula: Opening Carrying Amount × Effective RateMoves carrying amount to redemption value.
+Beneficial Conversion FeatureFormula: (Market Price − Effective Conversion Price) × SharesIntrinsic value of a favorable conversion.
+Detachable Warrant AllocationFormula: Proceeds × FV Warrants ÷ (FV Bonds + FV Warrants)Splits proceeds between debt and warrants.
+Cash in Lieu of Fractional SharesFormula: Fraction × Market PriceCash paid for fractional entitlements.
+Retirement of Treasury SharesFormula: Par + Pro-Rata APIC + Retained Earnings if Cost ExceedsEntry to retire repurchased shares.
+Capital ReductionFormula: Reduction in Par × Shares OutstandingReturn of capital to shareholders.
+Pro Forma EPSFormula: (Net Income ± Adjustments after Tax) ÷ Pro Forma SharesEPS as if a transaction occurred earlier.
+Quasi-Reorganization Deficit EliminationFormula: Deficit charged to APIC after asset write-down to FVFresh-start equity restatement.
+K. Accounting Changes, Errors and Other Comprehensive Income
+Retrospective Change in Accounting PolicyFormula: Cumulative Effect on Opening RE = Difference in Prior Period Income × (1 − t)Restates comparatives.
+Change from FIFO to Weighted AverageFormula: (Opening Average-Cost Inventory − Opening FIFO Inventory) × (1 − t)Adjustment to opening retained earnings.
+Error in Ending Inventory – Current YearFormula: Overstated Ending Inventory = Overstated Net Income (same direction)Effect on current profit.
+Error in Ending Inventory – Following YearFormula: Next Year&apos;s Net Income is understated by the same amountCounterbalancing error.
+Corrected Working CapitalFormula: Reported Working Capital ± ErrorImpact on liquidity ratios.
+Reclassification Adjustment (OCI)Formula: Gain or Loss Realized in P&amp;L − Amount Previously in OCIPrevents double counting.
+Accumulated OCI Roll-ForwardFormula: Opening AOCI + OCI for the Period − ReclassificationsReserve balance.
+OCI Component Net of TaxFormula: Pre-Tax Item × (1 − Tax Rate)Presentation of each OCI item.
+Revaluation Surplus TransferFormula: (Revalued Depreciation − Original Depreciation) per YearTransfer to retained earnings.
+Prior-Period Error Effect on Current NIFormula: Current-Year Effect of Error (after tax)Quantifies impact for restatement.
+Restated EPSFormula: (Restated NI − Preferred) ÷ Weighted SharesComparative EPS after restatement.
+Comprehensive Income Attributable to NCIFormula: NCI % × Subsidiary Comprehensive IncomeAllocation of total comprehensive income.
+Held-for-Sale Loss RecognitionFormula: Carrying Amount − FV less Costs to SellMeasurement loss on reclassification.
+Discontinued Operation After-Tax ResultFormula: (Operating Result + Measurement Loss) × (1 − t)Single-line presentation.
+L. Earnings Quality and Forensic Analysis
+Beneish M-ScoreFormula: M = −4.84 + 0.920 DSRI + 0.528 GMI + 0.404 AQI + 0.892 SGI + 0.115 DEPI − 0.172 SGAI + 4.679 TATA − 0.327 LVGIProbability signal of earnings manipulation.
+Days Sales in Receivables Index (DSRI)Formula: (AR(t) ÷ Sales(t)) ÷ (AR(t−1) ÷ Sales(t−1))Revenue inflation indicator.
+Gross Margin Index (GMI)Formula: Gross Margin(t−1) ÷ Gross Margin(t)Deteriorating margins raise pressure.
+Asset Quality Index (AQI)Formula: [1 − (CA(t) + PPE(t)) ÷ TA(t)] ÷ [1 − (CA(t−1) + PPE(t−1)) ÷ TA(t−1)]Growth in soft assets.
+Sales Growth Index (SGI)Formula: Sales(t) ÷ Sales(t−1)Growth pressure indicator.
+Depreciation Index (DEPI)Formula: Depreciation Rate(t−1) ÷ Depreciation Rate(t)Rate = Dep ÷ (Dep + PPE).
+SG&amp;A Index (SGAI)Formula: (SGA(t) ÷ Sales(t)) ÷ (SGA(t−1) ÷ Sales(t−1))Change in overhead efficiency.
+Leverage Index (LVGI)Formula: [(CL(t) + LTD(t)) ÷ TA(t)] ÷ [(CL(t−1) + LTD(t−1)) ÷ TA(t−1)]Change in leverage.
+Total Accruals to Total Assets (TATA)Formula: (Net Income − Cash from Operations) ÷ Total AssetsAccrual intensity.
+Sloan Balance-Sheet AccrualsFormula: (ΔNon-Cash Current Assets − ΔCurrent Liabilities excl. Debt and Taxes − Depreciation) ÷ Average Total AssetsEarnings component not backed by cash.
+Cash Flow Accrual RatioFormula: (Net Income − CFO − CFI) ÷ Average Net Operating AssetsAlternative accrual measure.
+Piotroski F-ScoreFormula: Sum of 9 binary tests: ROA&gt;0, ΔROA&gt;0, CFO&gt;0, CFO&gt;NI, ΔLeverage&lt;0, ΔCurrent Ratio&gt;0, No New Shares, ΔGross Margin&gt;0, ΔAsset Turnover&gt;0Financial strength score (0–9).
+Modified Jones Model (Discretionary Accruals)Formula: TA ÷ A(t−1) = α(1 ÷ A(t−1)) + β₁(ΔREV − ΔREC) ÷ A(t−1) + β₂ PPE ÷ A(t−1) + εResidual = discretionary accruals.
+Roychowdhury Real Activities ModelFormula: CFO ÷ A(t−1) = α₀ + α₁(1 ÷ A(t−1)) + β₁ S ÷ A(t−1) + β₂ ΔS ÷ A(t−1) + εResidual = abnormal operating cash flow.
+Core (Sustainable) EarningsFormula: Reported Earnings − Non-Recurring Gains × (1 − t) + Non-Recurring Losses × (1 − t)Earnings expected to persist.
+Normalized EarningsFormula: Average Earnings through the Cycle, or Normal Margin × SalesEarnings adjusted for cyclicality.
+Adjusted EBITDAFormula: EBITDA + Restructuring + Impairment ± Other Non-Recurring ItemsManagement-style EBITDA.
+Operating Cash Flow to EBITDAFormula: CFO ÷ EBITDACash conversion of operating earnings.
+Free Cash Flow ConversionFormula: FCF ÷ Net IncomeEarnings backed by free cash.
+Receivables versus Sales Growth GapFormula: %ΔReceivables − %ΔSalesRevenue quality signal.
+Inventory versus Sales Growth GapFormula: %ΔInventory − %ΔSalesObsolescence or channel stuffing signal.
+Capex to DepreciationFormula: Capex ÷ DepreciationInvestment relative to asset consumption.
+Capitalization RatioFormula: Capitalized Cost ÷ (Capitalized + Expensed Cost)Aggressiveness of cost capitalization.
+Allowance AdequacyFormula: Allowance ÷ Gross Receivables; Write-Offs ÷ AllowanceReserve conservatism.
+Warranty Reserve AdequacyFormula: Warranty Claims Paid ÷ Warranty ExpenseReserve sufficiency.
+Cash Tax GapFormula: Book Tax Expense − Cash Taxes PaidEarnings supported by deferrals.
+Benford&apos;s Law Expected FrequencyFormula: P(d) = log₁₀(1 + 1 ÷ d)Expected first-digit distribution.
+Benford Chi-Square StatisticFormula: Σ (Observed − Expected)² ÷ ExpectedTests unusual digit patterns.
+Altman Z′-Score (Private Firms)Formula: 0.717 X₁ + 0.847 X₂ + 3.107 X₃ + 0.420 X₄ + 0.998 X₅ (X₄ = Book Equity ÷ Liabilities)Distress score for non-listed firms.
+Altman Z″-Score (Non-Manufacturers)Formula: 6.56 X₁ + 3.26 X₂ + 6.72 X₃ + 1.05 X₄Distress score excluding sales turnover.
+Ohlson O-ScoreFormula: O = −1.32 − 0.407 ln(TA ÷ Price Index) + 6.03 TL/TA − 1.43 WC/TA + 0.0757 CL/CA − 1.72 OENEG − 2.37 NI/TA − 1.83 FFO/TL + 0.285 INTWO − 0.521 CHINLogit model of bankruptcy.
+Zmijewski ScoreFormula: X = −4.336 − 4.513 (NI/TA) + 5.679 (TL/TA) + 0.004 (CA/CL)Probit model of financial distress.
+Springate S-ScoreFormula: 1.03 A + 3.07 B + 0.66 C + 0.4 D (A = WC/TA, B = EBIT/TA, C = EBT/CL, D = Sales/TA)Failure predictor; fail if S &lt; 0.862.
+Logit Probability of FailureFormula: P = e^Score ÷ (1 + e^Score)Converts a score to a probability.
+Earnings Response CoefficientFormula: CAR ÷ Unexpected EarningsMarket reaction to earnings news.
+Standardized Unexpected EarningsFormula: (EPS(t) − EPS(t−4)) ÷ Standard Deviation of Past DifferencesEarnings surprise measure.
+Cumulative Abnormal ReturnFormula: Σ (Actual Return − Expected Return)Event-window price reaction.
+M. Return Decomposition, Operating Analysis and Valuation from Statements
+Five-Step DuPontFormula: (NI ÷ EBT) × (EBT ÷ EBIT) × (EBIT ÷ Sales) × (Sales ÷ Assets) × (Assets ÷ Equity)Decomposes ROE into five drivers.
+Tax BurdenFormula: NI ÷ EBTShare of pre-tax profit kept.
+Interest BurdenFormula: EBT ÷ EBITShare of EBIT left after interest.
+Leverage Effect on ROEFormula: ROE = ROA + (ROA − r_d(1 − t)) × D/EFinancial leverage contribution.
+Net Operating Assets (NOA)Formula: Operating Assets − Operating LiabilitiesCapital tied to operations.
+Net Financial Obligations (NFO)Formula: Financial Obligations − Financial AssetsNet financing position.
+NOPATFormula: Operating Income × (1 − Tax Rate)After-tax operating profit.
+Return on Net Operating AssetsFormula: NOPAT ÷ Average NOAOperating return.
+Net Operating Profit MarginFormula: NOPAT ÷ SalesOperating profitability.
+Net Operating Asset TurnoverFormula: Sales ÷ Average NOAAsset efficiency.
+RNOA DecompositionFormula: RNOA = Operating Margin × NOA TurnoverMargin and turnover drivers.
+Net Borrowing CostFormula: After-Tax Net Interest ÷ Average NFOCost of net debt.
+SpreadFormula: RNOA − Net Borrowing CostGain from borrowing.
+Financial Leverage (FLEV)Formula: NFO ÷ Common EquityNet debt relative to equity.
+ROCE (Penman)Formula: RNOA + FLEV × SpreadReturn on common equity decomposed.
+Operating Liability LeverageFormula: Operating Liabilities ÷ Operating AssetsInterest-free funding of operations.
+Residual Operating IncomeFormula: NOPAT − Required Return × Beginning NOAValue created by operations.
+Abnormal Earnings GrowthFormula: [Earnings(t+1) + r × Dividends(t)] − (1 + r) × Earnings(t)Growth beyond normal expectations.
+Return on Tangible CapitalFormula: NOPAT ÷ (Invested Capital − Goodwill − Intangibles)Return on physical capital.
+Reinvestment RateFormula: (Capex − Depreciation + ΔNWC) ÷ NOPATShare of NOPAT reinvested.
+Growth from ReinvestmentFormula: g = Reinvestment Rate × ROICFundamental growth.
+Value Driver FormulaFormula: Value = NOPAT × (1 − g ÷ ROIC) ÷ (WACC − g)Value from growth and returns.
+Earnings Power ValueFormula: Normalized NOPAT ÷ WACCValue of current earnings without growth.
+Cash-Adjusted P/EFormula: (Price − Net Cash per Share) ÷ (EPS − After-Tax Interest Income per Share)P/E of the operating business.
+Adjusted Enterprise ValueFormula: Market Cap + Debt + Preferred + NCI + Pension Deficit − Cash − AssociatesComprehensive EV.
+Tangible Book Value per ShareFormula: (Equity − Goodwill − Intangibles) ÷ SharesBook value excluding intangibles.
+Price to Tangible BookFormula: Price ÷ Tangible Book Value per ShareValuation versus tangible equity.
+Net Asset Value per ShareFormula: (Market Value of Assets − Liabilities) ÷ SharesAsset-based valuation.
+Free Cash Flow YieldFormula: FCF ÷ Enterprise ValueCash return to all capital providers.
+Shareholder YieldFormula: (Dividends + Buybacks − Share Issuance) ÷ Market CapTotal cash returned to shareholders.
+Pension-Adjusted DebtFormula: Debt + Pension Deficit × (1 − t)Debt including pension underfunding.
+Adjusted Net DebtFormula: Debt + Leases + Pension Deficit − CashComprehensive leverage base.
+Funds from Operations (FFO)Formula: Net Income + Depreciation + Deferred Taxes + Other Non-Cash ItemsCredit-analysis cash earnings.
+FFO to DebtFormula: FFO ÷ Total DebtDebt repayment capacity.
+Retained Cash Flow to Net DebtFormula: (FFO − Dividends) ÷ Net DebtInternal funding of debt reduction.
+Free Operating Cash Flow to DebtFormula: (CFO − Capex) ÷ DebtPost-investment debt coverage.
+Cash Interest CoverageFormula: (CFO + Interest Paid + Taxes Paid) ÷ Interest PaidCash-based interest cover.
+Cash Debt CoverageFormula: CFO ÷ Average Total DebtCash flow relative to debt.
+Cash Flow AdequacyFormula: CFO ÷ (Capex + Debt Repayments + Dividends)Ability to fund obligations internally.
+Dividend Cash CoverageFormula: CFO ÷ Dividends PaidCash backing of dividends.
+Broad Fixed Charge CoverageFormula: (EBITDA − Capex − Cash Taxes) ÷ (Interest + Mandatory Principal)Conservative coverage test.
+Borrowing BaseFormula: 80% × Eligible Receivables + 50% × Eligible InventoryAsset-based lending capacity.
+Covenant HeadroomFormula: (Covenant Limit − Actual Ratio) ÷ Covenant LimitCushion before breach.
+EBITDA CushionFormula: 1 − Net Debt ÷ (Covenant Multiple × EBITDA)Earnings decline absorbable before breach.
+Operating Leverage from StatementsFormula: %ΔEBIT ÷ %ΔSalesObserved profit sensitivity.
+Cost ElasticityFormula: %ΔOperating Costs ÷ %ΔSalesCost stickiness indicator.
+GMROIFormula: Gross Margin ÷ Average Inventory at CostReturn on inventory investment.
+N. Cash Flow Statement (Advanced)
+Liabilities from Financing Activities ReconciliationFormula: Opening + Cash Flows ± FX ± Fair Value ± New Leases = ClosingIAS 7 disclosure.
+Cash Paid for PPE (Roll-Forward)Formula: Closing Gross PPE − Opening Gross PPE + Disposals at Cost − Non-Cash AdditionsCapex in cash.
+Cash Proceeds from DisposalFormula: Carrying Amount Disposed + Gain − LossInvesting inflow.
+Lease Cash Flow SplitFormula: Principal → Financing; Interest → Operating or Financing; Short-Term → OperatingClassification of lease payments.
+Acquisition of Subsidiary, Net of CashFormula: Cash Consideration − Cash and Equivalents AcquiredInvesting line.
+Disposal of Subsidiary, Net of CashFormula: Proceeds − Cash Held by Subsidiary DisposedInvesting line.
+Dividends Paid to NCIFormula: Opening NCI + NCI Share of Income − Closing NCI ± OtherFinancing outflow.
+Dividends Received from AssociateFormula: Opening Investment + Share of Profit − Closing InvestmentCash from associate.
+Cash Taxes Paid (with Deferred Tax)Formula: Current Tax Expense + Opening Payable − Closing PayableExcludes deferred tax.
+Cash Interest PaidFormula: Interest Expense − Discount Amortization − Capitalized Interest + Opening − Closing Interest PayableActual interest cash outflow.
+Cash from Customers (with Unearned Revenue)Formula: Revenue − ΔReceivables + ΔUnearned RevenueDirect method receipts.
+Cash Paid for Prepaid ItemsFormula: Expense + ΔPrepaidDirect method payment.
+Add-Back of Share-Based PaymentFormula: + Equity-Settled Share-Based Payment ExpenseNon-cash adjustment.
+Adjustment for ProvisionsFormula: + Provision Expense − Cash UtilizedNet change in provisions.
+Adjustment for Unrealized FXFormula: − Unrealized Gain / + Unrealized LossNon-cash exchange differences.
+Adjustment for Fair Value GainsFormula: − Fair Value Gain on Investment Property and DerivativesNon-cash gains.
+Unwinding of Discount AdjustmentFormula: + Accretion on Provisions and LiabilitiesNon-cash finance cost.
+Cash Generated from OperationsFormula: Profit before Tax + Non-Cash Adjustments ± Working Capital ChangesBefore interest and tax paid.
+Net Debt ReconciliationFormula: Opening Net Debt − Net Cash Flow ± FX ± Non-Cash Movements = ClosingNet debt movement analysis.
+FCFE from CFOFormula: CFO − Capex + Net BorrowingCash available to equity holders.
+FCFE from Net IncomeFormula: NI + D&amp;A − Capex − ΔNWC + Net BorrowingAlternative route.
+FCFF from CFOFormula: CFO + Interest × (1 − t) − CapexCash available to all providers.
+FCFF from EBITDAFormula: EBITDA × (1 − t) + D&amp;A × t − Capex − ΔNWCUnlevered free cash flow.
+Unlevered FCF from Net IncomeFormula: NI + Interest × (1 − t) + D&amp;A − Capex − ΔNWCAlternative unlevered measure.
+Maintenance Capex EstimateFormula: ≈ Depreciation (or Capex − Growth Capex)Spending to sustain operations.
+Growth CapexFormula: Capex − Maintenance CapexSpending to expand capacity.
+Cash and Equivalents Net of OverdraftFormula: Cash + Cash Equivalents − Bank Overdrafts Repayable on DemandCash definition in IAS 7.
+O. Forecasting, Pro Forma, Interim and Segment Analysis
+Segment Revenue Threshold (10% Test)Formula: Segment Revenue ≥ 10% × Combined RevenueQuantitative threshold for reportable segments.
+Segment Profit ThresholdFormula: |Segment Profit/Loss| ≥ 10% × max(Combined Profit, |Combined Loss|)Profit-based test.
+Segment Asset ThresholdFormula: Segment Assets ≥ 10% × Combined AssetsAsset-based test.
+75% External Revenue TestFormula: Σ Reportable Segment External Revenue ≥ 75% × Consolidated RevenueCoverage requirement.
+Last Twelve Months (LTM)Formula: Last Fiscal Year + Current YTD − Prior-Year YTDTrailing financial results.
+CalendarizationFormula: (Months ÷ 12) × FY1 + (1 − Months ÷ 12) × FY2Aligns fiscal years.
+Pro Forma Revenue (Acquisition)Formula: Acquirer Revenue + Target Revenue − Intercompany EliminationsCombined revenue.
+Pro Forma Net IncomeFormula: Combined NI − Incremental Interest × (1 − t) − Extra Amortization × (1 − t) + Synergies × (1 − t)Combined earnings.
+Percent-of-Sales ForecastFormula: Item(t+1) = (Item(t) ÷ Sales(t)) × Sales(t+1)Driver-based projection.
+Days-Based Working Capital ForecastFormula: AR = DSO × Sales ÷ 365; Inventory = DIO × COGS ÷ 365; AP = DPO × COGS ÷ 365Working capital projections.
+Revolver DrawFormula: max(0, Minimum Cash − (Opening Cash + Pre-Revolver Cash Flow))Plug for funding shortfalls.
+Cash SweepFormula: min(Debt Outstanding, Excess Cash Available)Debt prepayment from surplus cash.
+Interest on Average BalanceFormula: Rate × (Opening + Closing) ÷ 2Source of circularity in models.
+Debt ScheduleFormula: Closing = Opening − Mandatory Amortization − Sweep + DrawDebt balance roll-forward.
+Retained Earnings ForecastFormula: Opening + NI − DividendsEquity roll-forward.
+Balance CheckFormula: Assets − (Liabilities + Equity) = 0Model integrity test.
+Depreciation WaterfallFormula: Σ Capex(vintage) ÷ Life for each vintageDepreciation by capex year.
+Terminal-Year Capex NormalizationFormula: Capex = Depreciation × (1 + g) or Reinvestment Rate × NOPATSteady-state investment.
+Sum-of-the-Parts ValuationFormula: Σ Segment EBITDA × Segment Multiple − Net DebtSegment-based value.
+Contribution Analysis (Merger)Formula: Share of Combined Revenue, EBITDA or Net IncomeImplied ownership split.
+Same-Store Sales GrowthFormula: (Comparable Store Sales(t) − (t−1)) ÷ (t−1)Retail organic growth.
+Sales per Square FootFormula: Net Sales ÷ Selling AreaRetail productivity.
+Inventory Shrink RateFormula: (Book Inventory − Physical Inventory) ÷ SalesLosses from theft and error.
+Quarterly Seasonality IndexFormula: Average Quarter Sales ÷ Average Annual Quarterly SalesAdjusts interim annualization.
+Annualized Interim ResultFormula: Interim Result ÷ Seasonality ShareFull-year estimate from partial data.
+P. Industry-Specific Statement Computations
+Net Earned Premium (Insurance)Formula: Written Premium − Change in Unearned Premium ReservePremium recognized for coverage elapsed.
+Unearned Premium Reserve (Pro Rata)Formula: Premium × Unexpired Days ÷ Policy DaysLiability for unexpired coverage.
+Claims IncurredFormula: Claims Paid + Closing Claims Reserve − Opening Claims ReserveInsurance loss expense.
+Loss RatioFormula: Claims Incurred ÷ Net Earned PremiumUnderwriting loss level.
+Expense RatioFormula: Underwriting Expenses ÷ Net Written PremiumCost of writing business.
+Combined RatioFormula: Loss Ratio + Expense RatioUnderwriting profit if below 100%.
+Reserve DevelopmentFormula: Re-estimated Reserve − Original ReservePrior-year reserve adequacy.
+IFRS 17 Fulfilment Cash FlowsFormula: PV of Future Cash Flows + Risk AdjustmentMeasurement of insurance liabilities.
+IFRS 17 CSM Roll-ForwardFormula: Opening CSM + New Business + Interest Accretion ± Changes in Future Service − ReleaseUnearned profit pool.
+CSM ReleaseFormula: CSM before Release × Coverage Units Provided ÷ (Provided + Future Units)Profit recognized for service.
+Net Interest Margin (Bank)Formula: (Interest Income − Interest Expense) ÷ Average Earning AssetsCore bank spread.
+Efficiency Ratio (Bank)Formula: Non-Interest Expense ÷ (Net Interest Income + Non-Interest Income)Cost to produce revenue.
+Non-Performing Loan RatioFormula: NPLs ÷ Gross LoansAsset quality.
+Coverage Ratio (Bank)Formula: Loan Loss Allowance ÷ Non-Performing LoansReserve cushion.
+Provision Expense (Bank)Formula: Net Charge-Offs + Change in AllowanceCredit cost for the period.
+CET1 RatioFormula: Common Equity Tier 1 ÷ Risk-Weighted AssetsRegulatory capital strength.
+Liquidity Coverage RatioFormula: High-Quality Liquid Assets ÷ Net Cash Outflows over 30 DaysShort-term liquidity requirement.
+Net Stable Funding RatioFormula: Available Stable Funding ÷ Required Stable FundingLong-term funding stability.
+Return on Tangible Common EquityFormula: Net Income to Common ÷ Average Tangible Common EquityCore bank profitability.
+Net Operating Income (Real Estate)Formula: Rental Revenue − Operating ExpensesProperty income before financing.
+Capitalization RateFormula: NOI ÷ Property ValueYield on property.
+Funds from Operations (REIT)Formula: Net Income + Depreciation − Gains on Property SalesRecurring REIT earnings.
+Adjusted FFO (AFFO)Formula: FFO − Recurring Capex − Straight-Line Rent AdjustmentsDistributable cash flow.
+REIT Net Asset Value per ShareFormula: (NOI ÷ Cap Rate − Debt) ÷ SharesAppraisal-based value.
+Reserve Replacement RatioFormula: Reserve Additions ÷ ProductionOil and gas sustainability.
+Finding and Development CostFormula: (Exploration + Development Costs) ÷ Reserve AdditionsCost per unit of reserves added.
+Reserve Life IndexFormula: Proved Reserves ÷ Annual ProductionYears of production remaining.
+All-In Sustaining Cost (Mining)Formula: (Cash Costs + Sustaining Capex + G&amp;A + Rehabilitation) ÷ Ounces SoldCost per ounce.
+Annual Recurring Revenue (SaaS)Formula: Monthly Recurring Revenue × 12Subscription revenue run-rate.
+Net Revenue RetentionFormula: (Starting MRR + Expansion − Contraction − Churn) ÷ Starting MRRCustomer base growth.
+Customer Lifetime ValueFormula: ARPA × Gross Margin ÷ Churn RateValue of a customer.
+LTV to CACFormula: Customer Lifetime Value ÷ Customer Acquisition CostAcquisition efficiency.
+CAC Payback PeriodFormula: CAC ÷ (New MRR × Gross Margin)Months to recover acquisition cost.
+Rule of 40Formula: Revenue Growth % + Profit Margin %Growth and profitability balance.
+BillingsFormula: Revenue + Change in Deferred RevenueCash-like measure of sales.
+Revenue per Available Room (RevPAR)Formula: ADR × Occupancy RateHotel performance.
+Passenger Load FactorFormula: Revenue Passenger Miles ÷ Available Seat MilesAirline capacity usage.
+Cost per Available Seat Mile (CASM)Formula: Operating Costs ÷ Available Seat MilesAirline unit cost.
+Utility Revenue RequirementFormula: Operating Expenses + Depreciation + Taxes + Rate Base × Allowed ReturnRegulated revenue.
+Book-to-Bill RatioFormula: New Orders ÷ RevenueDemand pipeline indicator.
+Over/Under Billing (Construction)Formula: Cumulative Billings − Cumulative Revenue RecognizedContract position.
+Average Revenue per User (ARPU)Formula: Revenue ÷ Average SubscribersTelecom monetization.
+Net Patient Service RevenueFormula: Gross Charges − Contractual Allowances − Charity Care − Bad DebtsHealthcare revenue.

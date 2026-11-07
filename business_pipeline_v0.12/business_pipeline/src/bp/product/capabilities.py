@@ -39,8 +39,8 @@ MAX_COMPUTATIONS = 3
 _EMBEDDED = {"breakeven": "breakeven", "five_forces_breakeven": "breakeven"}
 
 #: Every framework that retrieves evidence can carry a declared computation.
-_EVIDENCE_FRAMEWORKS = ("pestel", "swot", "pestel_swot", "five_forces", "five_forces_breakeven",
-                        "value_chain", "ansoff")
+#: Kept here as one import so a new framework is added in framework_registry.
+from .framework_registry import EVIDENCE as _EVIDENCE_FRAMEWORKS
 
 #: Inputs that a frozen method can supply from another frozen method's result.
 #: Each entry is capability -> {input: (source capability, source output field, why)}.
@@ -746,9 +746,11 @@ def set_enabled(selection, framework, key, enabled, reason=""):
     selection = dict(selection or {"selected": [], "not_included": []})
     selected = [dict(row) for row in selection.get("selected") or []]
     not_included = [dict(row) for row in selection.get("not_included") or []]
-    if framework and framework not in entry_row["applies_to"]:
-        raise ValueError(entry_row["label"] + " does not fit a " + framework + " paper.")
     if enabled:
+        # a capability may only be added where it fits the paper; a drop is always
+        # allowed, because excluding something is the student's decision, recorded.
+        if framework and framework not in entry_row["applies_to"]:
+            raise ValueError(entry_row["label"] + " does not fit a " + framework + " paper.")
         if any(row["key"] == key for row in selected):
             return selection
         if len(selected) >= MAX_COMPUTATIONS:

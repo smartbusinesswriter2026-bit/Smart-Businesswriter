@@ -61,3 +61,120 @@ class DiagramTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+BOARD = {"format": "bp-diagram/1", "kind": "board", "title": "Sprint board",
+         "columns": [
+             {"label": "To do", "cards": [{"label": "Login flow"}, {"label": "Search filters"}]},
+             {"label": "In progress", "cards": [{"label": "Checkout"}]},
+             {"label": "Done", "cards": [{"label": "Signup"}]},
+         ]}
+
+
+class BoardTest(unittest.TestCase):
+    """A board is columns of cards: a sprint board, a Kanban board or a retrospective."""
+
+    def test_a_board_renders_every_column_and_card(self):
+        svg = diagrams.render_svg(BOARD)
+        self.assertIn("<svg", svg)
+        for label in ("To do", "In progress", "Done", "Login flow", "Checkout", "Signup"):
+            self.assertIn(label, svg)
+        ET.fromstring(svg)
+
+    def test_a_board_needs_two_columns(self):
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.render_svg({"format": "bp-diagram/1", "kind": "board",
+                                 "title": "Sprint board",
+                                 "columns": [{"label": "To do", "cards": []}]})
+
+    def test_an_empty_column_is_allowed(self):
+        svg = diagrams.render_svg({"format": "bp-diagram/1", "kind": "board",
+                                   "title": "Sprint board",
+                                   "columns": [{"label": "To do", "cards": []},
+                                               {"label": "Done", "cards": [{"label": "Signup"}]}]})
+        self.assertIn("To do", svg)
+
+    def test_a_card_label_may_not_carry_a_number(self):
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.render_svg({"format": "bp-diagram/1", "kind": "board",
+                                 "title": "Sprint board",
+                                 "columns": [{"label": "To do", "cards": [{"label": "Sprint 3"}]},
+                                             {"label": "Done", "cards": []}]})
+
+JOURNEY = {"format": "bp-diagram/1", "kind": "journey", "title": "Customer journey",
+           "stages": [{"label": "Awareness"}, {"label": "Consideration"},
+                      {"label": "Purchase"}, {"label": "Retention"}],
+           "lanes": [
+               {"label": "Actions", "cells": ["Sees an advert", "Compares options",
+                                              "Places the order", "Uses the product"]},
+               {"label": "Pain points", "cells": ["Unclear pricing", "", "Slow checkout", ""]},
+           ]}
+
+
+class JourneyTest(unittest.TestCase):
+    """Stages across, lanes down: a journey map, a story map or a roadmap."""
+
+    def test_a_journey_renders_every_stage_and_lane(self):
+        svg = diagrams.render_svg(JOURNEY)
+        for label in ("Awareness", "Retention", "Actions", "Pain points", "Compares options"):
+            self.assertIn(label, svg)
+        ET.fromstring(svg)
+
+    def test_an_empty_cell_is_allowed_and_prints_no_word(self):
+        svg = diagrams.render_svg(JOURNEY)
+        self.assertNotIn("None", svg)
+
+    def test_a_journey_needs_two_stages(self):
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.render_svg({"format": "bp-diagram/1", "kind": "journey",
+                                 "title": "Journey", "stages": [{"label": "Awareness"}],
+                                 "lanes": [{"label": "Actions", "cells": ["x"]}]})
+
+    def test_a_lane_may_not_have_more_cells_than_stages(self):
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.render_svg({"format": "bp-diagram/1", "kind": "journey",
+                                 "title": "Journey",
+                                 "stages": [{"label": "Awareness"}, {"label": "Purchase"}],
+                                 "lanes": [{"label": "Actions", "cells": ["a", "b", "c"]}]})
+
+KPI = {"format": "bp-diagram/1", "kind": "kpi", "title": "Sprint KPIs",
+       "items": [
+           {"label": "Velocity", "value": "velocity", "target": "velocity_target",
+            "status": "velocity_status"},
+           {"label": "Test coverage", "value": "coverage", "target": "coverage_target"},
+       ]}
+
+
+def kpi_bundle():
+    artifacts, outputs = [], {}
+    for key, value in (("velocity", "34"), ("velocity_target", "40"),
+                       ("velocity_status", "at risk"), ("coverage", "81"),
+                       ("coverage_target", "85")):
+        artifacts.append([key, [key, "", "entity", "base"], ""])
+        outputs[key] = value
+    return {"delivery": {"appendix": {"artifacts": artifacts}},
+            "reperform": {"outputs": outputs}}
+
+
+class KpiTest(unittest.TestCase):
+    """A KPI card shows the recorded value, its target and its recorded status."""
+
+    def test_a_kpi_board_reads_the_recorded_values(self):
+        svg = diagrams.render_svg(KPI, kpi_bundle())
+        for value in ("Velocity", "34", "Target 40", "Test coverage", "81"):
+            self.assertIn(value, svg)
+        ET.fromstring(svg)
+
+    def test_a_kpi_board_without_the_record_is_refused(self):
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.render_svg(KPI)
+
+    def test_a_kpi_needs_a_stored_value(self):
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.render_svg({"format": "bp-diagram/1", "kind": "kpi",
+                                 "title": "Sprint KPIs",
+                                 "items": [{"label": "Velocity"}]}, kpi_bundle())
+
+    def test_a_missing_artifact_says_not_recorded(self):
+        spec = {"format": "bp-diagram/1", "kind": "kpi", "title": "Sprint KPIs",
+                "items": [{"label": "Velocity", "value": "nope"}]}
+        self.assertIn("not recorded", diagrams.render_svg(spec, kpi_bundle()))

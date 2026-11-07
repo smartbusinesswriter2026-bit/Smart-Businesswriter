@@ -54,6 +54,39 @@ PROFILES = {
     "project_proposal": ("project-management",
                          ["executive_summary", "project_description", "work_plan", "budget",
                           "monitoring_evaluation", "risk", "conclusion", "references"]),
+    "project_plan": ("project-management",
+                     ["executive_summary", "charter", "scope", "wbs", "schedule", "cost",
+                      "organisation", "risk", "governance", "monitoring", "conclusion", "references"]),
+}
+
+#: A complete project record for the plan profile; no number is invented here.
+PROJECT_RECORD = {
+    "charter": {"title": "Meal counter", "objective": "Open a counter", "sponsor": "Dean",
+                "scope_in": ["Counter"], "scope_out": ["Delivery"],
+                "deliverables": ["Counter built"], "success_measures": ["Break even"],
+                "budget_total": 25000, "currency": "USD"},
+    "wbs": [
+        {"id": "1", "parent": None, "level": 1, "name": "Design", "acceptance": "", "owner": "", "cost": 0},
+        {"id": "1.1", "parent": "1", "level": 2, "name": "Drawings", "acceptance": "Signed",
+         "owner": "Architect", "cost": 20000},
+        {"id": "2", "parent": None, "level": 1, "name": "Build", "acceptance": "", "owner": "", "cost": 0},
+        {"id": "2.1", "parent": "2", "level": 2, "name": "Fit-out", "acceptance": "Handover",
+         "owner": "Builder", "cost": 5000},
+    ],
+    "activities": [
+        {"id": "A1", "name": "Draw", "wbs": "1.1", "duration": 5, "predecessors": [], "resource": "Architect"},
+        {"id": "A2", "name": "Fit-out", "wbs": "2.1", "duration": 4, "predecessors": ["A1"], "resource": "Builder"},
+    ],
+    "resources": [{"name": "Architect", "role": "Design", "capacity": 1},
+                  {"name": "Builder", "role": "Build", "capacity": 1}],
+    "raci": [
+        {"activity": "A1", "role": "Design", "letter": "R"},
+        {"activity": "A1", "role": "Build", "letter": "A"},
+        {"activity": "A2", "role": "Build", "letter": "R"},
+        {"activity": "A2", "role": "Design", "letter": "A"},
+    ],
+    "risks": [{"id": "R1", "description": "Permit delay", "likelihood": "Medium", "impact": "High",
+               "response": "Apply early", "owner": "PM"}],
 }
 
 BLOCKS = {
@@ -83,6 +116,8 @@ def supplied(profile):
     state = chat.confirm_plan(state)
     required = [field["key"] for field in state["plan"]["fields"] if field.get("required")]
     state = chat.set_inputs(state, {key: "a detail the student supplies" for key in required})
+    if profile == "project_plan":
+        state = chat.set_project(state, PROJECT_RECORD)
     wanted = [block["key"] for block in state["plan"]["blocks"] if block.get("required")]
     return chat.compute(state, {key: BLOCKS[key] for key in wanted if key in BLOCKS})
 
@@ -98,6 +133,9 @@ class PlanEngineTest(unittest.TestCase):
         for profile, (subject, _) in PROFILES.items():
             state = chat.start(BRIEF, subject=subject, profile=profile, level="shs")
             self.assertTrue(state["plan"]["fields"], profile)
+            if profile == "project_plan":
+                self.assertEqual(state["plan"]["blocks"], [], profile)
+                continue
             self.assertTrue(state["plan"]["blocks"], profile)
             self.assertTrue(any(block.get("required") for block in state["plan"]["blocks"]), profile)
 
@@ -130,7 +168,8 @@ class PlanEngineTest(unittest.TestCase):
 
     def test_the_gate_knows_exactly_the_profiles_chat_declares(self):
         declared = {chat.PROFILE_BUSINESS_PLAN, chat.PROFILE_FEASIBILITY_STUDY,
-                    chat.PROFILE_MARKETING_PLAN, chat.PROFILE_PROJECT_PROPOSAL}
+                    chat.PROFILE_MARKETING_PLAN, chat.PROFILE_PROJECT_PROPOSAL,
+                    chat.PROFILE_PROJECT_PLAN}
         self.assertEqual(set(paper.DRAFT_PROFILES), declared)
 
     def test_a_plan_with_no_accepted_evidence_says_so_and_never_prints_a_placeholder(self):
@@ -161,7 +200,7 @@ class PlanDoorContractTest(unittest.TestCase):
     def test_the_subject_pages_offer_the_right_doors(self):
         self.assertIn('entrepreneurship: ["business_plan", "feasibility_study"]', self.html)
         self.assertIn('marketing: ["marketing_plan"]', self.html)
-        self.assertIn('"project-management": ["project_proposal"]', self.html)
+        self.assertIn('"project-management": ["project_proposal", "project_plan"]', self.html)
 
     def test_the_proposal_run_posts_the_chosen_profile_and_its_subject(self):
         body = self.html.split("async function beginPlan()", 1)[1].split("async function downloadPlan()", 1)[0]

@@ -51,7 +51,8 @@ def _normalise(text):
 def make_contract(brief, archetype, thesis="", decision="", scope=None, length="mid",
                   style="apa", required_sections=None, evidence_policy=None,
                   computation_policy=None, chart_policy=None, rubric=None,
-                  deliverables=None, audience="", approved=False, approved_at=None):
+                  deliverables=None, audience="", approved=False, approved_at=None,
+                  target_words=None, word_tolerance=None):
     """Build a paper contract dict. Nothing is frozen until approved is True."""
     scope = dict(scope or {})
     row = paper_families.archetype(archetype)
@@ -83,6 +84,10 @@ def make_contract(brief, archetype, thesis="", decision="", scope=None, length="
             "unit_of_analysis": _normalise(scope.get("unit_of_analysis")),
         },
         "length": str(length or "mid").strip().lower(),
+        # A word count is the real length now; the band above is kept only for
+        # older readers.  Both are recorded so a frozen contract cannot drift.
+        "target_words": int(target_words) if target_words else None,
+        "word_tolerance": float(word_tolerance) if word_tolerance is not None else None,
         "style": str(style or "apa").strip().lower(),
         "required_sections": [str(item).strip() for item in (required_sections or []) if str(item).strip()],
         "evidence_policy": evidence_policy,

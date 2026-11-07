@@ -12,13 +12,14 @@ never inferred.  The chat never writes a fact, a source or a number of its own.
 
 import dataclasses
 import datetime
+import json
 import os
 import re
 import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import audit as audit_mod, capabilities, council, docx, framework_profiles, framework_registry, guard, instruction_reading, length as length_mod, matrix, paper, paper_contract, paper_families, plan_proposal, prose, retrieval, rubric as rubric_reader, verify, writing
+from . import audit as audit_mod, capabilities, council, docx, framework_profiles, framework_registry, guard, instruction_reading, length as length_mod, matrix, paper, paper_contract, paper_families, plan_proposal, project_plan as project_plan_mod, prose, retrieval, rubric as rubric_reader, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -417,6 +418,58 @@ PROJECT_DIMENSIONS_LIST = [
     ("budget", "Budget", "budget cost resource", "economic"),
     ("monitoring", "Monitoring and Evaluation", "indicator baseline target", None),
 ]
+
+#: A complete project plan is a plan profile, not a worksheet: the charter and
+#: scope are student text, the WBS/activity/resource/RACI/risk record is a
+#: structured object, and CPM runs from that record through the frozen core.
+PROFILE_PROJECT_PLAN = "project_plan"
+PROJECT_PLAN_LEVELS = {"shs": "Senior high school", "college": "College"}
+PROJECT_PLAN_MODES = {"strict": "Project-plan convention", "open": "Open composition"}
+PROJECT_PLAN_DIMENSIONS = []
+
+PROJECT_PLAN_FIELDS = {
+    "charter": [
+        ("project_title", "Project title", "text", True),
+        ("objective", "Objective", "text", True),
+        ("sponsor", "Sponsor", "text", True),
+        ("project_manager", "Project manager", "text", False),
+        ("budget_total", "Budget total", "text", True),
+        ("currency", "Currency", "text", False),
+        ("start_date", "Start date", "text", False),
+        ("end_date", "End date", "text", False),
+    ],
+    "scope": [
+        ("scope_in", "In scope", "items", True),
+        ("scope_out", "Out of scope", "items", True),
+        ("deliverables", "Deliverables", "items", True),
+    ],
+    "governance": [
+        ("governance", "Governance", "text", True),
+        ("change_control", "Change control", "text", False),
+    ],
+    "monitoring": [
+        ("success_measures", "Success measures", "items", True),
+        ("assumptions", "Assumptions", "items", False),
+        ("constraints", "Constraints and dependencies", "items", False),
+    ],
+}
+
+PROJECT_PLAN_SECTIONS = [
+    {"key": "executive_summary", "heading": "Executive Summary and Authorisation", "kind": "integration", "level": 1},
+    {"key": "charter", "heading": "Project Charter", "kind": "input", "level": 1},
+    {"key": "scope", "heading": "Scope and Exclusions", "kind": "input", "level": 1},
+    {"key": "wbs", "heading": "Work Breakdown Structure", "kind": "table", "level": 1},
+    {"key": "schedule", "heading": "Schedule", "kind": "computation", "level": 1},
+    {"key": "cost", "heading": "Cost Plan", "kind": "table", "level": 1},
+    {"key": "organisation", "heading": "Organisation and Assignments", "kind": "table", "level": 1},
+    {"key": "risk", "heading": "Risk Register", "kind": "table", "level": 1},
+    {"key": "governance", "heading": "Governance and Change Control", "kind": "input", "level": 1},
+    {"key": "monitoring", "heading": "Monitoring and Success Measures", "kind": "input", "level": 1},
+    {"key": "conclusion", "heading": "Conclusion", "kind": "integration", "level": 1},
+    {"key": "references", "heading": "References", "kind": "references", "level": 1},
+]
+PROJECT_PLAN_OPTIONAL = {"governance", "monitoring"}
+PROJECT_PLAN_BLOCKS = []
 
 
 MARKETING_LEVELS = {"shs": "Senior high school", "college": "College"}
@@ -966,6 +1019,8 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         return _with_rubric(_start_feasibility_study(brief, subject, level, mode), attached)
     if wanted in (PROFILE_MARKETING_PLAN, "marketing_plan", "marketingplan", "marketing"):
         return _with_rubric(_start_marketing_plan(brief, subject, level, mode), attached)
+    if wanted in (PROFILE_PROJECT_PLAN, "project_plan", "projectplan", "project plan", "complete_project_plan"):
+        return _with_rubric(_start_project_plan(brief, subject, level, mode), attached)
     if wanted in (PROFILE_PROJECT_PROPOSAL, "project_proposal", "projectproposal", "proposal"):
         return _with_rubric(_start_project_proposal(brief, subject, level, mode), attached)
     frameworks = [str(item).strip().lower() for item in (frameworks or []) if str(item).strip()]
@@ -1546,6 +1601,7 @@ def _plan(state):
         # A figure the brief declares but the paper cannot take is named, not dropped.
         "figure_problems": [dict(item) for item in state.get("figure_filings") or []
                             if item.get("refused") or item.get("unused")],
+        "figures": figure_selection(state),
         "selection_hash": selection.get("hash"),
         "catalogue_version": selection.get("catalogue_version"),
         # The report length is part of the plan, so the card and the draft agree.
@@ -2283,6 +2339,8 @@ def _blocks_for(state_or_level):
         blocks_list = MARKETING_BLOCKS
     elif profile == PROFILE_PROJECT_PROPOSAL:
         blocks_list = PROJECT_BLOCKS
+    elif profile == PROFILE_PROJECT_PLAN:
+        blocks_list = PROJECT_PLAN_BLOCKS
     else:
         blocks_list = COMPUTATION_BLOCKS
     out = []
@@ -2341,6 +2399,10 @@ def _start_project_proposal(brief, subject, level, mode):
     return _start_plan(brief, subject, level, mode, profile=PROFILE_PROJECT_PROPOSAL)
 
 
+def _start_project_plan(brief, subject, level, mode):
+    return _start_plan(brief, subject, level, mode, profile=PROFILE_PROJECT_PLAN)
+
+
 def _plan_profile(state):
     profile = state.get("profile") or PROFILE_BUSINESS_PLAN
     level = state.get("level") or "shs"
@@ -2389,6 +2451,21 @@ def _plan_profile(state):
                   "declared inputs through the frozen core, and every gap is named.")
         output = ("A project proposal with an executive summary, project description, work plan and timeline, budget, "
                   "monitoring and evaluation, risk analysis and a conclusion.")
+    elif profile == PROFILE_PROJECT_PLAN:
+        levels = PROJECT_PLAN_LEVELS
+        modes = PROJECT_PLAN_MODES
+        dimensions = PROJECT_PLAN_DIMENSIONS
+        fields = PROJECT_PLAN_FIELDS
+        sections_list = PROJECT_PLAN_SECTIONS
+        blocks_list = PROJECT_PLAN_BLOCKS
+        optional = PROJECT_PLAN_OPTIONAL
+        label = "Complete project plan"
+        why = ("The plan carries the charter and scope, the work breakdown, the CPM schedule, the cost roll-up, "
+               "the RACI assignments and the risk register in one document.")
+        misses = ("It does not invent a cost, a duration, an owner or a date. Every figure comes from the project "
+                  "record and the frozen CPM method; every missing one is named.")
+        output = ("A complete project plan: executive summary and authorisation, charter, scope, WBS, schedule, "
+                  "cost plan, organisation and RACI, risk register, governance, monitoring, conclusion and references.")
     else:
         levels = PLAN_LEVELS
         modes = PLAN_MODES
@@ -2460,7 +2537,7 @@ def customise(state, changes):
     Strict mode keeps the standard sections; open composition may drop an
     optional one.  Nothing here adds a framework or invents a section.
     """
-    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL):
+    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL, PROFILE_PROJECT_PLAN):
         raise ChatError("This case is not a business plan, feasibility study, marketing plan or project proposal.")
     if state.get("stage") != "plan":
         raise ChatError("Customise the plan before confirming it.")
@@ -2484,6 +2561,8 @@ def customise(state, changes):
             optional = MARKETING_OPTIONAL
         elif state.get("profile") == PROFILE_PROJECT_PROPOSAL:
             optional = PROJECT_OPTIONAL
+        elif state.get("profile") == PROFILE_PROJECT_PLAN:
+            optional = PROJECT_PLAN_OPTIONAL
         else:
             optional = OPTIONAL_SECTIONS
         unknown = sorted(set(wanted) - optional)
@@ -2503,7 +2582,7 @@ def customise(state, changes):
 
 def set_inputs(state, values):
     """Store student-supplied plan text.  Unknown fields are refused, not ignored."""
-    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL):
+    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL, PROFILE_PROJECT_PLAN):
         raise ChatError("This case is not a business plan, feasibility study, marketing plan or project proposal.")
     if state.get("stage") not in ("plan", "research_ready", "inputs", "evidence", "evidence_reviewed", "computed"):
         raise ChatError("The plan is not accepting inputs at this stage.")
@@ -2515,6 +2594,8 @@ def set_inputs(state, values):
         _fields = MARKETING_FIELDS
     elif state.get("profile") == PROFILE_PROJECT_PROPOSAL:
         _fields = PROJECT_FIELDS
+    elif state.get("profile") == PROFILE_PROJECT_PLAN:
+        _fields = PROJECT_PLAN_FIELDS
     else:
         _fields = PLAN_FIELDS
     allowed = {key: (label, kind) for section in _fields.values()
@@ -2539,6 +2620,41 @@ def set_inputs(state, values):
     return state
 
 
+def set_project(state, record):
+    """Store the structured project record: WBS, activities, resources, RACI, risks.
+
+    The record is validated and the problems are kept on the state; they block the
+    export gate but do not stop the student saving a partial record.  The charter
+    text stays in the plan fields, so there is one place for each kind of input.
+    """
+    if (state.get("profile") or "") != PROFILE_PROJECT_PLAN:
+        raise ChatError("This case is not a complete project plan.")
+    if state.get("stage") not in ("plan", "research_ready", "inputs", "evidence", "evidence_reviewed", "computed", "draft"):
+        raise ChatError("The plan is not accepting the project record at this stage.")
+    if not isinstance(record, dict):
+        raise ChatError("The project record must be an object.")
+    data = project_plan_mod.normalise(record)
+    state["project"] = data
+    state["project_problems"] = project_plan_mod.validate(data)
+    # The record is the project's own source of truth.  A charter field the
+    # student typed is kept; an empty one is filled from the record so the plan
+    # card and the gate do not ask for the same value twice.
+    charter = data.get("charter") or {}
+    inputs = state["answers"].setdefault("inputs", {})
+    mapping = {"project_title": "title", "objective": "objective", "sponsor": "sponsor",
+               "budget_total": "budget_total", "currency": "currency",
+               "start_date": "start_date", "end_date": "end_date",
+               "scope_in": "scope_in", "scope_out": "scope_out",
+               "deliverables": "deliverables", "success_measures": "success_measures",
+               "assumptions": "assumptions", "constraints": "constraints"}
+    for field, key in mapping.items():
+        if not inputs.get(field) and charter.get(key) not in (None, "", []):
+            inputs[field] = charter[key]
+    state["draft"] = None
+    state["updated_at"] = _now()
+    return state
+
+
 def _missing_fields(state):
     supplied = state["answers"].get("inputs") or {}
     missing = []
@@ -2552,9 +2668,13 @@ def _missing_fields(state):
     elif profile == PROFILE_PROJECT_PROPOSAL:
         sections_list = PROJECT_SECTIONS
         fields = PROJECT_FIELDS
+    elif profile == PROFILE_PROJECT_PLAN:
+        sections_list = PROJECT_PLAN_SECTIONS
+        fields = PROJECT_PLAN_FIELDS
     else:
         sections_list = PLAN_SECTIONS
         fields = PLAN_FIELDS
+    level = state.get("level") or "shs"
     keys = {section["key"] for section in sections_list
             if (section.get("min_level") != "college" or level == "college")
             and section["key"] not in (state.get("dropped_sections") or [])}
@@ -2573,7 +2693,7 @@ def compute(state, values):
     A block that refuses keeps its reason; the draft and the export gate then
     name it.  Nothing is computed in this module.
     """
-    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL):
+    if (state.get("profile") or "") not in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY, PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL, PROFILE_PROJECT_PLAN):
         raise ChatError("This case is not a business plan, feasibility study, marketing plan or project proposal.")
     if not state.get("plan_confirmed_at"):
         raise ChatError("Confirm the plan before computing it.")
@@ -4970,10 +5090,15 @@ def _store_plan_draft(state, sections, style, accepted, title, profile):
     the page's "complete the plan" gate had nothing to read.  One shape, one writer.
     """
     state["claim_problems"] = _claim_scan(sections)
+    target = target_words(state)
+    words = length_mod.body_words(sections)
+    target_report = length_mod.report(target, words) if target else length_mod.report(0, words)
     state["draft"] = {"title": title, "sections": paper.flatten(sections), "outline": sections,
                       "style": style, "profile": profile,
                       "level": state.get("level") or "shs",
                       "accepted": sorted(accepted), "missing": paper.missing(state),
+                      "words": words, "target_words": target or SHORT_WORDS,
+                      "word_target": target_report, "met_target": target_report["met"],
                       "created_at": _now()}
     state["stage"] = "draft"
     state["updated_at"] = _now()
@@ -5383,6 +5508,179 @@ def _draft_marketing_plan(state, accepted_ids=None, style=None):
                              "Marketing plan: " + (name or _clean(plan.get("decision"), 180)),
                              PROFILE_MARKETING_PLAN)
 
+
+
+def _project_table(caption, columns, rows, note=""):
+    return project_plan_mod.table(caption, columns, rows, note)
+
+
+def _project_money(value, currency="USD"):
+    try:
+        return "%s %s" % (currency or "USD", "{:,.2f}".format(float(value)))
+    except (TypeError, ValueError):
+        return "not declared"
+
+
+def _draft_project_plan(state, accepted_ids=None, style=None):
+    """Compose the complete project plan from the record and the frozen CPM run."""
+    if state.get("stage") not in ("plan", "research_ready", "evidence", "evidence_reviewed", "computed", "inputs", "draft"):
+        raise ChatError("Confirm the plan and supply its inputs before drafting.")
+    record = project_plan_mod.normalise(state.get("project") or {})
+    problems = project_plan_mod.validate(record)
+    state["project_problems"] = problems
+    charter = record.get("charter") or {}
+    currency = charter.get("currency") or "USD"
+    accepted = set(accepted_ids) if accepted_ids is not None else {item["id"] for item in state["evidence"]}
+    evidence = [item for item in state["evidence"] if item["id"] in accepted]
+    style = style or state["answers"].get("style") or "apa"
+    title = charter.get("title") or _plan_input(state, "project_title")
+    objective = charter.get("objective") or _plan_input(state, "objective")
+    sponsor = charter.get("sponsor") or _plan_input(state, "sponsor")
+    manager = _plan_input(state, "project_manager")
+    total_budget = charter.get("budget_total") or _plan_input(state, "budget_total")
+    rolled = project_plan_mod.rollup(record)
+    scheduled = project_plan_mod.schedule(record, METHOD_RUN)
+    state["project_cost"] = rolled
+    # The frozen core returns Decimal values; the case store is JSON, so the
+    # stored result is a plain JSON copy.  The displayed row keeps the same text.
+    state["project_schedule"] = json.loads(json.dumps(scheduled, default=str))
+    duration = (scheduled.get("result") or {}).get("project_duration") if scheduled.get("ok") else None
+    critical = (scheduled.get("result") or {}).get("critical_count") if scheduled.get("ok") else None
+    sections = []
+
+    # -- executive summary and authorisation
+    intro = ["This plan authorises " + (title or "the project") + "."]
+    if objective:
+        intro.append("Its objective: " + objective + ".")
+    if sponsor:
+        intro.append("The sponsor is " + sponsor + ".")
+    if total_budget:
+        intro.append("The declared budget is " + _project_money(total_budget, currency) + ".")
+    if duration is not None:
+        intro.append("The critical path runs " + str(duration) + " periods, with "
+                     + str(critical or 0) + " critical activities.")
+    intro.append("The plan carries the charter, scope, work breakdown, schedule, cost, assignments and risks; "
+                 "a record that is missing is named rather than guessed.")
+    sections.append(paper.section("Executive Summary and Authorisation", paper.H1, [paper.paragraph(intro)]))
+
+    # -- charter
+    pairs = [["Title", title or "not stated"], ["Objective", objective or "not stated"],
+             ["Sponsor", sponsor or "not stated"], ["Project manager", manager or "not stated"],
+             ["Budget", _project_money(total_budget, currency)],
+             ["Start", charter.get("start_date") or "not stated"],
+             ["End", charter.get("end_date") or "not stated"]]
+    sections.append(paper.section("Project Charter", paper.H1,
+                                  figure=_project_table("Project charter", ["Field", "Value"], pairs)))
+
+    # -- scope and exclusions
+    scope_in = charter.get("scope_in") or []
+    scope_out = charter.get("scope_out") or []
+    deliverables = charter.get("deliverables") or []
+    scope_rows = ([["In scope", item] for item in scope_in]
+                  + [["Out of scope", item] for item in scope_out]
+                  + [["Deliverable", item] for item in deliverables])
+    sections.append(paper.section("Scope and Exclusions", paper.H1,
+                                  [paper.paragraph(["The scope below is the student's declaration; the WBS "
+                                                    "decomposes it and the exclusions bound it."])],
+                                  figure=_project_table("Scope and deliverables",
+                                                        ["Direction", "Item"],
+                                                        scope_rows or [["", "No scope was declared."]])))
+
+    # -- WBS
+    sections.append(paper.section("Work Breakdown Structure", paper.H1,
+                                  figure=_project_table("Work breakdown structure",
+                                                        ["ID", "Work package", "Owner", "Cost", "Acceptance"],
+                                                        project_plan_mod.wbs_rows(record)
+                                                        or [["", "No WBS was supplied.", "", "", ""]])))
+
+    # -- schedule
+    if scheduled.get("ok"):
+        result = scheduled["result"]
+        rows = project_plan_mod.schedule_rows(record, result)
+        sections.append(paper.section("Schedule", paper.H1,
+                                      [paper.paragraph(["The critical path runs " + str(result.get("project_duration"))
+                                                        + " periods and carries " + str(result.get("critical_count"))
+                                                        + " critical activities. Early and late dates are the "
+                                                          "frozen method's own values."])],
+                                      figure=_project_table("Critical path schedule",
+                                                            ["ID", "Activity", "Duration", "ES", "EF", "LS", "LF",
+                                                             "Float", "Critical"],
+                                                            rows or [["", "No activities were supplied.",
+                                                                      "", "", "", "", "", "", ""]])))
+    else:
+        sections.append(paper.section("Schedule", paper.H1,
+                                      ["The schedule could not be computed: " + str(scheduled.get("error"))
+                                       + " No date is reported."]))
+
+    # -- cost
+    cost_lines = ["The WBS roll-up is " + _project_money(rolled["total"], currency) + "."]
+    if rolled.get("budget"):
+        cost_lines.append("The declared budget is " + _project_money(rolled["budget"], currency)
+                          + "; the variance is " + _project_money(rolled["variance"], currency) + ".")
+    if rolled.get("uncosted"):
+        cost_lines.append("Work packages with no declared cost: " + ", ".join(rolled["uncosted"]) + ".")
+    sections.append(paper.section("Cost Plan", paper.H1,
+                                  [paper.paragraph(cost_lines)],
+                                  figure=_project_table("Cost roll-up by work package",
+                                                        ["ID", "Item", "Cost"],
+                                                        project_plan_mod.cost_rows(record, rolled))))
+
+    # -- organisation and assignments
+    resource_rows = [[row.get("name") or "", row.get("role") or "",
+                      str(row.get("capacity") if row.get("capacity") is not None else "")]
+                     for row in record.get("resources") or []]
+    sections.append(paper.section("Organisation and Assignments", paper.H1,
+                                  [paper.paragraph(["Resources and the RACI matrix state who does the work and "
+                                                    "who answers for it. A cell left blank is a named gap."])],
+                                  figure=_project_table("Resources", ["Name", "Role", "Capacity"],
+                                                        resource_rows or [["", "No resources were supplied.", ""]])))
+    raci_columns, raci_data = project_plan_mod.raci_rows(record)
+    sections.append(paper.section("RACI Matrix", paper.H2,
+                                  figure=_project_table("RACI responsibility matrix", raci_columns,
+                                                        raci_data or [["", "No RACI rows were supplied."]])))
+
+    # -- risk register
+    sections.append(paper.section("Risk Register", paper.H1,
+                                  figure=_project_table("Risk register",
+                                                        ["ID", "Risk", "Likelihood", "Impact", "Response", "Owner"],
+                                                        project_plan_mod.risk_rows(record)
+                                                        or [["", "No risks were supplied.", "", "", "", ""]])))
+
+    # -- governance and monitoring
+    governance = _plan_input(state, "governance") or charter.get("governance") or ""
+    change = _plan_input(state, "change_control") or charter.get("change_control") or ""
+    sections.append(paper.section("Governance and Change Control", paper.H1,
+                                  [paper.paragraph([part for part in (governance, change) if part]
+                                                   or ["No governance arrangement was supplied."])]))
+    measures = charter.get("success_measures") or _plan_input(state, "success_measures")
+    if isinstance(measures, str):
+        measures = [measures]
+    assumptions = charter.get("assumptions") or []
+    constraints = charter.get("constraints") or []
+    monitoring = [[item, "success measure"] for item in measures] + \
+                 [[item, "assumption"] for item in assumptions] + \
+                 [[item, "constraint"] for item in constraints]
+    sections.append(paper.section("Monitoring and Success Measures", paper.H1,
+                                  figure=_project_table("Success measures, assumptions and constraints",
+                                                        ["Item", "Type"],
+                                                        monitoring or [["No success measure was supplied.",
+                                                                        "success measure"]])))
+
+    # -- conclusion
+    conclusion = ["The plan states what the project delivers, how it is broken down, what it costs, who does "
+                  "the work and what could go wrong."]
+    if duration is not None:
+        conclusion.append("The critical path is " + str(duration) + " periods.")
+    if problems:
+        conclusion.append("The record still has " + str(len(problems)) + " named problem"
+                          + ("" if len(problems) == 1 else "s") + "; the export gate lists them.")
+    sections.append(paper.section("Conclusion", paper.H1, [paper.paragraph(conclusion)]))
+
+    # -- references
+    sections.append(_plan_reference_section(state, evidence, style))
+    return _store_plan_draft(state, sections, style, accepted,
+                             "Project plan: " + (title or _clean(state.get("brief"), 180)),
+                             PROFILE_PROJECT_PLAN)
 
 
 def _draft_project_proposal(state, accepted_ids=None, style=None):
@@ -6171,6 +6469,8 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         return _draft_feasibility_study(state, accepted_ids, style)
     if (state.get("profile") or "") == PROFILE_MARKETING_PLAN:
         return _draft_marketing_plan(state, accepted_ids, style)
+    if (state.get("profile") or "") == PROFILE_PROJECT_PLAN:
+        return _draft_project_plan(state, accepted_ids, style)
     if (state.get("profile") or "") == PROFILE_PROJECT_PROPOSAL:
         return _draft_project_proposal(state, accepted_ids, style)
     if state.get("stage") not in ("evidence", "evidence_reviewed", "draft"):
@@ -6872,6 +7172,74 @@ def _figure_plan(state):
     return {"blocks": blocks}
 
 
+def figure_selection(state):
+    """The figures the recorded data earns, with the student's decision on each.
+
+    A figure is proposed only when the data supports it, and it is included only
+    when the student ticks it.  An unticked figure is recorded as a named
+    exclusion, not dropped in silence.
+    """
+    from . import figure_plan
+
+    bundle = _figure_bundle(state)
+    records, skipped = figure_plan.explain(bundle, _figure_plan(state))
+    stored = state.get("figures") or {}
+    chosen = set(stored.get("selected") or [])
+    excluded = {row.get("id"): str(row.get("reason") or "")
+                for row in stored.get("not_included") or [] if row.get("id")}
+    proposed = [{"id": record["id"], "kind": record["kind"],
+                 "chart": (record.get("spec") or {}).get("kind") or "",
+                 "section": record.get("place") or "",
+                 "why": record.get("why") or "",
+                 "selected": record["id"] in chosen} for record in records]
+    known = {row["id"] for row in proposed}
+    return {"proposed": proposed,
+            "selected": [row["id"] for row in proposed if row["selected"]],
+            "not_included": [{"id": key, "reason": reason}
+                             for key, reason in sorted(excluded.items()) if key in known],
+            "skipped": skipped}
+
+
+def set_figure(state, ident, enabled=True, reason=""):
+    """Include or exclude one proposed figure, recording the student's decision."""
+    current = figure_selection(state)
+    if ident not in {row["id"] for row in current["proposed"]}:
+        raise ChatError("That figure is not one this paper proposed.")
+    selected = set(current["selected"])
+    excluded = {row["id"]: row["reason"] for row in current["not_included"]}
+    if enabled:
+        selected.add(ident)
+        excluded.pop(ident, None)
+    else:
+        selected.discard(ident)
+        excluded[ident] = _clean(reason, 200) or "you chose not to include it"
+    state["figures"] = {"selected": sorted(selected),
+                        "not_included": [{"id": key, "reason": value}
+                                         for key, value in sorted(excluded.items())]}
+    state["updated_at"] = _now()
+    return state
+
+
+def _selected_figures(state):
+    """The ticked figures, drawn from the stored values and ready to place."""
+    from . import figure_plan, figures
+
+    bundle = _figure_bundle(state)
+    records, _skipped = figure_plan.explain(bundle, _figure_plan(state))
+    chosen = set((state.get("figures") or {}).get("selected") or [])
+    out = []
+    for record in records:
+        if record["id"] not in chosen:
+            continue
+        try:
+            figures.render(record, bundle)
+            figures.stamp(record, bundle)
+        except Exception:
+            continue
+        out.append(record)
+    return out
+
+
 def docx_bytes(state, byline=None):
     """The drafted paper as a Word document (APA or Harvard)."""
     draft = state.get("draft")
@@ -6886,9 +7254,11 @@ def docx_bytes(state, byline=None):
     if not report["pass"]:
         raise ExportBlocked([issue["detail"] for issue in report["issues"] if issue["severity"] == "high"])
     lines = byline if byline is not None else state.get("byline") or ()
-    return docx.render_academic(draft["title"], outline, draft.get("style", "apa"),
-                                byline=lines, bundle=_figure_bundle(state),
-                                plan=_figure_plan(state))
+    from . import figure_plan
+    blocks = [item if isinstance(item, dict)
+              else {"heading": item[0], "level": 1, "lines": item[1]} for item in outline]
+    blocks, _placed, _unplaced = figure_plan.attach(blocks, _selected_figures(state))
+    return docx.render_academic(draft["title"], blocks, draft.get("style", "apa"), byline=lines)
 
 
 def pptx_bytes(state):
@@ -6898,14 +7268,14 @@ def pptx_bytes(state):
     draft = state.get("draft")
     if not draft:
         raise ChatError("Draft the paper before exporting it.")
+    from . import figure_plan
     outline = draft.get("outline") or paper.flatten(draft.get("sections") or [])
-    built = deck.from_paper(outline, draft["title"])
-    figures = {}
-    for item in outline:
-        figure = item.get("figure") if isinstance(item, dict) else None
-        if figure and figure.get("id"):
-            figures[figure["id"]] = figure
-    return deck.render(built, figures)
+    blocks = [item if isinstance(item, dict)
+              else {"heading": item[0], "level": 1, "lines": item[1]} for item in outline]
+    selected = _selected_figures(state)
+    blocks, _placed, _unplaced = figure_plan.attach(blocks, selected)
+    built = deck.from_paper(blocks, draft["title"])
+    return deck.render(built, {record["id"]: record for record in selected})
 
 
 def pdf_bytes(state):
@@ -6915,14 +7285,14 @@ def pdf_bytes(state):
     draft = state.get("draft")
     if not draft:
         raise ChatError("Draft the paper before exporting it.")
+    from . import figure_plan
     outline = draft.get("outline") or paper.flatten(draft.get("sections") or [])
-    built = deck.from_paper(outline, draft["title"])
-    figures = {}
-    for item in outline:
-        figure = item.get("figure") if isinstance(item, dict) else None
-        if figure and figure.get("id"):
-            figures[figure["id"]] = figure
-    data = deck.pdf_bytes(built, figures)
+    blocks = [item if isinstance(item, dict)
+              else {"heading": item[0], "level": 1, "lines": item[1]} for item in outline]
+    selected = _selected_figures(state)
+    blocks, _placed, _unplaced = figure_plan.attach(blocks, selected)
+    built = deck.from_paper(blocks, draft["title"])
+    data = deck.pdf_bytes(built, {record["id"]: record for record in selected})
     if data is None:
         raise ChatError("A PDF deck needs Chrome; none was found on this machine.")
     return data

@@ -265,8 +265,10 @@ class StudentFacingContract(unittest.TestCase):
             self.assertTrue(tool["common_mistakes"], tool["key"])
             if tool["group"] not in order:
                 order.append(tool["group"])
-        self.assertEqual(order, ["Foundations", "Corporate finance", "Valuation",
-                                 "Investments", "Risk & derivatives", "International"])
+        self.assertEqual(order, ["Time value and instruments", "Statement analysis",
+                                 "Cost-volume-profit", "Quantitative", "Corporate finance",
+                                 "Valuation", "Investments", "Risk & derivatives",
+                                 "International"])
         self.assertTrue(page["glossary"])
         self.assertTrue(any(row["term"] == "WACC" for row in page["glossary"]))
         economics = subjects.detail("economics")
@@ -274,8 +276,9 @@ class StudentFacingContract(unittest.TestCase):
         # economics page.  Economics declares its own grouping (subjects.ECONOMICS_TILES
         # and its own group tokens), so "every economics tool has no group" is stale:
         # what must never appear there is a finance group name.
-        finance_groups = {"Foundations", "Corporate finance", "Valuation", "Investments",
-                          "Risk & derivatives", "International"}
+        finance_groups = {"Time value and instruments", "Statement analysis",
+                          "Cost-volume-profit", "Quantitative", "Corporate finance",
+                          "Valuation", "Investments", "Risk & derivatives", "International"}
         leaked = [(tool["key"], tool["group"]) for tool in economics["tools"]
                   if tool["group"] in finance_groups]
         self.assertEqual(leaked, [],

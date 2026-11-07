@@ -63,6 +63,89 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "accruals_ratio": {
+   "inputs": {
+    "average_total_assets": {
+     "desc": "average total assets",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "operating_cash_flow": {
+     "desc": "operating cash flow",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "altman_z_score": {
+   "inputs": {
+    "ebit": {
+     "desc": "ebit",
+     "required": true,
+     "type": "string"
+    },
+    "market_value_equity": {
+     "desc": "market value equity",
+     "required": true,
+     "type": "string"
+    },
+    "retained_earnings": {
+     "desc": "retained earnings",
+     "required": true,
+     "type": "string"
+    },
+    "sales": {
+     "desc": "sales",
+     "required": true,
+     "type": "string"
+    },
+    "total_assets": {
+     "desc": "total assets",
+     "required": true,
+     "type": "string"
+    },
+    "total_liabilities": {
+     "desc": "total liabilities",
+     "required": true,
+     "type": "string"
+    },
+    "working_capital": {
+     "desc": "working capital",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "amortization_payment": {
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pv": {
+     "desc": "pv",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "anova": {
    "inputs": {
     "alpha": {
@@ -79,6 +162,22 @@
      "desc": "user-defined missing codes",
      "required": false,
      "type": "code_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "asset_turnover_advanced": {
+   "inputs": {
+    "average_total_assets": {
+     "desc": "average total assets",
+     "required": true,
+     "type": "string"
+    },
+    "revenue": {
+     "desc": "revenue",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -126,6 +225,99 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "beneish_m_score": {
+   "inputs": {
+    "aqi": {
+     "desc": "aqi",
+     "required": true,
+     "type": "string"
+    },
+    "depi": {
+     "desc": "depi",
+     "required": true,
+     "type": "string"
+    },
+    "dsri": {
+     "desc": "dsri",
+     "required": true,
+     "type": "string"
+    },
+    "gmi": {
+     "desc": "gmi",
+     "required": true,
+     "type": "string"
+    },
+    "lvgi": {
+     "desc": "lvgi",
+     "required": true,
+     "type": "string"
+    },
+    "sgai": {
+     "desc": "sgai",
+     "required": true,
+     "type": "string"
+    },
+    "sgi": {
+     "desc": "sgi",
+     "required": true,
+     "type": "string"
+    },
+    "tata": {
+     "desc": "tata",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "beta_simple": {
+   "inputs": {
+    "covariance": {
+     "desc": "covariance",
+     "required": true,
+     "type": "string"
+    },
+    "market_variance": {
+     "desc": "market variance",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "black_scholes_call": {
+   "inputs": {
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    },
+    "spot": {
+     "desc": "spot",
+     "required": true,
+     "type": "string"
+    },
+    "strike": {
+     "desc": "strike",
+     "required": true,
+     "type": "string"
+    },
+    "time": {
+     "desc": "time",
+     "required": true,
+     "type": "string"
+    },
+    "volatility": {
+     "desc": "volatility",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "bond_analysis": {
    "inputs": {
     "coupon_rate": {
@@ -157,6 +349,32 @@
      "desc": "annual yield as a decimal, to price the bond; leave blank if you supply a price instead",
      "required": false,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "bond_price": {
+   "inputs": {
+    "coupon": {
+     "desc": "coupon",
+     "required": true,
+     "type": "string"
+    },
+    "face": {
+     "desc": "face",
+     "required": true,
+     "type": "string"
+    },
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "yield": {
+     "desc": "yield",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -369,6 +587,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "cash_conversion_cycle": {
+   "inputs": {
+    "dio": {
+     "desc": "dio",
+     "required": true,
+     "type": "string"
+    },
+    "dpo": {
+     "desc": "dpo",
+     "required": true,
+     "type": "string"
+    },
+    "dso": {
+     "desc": "dso",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "cash_runway": {
    "inputs": {
     "monthly_growth": {
@@ -390,6 +629,22 @@
      "desc": "horizon for the lowest balance and funding gap, default 12 (a whole number from 1 to 120)",
      "required": false,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "cash_tax_rate": {
+   "inputs": {
+    "cash_taxes_paid": {
+     "desc": "cash taxes paid",
+     "required": true,
+     "type": "string"
+    },
+    "pretax_income": {
+     "desc": "pretax income",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -585,6 +840,38 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "currency_appreciation": {
+   "inputs": {
+    "begin": {
+     "desc": "begin",
+     "required": true,
+     "type": "string"
+    },
+    "end": {
+     "desc": "end",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "currency_appreciation_calc": {
+   "inputs": {
+    "begin": {
+     "desc": "begin",
+     "required": true,
+     "type": "string"
+    },
+    "end": {
+     "desc": "end",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "currency_convert": {
    "inputs": {
     "amount": {
@@ -626,6 +913,54 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "current_ratio": {
+   "inputs": {
+    "current_assets": {
+     "desc": "current assets",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "current_ratio_calc": {
+   "inputs": {
+    "current_assets": {
+     "desc": "current assets",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "current_yield": {
+   "inputs": {
+    "annual_coupon": {
+     "desc": "annual coupon",
+     "required": true,
+     "type": "string"
+    },
+    "price": {
+     "desc": "price",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "customer_profitability": {
    "inputs": {
     "concentration_threshold": {
@@ -637,6 +972,22 @@
      "desc": "two to fifty segments, each with a unique name, its revenue, its direct cost and (optionally) the shared cost you choose to allocate to it",
      "required": true,
      "type": "records"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "days_payable_outstanding": {
+   "inputs": {
+    "accounts_payable": {
+     "desc": "accounts payable",
+     "required": true,
+     "type": "string"
+    },
+    "cogs": {
+     "desc": "cogs",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -666,6 +1017,42 @@
     }
    },
    "tier": "T2",
+   "version": "1.0.0"
+  },
+  "dcf_with_sensitivity": {
+   "inputs": {
+    "discount_rate": {
+     "desc": "discount rate",
+     "required": true,
+     "type": "string"
+    },
+    "free_cash_flow": {
+     "desc": "free cash flow",
+     "required": true,
+     "type": "string"
+    },
+    "growth_rate": {
+     "desc": "growth rate",
+     "required": true,
+     "type": "string"
+    },
+    "projection_years": {
+     "desc": "projection years",
+     "required": true,
+     "type": "string"
+    },
+    "shares_outstanding": {
+     "desc": "shares outstanding",
+     "required": true,
+     "type": "string"
+    },
+    "terminal_growth_rate": {
+     "desc": "terminal growth rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
    "version": "1.0.0"
   },
   "decision_tree": {
@@ -752,6 +1139,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "depreciation_sl": {
+   "inputs": {
+    "cost": {
+     "desc": "cost",
+     "required": true,
+     "type": "string"
+    },
+    "life": {
+     "desc": "life",
+     "required": true,
+     "type": "string"
+    },
+    "salvage": {
+     "desc": "salvage",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "descriptive_stats": {
    "inputs": {
     "missing_codes": {
@@ -805,6 +1213,64 @@
      "desc": "periodic discount rate, default 0",
      "required": false,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "dividend_payout": {
+   "inputs": {
+    "dividends": {
+     "desc": "dividends",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "dividend_payout_ratio": {
+   "inputs": {
+    "dividends": {
+     "desc": "dividends",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "dupont": {
+   "inputs": {
+    "equity": {
+     "desc": "equity",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "sales": {
+     "desc": "sales",
+     "required": true,
+     "type": "string"
+    },
+    "total_assets": {
+     "desc": "total assets",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -876,6 +1342,32 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "dupont_simple": {
+   "inputs": {
+    "equity": {
+     "desc": "equity",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "sales": {
+     "desc": "sales",
+     "required": true,
+     "type": "string"
+    },
+    "total_assets": {
+     "desc": "total assets",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "earned_value": {
    "inputs": {
     "actual_cost": {
@@ -902,6 +1394,38 @@
      "desc": "budgeted cost of the work scheduled by the status date",
      "required": true,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "ebitdar": {
+   "inputs": {
+    "ebitda": {
+     "desc": "ebitda",
+     "required": true,
+     "type": "string"
+    },
+    "rent_expense": {
+     "desc": "rent expense",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "effective_tax_rate_advanced": {
+   "inputs": {
+    "income_tax_expense": {
+     "desc": "income tax expense",
+     "required": true,
+     "type": "string"
+    },
+    "pretax_income": {
+     "desc": "pretax income",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -979,6 +1503,80 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "eoq": {
+   "inputs": {
+    "demand": {
+     "desc": "demand",
+     "required": true,
+     "type": "string"
+    },
+    "holding_cost": {
+     "desc": "holding cost",
+     "required": true,
+     "type": "string"
+    },
+    "ordering_cost": {
+     "desc": "ordering cost",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "eoq_calc": {
+   "inputs": {
+    "demand": {
+     "desc": "demand",
+     "required": true,
+     "type": "string"
+    },
+    "holding_cost": {
+     "desc": "holding cost",
+     "required": true,
+     "type": "string"
+    },
+    "ordering_cost": {
+     "desc": "ordering cost",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "eps": {
+   "inputs": {
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "shares": {
+     "desc": "shares",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "eps_simple": {
+   "inputs": {
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "shares": {
+     "desc": "shares",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "equity_bridge": {
    "inputs": {
     "cash": {
@@ -1013,6 +1611,22 @@
     }
    },
    "tier": "T2",
+   "version": "1.0.0"
+  },
+  "ev_ebitda": {
+   "inputs": {
+    "ebitda": {
+     "desc": "ebitda",
+     "required": true,
+     "type": "string"
+    },
+    "enterprise_value": {
+     "desc": "enterprise value",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
    "version": "1.0.0"
   },
   "exchange_rate_ppp": {
@@ -1129,6 +1743,106 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "forward_price": {
+   "inputs": {
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    },
+    "spot": {
+     "desc": "spot",
+     "required": true,
+     "type": "string"
+    },
+    "time": {
+     "desc": "time",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "forward_price_calc": {
+   "inputs": {
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    },
+    "spot": {
+     "desc": "spot",
+     "required": true,
+     "type": "string"
+    },
+    "time": {
+     "desc": "time",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "free_cash_flow_conversion": {
+   "inputs": {
+    "free_cash_flow": {
+     "desc": "free cash flow",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "future_value": {
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pv": {
+     "desc": "pv",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "fv_annuity": {
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pmt": {
+     "desc": "pmt",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "fx_parity": {
    "inputs": {
     "domestic_inflation": {
@@ -1191,6 +1905,48 @@
      "desc": "declared incomes, non-negative",
      "required": true,
      "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "gordon": {
+   "inputs": {
+    "dividend": {
+     "desc": "dividend",
+     "required": true,
+     "type": "string"
+    },
+    "growth": {
+     "desc": "growth",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "gordon_growth": {
+   "inputs": {
+    "dividend": {
+     "desc": "dividend",
+     "required": true,
+     "type": "string"
+    },
+    "growth": {
+     "desc": "growth",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -1305,6 +2061,22 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "interest_burden": {
+   "inputs": {
+    "ebit": {
+     "desc": "ebit",
+     "required": true,
+     "type": "string"
+    },
+    "ebt": {
+     "desc": "ebt",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "interest_rate_parity": {
    "inputs": {
     "domestic_inflation": {
@@ -1398,6 +2170,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "justified_pe": {
+   "inputs": {
+    "growth": {
+     "desc": "growth",
+     "required": true,
+     "type": "string"
+    },
+    "payout_ratio": {
+     "desc": "payout ratio",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "kruskal_wallis": {
    "inputs": {
     "alpha": {
@@ -1445,6 +2238,22 @@
      "desc": "optional vacancy count",
      "required": false,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "lease_adjusted_debt": {
+   "inputs": {
+    "annual_lease_payment": {
+     "desc": "annual lease payment",
+     "required": true,
+     "type": "string"
+    },
+    "total_debt": {
+     "desc": "total debt",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -1573,6 +2382,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "loan_payment": {
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pv": {
+     "desc": "pv",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "logistic_regression": {
    "inputs": {
     "missing_codes": {
@@ -1589,6 +2419,38 @@
      "desc": "the outcome, coded 0 or 1",
      "required": true,
      "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "macaulay_dur": {
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "yield": {
+     "desc": "yield",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "macaulay_duration": {
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "yield": {
+     "desc": "yield",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -1877,6 +2739,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "multi_year_cagr": {
+   "inputs": {
+    "end_value": {
+     "desc": "end value",
+     "required": true,
+     "type": "string"
+    },
+    "start_value": {
+     "desc": "start value",
+     "required": true,
+     "type": "string"
+    },
+    "years": {
+     "desc": "years",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "multiple_comparison": {
    "inputs": {
     "alpha": {
@@ -2017,6 +2900,22 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "npv_simple": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cashflows",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "oee_analysis": {
    "inputs": {
     "downtime": {
@@ -2131,6 +3030,22 @@
      "desc": "the observations; blank or null counts as missing",
      "required": true,
      "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "operating_margin_advanced": {
+   "inputs": {
+    "ebit": {
+     "desc": "ebit",
+     "required": true,
+     "type": "string"
+    },
+    "revenue": {
+     "desc": "revenue",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -2266,6 +3181,70 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "payback_calc": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cashflows",
+     "required": true,
+     "type": "string"
+    },
+    "investment": {
+     "desc": "investment",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "payback_period": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cashflows",
+     "required": true,
+     "type": "string"
+    },
+    "investment": {
+     "desc": "investment",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "pe_ratio": {
+   "inputs": {
+    "eps": {
+     "desc": "eps",
+     "required": true,
+     "type": "string"
+    },
+    "price": {
+     "desc": "price",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "pe_ratio_calc": {
+   "inputs": {
+    "eps": {
+     "desc": "eps",
+     "required": true,
+     "type": "string"
+    },
+    "price": {
+     "desc": "price",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "pearson": {
    "inputs": {
     "alpha": {
@@ -2292,6 +3271,129 @@
      "desc": "second variable, paired by position with x",
      "required": true,
      "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "peer_relative_multiples": {
+   "inputs": {
+    "company_ev_ebitda": {
+     "desc": "company ev ebitda",
+     "required": true,
+     "type": "string"
+    },
+    "company_pb": {
+     "desc": "company pb",
+     "required": true,
+     "type": "string"
+    },
+    "company_pe": {
+     "desc": "company pe",
+     "required": true,
+     "type": "string"
+    },
+    "peer_ev_ebitda_median": {
+     "desc": "peer ev ebitda median",
+     "required": true,
+     "type": "string"
+    },
+    "peer_pb_median": {
+     "desc": "peer pb median",
+     "required": true,
+     "type": "string"
+    },
+    "peer_pe_median": {
+     "desc": "peer pe median",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "peg_ratio_advanced": {
+   "inputs": {
+    "eps_growth_rate": {
+     "desc": "eps growth rate",
+     "required": true,
+     "type": "string"
+    },
+    "pe_ratio": {
+     "desc": "pe ratio",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "piotroski_f_score": {
+   "inputs": {
+    "asset_turnover_current": {
+     "desc": "asset turnover current",
+     "required": true,
+     "type": "string"
+    },
+    "asset_turnover_prior": {
+     "desc": "asset turnover prior",
+     "required": true,
+     "type": "string"
+    },
+    "current_ratio_current": {
+     "desc": "current ratio current",
+     "required": true,
+     "type": "string"
+    },
+    "current_ratio_prior": {
+     "desc": "current ratio prior",
+     "required": true,
+     "type": "string"
+    },
+    "gross_margin_current": {
+     "desc": "gross margin current",
+     "required": true,
+     "type": "string"
+    },
+    "gross_margin_prior": {
+     "desc": "gross margin prior",
+     "required": true,
+     "type": "string"
+    },
+    "leverage_current": {
+     "desc": "leverage current",
+     "required": true,
+     "type": "string"
+    },
+    "leverage_prior": {
+     "desc": "leverage prior",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    },
+    "operating_cash_flow": {
+     "desc": "operating cash flow",
+     "required": true,
+     "type": "string"
+    },
+    "roa_current": {
+     "desc": "roa current",
+     "required": true,
+     "type": "string"
+    },
+    "roa_prior": {
+     "desc": "roa prior",
+     "required": true,
+     "type": "string"
+    },
+    "shares_diluted": {
+     "desc": "shares diluted",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -2458,6 +3560,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "present_value": {
+   "inputs": {
+    "fv": {
+     "desc": "fv",
+     "required": true,
+     "type": "string"
+    },
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "price_control": {
    "inputs": {
     "control_price": {
@@ -2520,6 +3643,22 @@
      "desc": "constant marginal cost",
      "required": true,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "price_to_book_advanced": {
+   "inputs": {
+    "book_value_per_share": {
+     "desc": "book value per share",
+     "required": true,
+     "type": "string"
+    },
+    "share_price": {
+     "desc": "share price",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -2910,6 +4049,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "pv_annuity": {
+   "inputs": {
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pmt": {
+     "desc": "pmt",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "queue_analysis": {
    "inputs": {
     "arrival_rate": {
@@ -2926,6 +4086,48 @@
      "desc": "average customers served per period by one server",
      "required": true,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "quick_ratio": {
+   "inputs": {
+    "cash": {
+     "desc": "cash",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    },
+    "receivables": {
+     "desc": "receivables",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "quick_ratio_simple": {
+   "inputs": {
+    "cash": {
+     "desc": "cash",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
+    },
+    "receivables": {
+     "desc": "receivables",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -3085,6 +4287,32 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "remaining_balance": {
+   "inputs": {
+    "payments_made": {
+     "desc": "payments made",
+     "required": true,
+     "type": "string"
+    },
+    "periods": {
+     "desc": "periods",
+     "required": true,
+     "type": "string"
+    },
+    "pmt": {
+     "desc": "pmt",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "resource_leveling": {
    "inputs": {
     "activities": {
@@ -3096,6 +4324,38 @@
      "desc": "one row per resource: name and whole-unit capacity",
      "required": true,
      "type": "rows"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "retention_ratio": {
+   "inputs": {
+    "dividends": {
+     "desc": "dividends",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "retention_ratio_calc": {
+   "inputs": {
+    "dividends": {
+     "desc": "dividends",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -3159,6 +4419,22 @@
      "desc": "a declared adverse return, to report its loss alongside VaR",
      "required": false,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "roic_advanced": {
+   "inputs": {
+    "invested_capital": {
+     "desc": "invested capital",
+     "required": true,
+     "type": "string"
+    },
+    "nopat": {
+     "desc": "nopat",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -3331,6 +4607,48 @@
      "desc": "volume changes as fractions, one to five",
      "required": true,
      "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "sharpe_ratio": {
+   "inputs": {
+    "return": {
+     "desc": "return",
+     "required": true,
+     "type": "string"
+    },
+    "risk_free": {
+     "desc": "risk free",
+     "required": true,
+     "type": "string"
+    },
+    "sigma": {
+     "desc": "sigma",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "simple_interest": {
+   "inputs": {
+    "principal": {
+     "desc": "principal",
+     "required": true,
+     "type": "string"
+    },
+    "rate": {
+     "desc": "rate",
+     "required": true,
+     "type": "string"
+    },
+    "time": {
+     "desc": "time",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -3583,6 +4901,22 @@
      "desc": "the world price before the tariff",
      "required": true,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "tax_burden": {
+   "inputs": {
+    "ebt": {
+     "desc": "ebt",
+     "required": true,
+     "type": "string"
+    },
+    "net_income": {
+     "desc": "net income",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -3853,6 +5187,32 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "var_simple": {
+   "inputs": {
+    "mean": {
+     "desc": "mean",
+     "required": true,
+     "type": "string"
+    },
+    "sigma": {
+     "desc": "sigma",
+     "required": true,
+     "type": "string"
+    },
+    "value": {
+     "desc": "value",
+     "required": true,
+     "type": "string"
+    },
+    "z": {
+     "desc": "z",
+     "required": true,
+     "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "wacc": {
    "inputs": {
     "cost_of_debt_after_tax": {
@@ -3874,6 +5234,37 @@
      "desc": "market value of equity",
      "required": true,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "wacc_simple": {
+   "inputs": {
+    "cost_of_debt": {
+     "desc": "cost of debt",
+     "required": true,
+     "type": "string"
+    },
+    "cost_of_equity": {
+     "desc": "cost of equity",
+     "required": true,
+     "type": "string"
+    },
+    "debt_value": {
+     "desc": "debt value",
+     "required": true,
+     "type": "string"
+    },
+    "equity_value": {
+     "desc": "equity value",
+     "required": true,
+     "type": "string"
+    },
+    "tax_rate": {
+     "desc": "tax rate",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",
@@ -4028,6 +5419,22 @@
      "desc": "buffer units held; default 0",
      "required": false,
      "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "working_capital_ratio": {
+   "inputs": {
+    "current_assets": {
+     "desc": "current assets",
+     "required": true,
+     "type": "string"
+    },
+    "current_liabilities": {
+     "desc": "current liabilities",
+     "required": true,
+     "type": "string"
     }
    },
    "tier": "T1",

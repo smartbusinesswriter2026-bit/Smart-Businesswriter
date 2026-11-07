@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch corpus/merge-v1, remote origin = smartbusinesswriter2026-bit/smart-businesswriter002; `main` is the deployment branch and carries the same tree; clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.102 (see docs/CHANGELOG.md)
-Tests        : 3933 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Build        : 1.108 (see docs/CHANGELOG.md)
+Tests        : 4140 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell

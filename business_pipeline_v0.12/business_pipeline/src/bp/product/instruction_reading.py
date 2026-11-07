@@ -278,8 +278,12 @@ def _entity_before(text: str, position: int) -> Optional[Tuple[str, str, Tuple[i
 
 
 def _entity_after(text: str, start: int, window: int = 120):
-    """The first named entity after a metric, with its type and span."""
-    tail = text[start:start + window]
+    """The first named entity after a metric, with its type and span.
+
+    The search stops at a sentence boundary: a metric in one sentence is not
+    bound to an entity mentioned in the next one.
+    """
+    tail = re.split(r"[.?!\n]", text[start:start + window], maxsplit=1)[0]
     best = None
     for entity, entity_type in sorted(ENTITY_LEXICON.items(), key=lambda item: -len(item[0])):
         pattern = re.compile(r"(?<![a-z0-9])" + re.escape(entity) + r"(?![a-z0-9])", re.I)

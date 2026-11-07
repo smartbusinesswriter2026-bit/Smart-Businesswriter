@@ -36,6 +36,11 @@ FROZEN_MODULES = ("methods", "orchestrator", "session", "server", "spec", "sandb
 #: `documents.py`; they read a file's text, never compute a business number.
 OPTIONAL_DOCUMENT_READERS = {"pypdf", "pypdfium2", "pytesseract", "PIL"}
 
+#: Optional renderer engines (B-221).  They are imported lazily inside functions and only in
+#: `renderers.py` and `theme.py`; when absent the builtin standard-library SVG draws instead,
+#: so the product still runs with no third-party package installed.
+OPTIONAL_RENDERERS = {"plotly", "kaleido", "cairosvg"}
+
 
 def _product_sources():
     for name in sorted(os.listdir(PRODUCT_DIR)):
@@ -57,6 +62,8 @@ class ProductBoundaryTest(unittest.TestCase):
             allowed = set(sys.stdlib_module_names)
             if name == "documents.py":
                 allowed |= OPTIONAL_DOCUMENT_READERS
+            if name in ("renderers.py", "theme.py"):
+                allowed |= OPTIONAL_RENDERERS
             tree = ast.parse(source, filename=name)
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):

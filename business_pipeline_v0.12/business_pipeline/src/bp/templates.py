@@ -1109,6 +1109,177 @@ CANVAS_META = {
         "extra_help": "The constructs are the ones the model names. A construct with no evidence is named and left empty; the worksheet computes no scale and derives no intention.",
     },
 }
+# ---------------------------------------------------------------------------
+# Leadership, culture and ethics worksheets (strategy shelf).
+#
+# These reuse the generic canvas builder: each is structure plus an evidence
+# audit.  Nothing is scored, ranked or filled in; a block with no evidence is
+# named.  The theory itself is a reading lens the student cites, not a
+# computation, so no numbers are derived here.
+# ---------------------------------------------------------------------------
+LEADERSHIP_CANVAS_BLOCKS = {
+    "template_leadership_theory_comparison": {
+        "question": ("The leadership question", "The decision or situation this analysis serves"),
+        "starting_theory": ("Starting theory", "The theory you begin from and its core claim"),
+        "evidence": ("Evidence in this case", "What the case gives you, with sources"),
+        "comparison": ("Comparison", "The other theories and how they differ here"),
+        "best_fit": ("Best fit", "Which theory fits and on what criterion"),
+        "limits": ("Limits", "What the comparison cannot settle"),
+    },
+    "template_situational_leadership": {
+        "situation": ("The situation", "Task structure, follower readiness, leader-member relations, position power"),
+        "model": ("Contingency model", "The model you apply and the variables it uses"),
+        "implied_style": ("Style implied", "What the model says the situation calls for"),
+        "observed_style": ("Style observed", "What the leader actually does"),
+        "gap": ("The gap", "The mismatch and its consequence"),
+        "limits": ("Limits", "What the model cannot predict"),
+    },
+    "template_leader_effectiveness": {
+        "subject": ("Whose effectiveness", "The leader, the period and the standard applied"),
+        "criteria": ("Criteria", "The criteria and who set them"),
+        "evidence": ("Evidence", "Sourced evidence for each criterion"),
+        "counter": ("Counter-evidence", "Evidence against and alternative explanations"),
+        "verdict": ("Verdict", "The judgment and the confidence you place in it"),
+        "limits": ("Limits", "What cannot be claimed"),
+    },
+    "template_leadership_development": {
+        "current": ("Current capability", "Your capability against a named model"),
+        "gap": ("The gap", "The evidence that shows the gap"),
+        "actions": ("Development actions", "What will be done and why"),
+        "observation": ("How it will be observed", "The evidence that would show change"),
+        "limits": ("Limits", "What cannot be claimed"),
+    },
+    "template_culture_framework_comparison": {
+        "context": ("Context", "The country or organisation and the question"),
+        "framework_a": ("Framework A", "Dimensions as framework A names them"),
+        "framework_b": ("Framework B", "Dimensions as framework B names them"),
+        "agreement": ("Agreement and conflict", "Where the frameworks agree and where they differ"),
+        "implication": ("Implication", "What it means for leadership or organisation here"),
+        "limits": ("Limits", "Ecological fallacy, within-country variation, data age"),
+    },
+    "template_cross_cultural_leadership": {
+        "situation": ("Situation", "The leadership or organisational situation"),
+        "framework": ("Framework applied", "The lens and the dimensions it uses"),
+        "expectations": ("Expectations", "What the framework predicts"),
+        "observed": ("Observed behaviour", "What the evidence shows"),
+        "fit": ("Where it predicts and fails", "The comparison"),
+        "limits": ("Limits", "What the framework cannot settle"),
+    },
+    "template_organisational_culture": {
+        "artefacts": ("Artefacts", "What is visible: symbols, rituals, layout, language"),
+        "espoused": ("Espoused values", "What the organisation says it values"),
+        "assumptions": ("Basic assumptions", "What is taken for granted"),
+        "evidence": ("Evidence", "Sourced evidence for each layer"),
+        "diagnosis": ("Diagnosis", "The reading and its basis"),
+        "limits": ("Limits", "What cannot be concluded"),
+    },
+    "template_ethical_dilemma": {
+        "dilemma": ("The dilemma", "The decision and the competing obligations"),
+        "stakeholders": ("Stakeholders", "Who is affected and how"),
+        "theory_a": ("Theory A", "One ethical theory applied to this case"),
+        "theory_b": ("Theory B", "A second ethical theory applied"),
+        "theory_c": ("Theory C", "An optional third lens"),
+        "divergence": ("Agreement and divergence", "Where the theories agree and differ"),
+        "decision": ("Decision", "What you would do and on what grounds"),
+        "limits": ("Limits", "What the analysis cannot settle"),
+    },
+    "template_stakeholder_csr": {
+        "stakeholders": ("Stakeholders", "Who they are; power, legitimacy and urgency"),
+        "claims": ("Claims", "What each stakeholder claims and the evidence"),
+        "shareholder": ("Shareholder primacy", "The Friedman position on this decision"),
+        "stakeholder_theory": ("Stakeholder theory", "The Freeman position on this decision"),
+        "csr": ("CSR obligations", "Carroll's economic, legal, ethical and philanthropic obligations"),
+        "triple_bottom_line": ("Triple bottom line", "Profit, people and planet"),
+        "decision": ("Decision", "The judgment and its basis"),
+        "limits": ("Limits", "What cannot be settled"),
+    },
+    "template_ethical_decision_process": {
+        "decision": ("The decision", "The decision being analysed"),
+        "sensitivity": ("Moral sensitivity", "Whether the ethical issue was recognised"),
+        "judgment": ("Moral judgment", "How the issue was reasoned"),
+        "motivation": ("Moral motivation", "What the actor valued"),
+        "character": ("Moral character", "What was actually done"),
+        "intensity": ("Moral intensity", "The factors that made the issue serious or not"),
+        "breakdown": ("Where it broke down", "The stage and the remedy"),
+        "limits": ("Limits", "What cannot be concluded"),
+    },
+}
+CANVAS_BLOCKS.update(LEADERSHIP_CANVAS_BLOCKS)
+
+LEADERSHIP_CANVAS_META = {
+    "template_leadership_theory_comparison": {
+        "name": "Leadership theory profile and comparison", "short": "leadership theory comparison",
+        "registry_ids": ["LDR-01"],
+        "intended_use": "State the leadership theory you begin from, place the case evidence against it, and compare it with two or three other theories on a stated criterion.",
+        "unsupported_use": "Inventing evidence, ranking theories, scoring a leader, or declaring one theory universally best; the comparison is yours and its basis must be stated.",
+        "extra_help": "A theory named without a source is flagged; a comparison with no criterion is flagged.",
+    },
+    "template_situational_leadership": {
+        "name": "Situational and contingency leadership", "short": "situational leadership",
+        "registry_ids": ["LDR-02"],
+        "intended_use": "Read a situation against a named contingency model (Fiedler, Hersey-Blanchard or path-goal), name the style the model implies, and compare it with the style observed.",
+        "unsupported_use": "Inventing the situation, predicting behaviour with certainty, or treating one model as the only valid reading.",
+        "extra_help": "The model's variables are named; a variable with no evidence is named as a gap.",
+    },
+    "template_leader_effectiveness": {
+        "name": "Leader effectiveness appraisal", "short": "leader effectiveness",
+        "registry_ids": ["LDR-03"],
+        "intended_use": "Appraise a leader against stated criteria using sourced evidence, including counter-evidence and alternative explanations.",
+        "unsupported_use": "Inventing outcomes, scoring character, or presenting a verdict as proven; the judgment and its confidence are yours.",
+        "extra_help": "A criterion with no evidence is named; a verdict with no counter-evidence considered is flagged.",
+    },
+    "template_leadership_development": {
+        "name": "Leadership development plan", "short": "leadership development",
+        "registry_ids": ["LDR-04"],
+        "intended_use": "Name a capability gap against a model, the evidence for it, the development actions, and how change would be observed.",
+        "unsupported_use": "Claiming a capability, predicting who will succeed, or prescribing training as if its effect were known.",
+        "extra_help": "An action with no observable result is flagged.",
+    },
+    "template_culture_framework_comparison": {
+        "name": "Cultural framework comparison", "short": "culture framework comparison",
+        "registry_ids": ["CUL-01"],
+        "intended_use": "Describe a context through two or more cultural frameworks, compare where they agree and conflict, and state the implication and the limits.",
+        "unsupported_use": "Assigning national character to individuals, treating a dimension score as a fact about a person, or ignoring within-country variation.",
+        "extra_help": "A framework dimension with no evidence is named; an implication with no basis is flagged.",
+    },
+    "template_cross_cultural_leadership": {
+        "name": "Cross-cultural leadership and organisation", "short": "cross-cultural leadership",
+        "registry_ids": ["CUL-02"],
+        "intended_use": "Apply one cultural framework to a leadership situation, compare what it predicts with what the evidence shows, and name what it cannot settle.",
+        "unsupported_use": "Inventing cultural facts, stereotyping, or presenting a prediction as an outcome.",
+        "extra_help": "A prediction with no observed evidence is a named gap, not a finding.",
+    },
+    "template_organisational_culture": {
+        "name": "Organisational culture diagnosis", "short": "organisational culture",
+        "registry_ids": ["CUL-03"],
+        "intended_use": "Read an organisation's culture at the artefact, espoused-value and basic-assumption layers, with sourced evidence for each.",
+        "unsupported_use": "Declaring a culture type, scoring culture, or treating a diagnosis as final.",
+        "extra_help": "A layer with no evidence is named; a diagnosis with no evidence is flagged.",
+    },
+    "template_ethical_dilemma": {
+        "name": "Ethical dilemma analysis", "short": "ethical dilemma",
+        "registry_ids": ["ETH-01"],
+        "intended_use": "State a dilemma, apply two or three ethical theories, compare where they agree and diverge, and justify a decision.",
+        "unsupported_use": "Inventing facts, declaring one theory correct, or presenting a decision as proven; the justification is yours.",
+        "extra_help": "A theory applied with no reasoning is flagged; a decision with no basis is flagged.",
+    },
+    "template_stakeholder_csr": {
+        "name": "Stakeholder and CSR analysis", "short": "stakeholder and CSR",
+        "registry_ids": ["ETH-02"],
+        "intended_use": "Map stakeholders and their claims, compare shareholder primacy with stakeholder theory, and weigh Carroll's CSR obligations and the triple bottom line.",
+        "unsupported_use": "Inventing stakeholders or claims, assigning weights, or declaring a decision ethical without a stated basis.",
+        "extra_help": "A stakeholder with no evidence is named; a decision with no theory basis is flagged.",
+    },
+    "template_ethical_decision_process": {
+        "name": "Ethical decision-making process", "short": "ethical decision process",
+        "registry_ids": ["ETH-03"],
+        "intended_use": "Trace a decision through the stages of moral sensitivity, judgment, motivation and character, with the factors that made it serious.",
+        "unsupported_use": "Scoring morality, predicting behaviour, or presenting a reconstruction as fact.",
+        "extra_help": "A stage with no evidence is named; a breakdown with no remedy is flagged.",
+    },
+}
+CANVAS_META.update(LEADERSHIP_CANVAS_META)
+
 CANVAS_MAX_ITEMS_PER_BLOCK = 20
 
 #: Short id prefix per block, so a student can link two items by a readable id

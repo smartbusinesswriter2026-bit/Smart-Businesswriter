@@ -350,9 +350,9 @@ class RubricCoverageTest(unittest.TestCase):
                          "the count reported is the paper's own count")
         self.assertFalse(target["met"], "a short draft is reported as short, never as met")
         without = _draft(NO_TOLERANCE)["word_target"]
-        self.assertIsNone(without["met"], "a bare count does not say floor or ceiling")
-        self.assertIsNone(without["range"])
-        self.assertIn("for you to judge", without["note"])
+        self.assertFalse(without["met"], "a bare count is read as a target with the product's allowance")
+        self.assertEqual(without["range"], [2250, 2750])
+        self.assertIn("product's 10% allowance", without["note"])
 
     def test_e_rub_024__a_weighted_criterion_gap_blocks_export(self):
         coverage = _draft(TWO_CRITERIA)["rubric"]
@@ -471,7 +471,7 @@ class RubricUploadTest(unittest.TestCase):
         self.assertIn('useAsRubric', page)
         self.assertIn('/rubric"', page)
         self.assertIn("body.rubric = state.rubric", page)
-        self.assertIn("used as the marking guide", page)
+        self.assertIn("Read as the marking guide", page)
 
 
 if __name__ == "__main__":

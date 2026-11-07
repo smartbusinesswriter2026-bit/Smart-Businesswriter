@@ -17,13 +17,62 @@ def _stub_tests(inp, impl):
 def _stub_profile(inp):
     return []
 
+
+def _declared_keys(impl):
+    """The input keys the function reads, taken from its own source.
+
+    A finance method reads `inp["rate"]` and so on.  Reading the source gives the
+    schema without inventing a field: every name here is one the code uses, and a
+    method that reads nothing yields an empty schema the audit then refuses.
+    """
+    import ast, inspect, textwrap
+    try:
+        tree = ast.parse(textwrap.dedent(inspect.getsource(impl)))
+    except (OSError, TypeError, SyntaxError):
+        return {}
+    found = []
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Subscript) and isinstance(node.value, ast.Name)
+                and node.value.id in ("inp", "inputs")):
+            key = node.slice
+            if isinstance(key, ast.Constant) and isinstance(key.value, str) and key.value not in found:
+                found.append(key.value)
+        elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+              and node.func.attr == "get" and isinstance(node.func.value, ast.Name)
+              and node.func.value.id in ("inp", "inputs") and node.args):
+            key = node.args[0]
+            if isinstance(key, ast.Constant) and isinstance(key.value, str) and key.value not in found:
+                found.append(key.value)
+        elif (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+              and node.func.id == "_d" and len(node.args) >= 2):
+            key = node.args[1]
+            if isinstance(key, ast.Constant) and isinstance(key.value, str) and key.value not in found:
+                found.append(key.value)
+    return {name: {"type": "string", "desc": name.replace("_", " ")} for name in found}
+
+
+def _typing_for(mid):
+    """Every output of a registered finance method prints at two decimals."""
+    def typing(metric):
+        return ("units", 2)
+    return typing
+
+
 def _reg(mid, impl, category, intended_use, input_schema=None):
     m = methods.Method(mid, "T1", impl, _stub_tests, _stub_profile, mid, "units",
                        test_names=("execution_ok",),
                        version="1.0.0", category=category, status="implemented_tested",
                        intended_use=intended_use,
-                       input_schema=input_schema or {},
-                       output_precision={mid: 2}, output_units={mid: "units"})
+                       unsupported_use=("It computes only the figure its description states, from the "
+                                        "inputs it declares; a different question needs a different method."),
+                       defaults=({"question": "Inputs",
+                                  "default_chosen": "None: every input is declared by the student."},),
+                       assumptions=("The declared inputs are the values used; nothing is defaulted or inferred.",),
+                       limitations=("It returns the single figure it declares; it does not test, forecast "
+                                    "or explain that figure.",),
+                       input_schema=input_schema or _declared_keys(impl),
+                       output_precision={mid: 2}, output_units={mid: "units"},
+                       typing=_typing_for(mid))
     methods.LIBRARY[mid] = m
 
 

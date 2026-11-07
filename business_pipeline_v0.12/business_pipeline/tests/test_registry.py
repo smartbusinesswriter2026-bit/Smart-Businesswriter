@@ -9,9 +9,18 @@ FIX = json.load(open(os.path.join(ROOT, "tests", "fixtures", "framework_requests
 
 class Import(unittest.TestCase):
     @unittest.skipUnless(os.path.exists(CAT), "catalogue not in docs/sources")
-    def test_shipped_registry_equals_fresh_import(self):
+    def test_shipped_registry_contains_a_fresh_import_unchanged(self):
+        """The catalogue is one source; later increments add records to the registry.
+
+        Every record a fresh import produces must be present and identical, so a hand
+        edit of an imported record still fails here; a record added from a later source
+        is allowed and is covered by its own shelf's tests.
+        """
         fresh = CI.import_catalogue(CAT); shipped = json.load(open(R.DATA, encoding="utf-8"))
-        self.assertEqual(json.loads(json.dumps(fresh, ensure_ascii=False)), shipped)
+        have = {record["id"]: record for record in shipped["records"]}
+        for record in fresh["records"]:
+            self.assertIn(record["id"], have, record["id"])
+            self.assertEqual(record, have[record["id"]], record["id"])
     @unittest.skipUnless(os.path.exists(CAT), "catalogue not in docs/sources")
     def test_source_hash_is_line_ending_insensitive(self):
         """A CRLF checkout must hash the same as an LF checkout (B-085)."""
@@ -30,11 +39,11 @@ class Import(unittest.TestCase):
         for i in ids: self.assertEqual(R.get(i)["id"] in ids or i in R.get(i)["also_listed_as"], True, i)
     def test_counts_and_types(self):
         recs = R.load()["records"]; from collections import Counter; c = Counter(r["type"] for r in recs)
-        self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (161, 71, 24, 59, 7))
+        self.assertEqual((len(recs), c["F"], c["M"], c["Q"], c["T"]), (214, 71, 34, 59, 50))
     def test_duplicates_merged_with_both_ids_kept(self):
         self.assertEqual(R.get("IMP-01")["id"], "CHG-07"); self.assertEqual(R.get("IMP-02")["id"], "CHG-08"); self.assertIn("IMP-01", R.get("CHG-07")["also_listed_as"])
         self.assertEqual(R.get("QNT-MKT-04")["id"], "MKT-08"); self.assertIn("QNT-MKT-04", R.get("MKT-08")["also_listed_as"])
-        self.assertEqual(len({r["id"] for r in R.load()["records"]}), 161)
+        self.assertEqual(len({r["id"] for r in R.load()["records"]}), 214)
     def test_names_are_complete_and_not_truncated(self):
         """A name ending in ' and', ' or', ',' or '(' is a cut, not a name (B-113)."""
         for r in R.load()["records"]:

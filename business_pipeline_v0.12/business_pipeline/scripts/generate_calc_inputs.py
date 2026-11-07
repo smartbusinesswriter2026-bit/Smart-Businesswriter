@@ -26,6 +26,7 @@ TARGET = ROOT / "src" / "bp" / "product" / "data" / "calc_inputs_v0_1.json"
 def build():
     sys.path.insert(0, str(ROOT / "src"))
     from bp import methods
+    from bp import finance_methods  # noqa: F401 - registers the additional methods, as the server does
 
     rows = {}
     for method in methods.list_methods():

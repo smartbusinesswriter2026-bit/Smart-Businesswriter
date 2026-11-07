@@ -91,18 +91,29 @@ def audit(contract, plan=None, evidence=None, computations=None, draft=None,
             findings.append({"severity": "warning", "code": "overclaim",
                              "message": "possible overclaim: " + word})
 
-    # 5. Length band.
-    length = str(contract.get("length") or "").strip().lower()
-    bands = {"short": (600, 1200), "mid": (1200, 2500), "long": (2500, 5000)}
-    if length in bands:
-        low_bound, high_bound = bands[length]
-        count = _word_count(text)
-        if count < low_bound:
-            findings.append({"severity": "warning", "code": "too_short",
-                             "message": "draft is shorter than the " + length + " band (" + str(count) + " words)"})
-        if count > high_bound:
-            findings.append({"severity": "warning", "code": "too_long",
-                             "message": "draft is longer than the " + length + " band (" + str(count) + " words)"})
+    # 5. Length.  A word count is the contract's real length; the old band is
+    #    read only when a saved contract carries no number.  This is a warning,
+    #    never a blocking finding: the count is reported, not gated.
+    from . import length as length_mod
+    count = _word_count(text)
+    target = contract.get("target_words")
+    if target:
+        report = length_mod.report(target, count, contract.get("word_tolerance"))
+        if report["met"] is False:
+            findings.append({"severity": "warning",
+                             "code": "too_short" if count < report["range"][0] else "too_long",
+                             "message": report["note"]})
+    else:
+        length = str(contract.get("length") or "").strip().lower()
+        bands = {"short": (600, 1200), "mid": (1200, 2500), "long": (2500, 5000)}
+        if length in bands:
+            low_bound, high_bound = bands[length]
+            if count < low_bound:
+                findings.append({"severity": "warning", "code": "too_short",
+                                 "message": "draft is shorter than the " + length + " band (" + str(count) + " words)"})
+            if count > high_bound:
+                findings.append({"severity": "warning", "code": "too_long",
+                                 "message": "draft is longer than the " + length + " band (" + str(count) + " words)"})
 
     # 6. Forbidden terms (subject names, home exchange, home country).
     forbidden = forbidden_terms or []
