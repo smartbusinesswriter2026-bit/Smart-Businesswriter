@@ -273,6 +273,16 @@
   .at-downloads a.btn { text-decoration: none; }
   #errorsTable, #runsTable, #findingsTable, #proposalsTable, #arHistory,
   #healHistory, #caseResults, #caseSubjects { overflow-x: auto; }
+  #errorsTable table { min-width: 720px; }
+  #errorsTable td.nowrap { white-space: nowrap; }
+  #errorsTable th:last-child, #errorsTable td:last-child {
+    min-width: 225px; position: sticky; right: 0; background: #fff; z-index: 1;
+    box-shadow: -6px 0 8px -8px rgba(15,23,42,.4);
+  }
+  #errorsTable th:last-child { background: #F8FAFC; }
+  #errorsTable tbody tr:hover td:last-child { background: #FBFCFD; }
+  #errorsTable .error-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  #errorsTable .error-actions .btn { font-size: 11px; padding: 4px 8px; }
   /* ── Responsive ── */
   @media (max-width: 980px) {
     .app { flex-direction: column; }
@@ -434,7 +444,7 @@
 
         <!-- ERRORS & FIXES -->
         <div class="hpanel" id="hpanel-errors">
-          <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:start;">
+          <div style="display:grid;grid-template-columns:1fr;gap:18px;align-items:start;">
             <div class="card">
               <div class="card-head"><div><h2>Errors</h2><p>Open errors by default. Resolved, invalid and dismissed records are behind the status filter.</p></div></div>
               <div class="card-body">
@@ -594,6 +604,7 @@ function toast(msg, duration) {
 }
 function escapeHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function fmtTs(ts) { if (!ts) return '—'; try { return new Date(ts).toLocaleString(); } catch(e) { return ts; } }
+function fmtShortTs(ts) { if (!ts) return '—'; try { return new Date(ts).toLocaleString(undefined, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }); } catch(e) { return ts; } }
 function pill(text, cls) { return '<span class="pill ' + cls + '">' + escapeHtml(text) + '</span>'; }
 
 async function apiFetch(path, opts) {
@@ -876,10 +887,10 @@ function renderErrorsTable(errors, container) {
       : (resolved ? (verified ? pill('verified solved', 'ok') : pill('resolved (unverified)', 'warn'))
       : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'))));
     const statusPill = sevPill;
-    const genBtn = (resolved || e.invalid || e.dismissed) ? '' : '<button class="btn primary" style="font-size:10px;padding:3px 8px;" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\',\'' + escapeHtml(e.severity||'moderate') + '\')">Generate</button>';
-    const resolveBtn = (resolved || e.invalid || e.dismissed) ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" title="Re-runs the failing problem; resolves only if it now passes" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
-    const dismissBtn = (!resolved && !invalid && !e.dismissed && !e.replayable) ? ' <button class="btn" style="font-size:10px;padding:3px 8px;" title="No replayable problem was stored; closes it without claiming a fix" onclick="dismissError(\'' + escapeHtml(eid) + '\')">Dismiss</button>' : '';
-    html += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + escapeHtml(e.lane) + '</td><td style="font-size:10.2px;">' + escapeHtml((e.error||'').slice(0,80)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td>' + genBtn + ' ' + resolveBtn + dismissBtn + '</td></tr>';
+    const genBtn = (resolved || e.invalid || e.dismissed) ? '' : '<button class="btn primary" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\',\'' + escapeHtml(e.severity||'moderate') + '\')">Generate</button>';
+    const resolveBtn = (resolved || e.invalid || e.dismissed) ? '' : '<button class="btn" title="Re-runs the failing problem; resolves only if it now passes" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
+    const dismissBtn = (!resolved && !invalid && !e.dismissed && !e.replayable) ? '<button class="btn" title="No replayable problem was stored; closes it without claiming a fix" onclick="dismissError(\'' + escapeHtml(eid) + '\')">Dismiss</button>' : '';
+    html += '<tr><td class="nowrap">' + fmtShortTs(e.ts) + '</td><td class="nowrap">' + escapeHtml(e.lane) + '</td><td style="font-size:12px;">' + escapeHtml((e.error||'').slice(0,110)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td><div class="error-actions">' + genBtn + resolveBtn + dismissBtn + '</div></td></tr>';
   });
   html += '</tbody></table>';
   container.innerHTML = html;
