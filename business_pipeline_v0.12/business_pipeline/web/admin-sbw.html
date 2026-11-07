@@ -1671,7 +1671,7 @@ async function uploadCaseFiles(subject, tile, files) {
 
 document.getElementById('caseSubjects').addEventListener('click', (event) => {
   const run = event.target.closest('button[data-case-run]');
-  if (run) { runCasesFor(run.dataset.caseRun); return; }
+  if (run) { runCasesFor(run.dataset.caseRun, run); return; }
   const upload = event.target.closest('button[data-case-upload]');
   if (upload) {
     const sid = upload.dataset.caseUpload;
@@ -1689,7 +1689,7 @@ document.getElementById('caseSubjects').addEventListener('click', (event) => {
     const count = generateBox && generateBox.checked
       ? Math.max(1, Math.min(10, parseInt((countBox || {}).value, 10) || 5)) : 0;
     if (!ids.length && !count) { toast('Tick a case or generate problems'); return; }
-    runCases(ids, sid, count);
+    runCases(ids, sid, count, selected);
   }
 });
 
@@ -1718,42 +1718,70 @@ document.getElementById('seedCases').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('runAllCases').addEventListener('click', () => {
+document.getElementById('runAllCases').addEventListener('click', (event) => {
   if (!caseCache.length) { toast('No cases to run'); return; }
-  runCases(caseCache.map(c => c.id), 'all subjects', 0);
+  runCases(caseCache.map(c => c.id), 'all subjects', 0, event.currentTarget);
 });
 
-async function runCasesFor(subject) {
-  const ids = caseCache.filter(c => c.subject === subject).map(c => c.id);
-  await runCases(ids, subject, 0);
+let caseRunning = false;
+
+function setCaseBusy(button, busy) {
+  if (!button) return;
+  if (busy) {
+    if (!button.dataset.originalText) button.dataset.originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Running…';
+  } else {
+    button.disabled = false;
+    button.textContent = button.dataset.originalText || button.textContent;
+  }
 }
 
-async function runCases(ids, label, generateCount) {
+async function runCasesFor(subject, button) {
+  const ids = caseCache.filter(c => c.subject === subject).map(c => c.id);
+  await runCases(ids, subject, 0, button);
+}
+
+async function runCases(ids, label, generateCount, button) {
+  if (caseRunning) { toast('A case run is already in progress'); return; }
+  caseRunning = true;
+  setCaseBusy(button, true);
+  const summary = document.getElementById('caseSummary');
+  const summaryText = summary.textContent;
+  summary.textContent = 'Running ' + ids.length + ' case(s)…';
   const progress = document.getElementById('caseProgress');
   progress.style.display = '';
   progress.querySelector('.bar').style.width = '10%';
   const note = generateCount ? ' + ' + generateCount + ' generated problem(s)' : '';
   document.getElementById('caseResults').innerHTML =
     '<div class="at-status">Running ' + ids.length + ' case(s)' + note + ' for ' + escapeHtml(label) + '…</div>';
-  const r = await apiFetch('/api/ops/cases/run', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      case_ids: ids,
-      subject: label === 'all subjects' ? null : label,
-      generate_count: generateCount || 0,
-      style: document.getElementById('atStyle').value,
-      length: parseInt(document.getElementById('atLength').value, 10) || 1200
-    })
-  });
-  progress.querySelector('.bar').style.width = '100%';
-  if (r.status !== 200 || !r.data) {
-    document.getElementById('caseResults').innerHTML =
-      '<div class="empty">Case run failed: ' + escapeHtml((r.data && r.data.error) || r.status) + '</div>';
-    return;
+  try {
+    const r = await apiFetch('/api/ops/cases/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        case_ids: ids,
+        subject: label === 'all subjects' ? null : label,
+        generate_count: generateCount || 0,
+        style: document.getElementById('atStyle').value,
+        length: parseInt(document.getElementById('atLength').value, 10) || 1200
+      })
+    });
+    progress.querySelector('.bar').style.width = '100%';
+    if (r.status !== 200 || !r.data) {
+      document.getElementById('caseResults').innerHTML =
+        '<div class="empty">Case run failed: ' + escapeHtml((r.data && r.data.error) || r.status) + '</div>';
+      return;
+    }
+    renderCaseResults(r.data);
+    loadErrors();
+    document.getElementById('caseResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } finally {
+    caseRunning = false;
+    setCaseBusy(button, false);
+    summary.textContent = summaryText;
+    progress.style.display = '';
   }
-  renderCaseResults(r.data);
-  loadErrors();
 }
 
 function caseResultsHtml(manifest) {
