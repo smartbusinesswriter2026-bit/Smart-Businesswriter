@@ -233,6 +233,49 @@ def _check(case, result):
     return problems
 
 
+def _explainer_text(case, result, problems, outcome):
+    """A readable account of what the case asked, what it computed and how it was checked."""
+    tile = case.get("tile_label") or case.get("tile") or "Tile"
+    inputs = case.get("inputs") or {}
+    computed = result.get("computation") or {}
+    lines = [
+        "# %s" % tile,
+        "",
+        "Subject: %s" % (case.get("subject_label") or case.get("subject") or ""),
+        "Tile: %s" % (case.get("tile") or ""),
+        "Objective: %s" % (case.get("objective") or ""),
+        "",
+        "## Instruction",
+        "",
+        str(case.get("instruction") or "").strip(),
+        "",
+        "## Declared inputs",
+        "",
+    ]
+    for name, value in inputs.items():
+        lines.append("- %s: %s" % (str(name).replace("_", " "), value))
+    lines.extend(["", "## Computed result", ""])
+    for name, value in computed.items():
+        lines.append("- %s: %s" % (str(name).replace("_", " "), value))
+    lines.extend(["", "## Check", "", "Status: %s" % outcome.get("status", "unknown")])
+    if problems:
+        lines.extend(["", "Problems:"])
+        for problem in problems:
+            lines.append("- %s" % problem)
+    else:
+        lines.append("No problem was found: the computation, the invariants, the paper and the workbook all agree.")
+    lines.extend([
+        "",
+        "## Evidence",
+        "",
+        "Sources cited: %s" % (result.get("sources") or 0),
+        "Background pages: %s" % (result.get("background") or 0),
+        "Named gaps: %s" % (result.get("gaps") or 0),
+        "",
+    ])
+    return "\n".join(lines)
+
+
 def run_case(case_id, style="apa", length=1200, log=True):
     """Replay one stored case.  Returns {case_id, status, problems, error, bytes}."""
     case = case_store.get_case(case_id)
@@ -259,11 +302,13 @@ def run_case(case_id, style="apa", length=1200, log=True):
         return {"case_id": case_id, "status": "fail", "problems": problems,
                 "error": error_text, "duration_ms": elapsed,
                 "bytes": result.get("bytes") or b"", "xlsx": result.get("xlsx") or b"",
+                "explainer": _explainer_text(case, result, problems, {"status": "fail"}),
                 "tile": case.get("tile"), "tile_label": case.get("tile_label")}
     closed = _close_case_errors(case_id)
     return {"case_id": case_id, "status": "pass", "problems": [],
             "error": "", "duration_ms": elapsed, "closed_errors": closed,
             "bytes": result.get("bytes") or b"", "xlsx": result.get("xlsx") or b"",
+            "explainer": _explainer_text(case, result, problems, {"status": "pass"}),
             "tile": case.get("tile"), "tile_label": case.get("tile_label")}
 
 
@@ -278,6 +323,7 @@ def run_cases(case_ids, style="apa", length=1200, subject=None, generate_count=0
     run_id = uuid.uuid4().hex[:12]
     run_dir = os.path.join(_state_root(), run_id)
     os.makedirs(run_dir, exist_ok=True)
+    explainers = []
     manifest = {
         "format": FORMAT,
         "run_id": run_id,
@@ -303,6 +349,13 @@ def run_cases(case_ids, style="apa", length=1200, subject=None, generate_count=0
             with open(os.path.join(run_dir, name), "wb") as handle:
                 handle.write(xlsx)
             outcome["workbook"] = name
+        explainer = outcome.pop("explainer", "")
+        if explainer:
+            name = re.sub(r"[^A-Za-z0-9._-]+", "-", case_id.replace("/", "_")) + "_explainer.md"
+            with open(os.path.join(run_dir, name), "w", encoding="utf-8", newline="\n") as handle:
+                handle.write(explainer + "\n")
+            outcome["explainer_file"] = name
+            explainers.append((case_id, explainer))
         manifest["results"].append(outcome)
         manifest["completed"] += 1
         if outcome["status"] == "pass":
@@ -345,6 +398,15 @@ def run_cases(case_ids, style="apa", length=1200, subject=None, generate_count=0
                 manifest["failed"] += 1
                 manifest["completed"] += 1
         _write_manifest(run_dir, manifest)
+    if explainers:
+        path = os.path.join(run_dir, "explainer.md")
+        with open(path, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write("# Case run %s\n\n" % run_id)
+            handle.write("Every case below was replayed through the paper path. "
+                         "A pass means the computation, the invariants, the paper and the workbook agree.\n")
+            for case_id, text in explainers:
+                handle.write("\n\n---\n\n" + text)
+        manifest["explainer"] = "explainer.md"
     manifest["status"] = "done"
     manifest["finished_at"] = _now()
     _write_manifest(run_dir, manifest)

@@ -202,6 +202,16 @@ class CaseLoopTest(unittest.TestCase):
         self.assertTrue(case_runner._paper_has_value("the quantity is 26.67 units", "26.666666666666666"))
         self.assertFalse(case_runner._paper_has_value("the quantity is 26.67 units", "30"))
 
+    def test_a_case_run_writes_an_explainer(self):
+        cases = self._seed()
+        case = next(c for c in cases if c["tile"] == "breakeven")
+        outcome = case_runner.run_case(case["id"], log=False)
+        self.assertIn("## Check", outcome["explainer"])
+        self.assertIn("Status: pass", outcome["explainer"])
+        manifest = case_runner.run_cases([case["id"]])
+        self.assertTrue(manifest["results"][0]["explainer_file"].endswith(".md"))
+        self.assertEqual(manifest.get("explainer"), "explainer.md")
+
 
 if __name__ == "__main__":
     unittest.main()

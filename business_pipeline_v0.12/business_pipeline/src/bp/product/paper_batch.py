@@ -761,7 +761,49 @@ def _zip_bytes(run_id):
         archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=1))
         archive.writestr("index.html", _index_html(manifest))
         archive.writestr("instructions.md", _instructions_md(manifest))
+        archive.writestr("explainer.md", _explainer_md(manifest))
     return buffer.getvalue()
+
+
+def _explainer_md(manifest):
+    """The tile, its instruction, its declared figures, its result and its evidence."""
+    lines = ["# %s - tile explainer" % (manifest.get("label") or "Tile previews"),
+             "", "Generated %s." % (manifest.get("created_at") or ""),
+             "Output format: %s." % (manifest.get("output") or "docx"), ""]
+    for row in manifest.get("results") or []:
+        lines.append("## %s" % (row.get("label") or row.get("tile_key") or ""))
+        if row.get("group"):
+            lines.append("")
+            lines.append("Subsection: %s" % row["group"])
+        if row.get("objective"):
+            lines.append("")
+            lines.append("Objective: %s" % row["objective"])
+        if row.get("brief"):
+            lines.append("")
+            lines.append("Instruction:")
+            lines.append("")
+            lines.append("> %s" % row["brief"])
+        inputs = row.get("inputs") or {}
+        if inputs:
+            lines.append("")
+            lines.append("Declared inputs:")
+            for name, value in inputs.items():
+                lines.append("- %s: %s" % (str(name).replace("_", " "), value))
+        computed = row.get("computation") or {}
+        if computed:
+            lines.append("")
+            lines.append("Computed result:")
+            for name, value in computed.items():
+                lines.append("- %s: %s" % (str(name).replace("_", " "), value))
+        lines.append("")
+        lines.append("Evidence: %s cited source(s), %s background page(s), %s named gap(s)."
+                     % (row.get("sources") or 0, row.get("background") or 0, row.get("gaps") or 0))
+        lines.append("")
+        lines.append("Generation: %s%s" % (
+            row.get("status") or "unknown",
+            (" - " + str(row.get("error") or "")) if row.get("error") else ""))
+        lines.append("")
+    return "\n".join(lines)
 
 
 def _instructions_md(manifest):
@@ -828,6 +870,8 @@ def download(run_id, fmt="zip"):
             raise KeyError("the combined document is not ready")
         with open(path, "rb") as handle:
             return handle.read(), "%s - tile previews.docx" % label
+    if fmt == "explainer":
+        return _explainer_md(manifest).encode("utf-8"), "%s - explainer.md" % label
     return _zip_bytes(run_id), "%s - tile previews.zip" % label
 
 

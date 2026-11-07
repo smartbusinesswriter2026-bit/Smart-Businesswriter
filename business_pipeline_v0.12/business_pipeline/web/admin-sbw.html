@@ -394,6 +394,7 @@
           <button data-hpanel="errors">Errors &amp; fixes</button>
           <button data-hpanel="testing">Testing</button>
           <button data-hpanel="cases">Cases</button>
+          <button data-hpanel="uploads">Uploads</button>
           <button data-hpanel="tools">Tools</button>
         </div>
 
@@ -508,6 +509,31 @@
               <div id="caseSubjects" class="at-results"></div>
               <div class="progress" id="caseProgress" style="display:none;"><div class="bar" style="width:0%"></div></div>
               <div id="caseResults" class="at-results"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- UPLOADS -->
+        <div class="hpanel" id="hpanel-uploads">
+          <div class="card">
+            <div class="card-head"><div><h2>Test files</h2><p>One upload store for both testers. A file is parsed, mapped to the selected tile's inputs automatically, and gated by replay before it is accepted.</p></div></div>
+            <div class="card-body">
+              <div class="row">
+                <label>Subject <select id="uploadSubject"><option value="">— select subject —</option></select></label>
+                <label>Tile <select id="uploadTile"><option value="">— select tile —</option></select></label>
+                <button class="btn primary" id="uploadFilesBtn">Upload files</button>
+                <input type="file" id="uploadFiles" multiple style="display:none">
+              </div>
+              <div id="uploadResults" class="at-results"></div>
+              <h3 style="margin-top:18px;font-size:14px;">Accepted files</h3>
+              <div id="uploadList" class="at-results"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div><h2>How the two testers use the store</h2></div></div>
+            <div class="card-body">
+              <p style="font-size:13px;color:var(--muted);margin-bottom:8px;"><strong>Quick check</strong> (Cases tab) replays the case and reports pass/fail only. No download, no explainer.</p>
+              <p style="font-size:13px;color:var(--muted);margin:0;"><strong>Paper previews</strong> (Testing tab, source “Uploaded files”) generates the paper and offers <strong>Word</strong>, <strong>Excel</strong> and the <strong>explainer</strong>.</p>
             </div>
           </div>
         </div>
@@ -673,7 +699,7 @@ function loadPanel(name) {
   document.getElementById('pageSub').textContent = meta[1];
   if (name === 'runs') loadRuns();
   else if (name === 'validation') { loadFindings(); loadProposals(); }
-  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadPaperTesting(); loadCases(); refreshOverview(); }
+  else if (name === 'heal') { loadErrors(); loadHealHistory(); loadPaperTesting(); loadCases(); loadUploads(); refreshOverview(); }
   else if (name === 'autoresearch') { loadAutoresearch(); }
   else if (name === 'chat') { /* chat panel loaded on demand */ }
   else if (name === 'health') loadHealth();
@@ -1431,7 +1457,6 @@ function renderPaperTesting() {
     const sid = escapeHtml(subject.id);
     let tileCount = 0;
     let groupHtml = '';
-    let uploadOptions = '';
     (subject.groups || []).forEach(group => {
       let tiles = '';
       (group.tiles || []).forEach(tile => {
@@ -1443,9 +1468,6 @@ function renderPaperTesting() {
         tiles += '<label class="at-tile' + (tile.has_defaults ? '' : ' disabled') + '">'
           + '<input type="checkbox" data-at-sub="' + sid + '" data-at-tile="' + escapeHtml(tile.key) + '"'
           + checked + disabled + '> <span>' + escapeHtml(tile.label) + note + '</span></label>';
-        if (tile.has_defaults) {
-          uploadOptions += '<option value="' + escapeHtml(tile.key) + '">' + escapeHtml(tile.label) + '</option>';
-        }
       });
       groupHtml += '<details class="at-group" data-at-group="' + sid + '">'
         + '<summary>' + escapeHtml(group.label || 'General') + '<span>' + (group.tiles || []).length + ' tile(s)</span></summary>'
@@ -1459,13 +1481,8 @@ function renderPaperTesting() {
       + '<button class="btn primary" data-at-run="' + sid + '">Generate selected</button>'
       + '<button class="btn" data-at-clear="' + sid + '">Clear</button>'
       + '<span class="at-status" id="at-status-' + sid + '">' + tileCount + ' tile(s) on this shelf</span>'
-      + '</div>'
-      + '<div class="row" style="margin-top:6px;">'
-      + '<label>Upload for tile: <select data-at-upload-tile="' + sid + '">' + uploadOptions + '</select></label>'
-      + '<button class="btn" data-at-upload="' + sid + '">Add files</button>'
       + '<span class="at-status" id="at-uploaded-' + sid + '">0 uploaded case(s)</span>'
       + '</div>'
-      + '<input type="file" id="at-file-' + sid + '" data-at-file="' + sid + '" multiple style="display:none">'
       + '<div class="progress" id="at-progress-' + sid + '" style="display:none;"><div class="bar" style="width:0%"></div></div>'
       + '<div class="at-results" id="at-results-' + sid + '"></div>'
       + '<div class="at-results" id="at-case-results-' + sid + '"></div>'
@@ -1615,7 +1632,7 @@ async function atRunUploaded(subject, keys) {
       + escapeHtml((r.data && r.data.error) || r.status) + '</div>';
     return;
   }
-  host.innerHTML = caseResultsHtml(r.data);
+  host.innerHTML = caseResultsHtml(r.data, true);
   loadErrors();
 }
 
@@ -1707,6 +1724,7 @@ function atRenderDownloads(subject, runId, state) {
   const ok = (state.results || []).filter(r => r.status === 'ok').length;
   host.innerHTML = '<a class="btn primary" href="' + base + '?format=zip">Download ZIP (' + ok + ' paper(s))</a>'
     + (state.combined ? '<a class="btn" href="' + base + '?format=docx">Download combined DOCX</a>' : '')
+    + '<a class="btn" href="' + base + '?format=explainer">Explainer</a>'
     + '<span class="at-status">Run ' + escapeHtml(runId) + ' · ' + escapeHtml(state.label || subject) + '</span>';
 }
 
@@ -1732,17 +1750,12 @@ async function loadCases() {
   Object.keys(bySubject).sort().forEach(sid => {
     const rows = bySubject[sid];
     const label = rows[0].subject_label || sid;
-    const tiles = Array.from(new Set(rows.map(c => c.tile)));
-    const options = tiles.map(tile => '<option value="' + escapeHtml(tile) + '">'
-      + escapeHtml(tile) + '</option>').join('');
     const checks = rows.map(c => '<label class="at-tile"><input type="checkbox" data-case-check="'
       + escapeHtml(sid) + '" value="' + escapeHtml(c.id) + '"> <span>'
       + escapeHtml(c.id) + ' <em>' + escapeHtml(c.tile_label || c.tile || '') + '</em></span></label>').join('');
     html += '<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding:6px 0;align-items:center;">'
       + '<span>' + escapeHtml(label) + ' <span class="at-status">' + rows.length + ' case(s)</span></span>'
       + '<span style="display:flex;gap:6px;align-items:center;">'
-      + '<select data-case-tile="' + escapeHtml(sid) + '" title="Tile for an uploaded file">' + options + '</select>'
-      + '<button class="btn" data-case-upload="' + escapeHtml(sid) + '">Add files</button>'
       + '<button class="btn" data-case-run="' + escapeHtml(sid) + '">Run all</button>'
       + '</span></div>'
       + '<details class="at-group"><summary>Select cases / generate problems<span>'
@@ -1752,13 +1765,96 @@ async function loadCases() {
       + '<label class="at-tile"><input type="checkbox" data-case-gen="' + escapeHtml(sid) + '"> Generate problems: '
       + '<input type="number" data-case-count="' + escapeHtml(sid) + '" value="5" min="1" max="10" style="width:60px;"></label>'
       + '<button class="btn" data-case-run-selected="' + escapeHtml(sid) + '">Run selected</button>'
-      + '</div></details>'
-      + '<input type="file" id="case-file-' + escapeHtml(sid) + '" data-case-file="' + escapeHtml(sid) + '" multiple style="display:none">';
+      + '</div></details>';
   });
   document.getElementById('caseSubjects').innerHTML = html
     || '<div class="empty">No cases yet. Use Seed missing cases.</div>';
   atUpdateUploadedCounts();
+  renderUploadList();
 }
+
+/* ── Uploads: one store both testers read ── */
+async function loadUploads() {
+  const r = await apiFetch('/api/ops/papers/tiles');
+  if (r.status !== 200 || !r.data) return;
+  const select = document.getElementById('uploadSubject');
+  if (select && select.options.length <= 1) {
+    (r.data.subjects || []).forEach(subject => {
+      const option = document.createElement('option');
+      option.value = subject.id;
+      option.textContent = subject.label;
+      select.appendChild(option);
+    });
+  }
+  renderUploadList();
+}
+
+function renderUploadList() {
+  const host = document.getElementById('uploadList');
+  if (!host) return;
+  const uploaded = caseCache.filter(c => c.origin === 'uploaded');
+  if (!uploaded.length) {
+    host.innerHTML = '<div class="empty">No uploaded files yet. Choose a subject and tile, then upload.</div>';
+    return;
+  }
+  const rows = uploaded.map(c => '<tr><td>' + escapeHtml(c.source_file || c.id) + '</td>'
+    + '<td>' + escapeHtml(c.subject_label || c.subject) + '</td>'
+    + '<td>' + escapeHtml(c.tile_label || c.tile) + '</td>'
+    + '<td>' + escapeHtml(c.id) + '</td>'
+    + '<td>' + escapeHtml((c.created_at || '').slice(0, 10)) + '</td></tr>').join('');
+  host.innerHTML = '<table><thead><tr><th>File</th><th>Subject</th><th>Tile</th><th>Case</th><th>Added</th></tr></thead><tbody>'
+    + rows + '</tbody></table>';
+}
+
+document.getElementById('uploadSubject').addEventListener('change', async () => {
+  const sid = document.getElementById('uploadSubject').value;
+  const tileSelect = document.getElementById('uploadTile');
+  tileSelect.innerHTML = '<option value="">— select tile —</option>';
+  if (!sid) return;
+  const r = await apiFetch('/api/ops/papers/tiles');
+  if (r.status !== 200 || !r.data) return;
+  const subject = (r.data.subjects || []).find(s => s.id === sid);
+  ((subject && subject.groups) || []).forEach(group => {
+    (group.tiles || []).forEach(tile => {
+      if (!tile.has_defaults) return;
+      const option = document.createElement('option');
+      option.value = tile.key;
+      option.textContent = tile.label;
+      tileSelect.appendChild(option);
+    });
+  });
+});
+
+document.getElementById('uploadFilesBtn').addEventListener('click', () => {
+  const subject = document.getElementById('uploadSubject').value;
+  const tile = document.getElementById('uploadTile').value;
+  if (!subject || !tile) { toast('Choose a subject and tile first'); return; }
+  document.getElementById('uploadFiles').click();
+});
+
+document.getElementById('uploadFiles').addEventListener('change', async (event) => {
+  const files = Array.from(event.target.files || []);
+  const subject = document.getElementById('uploadSubject').value;
+  const tile = document.getElementById('uploadTile').value;
+  let ok = 0;
+  const rejected = [];
+  for (const file of files) {
+    const content = await readBase64(file);
+    const r = await apiFetch('/api/ops/cases/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject: subject, tile: tile, name: file.name, content: content })
+    });
+    if (r.status === 200) ok += 1;
+    else rejected.push(file.name + ': ' + ((r.data && r.data.error) || r.status));
+  }
+  event.target.value = '';
+  toast(ok + ' file(s) accepted' + (rejected.length ? '; ' + rejected.length + ' rejected' : ''));
+  document.getElementById('uploadResults').innerHTML = rejected.length
+    ? '<div class="empty">Rejected:<br>' + rejected.map(escapeHtml).join('<br>') + '</div>'
+    : (ok ? '<div class="at-status">' + ok + ' file(s) stored. Both testers can use them now.</div>' : '');
+  await loadCases();
+});
 
 function readBase64(file) {
   return new Promise((resolve, reject) => {
@@ -1905,33 +2001,39 @@ async function runCases(ids, label, generateCount, button) {
   }
 }
 
-function caseResultsHtml(manifest) {
+function caseResultsHtml(manifest, withOutput) {
   const runId = escapeHtml(manifest.run_id);
   const rows = (manifest.results || []).map(row => {
     const cls = row.status === 'pass' ? 'ok' : 'err';
     let output = '';
-    if (row.paper) {
-      output += '<a href="/api/ops/cases/runs/' + runId + '/file/' + encodeURIComponent(row.paper) + '">paper</a> ';
-    }
-    if (row.workbook) {
-      output += '<a href="/api/ops/cases/runs/' + runId + '/file/' + encodeURIComponent(row.workbook) + '">xlsx</a>';
+    if (withOutput) {
+      if (row.paper) {
+        output += '<a href="/api/ops/cases/runs/' + runId + '/file/' + encodeURIComponent(row.paper) + '">paper</a> ';
+      }
+      if (row.workbook) {
+        output += '<a href="/api/ops/cases/runs/' + runId + '/file/' + encodeURIComponent(row.workbook) + '">xlsx</a> ';
+      }
+      if (row.explainer_file) {
+        output += '<a href="/api/ops/cases/runs/' + runId + '/file/' + encodeURIComponent(row.explainer_file) + '">explainer</a>';
+      }
     }
     return '<tr><td>' + escapeHtml(row.case_id) + '</td>'
       + '<td>' + escapeHtml(row.tile_label || row.tile || '') + '</td>'
       + '<td>' + pill(row.status, cls) + '</td>'
       + '<td>' + (row.duration_ms ? (row.duration_ms / 1000).toFixed(1) + 's' : '—') + '</td>'
-      + '<td>' + output + '</td>'
+      + (withOutput ? '<td>' + output + '</td>' : '')
       + '<td>' + escapeHtml(row.error || '') + '</td></tr>';
   }).join('');
+  const outputHead = withOutput ? '<th>Output</th>' : '';
   return '<div class="row" style="justify-content:space-between;margin-top:6px;">'
     + '<strong>Run ' + escapeHtml(manifest.run_id) + '</strong>'
     + '<span class="at-status">' + (manifest.passed || 0) + ' passed / ' + (manifest.failed || 0) + ' failed</span></div>'
-    + '<table><thead><tr><th>Case</th><th>Tile</th><th>Status</th><th>Time</th><th>Output</th><th>Error</th></tr></thead><tbody>'
+    + '<table><thead><tr><th>Case</th><th>Tile</th><th>Status</th><th>Time</th>' + outputHead + '<th>Error</th></tr></thead><tbody>'
     + rows + '</tbody></table>';
 }
 
 function renderCaseResults(manifest) {
-  document.getElementById('caseResults').innerHTML = caseResultsHtml(manifest);
+  document.getElementById('caseResults').innerHTML = caseResultsHtml(manifest, false);
 }
 
 /* ── Chat ── */
@@ -2147,6 +2249,7 @@ loadErrors();
 loadHealHistory();
 loadPaperTesting();
 loadCases();
+loadUploads();
 refreshOverview();
 </script>
 </body>

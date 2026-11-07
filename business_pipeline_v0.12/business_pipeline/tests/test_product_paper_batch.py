@@ -98,7 +98,7 @@ class PaperPreviewTest(unittest.TestCase):
         labels = [g["label"] for g in accounting["groups"]]
         self.assertIn("Statement analysis", labels)
         economics = next(s for s in data["subjects"] if s["id"] == "economics")
-        self.assertIn("Market basics", [g["label"] for g in economics["groups"]])
+        self.assertIn("Microeconomics", [g["label"] for g in economics["groups"]])
 
     def test_a_tile_without_a_frozen_method_is_named_not_faked(self):
         result = paper_batch.generate_one("management", "case_decision")
@@ -149,12 +149,19 @@ class PaperPreviewTest(unittest.TestCase):
         names = archive.namelist()
         self.assertIn("manifest.json", names)
         self.assertIn("instructions.md", names)
+        self.assertIn("explainer.md", names)
         self.assertTrue(any(name.endswith(".docx") for name in names))
         instructions = archive.read("instructions.md").decode("utf-8")
         self.assertIn("How many units must we sell to break even?", instructions)
         self.assertIn("Instruction:", instructions)
+        explainer = archive.read("explainer.md").decode("utf-8")
+        self.assertIn("Computed result:", explainer)
+        self.assertIn("breakeven units", explainer)
         combined, _ = paper_batch.download(started["run_id"], "docx")
         self.assertTrue(combined.startswith(b"PK"))
+        markdown, name = paper_batch.download(started["run_id"], "explainer")
+        self.assertTrue(name.endswith(".md"))
+        self.assertIn(b"Computed result:", markdown)
 
 
 if __name__ == "__main__":
