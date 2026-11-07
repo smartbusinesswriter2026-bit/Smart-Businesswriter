@@ -18,7 +18,7 @@ import time
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import audit as audit_mod, capabilities, council, docx, framework_profiles, framework_registry, guard, instruction_reading, matrix, paper, paper_contract, paper_families, plan_proposal, prose, retrieval, rubric as rubric_reader, verify, writing
+from . import audit as audit_mod, capabilities, council, docx, framework_profiles, framework_registry, guard, instruction_reading, length as length_mod, matrix, paper, paper_contract, paper_families, plan_proposal, prose, retrieval, rubric as rubric_reader, verify, writing
 
 FORMAT = "bp-chat/1"
 
@@ -233,22 +233,23 @@ BREAKEVEN_QUESTIONS = [
     _STYLE,
 ]
 
-#: Length is offered as three options, because a case does not always need a long
-#: paper.  Each band has a range and a target the draft writes to; a number in the
-#: brief or the box is read into the same bands, so the vocabulary never drifts.
+#: The old three bands are kept only as saved-case vocabulary.  A new run carries
+#: a word count (``length.check``); the band name is derived for display and for
+#: older cases that stored ``answers["length"] = "mid"``.
 LENGTH_BANDS = (
     ("short", "Short", 600, 1200, 600),
     ("mid", "Mid", 1200, 2500, 1200),
     ("long", "Long", 2500, 5000, 2500),
 )
 LENGTH_BY_KEY = {band[0]: band for band in LENGTH_BANDS}
-MIN_WORDS = LENGTH_BANDS[0][2]
-MAX_WORDS = LENGTH_BANDS[-1][3]
+MIN_WORDS = length_mod.MIN_WORDS
+MAX_WORDS = length_mod.MAX_WORDS
 SHORT_WORDS = LENGTH_BANDS[0][4]
 MID_WORDS = LENGTH_BANDS[1][4]
 LONG_WORDS = LENGTH_BANDS[2][4]
 #: At or above this a draft carries the full-report sections; at or above the
-#: second the deep sections (per-dimension reading, appendix) join them.
+#: second the deep sections (per-dimension reading, appendix) join them.  These
+#: are section-composition thresholds, not the student's target.
 MID_FLOOR = LENGTH_BANDS[1][2]
 LONG_FLOOR = LENGTH_BANDS[2][2]
 
@@ -305,32 +306,17 @@ def band_target(key):
     return band[4] if band else 0
 
 
-def check_word_target(value):
-    """Read a requested length as an option name or a number, or 0 for short.
+def check_word_target(value, minimum=None):
+    """Read a requested length as a word count, or 0 when none was given.
 
-    Names ("short", "mid", "long") resolve to that option's target.  A number is
-    accepted only inside the offered range, so the system never promises a paper
-    it cannot write without padding.
+    The number is the body-word target the student's rubric states.  A legacy
+    band name still resolves to its old target so a saved case keeps working.
+    ``minimum`` is the paper type's floor when the caller knows it.
     """
-    text = str(value or "").strip().replace(",", "")
-    if not text:
-        return 0
-    named = band_target(text)
-    if named:
-        return named
-    match = re.search(r"\d+", text)
-    if not match:
-        raise ChatError("Choose short, mid or long, or give a word count between %d and %d."
-                        % (MIN_WORDS, MAX_WORDS))
-    words = int(match.group(0))
-    if words < MIN_WORDS:
-        raise ChatError("A paper below %d words cannot carry the framework, the evidence and the computation "
-                        "properly. Choose the short option (%d-%d words) or a longer count."
-                        % (MIN_WORDS, LENGTH_BANDS[0][2], LENGTH_BANDS[0][3]))
-    if words > MAX_WORDS:
-        raise ChatError("A report longer than %d words is more than one case can support; ask for %d or fewer."
-                        % (MAX_WORDS, MAX_WORDS))
-    return words
+    try:
+        return length_mod.check(value, minimum)
+    except ValueError as error:
+        raise ChatError(str(error))
 
 
 def target_words(state):
@@ -339,12 +325,8 @@ def target_words(state):
 
 
 def _word_count(sections):
-    """The body words of a draft, counted the way a course counts them."""
-    total = 0
-    for item in sections or []:
-        for line in item.get("lines") or []:
-            total += len(str(line or "").split())
-    return total
+    """The body words of a draft: no title page, headings or reference list."""
+    return length_mod.body_words(sections)
 
 
 FRAMEWORK_QUESTIONS = {"none": QUESTIONS, "pestel": QUESTIONS, "swot": INTERNAL_QUESTIONS, "pestel_swot": INTERNAL_QUESTIONS,
@@ -724,8 +706,9 @@ def _clean(value, limit=2000):
 
 def _fit(brief, framework="none"):
     text = (brief or "").lower()
-    if framework in ("breakeven", "vrio"):
-        # A computation and an internal-resource audit need no external evidence.
+    if (FRAMEWORKS.get(framework) or {}).get("evidence") is False:
+        # A computation, an internal-resource audit, or a student-input framework
+        # needs no external evidence.
         return True, None
     if any(hint in text for hint in COMPUTATION_HINTS) and not any(hint in text for hint in EXTERNAL_HINTS):
         # A pure computation is not a strategic analysis: the Accounting and Finance
@@ -752,6 +735,15 @@ def _infer_framework(brief):
     reading = instruction_reading.read_frameworks(brief)
     if reading.status == "resolved" and len(reading.selected) == 1:
         return reading.selected[0]
+    # A profile-backed framework is inferred from its own label, so adding one
+    # never needs an entry in the typed reader's alias table.
+    low = (brief or "").lower()
+    for key, template in GENERIC_FRAMEWORKS.items():
+        profile = framework_profiles.get(template)
+        candidates = [profile["label"].lower()] if profile else []
+        candidates += [alias.lower() for alias in framework_registry.ALIASES.get(key, ())]
+        if any(candidate and candidate in low for candidate in candidates):
+            return key
     # Ambiguous, conflicting, absent, or only negated/contrast mentions: the
     # student chooses.  The system never fills the gap with a default.
     return None
@@ -862,6 +854,9 @@ def _framework_choices(brief, archetype=None):
         "empirical_research": [],
     }
     for key in by_archetype.get(archetype or "analytical_report", []):
+        if key not in suggested:
+            suggested.append(key)
+    for key in GENERIC_FRAMEWORKS:
         if key not in suggested:
             suggested.append(key)
     return [("none", "No framework")] + [(key, FRAMEWORKS[key]["label"]) for key in suggested if key in FRAMEWORKS]
@@ -1048,16 +1043,17 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     answers = _defaults(brief)
     # A brief may name the option ("mid-length report") or give a count; either is
     # read here, before any question is put to the student.
+    floor = length_mod.minimum_for(proposal_archetype, profile)
     named = parse_length_name(brief)
     if named:
-        answers["length"] = str(check_word_target(named))
+        answers["length"] = str(check_word_target(named, floor))
     requested = parse_word_target(brief)
     if requested is not None:
-        answers["length"] = str(check_word_target(str(requested)))
+        answers["length"] = str(check_word_target(str(requested), floor))
     # The Home composer's word box overrides the brief: what the student typed in
     # the box is the most recent statement of the length.
     if words not in (None, ""):
-        answers["length"] = str(check_word_target(words))
+        answers["length"] = str(check_word_target(words, floor))
     if framework is not None and FRAMEWORKS[framework].get("internal"):
         answers.update({"strengths": [], "weaknesses": []})
     for key in (FRAMEWORKS[framework].get("inputs") if framework is not None else []) or []:
@@ -1087,7 +1083,7 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
              "category_errors": [dataclasses.asdict(error) for error in category_errors],
              "slots": [dataclasses.asdict(slot) for slot in instruction_slots],
              "proposal": proposal,
-             "plan": None, "sources": [], "evidence": [], "gaps": [], "notes": [],
+             "plan": None, "sources": [], "evidence": [], "background": [], "gaps": [], "notes": [],
              "computation": None, "draft": None, "research_diagnostics": {},
              "selection": None, "computations": {}, "orientation_sources": []}
     if open_mode:
@@ -1117,7 +1113,10 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         lower_brief = brief.lower()
         pure_comp = any(hint in lower_brief for hint in COMPUTATION_HINTS)
         no_cap = not (selection.get("selected") or [])
-        no_fw = (framework == "pestel")
+        # No evidence framework was named: either nothing was inferred, or the
+        # student chose "none".  (The old check tested for the legacy default,
+        # which no longer applies now that an unnamed brief stays unnamed.)
+        no_fw = (not framework) or (framework == "none")
         if pure_comp and no_cap and no_fw:
             if detected_id == "finance":
                 message = ("This looks like a finance computation. Use the Finance shelf and its tools; "
@@ -1407,7 +1406,7 @@ def answer(state, question_id, value):
             raise ChatError("A cost or volume cannot be negative.")
         state["answers"][question_id] = str(number)
     else:
-        text = _clean(value, 500)
+        text = _clean(value, 2000)
         if not text and not question.get("allow_skip"):
             raise ChatError("An answer is required for this question.")
         state["answers"][question_id] = text or state["answers"].get(question_id, "")
@@ -1460,7 +1459,8 @@ def _plan(state):
                  "of advantage rests on four explicit judgments."),
         "breakeven": ("Break-even tests whether the declared price covers the declared fixed and variable costs, and "
                       "how much volume that needs."),
-    }[framework]
+    }.get(framework) or (config["label"] + " structures the student's own analysis; the framework adds no "
+                         "evidence of its own.")
     misses = {
         "none": ("It does not impose a framework. The paper states the evidence and the limits of the evidence, and it does not invent an analytical structure the assignment did not ask for."),
         "pestel": ("It does not assess internal capabilities, competitors, costs, financial feasibility or a "
@@ -1481,7 +1481,8 @@ def _plan(state):
                  "advantage is durable."),
         "breakeven": ("It does not forecast demand, apply tax or financing, or prove that the expected volume will be "
                       "reached; every input is yours."),
-    }[framework]
+    }.get(framework) or ("It structures the student's own evidence and judgments; it does not generate evidence, "
+                         "settle the argument or declare a verdict.")
     output = {
         "none": "A paper with an introduction, the retrieved evidence, a discussion with implications and limitations, a conclusion and one reference list.",
         "pestel": "A PESTEL paper with an introduction, six dimensions, a discussion with implications and limitations, a conclusion and one reference list.",
@@ -1499,7 +1500,9 @@ def _plan(state):
                  "a conclusion; no external evidence is retrieved."),
         "breakeven": ("A feasibility paper with a break-even analysis from your declared figures, a discussion with "
                       "limitations and a conclusion; no external evidence is retrieved."),
-    }[framework]
+    }.get(framework) or ("A paper with an introduction, the framework's parts from the student's own evidence, a "
+                         "discussion with implications and limitations, a conclusion and one reference list; no "
+                         "external evidence is retrieved for this framework.")
     selection = state.get("selection") or {}
     selected = selection.get("selected") or []
     if selected:
@@ -1588,7 +1591,8 @@ def set_length(state, value):
     """
     if state.get("stage") not in ("plan", "research_ready"):
         raise ChatError("Set the report length while the plan is open.")
-    words = check_word_target(value)
+    floor = length_mod.minimum_for(state.get("archetype"), state.get("profile"))
+    words = check_word_target(value, floor)
     state["answers"]["length"] = str(words) if words else ""
     if state.get("plan"):
         state["plan"] = _plan(state)
@@ -1643,6 +1647,32 @@ def _plan_blocks(state):
     return blocks
 
 
+def _chart_label(name):
+    """A chart label with no digit in it; digits come only from the artifacts.
+
+    A method that returns numbered keys (``count_1``, ``conversion_2``) used to
+    produce the label "Count 1", which the chart layer refuses because a number
+    in a label is a number the paper did not compute.  The digit is removed from
+    the label, never from the artifact id, so the bar still points at the stored
+    value.
+    """
+    text = re.sub(r"\d+", "", str(name).replace("_", " ")).strip()
+    return re.sub(r"\s+", " ", text).title() or "Value"
+
+
+def _series_label(name, data):
+    """A readable, digit-free label for one result key, using a declared row name."""
+    match = re.fullmatch(r"(?:count|conversion|value|period|stage|row)[_-]?(\d+)", str(name))
+    if match:
+        stages = (data.get("inputs") or {}).get("stages") or []
+        index = int(match.group(1)) - 1
+        if 0 <= index < len(stages) and isinstance(stages[index], dict):
+            label = str(stages[index].get("name") or "").strip()
+            if label and not re.search(r"\d", label):
+                return label
+    return _chart_label(name)
+
+
 def _chart_specs_for(state):
     """Derive chart specs from recorded computations, without inventing numbers."""
     specs = []
@@ -1657,8 +1687,8 @@ def _chart_specs_for(state):
         numeric = [name for name, value in result.items() if isinstance(value, (int, float, str)) and _is_number(value)]
         if not numeric:
             continue
-        specs.append({"format": "bp-chart/1", "kind": "bar", "title": str(key).replace("_", " ").title(),
-                      "series": [{"artifact": name, "label": name.replace("_", " ")} for name in numeric[:6]],
+        specs.append({"format": "bp-chart/1", "kind": "bar", "title": _chart_label(key),
+                      "series": [{"artifact": name, "label": _chart_label(name)} for name in numeric[:6]],
                       "source_computation": key, "artifact_ids": numeric[:6]})
     return specs
 
@@ -1716,9 +1746,20 @@ def confirm_plan(state):
     style = str(answers.get("style") or "apa").strip().lower()
     if style not in ("apa", "harvard"):
         style = "apa"
-    length = str(state.get("answers", {}).get("length") or "mid").strip().lower()
-    if length not in ("short", "mid", "long"):
-        length = "mid"
+    requested_length = str(state.get("answers", {}).get("length") or "mid").strip().lower()
+    target = 0
+    if requested_length in LENGTH_BY_KEY:
+        length = requested_length
+        target = LENGTH_BY_KEY[requested_length][4]
+    else:
+        try:
+            target = check_word_target(
+                requested_length,
+                length_mod.minimum_for(state.get("archetype"), state.get("profile")))
+        except ChatError:
+            target = 0
+        length = length_band(target or MID_WORDS)
+    tolerance = length_mod.DEFAULT_TOLERANCE
     scope = {
         "object": str(state.get("brief") or "")[:120],
         "period": str(answers.get("period") or "10"),
@@ -1732,7 +1773,8 @@ def confirm_plan(state):
             thesis=decision, decision=decision, scope=scope, length=length,
             style=style, required_sections=paper_families.required_sections_for(
                 state.get("archetype") or "analytical_report"),
-            rubric=state.get("rubric"), approved=True, approved_at=_now())
+            rubric=state.get("rubric"), approved=True, approved_at=_now(),
+            target_words=target, word_tolerance=tolerance)
         # The export gate already enforces framework/profile sections via paper.missing.
         # The contract records the archetype's completeness contract; it does not add a
         # second, conflicting section list on top of it.
@@ -2281,7 +2323,7 @@ def _start_plan(brief, subject, level, mode, profile=PROFILE_BUSINESS_PLAN):
              "production_check": None,
              "brief": brief, "created_at": _now(), "updated_at": _now(),
              "stage": "plan", "level": level, "mode": mode, "answers": answers, "questions": [],
-             "question_index": 0, "sources": [], "evidence": [], "orientation_sources": [], "gaps": [], "notes": [],
+             "question_index": 0, "sources": [], "evidence": [], "orientation_sources": [], "background": [], "gaps": [], "notes": [],
              "research_diagnostics": {}, "computations": {}, "draft": None}
     state["plan"] = _plan_profile(state)
     return state
@@ -2633,6 +2675,47 @@ PROFILE_FOR = {"pestel": "template_pestel", "pestel_swot": "template_pestel",
                "five_forces_breakeven": "template_five_forces"}
 
 
+#: Framework keys that are driven by a profile and are student-input only (no
+#: external retrieval): the leadership, culture and ethics worksheets.  They are
+#: registered here from their profiles, so adding one means adding a profile and
+#: nothing in the conductor.  A framework in this map renders its profile blocks
+#: from the student's answers; a part with no answer is named, never filled.
+GENERIC_FRAMEWORKS = {}
+for _generic_template in (
+        "template_leadership_theory_comparison", "template_situational_leadership",
+        "template_leader_effectiveness", "template_leadership_development",
+        "template_culture_framework_comparison", "template_cross_cultural_leadership",
+        "template_organisational_culture", "template_ethical_dilemma",
+        "template_stakeholder_csr", "template_ethical_decision_process"):
+    _generic_profile = framework_profiles.get(_generic_template)
+    if not _generic_profile:
+        continue
+    _generic_key = _generic_profile["key"]
+    GENERIC_FRAMEWORKS[_generic_key] = _generic_template
+    FRAMEWORKS[_generic_key] = {
+        "label": _generic_profile["label"],
+        "dimensions": [(block["key"], block["label"], block.get("cues") or "", block.get("category"))
+                       for block in _generic_profile["blocks"]],
+        "internal": True, "evidence": False,
+    }
+    PROFILE_FOR[_generic_key] = _generic_template
+    _generic_questions = [{
+        "id": "decision", "prompt": "What decision or question should this analysis support?",
+        "why": "The analysis should serve a decision, not sit on its own.",
+        "type": "text", "allow_skip": True, "default": ""}]
+    for _block in _generic_profile["blocks"]:
+        _generic_questions.append({
+            "id": _block["key"],
+            "prompt": _block.get("prompt") or ("What does the case show for " + _block["label"] + "?"),
+            "why": "This part is the student's analysis; the system will not invent it.",
+            "type": "text", "allow_skip": True, "default": ""})
+    _generic_questions.append({
+        "id": "style", "prompt": "Which citation style should the paper use?",
+        "why": "The paper has to match the course requirement.",
+        "type": "choice", "choices": [["apa", "APA 7"], ["harvard", "Harvard"]], "default": "apa"})
+    FRAMEWORK_QUESTIONS[_generic_key] = _generic_questions
+
+
 def _gate_for(state):
     profile = framework_profiles.get(PROFILE_FOR.get(state.get("framework") or ""))
     return profile.get("gate") if profile else None
@@ -2643,6 +2726,7 @@ def research(state):
     if state.get("stage") != "research_ready":
         raise ChatError("Confirm the plan before retrieving sources.")
     sources, evidence, gaps, notes = [], [], [], []
+    background = []
     orientation = []
     seen_orientation = set()
     seen_sources, seen_evidence = set(), set()
@@ -2725,9 +2809,22 @@ def research(state):
             reason = ("Research timed out before this dimension returned evidence"
                       if batch.get("timed_out")
                       else "No retrieved source supplied an abstract sentence for this dimension")
-            gaps.append({"dimension": dimension["key"], "label": dimension["label"], "reason": reason})
+            # A gap is no longer the end of the section: the weak sources the
+            # retriever saw become a labelled background paragraph.  It is not
+            # evidence and it is not cited, but the dimension is not empty.
+            # If the batch carried no orientation (for example, a corpus page
+            # was accepted but its passage had no quotable sentence), ask the
+            # orientation layer directly for this one dimension.
+            orientation_items = batch.get("orientation") or []
+            if not orientation_items and not batch.get("timed_out"):
+                topic_text = state["answers"].get("decision") or state.get("brief") or ""
+                topic_key = retrieval.source_finder.topic_for_text(topic_text)
+                query = ((topic_key + " " + dimension["key"]) if topic_key
+                         else (dimension.get("query") or ""))
+                orientation_items = retrieval._orientation(query).get("results") or []
+            background.append(_background_entry(dimension, orientation_items, reason))
     if timed_out:
-        notes.append("Research stopped after %d seconds; incomplete dimensions are named as gaps." % RESEARCH_DEADLINE)
+        notes.append("Research stopped after %d seconds; incomplete dimensions carry background notes." % RESEARCH_DEADLINE)
     if notices:
         notes.extend(sorted(notices))
     if dropped:
@@ -2741,7 +2838,7 @@ def research(state):
                "academic_cached": sum(1 for batch in batches if batch["academic_cached"]),
                "web_cached": sum(1 for batch in batches if batch["web_cached"])}
     state.update({"sources": sources, "evidence": evidence, "orientation_sources": orientation,
-                  "gaps": gaps, "notes": notes,
+                  "background": background, "gaps": gaps, "notes": notes,
                   "research_errors": errors, "research_diagnostics": diagnostics,
                   "researched_at": _now(), "stage": "evidence",
                   "timings": timings, "updated_at": _now()})
@@ -2762,10 +2859,63 @@ def _reference(source, style, numbers=None):
     return writing.reference(source, style, numbers=numbers)
 
 
-def _dimension_lines(dimension, evidence, by_id, style, target=0):
+def _background_entry(dimension, items, reason=None):
+    """A short background paragraph from the weak sources, never cited.
+
+    The paragraph is built only from orientation items the retriever already
+    saw.  It is stored apart from `evidence`, so it cannot enter the reference
+    list or the claim-to-source map.  When even the background layer found
+    nothing, the paragraph says that instead of inventing a claim.
+    """
+    if isinstance(dimension, dict):
+        key, label = dimension.get("key"), dimension.get("label")
+    else:
+        key, label = dimension[0], dimension[1]
+    label = label or key or "this dimension"
+    picks, seen = [], set()
+    for item in items or []:
+        title = _clean(item.get("title"), 180)
+        snippet = retrieval.first_sentence(item, 1, 320) or _clean(item.get("abstract"), 320)
+        marker = (title or snippet).lower()
+        if not marker or marker in seen:
+            continue
+        seen.add(marker)
+        picks.append({"title": title, "snippet": snippet,
+                      "url": _clean(item.get("url"), 300),
+                      "database": _clean(item.get("database"), 60)})
+        if len(picks) >= 3:
+            break
+    caveat = ("This is background from non-academic or weakly relevant sources; "
+              "it is not verified evidence and it is not cited.")
+    if not picks:
+        text = ("Background reading on " + label.lower() + ": no citable evidence and no "
+                "background material was retrieved for this dimension.")
+        return {"dimension": key, "label": label, "text": text,
+                "sources": [], "caveat": "This is a statement of the gap; it is not evidence.",
+                "reason": reason or ""}
+    parts = []
+    for pick in picks:
+        if pick["title"] and pick["snippet"]:
+            parts.append(pick["title"] + ": " + pick["snippet"])
+        elif pick["title"]:
+            parts.append(pick["title"])
+        else:
+            parts.append(pick["snippet"])
+    text = "Background reading on " + label.lower() + ": " + " ".join(parts)
+    return {"dimension": key, "label": label, "text": text,
+            "sources": [{"title": pick["title"], "url": pick["url"],
+                         "database": pick["database"]} for pick in picks],
+            "caveat": caveat, "reason": reason or ""}
+
+
+def _dimension_lines(dimension, evidence, by_id, style, target=0, background=None):
     key = dimension[0]
     items = [item for item in evidence if item["dimension"] == key]
     if not items:
+        row = (background or {}).get(key)
+        if row and row.get("text"):
+            return [row["text"], row.get("caveat") or
+                    "This is background from non-academic sources; it is not verified evidence."]
         return ["No retrieved evidence covered this dimension."]
     lines = []
     for item in items:
@@ -4838,6 +4988,8 @@ def _draft_plan(state, accepted_ids=None, style=None):
     accepted = set(accepted_ids) if accepted_ids is not None else {item["id"] for item in state["evidence"]}
     evidence = [item for item in state["evidence"] if item["id"] in accepted]
     by_id = {source["id"]: source for source in state["sources"]}
+    background = {row["dimension"]: row for row in state.get("background") or []
+                  if row.get("dimension")}
     style = style or state["answers"].get("style") or "apa"
     sections = []
     name = _plan_input(state, "business_name")
@@ -4883,7 +5035,7 @@ def _draft_plan(state, accepted_ids=None, style=None):
     sections.append(paper.section("Market Analysis", paper.H1))
     for dimension in plan.get("dimensions") or []:
         tuple_dimension = (dimension["key"], dimension["label"], dimension.get("cues") or "", dimension.get("category"))
-        lines = _dimension_lines(tuple_dimension, evidence, by_id, style)
+        lines = _dimension_lines(tuple_dimension, evidence, by_id, style, background=background)
         sections.append(paper.section(dimension["label"], paper.H2, [paper.paragraph(lines)]))
 
     # -- marketing, operations and management (student input)
@@ -5519,7 +5671,7 @@ def _scope_section(state, evidence, target, style):
         "This report addresses the decision: " + decision_line + " The analysis uses " + label + "."
         + ((" " + why) if why else ""),
         str(len(evidence)) + " accepted evidence item" + ("" if len(evidence) == 1 else "s")
-        + " support the dimensions below, drawn from " + geo_text + " over " + period_text
+        + (" supports" if len(evidence) == 1 else " support") + " the dimensions below, drawn from " + geo_text + " over " + period_text
         + ". A source was used when it addressed the decision in that market and was published within the "
         "period; anything else was not used, and a dimension left without a source is reported as a gap rather "
         "than filled.",
@@ -5854,6 +6006,70 @@ def _append_declared_sources(state):
     return state
 
 
+def _generic_scope_section(state, target):
+    """Scope for a student-input framework: no retrieval, no computation."""
+    label = FRAMEWORKS[state.get("framework") or "none"]["label"]
+    decision = _clean((state.get("answers") or {}).get("decision") or state.get("brief") or "",
+                      400).rstrip(" .?!")
+    return paper.section("Scope and Method", paper.H1, [paper.paragraph([
+        "This report addresses the decision: " + decision + ".",
+        "The analysis uses " + label + ". The framework supplies the parts and the order in which they are "
+        "treated; the student supplies the evidence, the comparison and the judgment. No external evidence is "
+        "retrieved for this framework, and the framework adds no claim of its own.",
+        "Each part is stated from what the student supplied. A part with no answer is named as a gap rather than "
+        "filled, and a theory named without a reference entry is recorded as a citation gap.",
+        "No computation is carried: the question is an argument, not a figure, and the report computes nothing. "
+        "The report was planned at " + str(target) + " words and does not pad to reach that count.",
+    ])])
+
+
+def _generic_evidence_section(state):
+    """The evidence behind a student-input analysis: the student's own material."""
+    framework = state.get("framework") or "none"
+    profile = framework_profiles.get(PROFILE_FOR.get(framework))
+    parts = [block["label"] for block in (profile or {}).get("blocks") or []]
+    return paper.section("The Evidence Behind the Analysis", paper.H1, [paper.paragraph([
+        "The analysis rests on the material the student supplied, not on retrieved sources. The parts are: "
+        + ", ".join(parts) + ".",
+        "The report does not independently verify the student's observations, and it does not add a source the "
+        "student did not name. A part with no answer and a theory named without a reference entry are named in "
+        "the Limitations rather than filled.",
+    ])])
+
+
+def _generic_discussion_section(state):
+    """What the parts show together, without inventing a finding."""
+    return paper.section("What the Analysis Shows Together", paper.H2, [paper.paragraph([
+        "Read together, the parts answer the decision in the order the framework sets. The comparison and the "
+        "judgment are the student's; the report does not rank the parts, score the leader or add a claim of its own.",
+        "Where a part rests on the student's own observation or reading, the report states it as the student's "
+        "position, not as a verified finding. Where a part has no answer, the gap is named in the Limitations.",
+    ])])
+
+
+def _generic_assumptions_section(state):
+    """The conventions a student-input analysis runs under."""
+    return paper.section("Assumptions and Conventions", paper.H1, [paper.paragraph([
+        "The unit of analysis is the leader, organisation or decision named in the case, and the report does not "
+        "generalise beyond it.",
+        "Each theory named is treated as a lens for reading the case, not as evidence about it. Where the student "
+        "names a comparison criterion, that criterion is used; the report does not substitute a different one.",
+        "The case facts are the student's. The report does not assume a national culture, a sector norm or an "
+        "outcome the case does not state, and a part the case leaves open is named rather than filled.",
+    ])])
+
+
+def _generic_change_section(state):
+    """What would test a student-input reading."""
+    return paper.section("What Would Change the Answer", paper.H1, [paper.paragraph([
+        "Evidence that bears directly on the parts above — a source for a named theory, outcome data for the "
+        "case, or a second case that tests the reading — would test the position more directly than the material "
+        "supplied.",
+        "A reader applying a different theory to the same facts could reach a different judgment; the comparison "
+        "states its criterion so that the disagreement can be located.",
+    ])])
+
+
 def draft(state, accepted_ids=None, implications="", style=None):
     """Compose the paper, then attach the student's own citations (B-182) and the rubric audit."""
     state = _append_declared_sources(_draft_dispatch(state, accepted_ids, implications, style))
@@ -5962,6 +6178,8 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
     accepted = set(accepted_ids) if accepted_ids is not None else {item["id"] for item in state["evidence"]}
     evidence = [item for item in state["evidence"] if item["id"] in accepted]
     by_id = {source["id"]: source for source in state["sources"]}
+    background = {row["dimension"]: row for row in state.get("background") or []
+                  if row.get("dimension")}
     style = style or state["answers"].get("style") or "apa"
     from . import citation_styles
     global _CITATION_NUMBERS
@@ -5995,7 +6213,11 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
     position = _clean(implications, 1200)
     target = target_words(state)
     decision_text = _clean(decision, 500).rstrip(" .?!")
-    if framework in ("breakeven", "vrio"):
+    if framework in GENERIC_FRAMEWORKS:
+        intro = ("The decision under analysis is: " + decision_text + ". The paper uses " + label
+                 + " to structure the student's own evidence and judgments; no external evidence is retrieved, "
+                 "and the framework adds none of its own.")
+    elif framework in ("breakeven", "vrio"):
         intro = ("The decision under analysis is: " + decision_text + ". The paper uses " + label
                  + " and the inputs you supplied; no external evidence is retrieved for this framework.")
     else:
@@ -6003,17 +6225,21 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         intro = ("The decision under analysis is: " + decision_text + ". The paper examines " + geo_text
                  + " over " + period_text + " and uses " + label + " to organise the evidence and the firm's position.")
     if position:
-        intro += " The paper argues that " + position.rstrip(".") + "."
+        intro += " The paper argues that " + _lower_first(position.rstrip(".")) + "."
     sections = [paper.section("Introduction", paper.H1, [intro])]
     if target >= MID_FLOOR:
-        sections.append(_scope_section(state, evidence, target, style))
+        if framework in GENERIC_FRAMEWORKS:
+            sections.append(_generic_scope_section(state, target))
+        else:
+            sections.append(_scope_section(state, evidence, target, style))
     frameworks = state.get("frameworks") or [framework]
+    generic_missing = []
     for framework in frameworks:
         figure_cells = _figure_cells(answers, evidence, by_id, style, framework)
         if framework in ("pestel", "pestel_swot"):
             sections.append(paper.section("PESTEL", paper.H1))
             for dimension in DIMENSIONS:
-                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                lines = _dimension_lines(dimension, evidence, by_id, style, target, background=background)
                 sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
         if framework in ("swot", "pestel_swot"):
             sections.append(paper.section("SWOT", paper.H1,
@@ -6027,7 +6253,7 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         buckets = {"opportunities": [], "threats": []}
         if framework == "swot":
             for dimension in SWOT_DIMENSIONS:
-                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                lines = _dimension_lines(dimension, evidence, by_id, style, target, background=background)
                 sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
         elif framework == "pestel_swot":
             buckets, unclassified = _classify_external(evidence)
@@ -6038,21 +6264,21 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         if framework in ("five_forces", "five_forces_breakeven"):
             sections.append(paper.section("Five Forces", paper.H1))
             for dimension in FIVE_DIMENSIONS:
-                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                lines = _dimension_lines(dimension, evidence, by_id, style, target, background=background)
                 sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
         if framework == "value_chain":
             sections.append(paper.section("Value Chain", paper.H1,
                                           figure=matrix.build("template_value_chain", figure_cells,
                                                               caption="Porter's value chain")))
             for dimension in VALUE_DIMENSIONS:
-                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                lines = _dimension_lines(dimension, evidence, by_id, style, target, background=background)
                 sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
         if framework == "ansoff":
             sections.append(paper.section("Ansoff Growth Matrix", paper.H1,
                                           figure=matrix.build("template_ansoff", figure_cells,
                                                               caption="Ansoff growth matrix")))
             for dimension in ANSOFF_DIMENSIONS:
-                lines = _dimension_lines(dimension, evidence, by_id, style, target)
+                lines = _dimension_lines(dimension, evidence, by_id, style, target, background=background)
                 sections.append(paper.section(dimension[1], paper.H2, [paper.paragraph(lines)]))
         if framework == "vrio":
             sections.append(paper.section("VRIO", paper.H1,
@@ -6066,12 +6292,41 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
                                        ("organized", "Organised to capture value", "organisational judgments")):
                 sections.append(paper.section(heading, paper.H2,
                                               [paper.paragraph(_internal_lines(answers, key, heading, noun))]))
+        if framework == "none":
+            # The no-framework paper has one evidence dimension.  Its section
+            # carries the accepted evidence, or the labelled background note
+            # when no citable source was found.  It is never empty.
+            for dimension in (state.get("plan") or {}).get("dimensions") or []:
+                tuple_dimension = (dimension["key"], dimension["label"],
+                                   dimension.get("cues") or "", dimension.get("category"))
+                lines = _dimension_lines(tuple_dimension, evidence, by_id, style, target,
+                                         background=background)
+                sections.append(paper.section(dimension["label"], paper.H2,
+                                              [paper.paragraph(lines)]))
         if framework == "breakeven":
             sections.append(paper.section("Financial Feasibility", paper.H1))
             sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
         if framework == "five_forces_breakeven":
             sections.append(paper.section("Financial Feasibility", paper.H1))
             sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
+        # A profile-backed framework (leadership, culture, ethics) renders its
+        # profile's blocks from the student's own answers.  A part with no answer
+        # is a named gap, never filled.
+        if framework in GENERIC_FRAMEWORKS:
+            profile = framework_profiles.get(GENERIC_FRAMEWORKS[framework])
+            if profile:
+                lead = (profile.get("outline") or {}).get("lead") or ""
+                sections.append(paper.section(profile["label"], paper.H1,
+                                              [paper.paragraph([lead])] if lead else []))
+                for block in profile["blocks"]:
+                    answer = _clean(answers.get(block["key"]) or "", 1500)
+                    if not answer and block["key"] == "question":
+                        answer = _clean(answers.get("decision") or "", 1500)
+                    if answer:
+                        sections.append(paper.section(block["label"], paper.H2,
+                                                      [paper.paragraph([answer])]))
+                    else:
+                        generic_missing.append(block["label"])
     framework = state.get("framework") or "none"
     recorded = state.get("computations") or {}
     selected_caps = (state.get("selection") or {}).get("selected") or []
@@ -6091,11 +6346,17 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
     reading = _computation_reading(state, target)
     if reading:
         sections.append(reading)
-    assumptions = _assumptions_section(state, target)
-    if assumptions:
-        sections.append(assumptions)
+    if framework in GENERIC_FRAMEWORKS:
+        sections.append(_generic_assumptions_section(state))
+    else:
+        assumptions = _assumptions_section(state, target)
+        if assumptions:
+            sections.append(assumptions)
     if target >= MID_FLOOR:
-        sections.append(_evidence_base_section(state, evidence, target))
+        if framework in GENERIC_FRAMEWORKS:
+            sections.append(_generic_evidence_section(state))
+        else:
+            sections.append(_evidence_base_section(state, evidence, target))
     sections.append(paper.section("Discussion", paper.H1))
     if framework == "pestel_swot":
         integration = ("PESTEL identifies the external conditions that frame the decision, and SWOT places the "
@@ -6121,15 +6382,20 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
                        "resulting judgment.")
         heading = selected_caps[0].get("integration") or "Framework and Declared Figures"
         sections.append(paper.section(heading, paper.H2, [integration]))
-    together = _discussion_full_section(state, evidence, target)
-    if together:
-        sections.append(together)
+    if framework in GENERIC_FRAMEWORKS:
+        sections.append(_generic_discussion_section(state))
+    else:
+        together = _discussion_full_section(state, evidence, target)
+        if together:
+            sections.append(together)
     if position:
         sections.append(paper.section("Implications", paper.H2, [position]))
-    gaps = [gap["label"] for gap in state.get("gaps") or []]
+    gaps = [] if framework in GENERIC_FRAMEWORKS else [gap["label"] for gap in state.get("gaps") or []]
     limits = []
     if gaps:
         limits.append("No evidence was retrieved for: " + ", ".join(gaps) + ".")
+    if generic_missing:
+        limits.append("No evidence or student input was recorded for: " + ", ".join(generic_missing) + ".")
     if framework in ("swot", "pestel_swot"):
         limits.append("Strengths and weaknesses are the student's input; the system did not verify them.")
     if framework == "vrio":
@@ -6150,18 +6416,28 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         if unclassified:
             limits.append(str(unclassified) + " accepted evidence item(s) could not be mapped to an opportunity or "
                                               "a threat and are not shown in the SWOT block.")
-    if target >= MID_FLOOR:
+    if framework in GENERIC_FRAMEWORKS:
         limits += [
-            "The sources are market-level: they describe conditions, not this firm's costs, prices or volumes.",
-            "Each source is quoted once; the report does not survey the literature on any dimension.",
-            "The reading of a dimension is the author's, and a different reader could weigh the same sources "
-            "differently.",
+            "The evidence, the comparison and the judgment are the student's; the system did not verify them.",
+            "The works named in the analysis are the student's citations; a reference entry the student did not "
+            "supply is a named gap.",
+            "The framework supplies the parts; it does not supply the evidence, rank the parts or settle the "
+            "decision.",
+            "No financial figure is computed in this paper.",
         ]
-    limits += ["Placement uses keyword cues; a source can be relevant to more than one dimension.",
-               "The paper quotes sources; it does not verify the claims inside them.",
-               "No financial figure is computed in this paper."
-               if framework not in ("breakeven", "five_forces_breakeven") and not selected_caps
-               else "Every financial figure is the frozen method's result from the inputs the student declared."]
+    else:
+        if target >= MID_FLOOR:
+            limits += [
+                "The sources are market-level: they describe conditions, not this firm's costs, prices or volumes.",
+                "Each source is quoted once; the report does not survey the literature on any dimension.",
+                "The reading of a dimension is the author's, and a different reader could weigh the same sources "
+                "differently.",
+            ]
+        limits += ["Placement uses keyword cues; a source can be relevant to more than one dimension.",
+                   "The paper quotes sources; it does not verify the claims inside them.",
+                   "No financial figure is computed in this paper."
+                   if framework not in ("breakeven", "five_forces_breakeven") and not selected_caps
+                   else "Every financial figure is the frozen method's result from the inputs the student declared."]
     sections.append(paper.section("Limitations", paper.H2, [paper.paragraph(limits)]))
     if position:
         asked = _clean(decision, 500).rstrip()
@@ -6173,15 +6449,22 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         conclusion = ("The paper assessed " + _clean(decision, 500) + " and set out the evidence above. The "
                       "implications required to state a position have not been supplied.")
     if target >= MID_FLOOR:
-        change = _change_section(state, by_id, target)
-        if change:
-            sections.append(change)
-        recommendation = _recommendation_section(state, position, target)
-        if recommendation:
-            sections.append(recommendation)
+        if framework in GENERIC_FRAMEWORKS:
+            sections.append(_generic_change_section(state))
+        else:
+            change = _change_section(state, by_id, target)
+            if change:
+                sections.append(change)
+            recommendation = _recommendation_section(state, position, target)
+            if recommendation:
+                sections.append(recommendation)
     if target >= MID_FLOOR:
-        conclusion += (" The position is stated with its condition: it holds for the declared figures and the "
-                       "conditions the sources describe, and not beyond them.")
+        if framework in GENERIC_FRAMEWORKS:
+            conclusion += (" The position is stated as the student's, with its basis named; the evidence behind it "
+                           "is not independently verified here.")
+        else:
+            conclusion += (" The position is stated with its condition: it holds for the declared figures and the "
+                           "conditions the sources describe, and not beyond them.")
     sections.append(paper.section("Conclusion", paper.H1, [conclusion]))
     appendix = _method_appendix(state, target)
     if appendix:
@@ -6197,7 +6480,12 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         references.append(_reference(source, style, numbers))
     from . import citation_styles
     heading = citation_styles.reference_heading(style)
-    sections.append(paper.section(heading, paper.H1, references or ["No sources were used."]))
+    if framework in GENERIC_FRAMEWORKS and not references:
+        reference_lines = ["Reference entries were not recorded for the works named in the analysis; the gap is "
+                           "named rather than filled."]
+    else:
+        reference_lines = references or ["No sources were used."]
+    sections.append(paper.section(heading, paper.H1, reference_lines))
     title_label = label
     if selected_caps:
         title_label = label + " and " + " and ".join(row["label"].lower() for row in selected_caps)
@@ -6206,21 +6494,236 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
         title_label = label + " and break-even"
     recompute = _recompute_guard(state)
     state["recompute_problems"] = recompute
+    # One length pass, before the gate reads the paper: add whole analytical
+    # sections when the body is short of the target, or remove only the sections
+    # this pass added when it is long.  The count is then reported, not gated.
+    sections, adjustment = _adjust_length_once(state, sections, target, evidence, by_id, style)
     # The gate reads the paper's own sentences, not attributed quotations.
     state["claim_problems"] = _claim_scan(sections)
     missing = paper.missing(state, position)
     words = _word_count(sections)
+    target_report = length_mod.report(target, words) if target else length_mod.report(0, words)
     state["draft"] = {"title": title_label + " analysis: " + _clean(decision, 180),
                       "sections": paper.flatten(sections), "outline": sections,
                       "style": style, "framework": framework,
                       "accepted": sorted(accepted), "implications": position,
                       "words": words, "target_words": target or SHORT_WORDS,
                       "length_band": length_band(target or SHORT_WORDS),
-                      "met_target": target == 0 or words >= target,
+                      "met_target": target_report["met"] if target else True,
+                      "word_target": target_report,
+                      "length_adjustment": adjustment,
                       "missing": missing, "created_at": _now()}
     state["stage"] = "draft"
     state["updated_at"] = _now()
     return state
+
+
+def _long_form_sections(state, evidence, by_id, style, target, words):
+    """Analytical sections for a long target, built only from the record.
+
+    A long target used to add no sections after the top band ended, so a 5,000
+    target and a 2,500 target produced the same paper.  These sections read the
+    same evidence at a different depth: coverage, each condition, the alternative
+    readings, implementation and risk, and what would change the answer.  They
+    add no fact, source, number or recommendation; every sentence is derived from
+    the accepted items, the declared gaps and the case instruction.
+
+    A section is marked ``length_optional`` so the one shortening pass can remove
+    a whole section rather than cut a paragraph mid-argument.
+    """
+    if not evidence or target < 2000:
+        return []
+    answers = state.get("answers") or {}
+    decision = _clean(answers.get("decision") or state.get("brief"), 400).rstrip(" .?!")
+    framework = state.get("framework") or "none"
+    label = FRAMEWORKS.get(framework, {}).get("label", "the framework")
+    named_dimensions = list(FRAMEWORKS.get(framework, {}).get("dimensions") or DIMENSIONS)
+    dimensions = []
+    for item in evidence:
+        key = item.get("dimension")
+        if key and key not in [row[0] for row in dimensions]:
+            dimensions.append(next((row for row in DIMENSIONS if row[0] == key), (key, key, "", None)))
+    sources = [source for source in state.get("sources") or []
+               if source.get("id") in {item.get("source_id") for item in evidence}]
+    out = []
+
+    # 1. What the evidence base can and cannot establish.
+    sourced = sum(1 for item in evidence if str(item.get("status") or "") == "accepted")
+    gaps = list(state.get("gaps") or [])
+    databases = {}
+    years = []
+    for source in sources:
+        name = str(source.get("database") or source.get("publisher") or source.get("venue") or "other")
+        databases[name] = databases.get(name, 0) + 1
+        for found in re.findall(r"\d{4}", str(source.get("year") or "")):
+            years.append(int(found))
+    span = ("" if not years else
+            (" The publication years run from %d to %d." % (min(years), max(years))
+             if min(years) != max(years) else " The sources were published in %d." % min(years)))
+    mix = ", ".join("%s %d" % (name, count) for name, count in sorted(databases.items())) or "no named database"
+    lines = [
+        ("The paper rests on %d accepted evidence items drawn from %d cited source%s (%s).%s"
+         % (sourced, len(sources), "" if len(sources) == 1 else "s", mix, span)),
+        ("The evidence covers %d of the %d conditions the framework names. A condition without an accepted "
+         "item is recorded as a gap; it is not read as a favourable or an unfavourable finding, because the "
+         "case does not supply one. The gaps are: %s."
+         % (len(dimensions), len(named_dimensions), "; ".join(gaps) if gaps else "none recorded")),
+        ("This base supports a reading of the conditions the case documents. It does not support a rate, a "
+         "score or a comparison the sources did not measure, and no such comparison is made here."),
+    ]
+    out.append(dict(paper.section("Evidence Quality and Coverage", paper.H1, lines),
+                    length_optional=True))
+
+    # 2. Each condition read for the decision, not summarised.
+    if dimensions:
+        lines = []
+        for dimension in dimensions:
+            key, name = dimension[0], dimension[1]
+            items = [item for item in evidence if item.get("dimension") == key]
+            clause = _FULL_READING.get(key) or "the condition this dimension describes"
+            risk = _FULL_READING_RISK.get(key) or ("the condition does not hold when the decision is taken")
+            change = _FULL_READING_CHANGE.get(key) or ("a direct measurement of this condition in the case "
+                                                       "would replace the market-level source")
+            lines.append(
+                ("%s is read as %s. The case supplies %d accepted item%s for it. For the decision on %s, "
+                 "the risk is that %s. What would change this reading is %s."
+                 % (name, clause, len(items), "" if len(items) == 1 else "s", decision or "the case",
+                    risk, change)))
+        out.append(dict(paper.section("Reading Each Condition in Depth", paper.H1,
+                                      [paper.paragraph(lines)]), length_optional=True))
+
+    # 3. The alternatives the chosen framework does not carry.
+    if framework in GENERIC_FRAMEWORKS:
+        profile = framework_profiles.profile_for(GENERIC_FRAMEWORKS.get(framework) or "")
+        cues = []
+        for block in (profile or {}).get("blocks") or []:
+            cue = str(block.get("cues") or "").strip()
+            if cue:
+                cues.append(cue)
+        if cues:
+            lines = [
+                ("The analysis uses %s. The competing readings named for these parts are: %s. Each would "
+                 "foreground a different condition and would leave another in the background; the paper keeps "
+                 "%s because its parts match the decision the case states."
+                 % (label, "; ".join(cues[:6]), label)),
+                ("A comparison across those readings is not a score. It states what each would explain and "
+                 "what it would omit; the evidence above is the same evidence under each reading."),
+            ]
+            out.append(dict(paper.section("Alternative Readings", paper.H1, lines),
+                            length_optional=True))
+
+    # 4. What executing the decision requires, and what could go wrong.
+    if target >= 4000:
+        lines = []
+        for dimension in dimensions[:6]:
+            key, name = dimension[0], dimension[1]
+            clause = _FULL_READING.get(key) or "the condition this dimension describes"
+            lines.append("For %s, the plan must show how it will meet %s; the evidence records the condition, "
+                         "not the firm's response to it." % (name.lower(), clause))
+        lines.append("The risks are the recorded gaps and the assumptions the case declares. A gap is not a "
+                     "finding, and an assumption is not a source; neither can be used as a reason to proceed.")
+        lines.append("Sequencing follows the conditions, not a preference: a condition the case documents as "
+                     "binding is addressed before one it documents as supportive. The paper does not choose "
+                     "the sequence for the student.")
+        out.append(dict(paper.section("Implementation and Risk", paper.H1,
+                                      [paper.paragraph(lines)]), length_optional=True))
+
+    # 5. Each accepted item read on its own, for the longest targets.
+    if target >= 4000:
+        lines = []
+        for item in evidence:
+            key = item.get("dimension")
+            name = next((row[1] for row in named_dimensions if row[0] == key), key or "the case")
+            quote = _clean(item.get("quote") or item.get("claim"), 300)
+            source = by_id.get(item.get("source_id")) or {}
+            cite = _in_text(source, style) if source else ""
+            lines.append(("%s: the record carries this item: %s %s It supports the condition only to the "
+                          "extent the item states, and it does not on its own settle the decision."
+                          % (name, quote, cite)))
+        if lines:
+            out.append(dict(paper.section("Detailed Reading of the Evidence", paper.H1,
+                                          [paper.paragraph(lines)]), length_optional=True))
+
+    # 6. Which source supports which condition.
+    if target >= 4500 and sources:
+        rows = []
+        for dimension in dimensions:
+            key, name = dimension[0], dimension[1]
+            cites = []
+            for item in evidence:
+                if item.get("dimension") != key:
+                    continue
+                source = by_id.get(item.get("source_id")) or {}
+                if source:
+                    label = str(source.get("title") or source.get("venue") or source.get("database") or "")
+                    if label and label not in cites:
+                        cites.append(label)
+            if cites:
+                rows.append("%s: %s" % (name, "; ".join(cites[:6])))
+        if rows:
+            out.append(dict(paper.section("Source Coverage by Condition", paper.H1,
+                                          [paper.paragraph(rows)]), length_optional=True))
+
+    # 7. What the case does not say, for the longest targets.
+    if target >= 5000:
+        lines = [
+            ("The case does not state the firm's own capabilities, costs or constraints beyond the facts the "
+             "student supplied. Those are the first thing a reader would ask for and the first thing this "
+             "paper cannot supply."),
+            ("It does not state how the conditions interact over time. The reading treats them as conditions "
+             "at the moment of the decision; a sequence of decisions would need a different record."),
+            ("It does not state which condition is decisive. The paper names the conditions and what would "
+             "change the reading; it does not rank them, because the evidence does not measure them on one "
+             "scale."),
+        ]
+        out.append(dict(paper.section("What the Case Does Not Say", paper.H1, lines),
+                        length_optional=True))
+    return out
+
+
+def _adjust_length_once(state, sections, target, evidence, by_id, style):
+    """One repair pass: add optional sections when short, remove them when long.
+
+    The pass is deliberately bounded.  It never edits a required section, never
+    cuts a paragraph out of an argument, and never invents evidence.  A short
+    paper gains whole analytical sections built from the same record; a long one
+    loses only sections this pass added.  If the target is still outside the
+    allowance afterwards, the draft reports the count and stops.
+    """
+    words = _word_count(sections)
+    plan = length_mod.plan(target, words)
+    if plan["report"]["met"] is not False:
+        return sections, None
+    before = words
+    if plan["shortfall"] > 0:
+        extra = _long_form_sections(state, evidence, by_id, style, target, words)
+        if extra:
+            insert_at = len(sections)
+            for position, item in enumerate(sections):
+                if str(item.get("heading") or "") == "Conclusion":
+                    insert_at = position
+                    break
+            low, high = plan["report"]["range"]
+            chosen = []
+            for section in extra:
+                trial = sections[:insert_at] + chosen + [section] + sections[insert_at:]
+                count = _word_count(trial)
+                if count > high:
+                    continue
+                chosen.append(section)
+                if count >= low:
+                    break
+            if chosen:
+                sections = sections[:insert_at] + chosen + sections[insert_at:]
+    elif plan["surplus"] > 0:
+        kept = [item for item in sections if not item.get("length_optional")]
+        if len(kept) != len(sections):
+            sections = kept
+    after = _word_count(sections)
+    if after == before:
+        return sections, None
+    return sections, {"before": before, "after": after, "target": target,
+                      "passes": 1, "note": length_mod.report(target, after)["note"]}
 
 
 def set_rubric_gate(state, enabled=True):
@@ -6243,6 +6746,132 @@ def set_rubric_gate(state, enabled=True):
     return state
 
 
+_ORDINALS = ("First", "Second", "Third", "Fourth", "Fifth", "Sixth",
+             "Seventh", "Eighth", "Ninth", "Tenth", "Eleventh", "Twelfth")
+
+
+def _numeric_list(value):
+    """The numbers of a declared list input, or None when it is not one.
+
+    A declared list (cash flows, incomes, values) is data the student supplied,
+    so plotting it is honest.  Its points are labelled with ordinal words, never
+    figures, so the chart cannot smuggle a number into its own axis.
+    """
+    if not isinstance(value, (list, tuple)) or not (2 <= len(value) <= len(_ORDINALS)):
+        return None
+    numbers = []
+    for item in value:
+        try:
+            numbers.append(float(item))
+        except (TypeError, ValueError):
+            return None
+    return numbers
+
+
+def _scale_class(name):
+    low = str(name).lower()
+    if any(token in low for token in ("ratio", "rate", "percent", "margin",
+                                      "return", "yield", "alpha", "beta", "delta",
+                                      "cover", "turnover", "multiplier")):
+        return "ratio"
+    if any(token in low for token in ("units", "quantity", "count", "customers",
+                                      "periods", "days")):
+        return "count"
+    return "money"
+
+
+def _comparable(result):
+    """The largest group of outputs whose bars can honestly share one axis.
+
+    Two outputs are comparable when they measure the same kind of thing and
+    their magnitudes are within a factor of twenty.  A ratio beside a revenue is
+    not drawn: the axis would make one of them invisible, and the picture would
+    say something the record does not.
+    """
+    groups = {}
+    for name, value in (result or {}).items():
+        if str(name).startswith("_"):
+            continue
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            continue
+        groups.setdefault(_scale_class(name), []).append((str(name), number))
+    best = []
+    for group in groups.values():
+        if len(group) < 2:
+            continue
+        magnitudes = [abs(number) for _, number in group if number]
+        if not magnitudes or max(magnitudes) / min(magnitudes) > 20:
+            continue
+        if len(group) > len(best):
+            best = group
+    return best
+
+
+def _figure_bundle(state):
+    """The chat's recorded computations, in the shape the figure layer reads.
+
+    Nothing is recomputed: every value is the string the frozen core returned or
+    the student declared, copied under an id a chart can name.  A computation
+    that was refused is not charted, because it has no figure to draw.
+    """
+    artifacts, outputs = [], {}
+    for key, data in (state.get("computations") or {}).items():
+        if not isinstance(data, dict) or not data.get("ok"):
+            continue
+        for name, value in (data.get("result") or {}).items():
+            if str(name).startswith("_"):
+                continue
+            ident = "%s.%s" % (key, name)
+            artifacts.append([ident, [ident, "", "entity", "base"], data.get("method") or ""])
+            outputs[ident] = value
+        for name, value in (data.get("inputs") or {}).items():
+            if _numeric_list(value) is None:
+                continue
+            for index, item in enumerate(value):
+                ident = "input.%s.%s.%d" % (key, name, index)
+                artifacts.append([ident, [ident, "", "entity", "base"], ""])
+                outputs[ident] = str(item)
+    return {"delivery": {"appendix": {"artifacts": artifacts}},
+            "reperform": {"outputs": outputs}}
+
+
+def _figure_plan(state):
+    """One chart block per recorded computation, placed under Financial Feasibility.
+
+    A declared list is charted as a series; otherwise the computation's outputs
+    are charted only when they are comparable.  A computation with nothing
+    chartable is left alone - the paper keeps its prose rather than a picture
+    that would mislead.
+    """
+    blocks = []
+    for key, data in (state.get("computations") or {}).items():
+        if not isinstance(data, dict) or not data.get("ok"):
+            continue
+        series = []
+        for name, value in (data.get("inputs") or {}).items():
+            numbers = _numeric_list(value)
+            if numbers:
+                series = [{"label": _ORDINALS[index],
+                           "artifact": "input.%s.%s.%d" % (key, name, index)}
+                          for index in range(len(numbers))]
+                break
+        if not series:
+            series = [{"label": _series_label(name, data),
+                       "artifact": "%s.%s" % (key, name)}
+                      for name, _number in _comparable(data.get("result"))]
+        if len(series) < 2:
+            continue
+        try:
+            label = capabilities.entry(key)["label"]
+        except KeyError:
+            label = _chart_label(key)
+        blocks.append({"key": key, "label": label, "figure_title": label,
+                       "section": "Financial Feasibility", "series": series})
+    return {"blocks": blocks}
+
+
 def docx_bytes(state, byline=None):
     """The drafted paper as a Word document (APA or Harvard)."""
     draft = state.get("draft")
@@ -6257,7 +6886,46 @@ def docx_bytes(state, byline=None):
     if not report["pass"]:
         raise ExportBlocked([issue["detail"] for issue in report["issues"] if issue["severity"] == "high"])
     lines = byline if byline is not None else state.get("byline") or ()
-    return docx.render_academic(draft["title"], outline, draft.get("style", "apa"), byline=lines)
+    return docx.render_academic(draft["title"], outline, draft.get("style", "apa"),
+                                byline=lines, bundle=_figure_bundle(state),
+                                plan=_figure_plan(state))
+
+
+def pptx_bytes(state):
+    """The drafted paper as a pitch deck: its own sentences, reordered, with notes."""
+    from . import deck
+
+    draft = state.get("draft")
+    if not draft:
+        raise ChatError("Draft the paper before exporting it.")
+    outline = draft.get("outline") or paper.flatten(draft.get("sections") or [])
+    built = deck.from_paper(outline, draft["title"])
+    figures = {}
+    for item in outline:
+        figure = item.get("figure") if isinstance(item, dict) else None
+        if figure and figure.get("id"):
+            figures[figure["id"]] = figure
+    return deck.render(built, figures)
+
+
+def pdf_bytes(state):
+    """The drafted paper as a PDF deck, printed by the headless Chrome kaleido carries."""
+    from . import deck
+
+    draft = state.get("draft")
+    if not draft:
+        raise ChatError("Draft the paper before exporting it.")
+    outline = draft.get("outline") or paper.flatten(draft.get("sections") or [])
+    built = deck.from_paper(outline, draft["title"])
+    figures = {}
+    for item in outline:
+        figure = item.get("figure") if isinstance(item, dict) else None
+        if figure and figure.get("id"):
+            figures[figure["id"]] = figure
+    data = deck.pdf_bytes(built, figures)
+    if data is None:
+        raise ChatError("A PDF deck needs Chrome; none was found on this machine.")
+    return data
 
 
 def polish(state):

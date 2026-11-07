@@ -44,7 +44,7 @@ by editing the sample builder or renderer.
 Non-negotiables:
 
 - no invented evidence, sources, numbers or citations;
-- gaps are named, never filled;
+- a dimension with no citable evidence carries a labelled background paragraph from the weak sources the retriever saw; it is never filled with invented evidence;
 - student inputs stay student inputs;
 - no silent framework substitution;
 - computations come from the frozen core;

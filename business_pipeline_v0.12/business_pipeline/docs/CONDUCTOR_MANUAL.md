@@ -148,14 +148,14 @@ refusal is named in the export gate; the product never plugs a difference.
    claim may be quoted or **paraphrased** from its source, as long as the
    paraphrase does not exceed what the source says. What is forbidden is a claim
    with no source behind it, or a source that says something else.
-2. **Gaps are named, never filled — and only a substantive gap is printed.** A
-   **substantive gap** — a dimension with no evidence at all — is named in the
-   paper, because the student must know the paper is thin there. A **metadata
-   gap** — a missing printed page number, a missing edition, an unknown ISBN, an
-   unknown publication date — is recorded as `NULL` in the record and does not
-   appear in the paper; the source is cited as it stands. Nothing is ever filled
-   by invention, and nothing is hidden: every gap is recorded whether or not it
-   is printed.
+2. **A dimension with no citable evidence carries a labelled background paragraph.**
+   It is drawn from the weak or orientation sources the retriever saw, is not
+   evidence, and is never cited. If no background exists either, the paragraph
+   says so. A **metadata gap** — a missing printed page number, a missing edition,
+   an unknown ISBN, an unknown publication date — is recorded as `NULL` in the
+   record and does not appear in the paper; the source is cited as it stands.
+   Nothing is ever filled by invention, and nothing is hidden: every gap is
+   recorded whether or not it is printed.
 3. **Student inputs stay student inputs.** Strengths, weaknesses, implications,
    declared costs and expected volume are supplied by the student.
 4. **No silent framework substitution.** A framework may be substituted for a
@@ -726,26 +726,30 @@ Adding a chain is a catalogue change, not a product change: register the pair in
 `NEEDS_FROM`, confirm the units agree, and add a row to
 `tests/test_plan_dependencies.py`.
 
-### 7.10 Report length: short, mid, long
+### 7.10 Report length: a body word count
 
-Students do not always need a long paper, so length is offered as three options,
-each with a range. The same bands are used everywhere: the Home selector, the
-brief, the plan card and the draft.
+The student states the **body** word count the rubric asks for. The body excludes
+the title page, the title, the headings, the reference list and any footnote
+(the writer emits no footnotes part, so none are counted). The old short/mid/long
+names remain only as legacy values for a saved case; the number is the target.
 
-| Option | Range (words) | What the draft carries |
-|---|---|---|
-| Short | 600-1,200 | the framework dimensions with their evidence, the computation, discussion, implications, limitations, conclusion |
-| Mid | 1,200-2,500 | short, plus Scope and Method, the Evidence Base, and What the Evidence Shows Together |
-| Long | 2,500-5,000 | mid, plus the reading of each dimension, Reading the Result, What the Figures Assume, What Would Change the Answer, Recommendation and the appendix |
-
-- the Home composer's **Report length** selector sends the option with the start
-  request; the plan card's selector changes it (`/api/cases/chat/{id}/length`);
-  a brief may also name an option ("mid-length report") or a count ("2500 words").
-- `check_word_target` accepts an option name or a number, resolves names to the
-  band's target, and refuses a count outside 600-5,000 with the reason.
-- the draft records `words`, `target_words`, `length_band` and `met_target`. When
-  the evidence cannot reach the target the draft says so and names the count; it
-  never pads to reach it.
+- the Home composer and the plan card take a number (600-50,000) and send it as
+  `words`; a brief may also state a count ("2400 words"). The student's number
+  wins over a default. The global floor is 600 until per-type floors are supplied.
+- `length.check` reads the number; a legacy band name resolves to its old target.
+- the draft records `words`, `target_words`, `length_band`, `met_target` and a
+  `word_target` report with the two-sided range and a note. The allowance is
+  ±10% by default; a rubric's own tolerance wins when it states one. The notice
+  beside the count says the allowance is strived for, not guaranteed.
+- length is **not an export gate**. `paper.missing` does not read it and
+  `audit` reports `too_short`/`too_long` as warnings.
+- one bounded repair pass runs when the body is outside the allowance: it adds
+  whole analytical sections for a long target, or removes only sections that
+  pass added. It measures after the pass and stops. It never cuts a required
+  section and never pads. A target the record cannot support is reported with
+  the exact gap.
+- the section-composition thresholds (`MID_FLOOR`, `LONG_FLOOR`) still decide
+  which built-in sections a draft carries; they are not the student's target.
 
 ## 8. Coherence and export gate
 

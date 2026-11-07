@@ -15,9 +15,11 @@ is dropped and counted, never returned as if it were evidence.
 """
 
 import datetime
+import html
 import json
 import os
 import re
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -518,6 +520,10 @@ def cue_words_of(cues):
 WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
 ORIENTATION_USER_AGENT = "SmartBusinessWriter/1.0 (background reading)"
 ORIENTATION_ENABLED = os.environ.get("BP_ORIENTATION", "1") != "0"
+#: Wikipedia rate-limits a burst from one IP.  The dimensions run in parallel,
+#: so the orientation calls are serialised; six short searches are cheap, six
+#: 429s leave half the paper without its background note.
+_ORIENTATION_LOCK = threading.Lock()
 
 
 def _orientation(query, limit=3):
@@ -532,28 +538,36 @@ def _orientation(query, limit=3):
     params = {"action": "query", "list": "search", "srsearch": query,
               "srlimit": str(max(1, int(limit))), "format": "json", "utf8": "1",
               "srprop": "snippet"}
-    request = urllib.request.Request(
-        WIKIPEDIA_API + "?" + urllib.parse.urlencode(params),
-        headers={"User-Agent": ORIENTATION_USER_AGENT})
-    try:
-        with urllib.request.urlopen(request, timeout=4) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except Exception as error:
-        return {"results": [], "notice": "Background reading unavailable: %s" % str(error)[:120]}
-    results = []
-    for row in (payload.get("query") or {}).get("search") or []:
-        title = clean(row.get("title"), 200)
-        if not title:
-            continue
-        results.append({
-            "title": title,
-            "url": "https://en.wikipedia.org/wiki/" + urllib.parse.quote(title.replace(" ", "_")),
-            "abstract": re.sub(r"<[^>]+>", "", row.get("snippet") or ""),
-            "database": "orientation web",
-            "citable": False,
-            "credibility": 0,
-        })
-    return {"results": results, "notice": None}
+    last_notice = None
+    with _ORIENTATION_LOCK:
+        for attempt in range(2):
+            request = urllib.request.Request(
+                WIKIPEDIA_API + "?" + urllib.parse.urlencode(params),
+                headers={"User-Agent": ORIENTATION_USER_AGENT})
+            try:
+                with urllib.request.urlopen(request, timeout=4) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+            except Exception as error:
+                last_notice = "Background reading unavailable: %s" % str(error)[:120]
+                payload = {}
+            results = []
+            for row in (payload.get("query") or {}).get("search") or []:
+                title = clean(row.get("title"), 200)
+                if not title:
+                    continue
+                results.append({
+                    "title": title,
+                    "url": "https://en.wikipedia.org/wiki/" + urllib.parse.quote(title.replace(" ", "_")),
+                    "abstract": html.unescape(re.sub(r"<[^>]+>", "", row.get("snippet") or "")),
+                    "database": "orientation web",
+                    "citable": False,
+                    "credibility": 0,
+                })
+            if results:
+                return {"results": results, "notice": None}
+            if attempt == 0:
+                time.sleep(0.25)
+    return {"results": [], "notice": last_notice}
 
 
 def _accepted_any(found, cue_words, context_set, geography, gate, exclude):
@@ -687,17 +701,6 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     orientation = []
     orientation_seen = set()
     dropped = 0
-    if source_plan != "corpus" and queries:
-        # Background reading: the fast web answer to "what is this about?".
-        # It never enters the evidence list and never reaches a reference.
-        general = _orientation(queries[0])
-        for item in general.get("results") or []:
-            item_key = item.get("url") or _key(item)
-            if item_key and item_key not in orientation_seen:
-                orientation_seen.add(item_key)
-                orientation.append(item)
-        if general.get("notice"):
-            notices.append(general["notice"])
     for item in found:
         item_key = _key(item)
         if not item_key or item_key in seen or item_key in exclude:
@@ -731,6 +734,29 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
         if item.get("database") == "Proprietary corpus":
             doc_id = item.get("doc_id")
             corpus_doc_counts[doc_id] = corpus_doc_counts.get(doc_id, 0) + 1
+    # Background reading: the fast web answer to "what is this about?".
+    # It never enters the evidence list and never reaches a reference.  It runs
+    # when the corpus did not answer, and also when a corpus answer was capped
+    # away, so a dimension with no final item still has a labelled paragraph.
+    if queries and (source_plan != "corpus" or not items):
+        orientation_query = queries[0]
+        topic_key = source_finder.topic_for_text(topic) if topic else ""
+        if topic_key:
+            if str(key) in ("political", "economic", "social", "technological",
+                            "environmental", "legal"):
+                orientation_query = str(key) + " " + topic_key
+            elif str(key) == "evidence":
+                orientation_query = topic_key + " business"
+            else:
+                orientation_query = topic_key + " " + str(key)
+        general = _orientation(orientation_query)
+        for item in general.get("results") or []:
+            item_key = item.get("url") or _key(item)
+            if item_key and item_key not in orientation_seen:
+                orientation_seen.add(item_key)
+                orientation.append(item)
+        if general.get("notice"):
+            notices.append(general["notice"])
     # Learning hook: every source this retrieval saw is recorded, not only the
     # accepted ones.  The candidates the gate refused are exactly the works the
     # corpus does not hold, so they are the demand the enrichment worker fills.

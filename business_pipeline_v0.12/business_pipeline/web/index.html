@@ -1103,23 +1103,20 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <label class="visually-hidden" for="objective">What would you like to work on?</label>
         <textarea id="objective" placeholder="What would you like to work on..."></textarea>
         <div class="row" style="margin:2px 0 8px;gap:8px;align-items:flex-end;flex-wrap:wrap">
-          <label class="field" for="homelength" style="margin:0;max-width:320px" hidden>Report length
-            <select id="homelength">
-              <option value="">Short (600-1,200 words)</option>
-              <option value="mid">Mid (1,200-2,500 words)</option>
-              <option value="long">Long (2,500-5,000 words)</option>
-            </select>
+          <label class="field" for="homelength" style="margin:0;max-width:220px">Body words
+            <input id="homelength" type="number" min="600" max="50000" step="100" placeholder="e.g. 2500">
           </label>
+          <span class="muted" style="max-width:260px;font-size:12px">Body only: no title page, title, headings, references or footnotes. 10% is strived for, not guaranteed.</span>
         </div>
         <div class="actionrow">
-          <button class="btn" id="attachbtn" type="button" title="Attach files for this analysis">Attach files</button>
-          <button class="btn" id="sourcesbtn" type="button" title="Upload source documents">Sources</button>
-          <button class="btn" id="databtn" type="button" title="Upload data files (CSV, XLSX)">Data</button>
+          <button class="btn" id="attachbtn" type="button" title="Upload the files that contain the instruction to follow">Instruction files</button>
+          <button class="btn" id="sourcesbtn" type="button" title="Upload priority source documents">Sources</button>
+          <button class="btn" id="databtn" type="button" title="Upload data files (XLSX, XLSM, CSV, TSV)">Data</button>
           <button class="btn" id="rubricbtn" type="button" title="Upload a marking guide">Rubric</button>
-          <input type="file" id="attachfile" multiple hidden>
-          <input type="file" id="sourcesfile" multiple hidden>
-          <input type="file" id="datafile" multiple hidden>
-          <input type="file" id="rubricfile" multiple hidden>
+          <input type="file" id="attachfile" multiple accept=".pdf,.docx,.docm,.txt,.text,.md,.png,.jpg,.jpeg,.webp" hidden>
+          <input type="file" id="sourcesfile" multiple accept=".pdf,.docx,.docm,.txt,.md,.bib,.ris" hidden>
+          <input type="file" id="datafile" multiple accept=".xlsx,.xlsm,.xls,.csv,.tsv,.txt" hidden>
+          <input type="file" id="rubricfile" multiple accept=".pdf,.docx,.docm,.txt,.md" hidden>
           <button type="button" id="chatstart" hidden tabindex="-1">Start the analysis</button>
           <button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
@@ -1171,6 +1168,7 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
     <section class="panel" id="panel-calculator" hidden aria-labelledby="calculator-title">
       <div class="card">
         <h2 id="calculator-title">Business Calculator</h2>
+        <p class="muted">The Business Calculator arranges inputs and launches a frozen method; it computes nothing itself.</p>
         <div id="calcnote"></div>
         <div class="calcbar">
           <label class="visually-hidden" for="calcq">Search the Business Calculator</label>
@@ -1439,14 +1437,14 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
           <p id="pmck-copy"></p>
           <div id="pmslot"></div>
           <div id="pmloading" style="font-size:14px;color:var(--navy-700);opacity:.6;padding:8px 0">Loading PayPal…</div>
-          <button class="pm-back" type="button" id="pmback">← Back to plans</button>
+          <button class="pm-back" type="button" id="pmback">â† Back to plans</button>
         </div>
         <div id="pmck-busy" hidden>
           <div class="pm-busy"></div>
           <p id="pmbusy">Talking to PayPal…</p>
         </div>
         <div id="pmck-done" hidden>
-          <div class="pm-ok">✓</div>
+          <div class="pm-ok">âœ“</div>
           <div class="t">Subscription active</div>
           <div class="pm-kv"><span class="k">Plan</span><span class="v" id="pmdone-plan">—</span></div>
           <div class="pm-kv"><span class="k">Billed</span><span class="v" id="pmdone-bill">—</span></div>
@@ -1459,12 +1457,12 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
           <div class="t">That did not go through</div>
           <p id="pmfail"></p>
           <button class="btn primary" type="button" id="pmfail-retry" style="width:100%">Try again</button>
-          <button class="pm-back" type="button" id="pmfail-back">← Back to plans</button>
+          <button class="pm-back" type="button" id="pmfail-back">â† Back to plans</button>
         </div>
         <div id="pmck-config" hidden>
           <div class="t">Checkout is not switched on</div>
           <p id="pmconfig"></p>
-          <button class="pm-back" type="button" id="pmconfig-back">← Back to plans</button>
+          <button class="pm-back" type="button" id="pmconfig-back">â† Back to plans</button>
         </div>
       </div>
     </div>
@@ -2559,22 +2557,20 @@ RENDERERS.home = function () {
       '<label class="visually-hidden" for="objective">What would you like to work on?</label>' +
       '<textarea id="objective" placeholder="What would you like to work on..."></textarea>' +
       '<div class="row" style="margin:2px 0 8px;gap:8px;align-items:flex-end;flex-wrap:wrap">' +
-        '<label class="field" for="homelength" style="margin:0;max-width:320px" hidden>Report length' +
-          '<select id="homelength">' +
-            '<option value="">Short (600-1,200 words)</option>' +
-            '<option value="mid">Mid (1,200-2,500 words)</option>' +
-            '<option value="long">Long (2,500-5,000 words)</option>' +
-          "</select></label>" +
+        '<label class="field" for="homelength" style="margin:0;max-width:220px">Body words' +
+          '<input id="homelength" type="number" min="600" max="50000" step="100" placeholder="e.g. 2500">' +
+        "</label>" +
+        '<span class="muted" style="max-width:260px;font-size:12px">Body only: no title page, title, headings, references or footnotes. 10% is strived for, not guaranteed.</span>' +
       "</div>" +
       '<div class="actionrow">' +
-        '<button class="btn" id="attachbtn" type="button" title="Attach files for this analysis">Attach files</button>' +
-        '<button class="btn" id="sourcesbtn" type="button" title="Upload source documents">Sources</button>' +
-        '<button class="btn" id="databtn" type="button" title="Upload data files (CSV, XLSX)">Data</button>' +
+        '<button class="btn" id="attachbtn" type="button" title="Upload the files that contain the instruction to follow">Instruction files</button>' +
+        '<button class="btn" id="sourcesbtn" type="button" title="Upload priority source documents">Sources</button>' +
+        '<button class="btn" id="databtn" type="button" title="Upload data files (XLSX, XLSM, CSV, TSV)">Data</button>' +
         '<button class="btn" id="rubricbtn" type="button" title="Upload a marking guide">Rubric</button>' +
-        '<input type="file" id="attachfile" multiple hidden>' +
-        '<input type="file" id="sourcesfile" multiple hidden>' +
-        '<input type="file" id="datafile" multiple hidden>' +
-        '<input type="file" id="rubricfile" multiple hidden>' +
+        '<input type="file" id="attachfile" multiple accept=".pdf,.docx,.docm,.txt,.text,.md,.png,.jpg,.jpeg,.webp" hidden>' +
+        '<input type="file" id="sourcesfile" multiple accept=".pdf,.docx,.docm,.txt,.md,.bib,.ris" hidden>' +
+        '<input type="file" id="datafile" multiple accept=".xlsx,.xlsm,.xls,.csv,.tsv,.txt" hidden>' +
+        '<input type="file" id="rubricfile" multiple accept=".pdf,.docx,.docm,.txt,.md" hidden>' +
         '<button type="button" id="chatstart" hidden tabindex="-1">Start the analysis</button>' +
         '<button class="runbtn" id="run" type="button" aria-label="Start the analysis" title="Start the analysis (Enter)">' +
           '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>' +
@@ -2752,13 +2748,19 @@ function renderChat() {
     (c.plan.dimensions || []).forEach((dimension) => { labels[dimension.key] = dimension.label; });
     html += '<div class="card"><h3>Evidence review</h3>' +
       '<p class="sub">Every item below is a sentence from a retrieved source. Uncheck anything you do not want in the section. ' +
-      "The section will cite what remains; an empty dimension is reported as a gap.</p>";
+      "A dimension with no citable sentence uses the labelled background paragraph; it is not cited.</p>";
     Object.keys(labels).forEach((key) => {
       const items = c.evidence.filter((item) => item.dimension === key);
+      const bg = (c.background || []).find((row) => row.dimension === key);
       const diag = (c.research_diagnostics || {})[key] || {};
       html += '<h4 class="levelhead">' + esc(labels[key]) + " - " + items.length + "</h4>";
       if (!items.length) {
-        html += '<p class="muted">No evidence retrieved for this dimension. This is a gap.</p>';
+        if (bg) {
+          html += '<div class="wblock"><strong>Background (not cited)</strong><p>' + esc(bg.text) + "</p>" +
+            '<p class="muted">' + esc(bg.caveat || "This is not verified evidence and it is not cited.") + "</p></div>";
+        } else {
+          html += '<p class="muted">No evidence and no background material were retrieved for this dimension.</p>';
+        }
       } else {
         items.forEach((item) => {
           const source = c.sources.find((candidate) => candidate.id === item.source_id) || {};
@@ -2810,9 +2812,14 @@ function renderChat() {
   }
   if (c.stage === "draft" && c.draft) {
     const outline = c.draft.outline || (c.draft.sections || []).map((section) => ({ heading: section[0], level: 1, lines: section[1] || [] }));
+    const wt = c.draft.word_target || {};
     html += '<div class="card"><h3>Draft paper</h3>' +
       '<p class="muted">' + esc(c.draft.style === "harvard" ? "Harvard" : "APA 7") +
-      " · " + esc(c.draft.accepted.length) + " evidence item(s). Review it, then download.</p>";
+      " · " + esc(c.draft.accepted.length) + " evidence item(s). Review it, then download.</p>" +
+      '<p class="muted">Body words: ' + esc(String(c.draft.words || 0)) +
+      (wt.range ? " | target " + esc(String(wt.target)) + " (" + esc(String(wt.range[0])) + "-" + esc(String(wt.range[1])) + ")" : "") +
+      (wt.met === true ? " | inside ±10%" : wt.met === false ? " | outside ±10%, strived for, not guaranteed" : "") +
+      " | title page, headings, references and footnotes excluded</p>";
     outline.forEach((section) => {
       const heading = section.level === 1 ? "<h3>" + esc(section.heading) + "</h3>" : "<h4>" + esc(section.heading) + "</h4>";
       html += heading + (section.lines || []).map((line) => '<p style="margin:4px 0">' + esc(line) + "</p>").join("");
@@ -2867,6 +2874,12 @@ async function startChat() {
   const lengthBox = $("#homelength");
   const lengthChoice = lengthBox ? String(lengthBox.value || "").trim() : "";
   if (lengthChoice) body.words = lengthChoice;
+  if (state.rubric) body.rubric = state.rubric;
+  if (state.intakeFiles) {
+    body.instruction_files = state.intakeFiles.instruction || [];
+    body.source_files = state.intakeFiles.sources || [];
+    body.data_files = state.intakeFiles.data || [];
+  }
   try {
     state.chat = await post("/api/cases/chat", body);
     /* The conversation now carries the brief, so the composer starts empty: a
@@ -2881,29 +2894,18 @@ async function startChat() {
 /* ---- capabilities: what the paper carries, and the figures for it ---- */
 /* ---- report length: three options with ranges, one vocabulary ---- */
 function reportLengthRow(plan) {
-  const options = plan.length_options || [];
-  const band = plan.length_band || "short";
-  const current = options.find((option) => option.key === band) || {};
-  const choices = options.length ? options : [
-    { key: "short", label: "Short", low: 600, high: 1200 },
-    { key: "mid", label: "Mid", low: 1200, high: 2500 },
-    { key: "long", label: "Long", low: 2500, high: 5000 },
-  ];
+  const target = Number(plan.target_words || 2500);
   return '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">' +
-    '<h4 class="levelhead" style="margin-top:0">Report length</h4>' +
+    '<h4 class="levelhead" style="margin-top:0">Body word count</h4>' +
     '<div class="row" style="gap:8px;align-items:flex-end;flex-wrap:wrap">' +
-    '<label class="field" for="chatwords" style="margin:0;max-width:320px">Length' +
-    '<select id="chatwords">' + choices.map((option) =>
-      '<option value="' + esc(option.key) + '"' + (option.key === band ? " selected" : "") + ">" +
-      esc(option.label) + " (" + esc(String(option.low)) + "-" + esc(String(option.high)) + " words)</option>").join("") +
-    "</select></label>" +
-    '<button class="btn" type="button" id="chatwordset">Set length</button>' +
-    '<span class="muted">Now: ' + esc(current.label || band) + ", writing to about " +
-    esc(String(plan.target_words)) + " words</span></div>" +
-    '<p class="muted" style="margin:6px 0 0">Short is enough for many cases: a framework, its evidence and one ' +
-    "computation. Mid adds the evidence base and the integrated discussion. Long adds the reading of each " +
-    "dimension, the method's assumptions, a recommendation and the appendix. The system writes to the length " +
-    "you choose and never pads to reach it.</p></div>";
+    '<label class="field" for="chatwords" style="margin:0;max-width:240px">Target words' +
+    '<input id="chatwords" type="number" min="600" max="50000" step="100" value="' + esc(String(target)) + '">' +
+    "</label>" +
+    '<button class="btn" type="button" id="chatwordset">Set word count</button>' +
+    '<span class="muted">The body only: no title page, title, headings, reference list or footnotes.</span></div>' +
+    '<p class="muted" style="margin:6px 0 0">A target inside ±10% is strived for, not guaranteed. The paper is ' +
+    "never blocked for its length; the count is reported and one adjustment pass is attempted when it is outside " +
+    "10%. The student's instruction or rubric count wins over a default.</p></div>";
 }
 
 async function setReportLength() {
@@ -2933,6 +2935,15 @@ function proposalHtml(c) {
   const evidence = (p.evidence_needs || []).map((row) => '<span class="badge mute">' + esc(row.label) + "</span>").join(" ");
   const gaps = (p.gaps || []).map((row) => "<li>" + esc(row) + "</li>").join("");
   const structure = (p.structure || []).map((row) => '<span class="badge mute">' + esc(row) + "</span>").join(" ");
+  const files = p.attachments || {};
+  const fileBits = [];
+  if (files.instructions) fileBits.push(files.instructions + " instruction file" + (files.instructions === 1 ? "" : "s"));
+  if (files.sources) fileBits.push(files.sources + " priority source" + (files.sources === 1 ? "" : "s"));
+  if (files.data) fileBits.push(files.data + " data file" + (files.data === 1 ? "" : "s"));
+  const fileRow = fileBits.length
+    ? '<h4 class="levelhead">Your files</h4><p class="muted">' + esc(fileBits.join(" · ")) +
+      ". Instructions are followed; source and data files are kept with the plan; data files are read as tables.</p>"
+    : "";
   const selected = p.selected_framework || ((p.framework_options || []).find((row) => row.suggested) || {}).id || "none";
   const frameworkSelect = '<select id="chatframeworkpick">' + (p.framework_options || []).map((row) =>
     '<option value="' + esc(row.id) + '"' + (row.id === selected ? " selected" : "") + ">" + esc(row.label) + "</option>").join("") + "</select>";
@@ -2944,6 +2955,7 @@ function proposalHtml(c) {
     '<h4 class="levelhead">Proposed argument</h4><ul class="guidesteps">' + claims + "</ul>" +
     '<h4 class="levelhead">Evidence needed</h4><div class="row" style="flex-wrap:wrap">' + evidence + "</div>" +
     (structure ? '<h4 class="levelhead">Structure</h4><div class="row" style="flex-wrap:wrap">' + structure + "</div>" : "") +
+    fileRow +
     (gaps ? '<h4 class="levelhead">Gaps</h4><ul class="guidesteps">' + gaps + "</ul>" : "") +
     '<div class="row" style="margin-top:10px;align-items:center;gap:8px">' +
       '<label class="field" for="chatframeworkpick" style="margin:0">Framework</label>' + frameworkSelect +
@@ -3901,6 +3913,11 @@ async function beginPlan() {
     // The marking guide read on the intake card travels with the run: the paper carries a
     // coverage table and the download is blocked while a weighted criterion is unaddressed.
     if (state.rubric) body.rubric = state.rubric;
+    if (state.intakeFiles) {
+      body.instruction_files = state.intakeFiles.instruction || [];
+      body.source_files = state.intakeFiles.sources || [];
+      body.data_files = state.intakeFiles.data || [];
+    }
     const data = await post("/api/cases/chat", body);
     state.plan = { data: data, attachment: attachment, error: null, student: null, blocks: null };
     renderPlan();
@@ -3953,22 +3970,7 @@ function readAsBase64(file) {
 }
 
 async function uploadAttachments(files) {
-  const list = Array.from(files || []);
-  if (!list.length) return;
-  const box = $("#attachments");
-  if (box) box.innerHTML = loading("Storing " + list.length + " file" + (list.length === 1 ? "" : "s"));
-  let stored = 0;
-  for (const file of list) {
-    try {
-      const content_base64 = await readAsBase64(file);
-      await post("/api/intake", { filename: file.name, content_base64: content_base64 });
-      stored += 1;
-    } catch (error) {
-      toast(file.name + ": " + (error.message || String(error)));
-    }
-  }
-  if (stored) toast(stored === 1 ? "File added." : stored + " files added.");
-  loadAttachments();
+  await uploadRoleFiles(files, "instruction");
 }
 
 function intakeStatus(row) {
@@ -4026,8 +4028,10 @@ function intakeRow(row) {
     '<button class="btn sm" type="button" data-remove="' + esc(id) + '">Remove</button>';
   return '<div class="attachrow"><div class="attachmeta"><strong>' + esc(row.filename || id) + "</strong>" +
     '<div class="muted">' + esc(fileSize(row.bytes)) + " - " + intakeStatus(row) +
-    (row.role === "brief" ? " - used as the instruction" : "") +
-    (row.role === "rubric" ? " - used as the marking guide" : "") +
+    (row.role === "brief" ? " - instruction" : "") +
+    (row.role === "sources" ? " - priority source" : "") +
+    (row.role === "dataset" ? " - data" : "") +
+    (row.role === "rubric" ? " - rubric" : "") +
     (typeof row.n_sources === "number" ? " - " + esc(row.n_sources) + " declared source(s)" : "") +
     "</div>" +
     intakeDetail(row) + '<div data-textbox="' + esc(id) + '"></div></div><div class="row">' + actions + "</div></div>";
@@ -4048,6 +4052,16 @@ async function loadAttachments() {
     state.intakeSources = rows.filter(function (row) {
       return row.kind === "sources" && typeof row.n_sources === "number";
     }).map(function (row) { return row.id; });
+    // The four attach categories, by the role the student chose.  A BibTeX/RIS list
+    // is a source file by its kind even before a role is set.
+    state.intakeFiles = { instruction: [], sources: [], data: [], rubric: [] };
+    rows.forEach(function (row) {
+      if (!row || !row.id) return;
+      if (row.role === "brief") state.intakeFiles.instruction.push(row.id);
+      else if (row.role === "sources" || row.kind === "sources") state.intakeFiles.sources.push(row.id);
+      else if (row.role === "dataset") state.intakeFiles.data.push(row.id);
+      else if (row.role === "rubric") state.intakeFiles.rubric.push(row.id);
+    });
     $$("[data-ingest]", box).forEach((b) => { b.onclick = () => ingestAttachment(b.dataset.ingest); });
     $$("[data-extract]", box).forEach((b) => { b.onclick = () => extractAttachment(b.dataset.extract); });
     $$("[data-showtext]", box).forEach((b) => { b.onclick = () => showAttachmentText(b.dataset.showtext); });
@@ -4107,19 +4121,26 @@ async function showDeclaredSources(id) {
 }
 
 /* Read a stored file as the paper's instruction.  The route extracts the text with the
-   same reader the brief route uses; nothing is started here.  The text lands in the brief
-   box for the student to read and correct, because extracted text is unverified. */
+   same reader the brief route uses; nothing is started here.  The text is appended to the
+   brief box, not used to overwrite an earlier instruction file, because the paper follows
+   every instruction the student attached. */
+async function appendBriefFromIntake(id) {
+  const data = await post("/api/intake/" + encodeURIComponent(id) + "/brief", {});
+  const text = String(data.text || "").trim();
+  const box = $("#objective");
+  if (box && text) {
+    box.value = box.value.trim() ? box.value.trim() + "\n\n" + text : text;
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    box.focus();
+    if (box.scrollIntoView) box.scrollIntoView({ block: "center" });
+  }
+  return data;
+}
+
 async function useAsBrief(id) {
   try {
-    const data = await post("/api/intake/" + encodeURIComponent(id) + "/brief", {});
-    const box = $("#objective");
-    if (box) {
-      box.value = data.text || "";
-      box.dispatchEvent(new Event("input", { bubbles: true }));
-      box.focus();
-      if (box.scrollIntoView) box.scrollIntoView({ block: "center" });
-    }
-    toast("Read as the instruction: " + (data.chars || 0) +
+    const data = await appendBriefFromIntake(id);
+    toast("Read as an instruction: " + (data.chars || 0) +
       " characters. It is unverified - check it before starting the analysis.");
   } catch (error) {
     toast(error.message || String(error));
@@ -4174,17 +4195,23 @@ async function removeAttachment(id) {
 async function uploadRoleFiles(files, role) {
   const list = Array.from(files || []);
   if (!list.length) return;
+  const apiRole = role === "instruction" ? "brief" : role;
   const box = $("#attachments");
   if (box) box.innerHTML = loading("Storing " + list.length + " " + role + " file" + (list.length === 1 ? "" : "s"));
   let stored = 0;
   for (const file of list) {
     try {
       const content_base64 = await readAsBase64(file);
-      const row = await post("/api/intake", { filename: file.name, content_base64: content_base64 });
+      const row = await post("/api/intake", {
+        filename: file.name, content_base64: content_base64, role: apiRole
+      });
       stored += 1;
       const id = row && row.id;
-      if (id && role === "rubric") await useAsRubric(id);
-      if (id && role === "data") await ingestAttachment(id);
+      if (id && apiRole === "brief") await appendBriefFromIntake(id);
+      if (id && apiRole === "rubric") await useAsRubric(id);
+      if (id && apiRole === "dataset") await ingestAttachment(id);
+      if (id && apiRole === "sources" && row.kind === "document"
+          && row.status !== "extracted") await extractAttachment(id);
     } catch (error) {
       toast(file.name + ": " + (error.message || String(error)));
     }
@@ -4231,14 +4258,11 @@ async function loadStoredPapers() {
 }
 
 function bindAttachments(panel) {
-  const button = $("#attachbtn"), input = $("#attachfile"), box = panel && panel.querySelector(".actionbox");
-  if (button && input) {
-    button.onclick = () => input.click();
-    input.onchange = (event) => { uploadAttachments(event.target.files); event.target.value = ""; };
-  }
+  bindRoleUpload("#attachbtn", "#attachfile", "instruction");
   bindRoleUpload("#sourcesbtn", "#sourcesfile", "sources");
-  bindRoleUpload("#databtn", "#datafile", "data");
+  bindRoleUpload("#databtn", "#datafile", "dataset");
   bindRoleUpload("#rubricbtn", "#rubricfile", "rubric");
+  const box = panel && panel.querySelector(".actionbox");
   if (!box) return;
   ["dragenter", "dragover"].forEach((name) => box.addEventListener(name, (event) => {
     event.preventDefault(); box.classList.add("dragging");
@@ -4246,7 +4270,7 @@ function bindAttachments(panel) {
   ["dragleave", "dragend"].forEach((name) => box.addEventListener(name, () => box.classList.remove("dragging")));
   box.addEventListener("drop", (event) => {
     event.preventDefault(); box.classList.remove("dragging");
-    if (event.dataTransfer && event.dataTransfer.files) uploadAttachments(event.dataTransfer.files);
+    if (event.dataTransfer && event.dataTransfer.files) uploadRoleFiles(event.dataTransfer.files, "instruction");
   });
 }
 
@@ -4492,10 +4516,7 @@ function frameworkCard(row, kind, domain, actionOverride) {
    shown as something to read and cite, never as a button that cannot work. */
 function subjectTiles(s) {
   const tiles = s.tiles || [];
-  let html = '<h3 style="margin-top:0">The tiles</h3>' +
-    '<p class="muted">Work down the tiles in the order the decision comes. A worksheet fills itself from your brief and the ' +
-    "evidence it can cite; a catalogue-only framework is something to read and cite until the owner builds one; a calculator " +
-    "runs a published method on the figures you declare.</p>";
+  let html = '';
   const placed = new Set();
   tiles.forEach((tile) => {
     const sheets = tile.worksheets || [];
@@ -4509,12 +4530,8 @@ function subjectTiles(s) {
     /* A service tile is one card, not a group of cards, so the card carries the
        description and the paragraph above the grid would say the same sentence
        twice.  A group tile keeps its summary paragraph. */
-    if (!tile.service) {
-      html += '<p class="muted" style="margin:2px 0 6px">' + esc(tile.what) + "</p>";
-    }
-    if (tile.need) {
-      html += '<p class="muted" style="margin:0 0 8px"><strong>Before you start:</strong> ' + esc(tile.need) + "</p>";
-    }
+    // Tile description suppressed per owner request.
+    // "Before you start" suppressed per owner request.
     /* A service tile runs the statements tile rather than a frozen preset (B-204).  It is a
        card in the same grid as every other tile, and the whole card is the link, so a click
        never has to land on a small control inside a paragraph.  The card carries the address
@@ -4528,8 +4545,8 @@ function subjectTiles(s) {
     }
     if (tile.note) html += '<p class="muted" style="margin:0 0 10px">' + esc(tile.note) + "</p>";
     if (sheets.length) {
-      html += '<p class="muted" style="margin:0 0 6px">Worksheets: name the case and the framework fills itself.</p>' +
-        '<div class="capgrid">' + sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
+      // Worksheet description suppressed per owner request.
+      html += '<div class="capgrid">' + sheets.map((w) => capabilityCard(w, "worksheet")).join("") + "</div>";
     }
     if (rows.length) {
       /* A record backed by a computed method is surfaced as a calculator in the
@@ -4545,9 +4562,8 @@ function subjectTiles(s) {
       }
     }
     if (tools.length) {
-      html += '<p class="muted" style="margin:12px 0 6px">Calculators: supply the figures and confirm; the server computes ' +
-        "the result and its checks.</p>" +
-        '<div class="capgrid">' + tools.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
+      // "Calculators: supply the figures..." suppressed per owner request.
+      html += '<div class="capgrid">' + tools.map((t) => capabilityCard(t, "compute")).join("") + "</div>";
     }
   });
   /* Nothing is dropped: a record no tile claimed is still shown - unless the
@@ -4805,7 +4821,7 @@ function sourceCard(item, web) {
     ((item.abstract || item.description) ? '<p style="margin:4px 0">' +
       esc(String(item.abstract || item.description).slice(0, 260)) +
       (String(item.abstract || item.description).length > 260 ? "…" : "") + "</p>" : "") +
-    (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener">Open the source →</a>' : "") +
+    (link ? '<a href="' + esc(link) + '" target="_blank" rel="noopener">Open the source â†’</a>' : "") +
   "</div>";
 }
 
@@ -5087,8 +5103,7 @@ function renderSubject() {
     const computedHeading = s.id === "finance"
       ? '<h3 style="margin-top:22px">Quantitative Finance</h3>'
       : '<h3 style="margin-top:22px">With computation</h3>';
-    html += computedHeading +
-      '<p class="muted">These run a published method. Supply the figures and confirm; the server computes the result and its checks.</p>';
+    html += computedHeading;
     if (hasGroups) {
       groups.forEach((g) => {
         html += '<h4 class="levelhead">' + esc(g.label) + '</h4><div class="capgrid">' +
@@ -5301,10 +5316,7 @@ function securitiesPanel() {
 }
 
 function macroPanel() {
-  return '<div class="marketpanel"><h3 style="margin-top:0">Macro data (retrieved, not verified)</h3>' +
-    '<p class="muted">World Bank indicators are free and keyless. Read the value, confirm it, ' +
-    'and type it into the tool that needs it, such as national income, inflation or unemployment. ' +
-    'Nothing is auto-filled.</p>' +
+  return '<div class="marketpanel"><h3 style="margin-top:0">Macro data</h3>' +
     '<div class="marketrow">' +
       '<label>Country <input id="wbc" value="US" maxlength="3" size="4" aria-label="World Bank country code"></label>' +
       '<label>indicator <select id="wbind" aria-label="World Bank indicator">' +
@@ -7153,9 +7165,11 @@ function evidenceBlockHtml(t, b) {
     adviceHtml(b) +
     (p.assumption === "probe" && !backgroundProfile(p)
       ? '<label class="muted" style="display:block;margin-top:6px"><input type="checkbox" id="evgap-' + key +
-        '"> ' + (fill === "gap"
-          ? "I will state this part myself, or record it as a named gap"
-          : "No evidence for this dimension - record it as a named gap") + "</label>"
+        '"> ' + (fill === "quote"
+          ? "I will write this part from the case"
+          : (fill === "gap"
+             ? "I will state this part myself, or record it as a named gap"
+             : "No evidence for this dimension - record it as a named gap")) + "</label>"
       : "") +
     "</div>";
 }
@@ -7191,17 +7205,8 @@ function evidenceWorksheetForm(t) {
         "Nothing is invented.</p>" +
       '<textarea id="evinstr" rows="4" style="width:100%" placeholder="' +
         esc((t.before || "") + " Describe the case in a few sentences.") + '"></textarea>' +
-      '<div class="fillhint">A good brief covers: ' +
-        parts.map((b) => esc(String(b.prompt || b.label || "").replace(/\.$/, "").toLowerCase())).join(" &middot; ") + "</div>" +
-      '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
-        '<input id="evname" placeholder="Your name" style="flex:1;min-width:150px">' +
-        '<input id="evinstitution" placeholder="Institution" style="flex:1;min-width:150px">' +
-        '<input id="evcourse" placeholder="Course code and name" style="flex:1;min-width:150px">' +
-        '<input id="evinstructor" placeholder="Instructor" style="flex:1;min-width:150px">' +
-      "</div>" +
-      '<p class="muted" style="margin:4px 0 0">These four lines appear on the title page. Leave them blank and it carries the title and date only.</p>' +
       '<div class="row" style="margin-top:10px;flex-wrap:wrap"><input type="file" id="evfile" accept=".txt,.md">' +
-      '<button class="btn primary" id="evcomplete">Complete this framework</button><span class="muted" id="evcompletenote"></span></div>' +
+      '<button class="btn primary" id="evcomplete">Write the paper from my instruction</button><span class="muted" id="evcompletenote"></span></div>' +
       '<div id="evreview"></div>' +
     "</div>" +
     '<div id="evmap"></div>' +
@@ -7210,16 +7215,19 @@ function evidenceWorksheetForm(t) {
         "<code>text || citation</code>, or provenance as <code>text || assumption</code>; otherwise the block selection applies." +
         (p.ratings ? " A rating is your judgment; it needs a one-line reason. The worksheet computes no overall score." : "") +
       "</p>" + evidenceBlocks(t).map((b) => evidenceBlockHtml(t, b)).join("") + "</details>" +
-    '<div id="evbottom" class="stickybar" style="display:none">' +
+    '<div id="evbottom" class="stickybar" style="display:none;flex-wrap:wrap">' +
       '<select id="evversion"><option value="draft">Draft (evidence-led)</option>' +
       '<option value="full" selected>Full paper (model-assisted)</option></select>' +
-      '<select id="evlength">' + lengths.map((o) =>
-        '<option value="' + esc(o.key) + '"' + (o.key === "mid" ? " selected" : "") + ">" + esc(o.label) + "</option>").join("") + "</select>" +
+      '<label class="field" style="margin:0;max-width:190px">Body words' +
+        '<input id="evlength" type="number" min="600" max="50000" step="100" value="2500">' +
+      "</label>" +
       '<select id="evstyle">' + styles.map((s) =>
         '<option value="' + esc(s) + '">' + (s === "harvard" ? "Harvard" : "APA 7") + "</option>").join("") + "</select>" +
       '<button class="btn primary" id="evbottomgenerate">Generate paper (Word)</button>' +
       '<span class="muted" id="evwordscount" aria-live="polite"></span>' +
-      '<span class="muted" id="evgate">Every part has content. Generate the paper from these entries.</span></div>';
+      '<span class="muted" id="evgate">Every part has content. Generate the paper from these entries.</span>' +
+      '<span class="muted" style="flex-basis:100%">The body only: no title page, title, headings, reference list ' +
+        'or footnotes. A target inside ±10% is strived for, not guaranteed. Length never blocks the download.</span></div>';
 }
 
 function swotForm(t) {
@@ -7484,11 +7492,14 @@ function bindEvidenceCompletion(t) {
   const showTarget = () => {
     if (!wordsNote) return;
     const version = (document.getElementById("evversion") || {}).value || "full";
-    if (version !== "full") { wordsNote.textContent = "Draft: the length band applies to the Full paper."; return; }
-    const label = lengthPick ? lengthPick.options[lengthPick.selectedIndex].text : "";
-    wordsNote.textContent = label ? "Target: " + label + " (body only)" : "";
+    const value = lengthPick ? String(lengthPick.value || "").trim() : "";
+    if (version !== "full") {
+      wordsNote.textContent = "Draft: the word target applies to the Full paper.";
+      return;
+    }
+    wordsNote.textContent = value ? "Target: " + value + " body words (+/-10%, strived for)" : "";
   };
-  if (lengthPick) lengthPick.addEventListener("change", showTarget);
+  if (lengthPick) lengthPick.addEventListener("input", showTarget);
   const versionPick = document.getElementById("evversion");
   if (versionPick) versionPick.addEventListener("change", showTarget);
   showTarget();
@@ -7574,7 +7585,7 @@ function renderEvidenceReview(t, result) {
   let html = '<div class="reviewhead"><h4 style="margin:0">Review</h4><span class="muted">' +
     esc(String((summary.filled !== undefined ? summary.filled : blocks.filter((b) => (b.items || []).length).length)) +
       " of " + (summary.parts || blocks.length) + " parts have content") +
-    ((summary.gaps || 0) > 0 ? " - " + esc(String(summary.gaps) + " gap(s) to acknowledge") : "") + "</span></div>" +
+    ((summary.gaps || 0) > 0 ? " - " + esc(String(summary.gaps) + " part(s) for you to write") : "") + "</span></div>" +
     '<p class="muted">Tick what the paper may use. A researched item carries its citation; a gap stays a gap. ' +
       "Nothing is written into the worksheet until you apply it.</p>";
   for (const block of blocks) {
@@ -7588,7 +7599,9 @@ function renderEvidenceReview(t, result) {
       const target = document.getElementById("evgap-" + block.key);
       html += '<p class="gapnote">' + esc(block.gap || "No evidence found.") + "</p>" +
         '<label class="tickrow"><input type="checkbox" data-reviewgap="' + esc(block.key) + '"' +
-          (target && target.checked ? " checked" : "") + "> <span>Record this part as a named gap</span></label>" +
+          (target && target.checked ? " checked" : "") + "> <span>" +
+          (block.fill === "quote" ? "I will write this part from the case" : "Record this part as a named gap") +
+          "</span></label>" +
         "</div>";
       continue;
     }
@@ -7600,7 +7613,8 @@ function renderEvidenceReview(t, result) {
           esc(item.provenance === "sourced" ? (item.source || "source missing")
             : (item.provenance === "suggested" ? "case assumption - no source"
               : (item.provenance === "background" ? "general background (uncited)"
-                : (block.fill === "quote" ? "your own words" : "your input")))) +
+                : (item.provenance === "analysis" ? "drafted from your instruction - review it"
+                  : (block.fill === "quote" ? "your own words" : "your input"))))) +
           "</span></span></label>").join("") + "</div></div>";
   }
   if ((result.notes || []).length) {
@@ -7673,7 +7687,7 @@ function applyEvidenceItems(t, items, message) {
     toast("Recorded as named gaps: " + recorded.join(", ") + ". Generate paper is now available.");
   } else {
     toast(waiting.length
-      ? "Items placed. Still open: " + waiting.join(", ") + ". Tick its 'record it as a named gap' box to enable Generate paper."
+      ? "Items placed. " + waiting.join(", ") + " still need content."
       : (message || "Completed items placed in the worksheet for your review."));
   }
 }
@@ -7754,7 +7768,7 @@ async function generateEvidencePaper(t, trigger, collected) {
                            return value || label + ":";
                          }) };
   const version = evidencePicked("evresultversion") || evidencePicked("evversion") || "full";
-  const length = evidencePicked("evresultlength") || evidencePicked("evlength") || "mid";
+  const words = evidencePicked("evresultlength") || evidencePicked("evlength") || "2500";
   const style = evidencePicked("evresultstyle") || evidencePicked("evstyle") || "apa";
   const note = document.getElementById("evcompletenote");
   const review = document.getElementById("evreview");
@@ -7764,7 +7778,7 @@ async function generateEvidencePaper(t, trigger, collected) {
     : "Generating the draft from your items...";
   try {
     const result = await post("/api/cases/frameworks/report",
-      { completion: completion, style: style, version: version, length: length });
+      { completion: completion, style: style, version: version, words: words });
     if (version === "full" && !result.report.model_used) {
       toast("The full paper could not be written; the evidence-led Draft was generated instead.");
     }
@@ -7778,7 +7792,13 @@ async function generateEvidencePaper(t, trigger, collected) {
     const wordsLine = document.getElementById("evwordscount");
     if (note) note.textContent = "Generated " + result.docx.filename + " (" + result.report.words +
       " words). It is saved under Documents on Home.";
-    if (wordsLine) wordsLine.textContent = "Word count: " + result.report.words + " (body only; references excluded)";
+    if (wordsLine) {
+      const target = result.report.word_target || {};
+      wordsLine.textContent = "Body words: " + result.report.words +
+        (target.range ? " | target " + target.target + " (" + target.range[0] + "-" + target.range[1] + ")" : "") +
+        (target.met === true ? " | inside ±10%" : target.met === false ? " | outside ±10%, strived for, not guaranteed" : "") +
+        " | title page, headings, references and footnotes excluded";
+    }
     toast((result.report.model_used ? "Full paper generated: " : "Draft generated: ") +
       result.docx.filename + " - " + result.report.words + " words");
   } catch (error) {
@@ -8916,7 +8936,7 @@ function renderRegressionBlock(ap) {
   return '<div class="card" style="margin-top:14px">' +
     '<h3 style="margin:0 0 8px">Regression coefficients</h3>' +
     '<div class="tablewrap"><table><caption>Ordinary least squares estimates</caption>' +
-    '<thead><tr><th>Predictor</th><th>Coefficient</th><th>Std error</th><th>95% confidence interval</th><th>p-value</th><th>Standardised β</th></tr></thead>' +
+    '<thead><tr><th>Predictor</th><th>Coefficient</th><th>Std error</th><th>95% confidence interval</th><th>p-value</th><th>Standardised Î²</th></tr></thead>' +
     '<tbody>' + rows + "</tbody></table></div>" +
     (fit ? '<h3 style="margin:12px 0 6px">Fit</h3><div class="tablewrap"><table><tbody>' + fit + "</tbody></table></div>" : "") +
     '</div>';
@@ -8937,7 +8957,7 @@ function resultBodyHtml(d, withActions) {
       (ap.method && ap.method.id === "cpm_schedule" ? '<button class="btn" id="downloadsvg">Download Gantt (SVG)</button>' : "") +
       '<button class="btn" id="tocharts" type="button" hidden>Charts and exports</button>' +
       (state.draft ? '<button class="btn" id="resultreport">Download the report (Word)</button>' : "") +
-      (state.worksheet && state.worksheet.completion ? '<select id="evresultversion"><option value="draft">Draft</option><option value="full" selected>Full paper</option></select><select id="evresultlength"><option value="short">Short</option><option value="mid" selected>Mid</option><option value="long">Long</option></select><select id="evresultstyle"><option value="apa">APA 7</option><option value="harvard">Harvard</option></select><button class="btn" id="evresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
+      (state.worksheet && state.worksheet.completion ? '<select id="evresultversion"><option value="draft">Draft</option><option value="full" selected>Full paper</option></select><label class="field" style="margin:0;max-width:170px">Body words<input id="evresultlength" type="number" min="600" max="50000" step="100" value="2500"></label><select id="evresultstyle"><option value="apa">APA 7</option><option value="harvard">Harvard</option></select><button class="btn" id="evresultdraft">Generate paper (Word)</button>' : "") + "</div>" : "") +
     '<h3 style="margin-top:14px">What this means</h3>' +
     '<div class="report">' + esc(d.report) + "</div>";
   const highlights = resultHighlights(ap);
@@ -9527,13 +9547,16 @@ RENDERERS.deliver = function () {
     '<span class="grow"></span><span class="muted">Exports are written by the server; the path it returns is shown as-is.</span></div>' +
     '<div id="delout"></div></div>' +
     '<div class="card"><h3>Report</h3><div class="report" id="delreport">' + (b && b.delivery ? esc(b.delivery.report) : "not recorded") + "</div></div>" +
-    '<div class="card" style="display:none"><h3>Charts</h3><div class="row"><select id="chartkind"><option value="bar">bar</option>' +
+    '<div class="card"><h3>Charts</h3><div class="row"><select id="chartkind"><option value="bar">bar</option>' +
     '<option value="line">line</option><option value="table">table</option>' +
     '<option value="gantt">gantt (CPM schedule)</option></select>' +
-    '<select id="chartart"></select><input type="text" id="charttitle" placeholder="Chart title" size="26">' +
-    '<button class="btn primary" id="chartbtn">Render chart</button></div>' +
-    '<p class="muted">The chart is drawn by the server from the stored values; nothing is computed in the browser.</p>' +
-    '<div id="chartout"></div></div>' +
+    '<select id="chartart"></select><input type="text" id="charttitle" placeholder="Chart title" size="22">' +
+    '<input type="text" id="chartcaption" placeholder="Caption (no digits)" size="22">' +
+    '<button class="btn primary" id="chartbtn">Render chart</button>' +
+    '<button class="btn" id="chartsave" disabled>Save to this case</button></div>' +
+    '<p class="muted">The chart is drawn by the server from the stored values; nothing is computed in the browser. ' +
+    'Saving keeps the record, not the picture: the figure is redrawn from the stored values whenever it is used.</p>' +
+    '<div id="chartout"></div><div id="chartsaved"></div></div>' +
     '<div class="card" style="display:none"><h3>Export</h3><div class="row"><select id="expkind"><option value="xlsx">xlsx (Excel)</option>' +
     '<option value="csv">csv</option>' +
     '<option value="spreadsheetml">spreadsheetml</option><option value="html">html</option></select>' +
@@ -9550,6 +9573,7 @@ RENDERERS.deliver = function () {
   });
   $("#delload").onclick = () => openCase($("#delcaseid").value.trim());
   $("#chartbtn").onclick = renderChart;
+  $("#chartsave").onclick = saveChart;
   $("#expbtn").onclick = exportCase;
   $("#expzip").onclick = backupCases;
 };
@@ -9607,6 +9631,8 @@ function ganttSvg(spec, values) {
   return parts.join("");
 }
 
+let lastChartSpec = null;
+
 async function renderChart() {
   const out = $("#chartout");
   out.innerHTML = loading("Rendering on the server");
@@ -9644,6 +9670,8 @@ async function renderChart() {
         "<div>The Gantt needs a CPM case with stored early dates.</div>");
       return;
     }
+    lastChartSpec = spec;
+    $("#chartsave").disabled = false;
     out.innerHTML = '<figure class="chart">' + ganttSvg(spec, values) +
       "<figcaption>Drawn in the browser from the same stored values; the server render and export remain authoritative.</figcaption></figure>";
     return;
@@ -9653,7 +9681,26 @@ async function renderChart() {
   }
   try {
     const r = await post("/api/cases/" + state.caseId + "/render", { chart: spec });
+    lastChartSpec = spec;
+    $("#chartsave").disabled = false;
     out.innerHTML = '<figure class="chart">' + r.svg + "<figcaption>Rendered by the server from the stored values.</figcaption></figure>";
+  } catch (e) { out.innerHTML = errorBanner(e); }
+}
+
+async function saveChart() {
+  const out = $("#chartsaved");
+  if (!lastChartSpec) {
+    out.innerHTML = banner("limit", "Nothing to save", "<div>Render a chart first.</div>");
+    return;
+  }
+  const caption = ($("#chartcaption").value || "").trim() || "Recorded values";
+  out.innerHTML = loading("Saving the figure on the server");
+  try {
+    const r = await post("/api/cases/" + state.caseId + "/figures",
+      { chart: lastChartSpec, caption: caption, why: "created in the chat", confirm: true });
+    out.innerHTML = banner("ok", "Figure saved",
+      "<div>The record is kept; the picture is redrawn from the stored values whenever it is used.</div>" +
+      "<div class='muted'>" + esc(txt(r.figure.id)) + "</div>");
   } catch (e) { out.innerHTML = errorBanner(e); }
 }
 

@@ -42,7 +42,7 @@ These rules cannot be broken by any model, any phase, or any test.
 
 1. **The model never does math.** No computation, estimation, rounding, interpolation, averaging, or invention of a number. All business computation is delegated to the frozen core and recorded as an artifact.
 2. **No invented evidence, sources, numbers, citations, frameworks, methods, or charts.** If it is not in the catalogue or retrieved, it does not exist.
-3. **Gaps are named, never filled.** Missing data is `NULL`/a named gap, never an estimate.
+3. **A dimension with no citable evidence gets a labelled background paragraph.** It is drawn from the weak/orientation sources the retriever saw, is not evidence, and is never cited; if no background exists, the paragraph says so. Missing data is `NULL`, never an estimate.
 4. **Student inputs stay student inputs.** Declared costs, volumes, figures, thesis and judgments are supplied by the student. The system may propose, never silently adopt.
 5. **No silent framework substitution.** A framework may be added or replaced only when declared to the student and recorded in the plan.
 6. **Computations come from the frozen core.** Call the method; do not reimplement or re-round in the product layer.
@@ -115,7 +115,7 @@ These exist in the current tree. Do not re-implement them:
 | Profiles | `src/bp/product/chat.py` `PROFILE_*` | Business plan, feasibility, marketing plan, project proposal. |
 | Computation blocks | `src/bp/product/chat.py` `COMPUTATION_BLOCKS` | Plan-level blocks for profiles. |
 | Computation cap | `src/bp/product/capabilities.py` `MAX_COMPUTATIONS = 3` | At most three computations per paper. |
-| Length bands | `src/bp/product/chat.py` report length | Short 600–1,200; mid 1,200–2,500; long 2,500–5,000 words. |
+| Length | `src/bp/product/length.py`, `chat.py` | A body-word target (600–50,000), ±10% reported. The old short/mid/long names are legacy only; length is not an export gate. |
 | Rubric support | `src/bp/product/rubric.py` | Rubric parsing and coverage. |
 | Case store | `src/bp/product/cases.py`, `chat_store.py` | Durable case bundles. |
 | DOCX export | `src/bp/product/docx.py` | Academic document with table figures. |
@@ -400,9 +400,10 @@ Rules:
 - Every external claim must cite at least one source and quote it.
 - Every number must trace to a computation artifact or a student-declared input.
 - Every chart must trace to stored artifacts.
-- Gaps are named, never filled.
+- A dimension with no citable evidence carries a labelled background paragraph; it is not evidence and it is not cited.
 
 ### 11.1 Retrieval order (2026-11-07)
+
 
 The conductor retrieves in three layers, cheapest first:
 
@@ -428,6 +429,23 @@ The conductor retrieves in three layers, cheapest first:
 - The web layer is not an open web search. `sources.sites_for(topic)` selects a ranked
   vetted list from the paper's subject (or from the query when the subject is absent);
   see `docs/VETTED_SOURCES.md`.
+
+### 11.2 Attached files (2026-11-07)
+
+The Home composer carries four attach buttons, and each is a different contract:
+
+| Button | What it is | How the pipeline treats it |
+|---|---|---|
+| **Instruction files** | the assignment, brief or rules the paper must follow | extracted text is appended to the brief in the order attached; the paper follows it |
+| **Sources** | source documents the student wants prioritised | stored with `role: sources`; text is extracted so it can be read; the plan lists them |
+| **Data** | figures for a computation | `.xlsx`, `.xlsm`, `.csv`, `.tsv` or `.txt` only; ingested into a typed table, never treated as prose |
+| **Rubric** | the marking guide | parsed into criteria; the paper carries a coverage table and the download is blocked while a weighted criterion is unaddressed |
+
+Each intake record carries its role, and the chat state records the ids in
+`attached_files` and the counts in `proposal.attachments`.  A source is not
+silently promoted to evidence: a data file is a table, a source file is a
+student-supplied document, and only the retrieval layers produce citable
+evidence.  The UI says which is which rather than blurring the four.
 
 
 ---
@@ -572,7 +590,7 @@ Add `tests/test_home_chat_orchestration.py` with at least these cases:
 9. Every chart traces to an artifact.
 10. Every citation traces to the evidence ledger.
 11. Every claim traces to a source, computation or student input.
-12. A gap is named, never filled.
+12. A dimension with no citable evidence carries a labelled, uncited background paragraph; it is never filled with invented evidence.
 13. The production check catches an unsatisfiable plan.
 14. The audit blocks export on an unresolved finding.
 15. The repair loop resolves a targeted finding.

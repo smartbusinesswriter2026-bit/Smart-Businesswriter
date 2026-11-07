@@ -79,9 +79,11 @@ from . import chat_store
 from . import charts as chart_renderer
 from . import compare as comparator
 from . import completion as framework_completion
+from . import length as length_mod
 from .completion import Incomplete as FrameworkIncomplete
 from . import diagrams as diagram_renderer
 from . import export as case_export
+from . import figures as figure_store
 from . import ops
 from . import signoff as signoff_store
 from . import spreadsheets
@@ -114,6 +116,12 @@ def attach_methods(run, describe=None):
     chat_conductor.set_method_compute(run, describe)
 
 
+def attach_models(factory):
+    """Attach the provider factory the framework writer uses, so the product
+    layer never imports the frozen core."""
+    framework_completion.set_model_factory(factory)
+
+
 CASE_ROUTE = "/api/cases"
 BILLING_ROUTE = "/api/billing"
 
@@ -122,11 +130,14 @@ BILLING_ROUTE = "/api/billing"
 STATEMENTS_SEGMENT = "statements"
 
 #: file extension and MIME type per export kind, for the download path
-_SUFFIX = {"docx": "docx", "html": "html", "csv": "csv", "spreadsheetml": "xml", "xlsx": "xlsx"}
+_SUFFIX = {"docx": "docx", "html": "html", "csv": "csv", "spreadsheetml": "xml",
+           "xlsx": "xlsx", "pptx": "pptx", "pdf": "pdf"}
 _MIME = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
          "html": "text/html; charset=utf-8", "csv": "text/csv; charset=utf-8",
          "spreadsheetml": "application/xml; charset=utf-8",
          "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+         "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+         "pdf": "application/pdf",
          "zip": "application/zip"}
 
 
@@ -162,6 +173,16 @@ def _segments(path):
 
 def _error(error):
     return 422, {"error": str(error)}
+
+
+#: What a case keeps of a figure: the record, never the rendered bytes.
+_FIGURE_KEYS = ("id", "format", "kind", "spec", "caption", "note", "why",
+                "origin", "place", "sources", "digest")
+
+
+def _stored_figure(record):
+    """The figure record as the case keeps it: no PNG, no drawn rows."""
+    return {key: record[key] for key in _FIGURE_KEYS if key in record}
 
 
 def _billing_unconfigured(error):
@@ -709,6 +730,21 @@ def handle(method, path, body=None):
                                              rubric=body.get("rubric"),
                                              archetype=body.get("archetype"),
                                              frameworks=body.get("frameworks"))
+                attached = {
+                    "instructions": [str(item) for item in (body.get("instruction_files") or [])
+                                     if str(item).strip()],
+                    "sources": [str(item) for item in (body.get("source_files") or [])
+                                if str(item).strip()],
+                    "data": [str(item) for item in (body.get("data_files") or [])
+                             if str(item).strip()],
+                }
+                state["attached_files"] = attached
+                state["priority_sources"] = attached["sources"]
+                state["data_files"] = attached["data"]
+                if isinstance(state.get("proposal"), dict):
+                    state["proposal"]["attachments"] = {
+                        key: len(value) for key, value in attached.items()
+                    }
                 state = chat_store.save(state)
             except chat_conductor.ChatError as error:
                 return _error(error)
@@ -792,6 +828,17 @@ def handle(method, path, body=None):
                                if f.get("severity") == "blocking"]
                     if missing:
                         raise chat_conductor.ExportBlocked(missing)
+                requested = str(data.get("format") or "").lower()
+                if requested in ("pptx", "pdf"):
+                    if requested == "pptx":
+                        deck_bytes = chat_conductor.pptx_bytes(state)
+                    else:
+                        deck_bytes = chat_conductor.pdf_bytes(state)
+                    stem = writing.filename({"title": draft.get("title")}).rsplit(".", 1)[0]
+                    return 200, {"filename": stem + "." + requested,
+                                 "mime": _MIME[requested],
+                                 "data": base64.b64encode(deck_bytes).decode("ascii"),
+                                 "sha256": hashlib.sha256(deck_bytes).hexdigest()}
                 data_bytes = chat_conductor.docx_bytes(state)
                 paper_name = writing.filename({"title": draft.get("title")})
                 if explain.has_chat_computation(state):
@@ -871,14 +918,31 @@ def handle(method, path, body=None):
             return _error("version must be draft or full")
         length = str(body.get("length") or "mid").lower()
         if length not in ("short", "mid", "long"):
-            return _error("length must be short, mid or long")
+            # A numeric target is the normal request now; the band is only a
+            # section-composition fallback.
+            try:
+                requested = length_mod.check(
+                    body.get("words") or body.get("target_words"),
+                    length_mod.minimum_for((body.get("completion") or {}).get("template")))
+            except ValueError as error:
+                return _error(str(error))
+            length = length_mod.band_for(requested)
+        target_words = body.get("words") or body.get("target_words")
+        if target_words not in (None, ""):
+            try:
+                target_words = length_mod.check(
+                    target_words, length_mod.minimum_for((body.get("completion") or {}).get("template")))
+            except ValueError as error:
+                return _error(str(error))
+            length = length_mod.band_for(target_words)
         try:
             # The button is not the gate: a paper cannot be written while a
             # dimension carries neither evidence nor an acknowledged gap.
             absent = framework_completion.missing(body["completion"])
             if absent:
                 raise FrameworkIncomplete(absent)
-            report = framework_completion.draft(body["completion"], body.get("style"), version, length)
+            report = framework_completion.draft(body["completion"], body.get("style"), version, length,
+                                                target_words=target_words)
             # A rubric the student attached is part of what the paper must contain:
             # a weighted criterion the finished paper does not address blocks the
             # report exactly the way an unsupported dimension does, and names it.
@@ -1099,16 +1163,58 @@ def handle(method, path, body=None):
             if body.get("chart") is not None:
                 return 200, {"svg": chart_renderer.render_svg(bundle, body["chart"])}
             if body.get("diagram") is not None:
-                return 200, {"svg": diagram_renderer.render_svg(body["diagram"])}
+                return 200, {"svg": diagram_renderer.render_svg(body["diagram"], bundle)}
         except (chart_renderer.ChartError, diagram_renderer.DiagramError) as error:
             return _error(error)
         return 422, {"error": "render needs a 'chart' or a 'diagram' spec"}
+
+    # -- figures: create, preview, confirm (the chat path) --------------------
+    if tail == ["figures"]:
+        try:
+            document = (version_store.latest(case_id) if version_store._existing_versions(case_id)
+                        else {"bundle": case_store.load(case_id)})
+            bundle = document["bundle"]
+        except (case_store.CaseNotFound, version_store.VersionError) as error:
+            return 404, {"error": str(error)}
+        except ValueError as error:
+            return _error(error)
+        if verb == "GET":
+            return 200, {"figures": bundle.get("figures") or []}
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on figures" % verb}
+        if not isinstance(body, dict):
+            return 422, {"error": "a figure request object is required"}
+        try:
+            record = figure_store.make(
+                "chart" if body.get("chart") is not None else "diagram",
+                body.get("chart") if body.get("chart") is not None else body.get("diagram"),
+                caption=body.get("caption") or "",
+                note=body.get("note") or "",
+                why=body.get("why") or "created in the chat",
+                origin="chat",
+                place=body.get("place") or "")
+            figure_store.render(record, bundle)
+            figure_store.stamp(record, bundle)
+        except (figure_store.FigureError, chart_renderer.ChartError,
+                diagram_renderer.DiagramError) as error:
+            return _error(error)
+        preview = {"figure": _stored_figure(record),
+                   "svg": record["asset"]["svg"],
+                   "png": bool(record["asset"].get("png"))}
+        if not body.get("confirm"):
+            return 200, preview
+        kept = [item for item in (bundle.get("figures") or [])
+                if isinstance(item, dict) and item.get("id") != record["id"]]
+        kept.append(_stored_figure(record))
+        bundle["figures"] = kept
+        case_store.save(bundle)
+        return 200, dict(preview, saved=True)
 
     if tail == ["export"]:
         if verb != "POST":
             return 405, {"error": "method %s is not allowed on export" % verb}
         if not isinstance(body, dict) or not body.get("kind"):
-            return 422, {"error": "export needs a 'kind' (xlsx, csv, spreadsheetml, html, docx) and a 'destination' path"}
+            return 422, {"error": "export needs a 'kind' (xlsx, csv, spreadsheetml, html, docx, pptx) and a 'destination' path"}
         if not body.get("download") and not body.get("quote_only") and (
                 not isinstance(body.get("destination"), str) or not body["destination"].strip()):
             return 422, {"error": "export needs a 'destination' path"}

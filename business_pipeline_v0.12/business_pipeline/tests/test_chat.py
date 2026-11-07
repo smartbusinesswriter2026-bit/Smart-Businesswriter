@@ -42,10 +42,29 @@ def web(query, region="Global", limit=10, category=None, fast=False):
     return {"results": [], "notice": "Web search is not configured.", "sites": []}
 
 
+#: The answer this helper gives to each question the conductor may ask, in the
+#: order it asks them.  The list is a map, not a sequence: the conductor decides
+#: the order, and the helper follows `current_question`.
+ANSWERS = {
+    "framework": "pestel",
+    "decision": "Should we enter the Saudi grocery market?",
+    "geography": "Middle East",
+    "period": "5",
+    "style": "harvard",
+}
+
+
 def answer_all(state, style="harvard"):
-    for question_id, value in (("decision", "Should we enter the Saudi grocery market?"),
-                               ("geography", "Middle East"), ("period", "5"), ("style", style)):
-        state = chat.answer(state, question_id, value)
+    """Answer whatever the conductor asks, in the order it asks it."""
+    values = dict(ANSWERS, style=style)
+    for _ in range(20):
+        question = chat.current_question(state)
+        if not question:
+            break
+        if question["id"] not in values:
+            raise AssertionError("the chat asked %r, which this helper has no answer for"
+                                 % question["id"])
+        state = chat.answer(state, question["id"], values[question["id"]])
     return state
 
 
@@ -150,20 +169,71 @@ class ResearchTest(unittest.TestCase):
 
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", return_value={"results": [], "errors": [], "skipped": []})
-    def test_a_dimension_with_no_evidence_is_a_gap(self, _a, _w):
+    def test_a_dimension_with_no_evidence_gets_background_not_a_gap(self, _a, _w):
         state = answer_all(chat.start(BRIEF, framework="pestel"))
         state = chat.research(chat.confirm_plan(state))
-        self.assertEqual(len(state["gaps"]), 6)
+        self.assertEqual(state["gaps"], [])
         self.assertEqual(state["evidence"], [])
+        self.assertEqual(len(state["background"]), 6)
+        self.assertTrue(all(row.get("dimension") and row.get("text")
+                            for row in state["background"]))
+        state = chat.draft(state, implications="The evidence is thin; proceed cautiously.", style="apa")
+        text = "\n".join(line for _heading, lines in state["draft"]["sections"]
+                         for line in lines)
+        self.assertIn("Background reading", text)
+        self.assertNotIn("No retrieved evidence covered this dimension", text)
+        self.assertTrue(chat.docx_bytes(state).startswith(b"PK"))
+
+    def test_a_no_framework_paper_prints_its_background_section(self):
+        state = answer_all(chat.start(BRIEF, framework="none"))
+        state = chat.confirm_plan(state)
+        state["background"] = [{
+            "dimension": "evidence", "label": "Evidence",
+            "text": "Background reading on evidence: Wikipedia: Social change.",
+            "sources": [{"title": "Wikipedia: Social change",
+                         "url": "https://en.wikipedia.org/wiki/Social_change",
+                         "database": "orientation web"}],
+            "caveat": "This is background from non-academic sources; it is not verified evidence.",
+        }]
+        state["sources"], state["evidence"], state["stage"] = [], [], "evidence"
+        state = chat.draft(state, implications="Proceed cautiously.", style="apa")
+        text = "\n".join(line for _heading, lines in state["draft"]["sections"]
+                         for line in lines)
+        self.assertIn("Wikipedia: Social change", text)
+        self.assertIn("Evidence", [heading for heading, _lines in state["draft"]["sections"]])
 
     def test_research_requires_a_confirmed_plan(self):
         state = answer_all(chat.start(BRIEF, framework="pestel"))
         with self.assertRaises(chat.ChatError):
             chat.research(state)
 
+    def test_a_background_paragraph_is_built_from_orientation_and_stays_out_of_sources(self):
+        row = chat._background_entry(
+            ("social", "Social"),
+            [{"title": "Wikipedia: Social change",
+              "description": "A summary of social change and its drivers.",
+              "url": "https://en.wikipedia.org/wiki/Social_change",
+              "database": "orientation web"}])
+        self.assertIn("Wikipedia: Social change", row["text"])
+        self.assertIn("not verified evidence", row["caveat"])
+        self.assertEqual(row["sources"][0]["database"], "orientation web")
+        state = answer_all(chat.start(BRIEF, framework="pestel"))
+        state = chat.confirm_plan(state)
+        state["background"] = [row]
+        state["sources"] = []
+        state["evidence"] = []
+        state["stage"] = "evidence"
+        state = chat.draft(state, implications="Proceed cautiously.", style="apa")
+        text = "\n".join(line for _heading, lines in state["draft"]["sections"]
+                         for line in lines)
+        self.assertIn("Wikipedia: Social change", text)
+        self.assertEqual(state["sources"], [])
+        references = dict(state["draft"]["sections"]).get("References") or []
+        self.assertFalse(any("Wikipedia" in line for line in references))
+
     @mock.patch("bp.product.chat.RESEARCH_DEADLINE", 0.05)
     @mock.patch("bp.product.chat._research_one")
-    def test_a_hung_dimension_becomes_a_named_gap_instead_of_blocking(self, research_one):
+    def test_a_hung_dimension_becomes_a_background_note_instead_of_blocking(self, research_one):
         import time as _time
 
         def slow(state, dimension, corpus_doc_counts=None):
@@ -174,8 +244,9 @@ class ResearchTest(unittest.TestCase):
 
         research_one.side_effect = slow
         state = chat.research(chat.confirm_plan(answer_all(chat.start(BRIEF, framework="pestel"))))
-        self.assertEqual(len(state["gaps"]), 6)
-        self.assertTrue(all("timed out" in gap["reason"] for gap in state["gaps"]))
+        self.assertEqual(state["gaps"], [])
+        self.assertEqual(len(state["background"]), 6)
+        self.assertTrue(all("timed out" in row["reason"] for row in state["background"]))
         self.assertTrue(any("stopped after" in note for note in state["notes"]))
         self.assertLess(state["timings"]["total_s"], 1.0)
 
@@ -449,6 +520,22 @@ class RouteTest(unittest.TestCase):
         self.assertEqual(api.handle("GET", "/api/cases/chat/" + case_id + "/answer")[0], 405)
         self.assertEqual(api.handle("POST", "/api/cases/chat/ffffffffffff/answer", {})[0], 404)
         self.assertEqual(api.handle("DELETE", "/api/cases/chat/" + case_id)[0], 200)
+
+    def test_attached_file_ids_travel_with_the_chat_state(self):
+        status, state = api.handle("POST", "/api/cases/chat", {
+            "brief": BRIEF, "framework": "pestel",
+            "instruction_files": ["aaaaaaaaaaaa"],
+            "source_files": ["bbbbbbbbbbbb", "cccccccccccc"],
+            "data_files": ["dddddddddddd"],
+        })
+        self.assertEqual(status, 201)
+        self.assertEqual(state["attached_files"]["instructions"], ["aaaaaaaaaaaa"])
+        self.assertEqual(state["attached_files"]["sources"],
+                         ["bbbbbbbbbbbb", "cccccccccccc"])
+        self.assertEqual(state["attached_files"]["data"], ["dddddddddddd"])
+        self.assertEqual(state["proposal"]["attachments"],
+                         {"instructions": 1, "sources": 2, "data": 1})
+        api.handle("DELETE", "/api/cases/chat/" + state["id"])
 
     def test_the_chat_route_accepts_a_swot_framework(self):
         status, state = api.handle("POST", "/api/cases/chat",

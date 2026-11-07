@@ -445,8 +445,21 @@ class IntakePageContractTest(unittest.TestCase):
         self.assertIn('$$("[data-brief]"', self.page)
         self.assertIn('"/brief"', self.page)
 
+    def test_the_four_attach_buttons_are_named_and_carry_distinct_roles(self):
+        self.assertIn("Instruction files", self.page)
+        for role in ('"instruction"', '"sources"', '"dataset"', '"rubric"'):
+            self.assertIn(role, self.page)
+        self.assertIn("role: apiRole", self.page)
+
+    def test_the_data_input_accepts_numbers_not_documents(self):
+        start = self.page.index('id="datafile"')
+        block = self.page[start:self.page.index(">", start)]
+        self.assertIn(".xlsx", block)
+        self.assertIn(".csv", block)
+        self.assertNotIn(".pdf", block)
+
     def test_the_instruction_action_fills_the_brief_box_and_starts_nothing(self):
-        start = self.page.index("async function useAsBrief(")
+        start = self.page.index("async function appendBriefFromIntake(")
         end = self.page.index("async function ingestAttachment(")
         handler = self.page[start:end]
         self.assertIn('$("#objective")', handler)
