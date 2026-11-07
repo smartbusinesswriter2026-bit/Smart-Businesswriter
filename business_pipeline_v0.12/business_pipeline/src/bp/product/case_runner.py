@@ -10,6 +10,7 @@ the failing paper beside it, so a failure can be opened and inspected.
 """
 
 import json
+import math
 import os
 import re
 import time
@@ -130,7 +131,35 @@ def _value_forms(value):
 
 
 def _paper_has_value(text, value):
-    return any(form in text for form in _value_forms(value))
+    """True when the text shows the value, at any reasonable precision."""
+    try:
+        target = float(str(value).replace(",", ""))
+    except (TypeError, ValueError):
+        return any(form in text for form in _value_forms(value))
+    candidates = [target]
+    if 0 <= abs(target) <= 1:
+        candidates.append(target * 100)
+    for match in re.findall(r"-?\d[\d,]*\.?\d*", text):
+        try:
+            number = float(match.replace(",", ""))
+        except (TypeError, ValueError):
+            continue
+        if any(math.isclose(number, candidate, rel_tol=1e-4, abs_tol=0.005)
+               for candidate in candidates):
+            return True
+    return False
+
+
+def _close_case_errors(case_id):
+    """Close open tile-case errors for a case that now passes."""
+    closed = 0
+    for row in ops_log.merge_resolved(ops_log.list_errors(limit=1000, status="open")):
+        if row.get("case_id") != case_id:
+            continue
+        if ops_log.mark_error_verified(
+                row.get("error_id"), "the case passed in a later run"):
+            closed += 1
+    return closed
 
 
 def _check(case, result):
@@ -231,8 +260,9 @@ def run_case(case_id, style="apa", length=1200, log=True):
                 "error": error_text, "duration_ms": elapsed,
                 "bytes": result.get("bytes") or b"", "xlsx": result.get("xlsx") or b"",
                 "tile": case.get("tile"), "tile_label": case.get("tile_label")}
+    closed = _close_case_errors(case_id)
     return {"case_id": case_id, "status": "pass", "problems": [],
-            "error": "", "duration_ms": elapsed,
+            "error": "", "duration_ms": elapsed, "closed_errors": closed,
             "bytes": result.get("bytes") or b"", "xlsx": result.get("xlsx") or b"",
             "tile": case.get("tile"), "tile_label": case.get("tile_label")}
 

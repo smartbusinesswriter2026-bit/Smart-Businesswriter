@@ -1681,6 +1681,8 @@ function atRenderResults(subject, state) {
   if (!host) return;
   const rows = (state.results || []).map(row => {
     const cls = row.status === 'ok' ? 'ok' : (row.status === 'queued' ? '' : 'err');
+    const label = row.status === 'ok' ? 'generated'
+      : (row.status === 'needs_input' ? 'needs input' : (row.status || 'queued'));
     const err = row.error ? escapeHtml(row.error) : '';
     const detail = row.status === 'ok'
       ? (row.sources || 0) + ' source(s)'
@@ -1689,12 +1691,12 @@ function atRenderResults(subject, state) {
         + (row.xlsx_size ? ', xlsx ' + Math.round(row.xlsx_size / 1024) + ' KB' : '')
       : '';
     return '<tr><td>' + escapeHtml(row.label || row.tile_key) + '</td>'
-      + '<td>' + pill(row.status || 'queued', cls) + '</td>'
+      + '<td>' + pill(label, cls) + '</td>'
       + '<td>' + (row.duration_ms ? (row.duration_ms / 1000).toFixed(1) + 's' : '—') + '</td>'
       + '<td>' + detail + err + '</td></tr>';
   }).join('');
   host.innerHTML = rows
-    ? '<table><thead><tr><th>Tile</th><th>Status</th><th>Time</th><th>Evidence / error</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    ? '<table><thead><tr><th>Tile</th><th>Generation</th><th>Time</th><th>Evidence / error</th></tr></thead><tbody>' + rows + '</tbody></table>'
     : '';
 }
 

@@ -184,6 +184,24 @@ class CaseLoopTest(unittest.TestCase):
         self.assertTrue(exp["verified"])
         self.assertEqual(exp["model"], "none (code)")
 
+    def test_a_passing_case_closes_its_open_error(self):
+        case_id, error_id = self._failing_case()
+        case = case_store.get_case(case_id)
+        payload = json.loads(open(case["_path"], encoding="utf-8").read())
+        payload["expected"]["result"] = paper_batch.generate_one("accounting", "breakeven")["computation"]
+        with open(case["_path"], "w", encoding="utf-8") as handle:
+            json.dump(payload, handle)
+        outcome = case_runner.run_case(case_id, log=False)
+        self.assertEqual(outcome["status"], "pass", outcome["error"])
+        self.assertGreaterEqual(outcome.get("closed_errors", 0), 1)
+        rows = ops_log.merge_resolved(ops_log.list_errors(limit=100, status="all"))
+        target = next(row for row in rows if row.get("error_id") == error_id)
+        self.assertTrue(target.get("resolved"))
+
+    def test_a_rounded_display_value_is_accepted(self):
+        self.assertTrue(case_runner._paper_has_value("the quantity is 26.67 units", "26.666666666666666"))
+        self.assertFalse(case_runner._paper_has_value("the quantity is 26.67 units", "30"))
+
 
 if __name__ == "__main__":
     unittest.main()
