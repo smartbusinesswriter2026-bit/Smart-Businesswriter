@@ -96,6 +96,48 @@ class CaseLoopTest(unittest.TestCase):
     def test_a_passing_case_passes_and_a_wrong_expectation_fails(self):
         self._failing_case()
 
+    def _case_payload(self):
+        cases = self._seed()
+        case = next(c for c in cases if c["tile"] == "breakeven")
+        payload = json.loads(open(case["_path"], encoding="utf-8").read())
+        return case, payload
+
+    def _write(self, case, payload):
+        with open(case["_path"], "w", encoding="utf-8") as handle:
+            json.dump(payload, handle)
+
+    def test_a_missing_expected_key_fails_on_the_extra_computed_key(self):
+        case, payload = self._case_payload()
+        del payload["expected"]["result"]["contribution_margin"]
+        self._write(case, payload)
+        outcome = case_runner.run_case(case["id"], log=False)
+        self.assertEqual(outcome["status"], "fail")
+        self.assertIn("does not expect", outcome["error"])
+
+    def test_an_empty_expectation_cannot_pass(self):
+        case, payload = self._case_payload()
+        payload["expected"]["result"] = {}
+        self._write(case, payload)
+        outcome = case_runner.run_case(case["id"], log=False)
+        self.assertEqual(outcome["status"], "fail")
+        self.assertIn("declares no expected result", outcome["error"])
+
+    def test_a_wrong_paper_value_fails(self):
+        case, payload = self._case_payload()
+        payload["expected"]["paper_values"] = ["no-such-value-xyz"]
+        self._write(case, payload)
+        outcome = case_runner.run_case(case["id"], log=False)
+        self.assertEqual(outcome["status"], "fail")
+        self.assertIn("does not show any of the computed values", outcome["error"])
+
+    def test_an_extra_expected_key_fails(self):
+        case, payload = self._case_payload()
+        payload["expected"]["result"]["bogus_metric"] = "1"
+        self._write(case, payload)
+        outcome = case_runner.run_case(case["id"], log=False)
+        self.assertEqual(outcome["status"], "fail")
+        self.assertIn("did not return bogus_metric", outcome["error"])
+
     def test_the_loop_replays_a_case_by_code_and_needs_no_model(self):
         case_id, error_id = self._failing_case()
         with mock.patch("bp.product.chat_heal.generate_problems_from_error") as generate, \

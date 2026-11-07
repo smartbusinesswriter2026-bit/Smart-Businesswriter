@@ -82,6 +82,56 @@ def _xlsx_sheets(data):
     return re.findall(r'<sheet[^>]+name="([^"]+)"', xml)
 
 
+def _xlsx_text(data):
+    """Every cell text and shared string in a workbook, tags stripped."""
+    try:
+        archive = zipfile.ZipFile(__import__("io").BytesIO(data))
+        parts = [archive.read(name).decode("utf-8", errors="replace")
+                 for name in archive.namelist()
+                 if name.startswith("xl/worksheets/") or name == "xl/sharedStrings.xml"]
+    except Exception:
+        return ""
+    return " ".join(re.sub(r"<[^>]+>", " ", part) for part in parts)
+
+
+def _is_number(value):
+    try:
+        float(str(value).replace(",", ""))
+        return True
+    except (TypeError, ValueError):
+        return False
+
+
+def _value_forms(value):
+    """The ways a recorded value may appear in the paper text."""
+    text = str(value).strip()
+    forms = {text}
+    if not text:
+        return forms
+    try:
+        number = float(text.replace(",", ""))
+    except (TypeError, ValueError):
+        return forms
+    forms.add(text.replace(",", ""))
+    forms.add(("%f" % number).rstrip("0").rstrip("."))
+    forms.add("%.1f" % number)
+    forms.add("%.2f" % number)
+    forms.add("%.3f" % number)
+    forms.add("{:,.2f}".format(number))
+    if number == int(number):
+        forms.add("{:,}".format(int(number)))
+    if 0 <= abs(number) <= 1:
+        percent = number * 100
+        forms.add("%.1f%%" % percent)
+        forms.add("%.2f%%" % percent)
+        forms.add("%d%%" % round(percent))
+    return {form for form in forms if form and form not in ("-", "0", "0.0", "0.00")}
+
+
+def _paper_has_value(text, value):
+    return any(form in text for form in _value_forms(value))
+
+
 def _check(case, result):
     problems = []
     expected = case.get("expected") or {}
@@ -90,19 +140,43 @@ def _check(case, result):
         problems.append("status %s, expected %s%s" % (
             status, expected.get("status", "ok"),
             (": " + str(result.get("error") or "")[:200]) if result.get("error") else ""))
+    expected_result = {str(name): value for name, value in (expected.get("result") or {}).items()
+                       if not str(name).startswith("_")}
+    if expected.get("status", "ok") == "ok" and not expected_result:
+        problems.append("the case declares no expected result, so it cannot test the computation")
     computed = result.get("computation") or {}
-    for name, value in (expected.get("result") or {}).items():
-        if str(name).startswith("_"):
-            continue
+    for name, value in expected_result.items():
         actual = computed.get(name)
         if actual is None:
             problems.append("the method did not return %s" % name)
         elif not _same_number(actual, value):
             problems.append("%s is %s, expected %s" % (name, actual, value))
+    if expected_result:
+        extra = sorted(str(name) for name in computed
+                       if not str(name).startswith("_") and name not in expected_result)
+        if extra:
+            problems.append("the method returned key(s) the case does not expect: "
+                            + ", ".join(extra[:6]))
     text = _docx_text(result.get("bytes") or b"")
     for phrase in expected.get("contains") or []:
         if phrase and phrase not in text:
             problems.append("the paper does not contain %r" % phrase)
+    paper_values = expected.get("paper_values")
+    if paper_values is None:
+        numeric = []
+        for value in expected_result.values():
+            if not _is_number(value):
+                continue
+            try:
+                if abs(float(str(value).replace(",", ""))) <= 1e-12:
+                    continue
+            except (TypeError, ValueError):
+                pass
+            numeric.append(value)
+        paper_values = numeric[:3]
+    if paper_values and not any(_paper_has_value(text, value) for value in paper_values):
+        problems.append("the paper does not show any of the computed values: "
+                        + ", ".join(str(value)[:24] for value in paper_values))
     wanted_sheets = expected.get("xlsx_sheets") or []
     if wanted_sheets:
         workbook = result.get("xlsx") or b""
@@ -113,6 +187,11 @@ def _check(case, result):
             missing = [name for name in wanted_sheets if name not in names]
             if missing:
                 problems.append("the workbook is missing the %s sheet(s)" % ", ".join(missing))
+            if paper_values:
+                workbook_text = _xlsx_text(workbook)
+                if workbook_text and not any(_paper_has_value(workbook_text, value)
+                                             for value in paper_values):
+                    problems.append("the workbook does not show any of the computed values")
     return problems
 
 
