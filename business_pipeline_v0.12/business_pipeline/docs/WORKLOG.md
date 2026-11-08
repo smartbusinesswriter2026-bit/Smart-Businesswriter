@@ -1,3 +1,24 @@
+## 2026-11-08 - [product] Testing: per-tile docx/xlsx/explainer downloads
+
+**Ask.** The Financial statements tile in Automated Testing did not download Excel and had
+no explainer.
+
+**Did.**
+
+- The statements workbook is now **always built** (not only when the run format is
+  xlsx/both); the run saves it for the statements service even on a Word run.
+- **Per-tile explainer**: every tile result writes `<label> - explainer.docx` and the result
+  records `explainer_file`, so one tile's reasoning can be opened without the whole run.
+- **Download column** in the Testing result table: **docx**, **xlsx** (when present) and
+  **explainer** links, served by a new route
+  `GET /api/ops/papers/batch/{id}/file/{name}` (path-checked, names URL-decoded).
+- **`docs/HANDOFF.md`** section 8.10 spells out the per-tile links and the always-built
+  statements workbook.
+
+**Measured.** A Word-format statements run now has `xlsx_size` 32091, an `explainer_file`,
+and the three per-tile links each return PK bytes; the ZIP also carries
+`Financial statements - explainer.docx`.
+
 ## 2026-11-08 - [product] Generated problems must be valid; provider timeout raised
 
 **Ask.** Self-healing generated 10 problems from an unbalanced-trial-balance error and 7

@@ -605,20 +605,22 @@ def _statements_preview(subject, tile, group, format="docx"):
     title = "%s: the statements for the sample trial balance" % (tile.get("label") or "Financial statements")
     data = docx.render_bytes(title, docx_sections)
     xlsx = None
-    if str(format or "docx").lower() in ("xlsx", "both", "excel"):
-        appendix = (record.get("core") or {}).get("appendix") or {}
-        try:
-            xlsx = spreadsheets.to_xlsx({
-                "id": "statements-preview",
-                "title": title,
-                "delivery": {"appendix": {"accounts": appendix}},
-            })
-        except Exception:
-            xlsx = None
+    appendix = (record.get("core") or {}).get("appendix") or {}
+    try:
+        # The statements workbook is the deliverable, so it is always built; the
+        # run decides whether to keep it from the selected format.
+        xlsx = spreadsheets.to_xlsx({
+            "id": "statements-preview",
+            "title": title,
+            "delivery": {"appendix": {"accounts": appendix}},
+        })
+    except Exception:
+        xlsx = None
     base = _safe_name("%s - %s" % (subject["label"], tile.get("label") or "statements"))
     return {
         "tile_key": tile.get("key") or "statements",
         "label": tile.get("label") or "Financial statements",
+        "service": "statements",
         "group": group.get("label") or "",
         "status": "ok",
         "objective": "Read the trial balance and prepare the statements.",
@@ -850,11 +852,23 @@ def _run(run_id, run_dir, manifest, keys):
                 result["size"] = len(data)
                 if outline:
                     completed_sections.append((title or result.get("label") or key, outline))
-            if xlsx and output in ("xlsx", "both", "excel"):
+            if xlsx and (output in ("xlsx", "both", "excel")
+                         or result.get("service") == "statements"):
                 path = os.path.join(run_dir, result["xlsx_filename"])
                 with open(path, "wb") as handle:
                     handle.write(xlsx)
                 result["xlsx_size"] = len(xlsx)
+            if data or xlsx:
+                # Each tile also carries its own explainer, so a reader can open the
+                # reasoning for one tile without the whole run.
+                row_manifest = {"label": result.get("label") or key,
+                                "created_at": manifest.get("created_at"),
+                                "output": output, "results": [result]}
+                name = _safe_name(result.get("label") or key) + " - explainer.docx"
+                path = os.path.join(run_dir, name)
+                with open(path, "wb") as handle:
+                    handle.write(_explainer_docx(row_manifest))
+                result["explainer_file"] = name
             manifest["results"][index] = result
             manifest["completed"] = index + 1
             _write_manifest(run_dir, manifest)
@@ -1034,6 +1048,17 @@ def download(run_id, fmt="zip"):
     if fmt == "explainer":
         return _explainer_docx(manifest), "%s - explainer.docx" % label
     return _zip_bytes(run_id), "%s - tile previews.zip" % label
+
+
+def file_path(run_id, name):
+    """The absolute path of one saved file in a run, refusing anything outside it."""
+    run_dir = os.path.abspath(os.path.join(_STORE, run_id))
+    path = os.path.abspath(os.path.join(run_dir, str(name or "")))
+    if os.path.dirname(path) != run_dir:
+        raise KeyError("no such file: " + str(name))
+    if not os.path.isfile(path):
+        raise KeyError("no such file: " + str(name))
+    return path
 
 
 def runs(limit=20, subject=None):

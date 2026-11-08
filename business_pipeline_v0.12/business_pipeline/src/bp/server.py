@@ -887,6 +887,23 @@ class H(BaseHTTPRequestHandler):
                          if ext == "docx" else
                          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                 return self._send(200, data, ctype, filename=os.path.basename(path))
+            _paper_file = __import__("re").fullmatch(
+                r"/api/ops/papers/batch/([0-9a-f]{8,})/file/(.+)", _ops_url.path)
+            if _paper_file:
+                from urllib.parse import unquote as _unquote
+                try:
+                    path = product_paper_batch.file_path(_paper_file[1],
+                                                         _unquote(_paper_file[2]))
+                except KeyError as e:
+                    return self._send(404, {"error": str(e)})
+                with open(path, "rb") as handle:
+                    data = handle.read()
+                ext = path.rsplit(".", 1)[-1].lower()
+                ctype = ("application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                         if ext in ("docx", "docm") else
+                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                         if ext in ("xlsx", "xlsm") else "application/octet-stream")
+                return self._send(200, data, ctype, filename=os.path.basename(path))
             _paper_dl = __import__("re").fullmatch(
                 r"/api/ops/papers/batch/([0-9a-f]{8,})/download", _ops_url.path)
             if _paper_dl:
