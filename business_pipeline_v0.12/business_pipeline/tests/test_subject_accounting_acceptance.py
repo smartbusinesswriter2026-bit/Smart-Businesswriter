@@ -305,10 +305,10 @@ class ShelfShapeTest(unittest.TestCase):
         with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:
             html = stream.read()
         # The tool's "what to gather" line, the generic fallback and the worked-example
-        # sentence are all deleted as clutter; the header row carries the Clear button
-        # instead (owner's instruction, 2026-11-08).
+        # sentence are all deleted as clutter; the example figures and the Clear button
+        # are also removed so the tile starts blank (owner's instruction, 2026-11-08).
         self.assertNotIn("A worked example is loaded so you can see the format", html)
-        self.assertIn('id="clearexample"', html)
+        self.assertNotIn('id="clearexample"', html)
         self.assertNotIn("Gather the figures this calculation needs", html)
         self.assertNotIn("state.tool.need ?", html)
 

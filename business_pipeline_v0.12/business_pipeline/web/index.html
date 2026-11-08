@@ -856,7 +856,7 @@ pre.json.statement{font-size:13.8px;line-height:1.4;max-height:none;white-space:
 .eng .bad{color:var(--red);font-weight:650}
 .eng details.engadv{margin-top:16px}
 .eng details.engadv summary{cursor:pointer;color:var(--navy-500);font-weight:650;font-size:15.4px}
-.eng .engnote{font-size:14.8px;color:var(--text-3);margin:2px 0 6px}
+.eng .engnote{font-size:14.8px;color:var(--text-3);margin:2px 0 6px;padding:0;text-indent:0;width:100%}
 figure.chart{margin:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px;overflow:auto}
 figure.chart svg{max-width:100%;height:auto}
 figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
@@ -1448,7 +1448,6 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <textarea id="statementsinput" rows="7" spellcheck="false" placeholder="Paste your financial statements case or instruction here (trial balance, adjustments, etc.)"></textarea>
         <div class="row" style="margin-top:10px">
           <button class="btn primary" id="statementsgo" type="button">Solve it</button>
-          <button class="btn" id="statementsdemo" type="button">Instruction file</button>
           <button class="btn" id="statementsdata" type="button">Data file (xls, csv, etc)</button>
           <button class="btn" id="statementsclear" type="button">Clear</button>
         </div>
@@ -7200,9 +7199,7 @@ function engShell() {
       engOpts([["IFRS", "IFRS"], ["US_GAAP", "US GAAP"], ["local", "local"]], spec.framework || "local") +
     "</select></label></div>";
 
-  html += '<h4>Accounts</h4><p class="engnote">The chart the entries post to. Section decides the balance-sheet ' +
-    "grouping and the cash-flow classification: receivables and prepayments are current, equipment and long-term " +
-    "loans are not. A contra account (accumulated depreciation) has its own tick.</p>" +
+  html += '<h4>Accounts</h4>' +
     '<div class="tablewrap"><table class="engtable"><thead><tr><th>Name</th>' +
     '<th style="width:96px">Type</th><th>Statement line</th><th style="width:100px">Section</th>' +
     '<th style="width:120px">Role</th><th style="width:52px">Contra</th><th></th></tr></thead><tbody>';
@@ -9228,8 +9225,6 @@ function renderNew() {
     "<h2>" + (state.tool ? "Tool - " + esc(state.tool.label) : "New analysis") + "</h2>" +
     '<div class="row" style="margin:8px 0 2px"><button class="btn sm" id="toolback">Back to subjects</button>' +
       '<button class="btn sm" id="toolcalc">Calculator</button>' +
-      (!delivered && !mapping && state.tool && state.tool.preset
-        ? '<button class="btn sm" id="clearexample" type="button">Clear the example figures</button>' : "") +
     "</div>" +
     "</div>";
 
@@ -9324,7 +9319,7 @@ function renderNew() {
   const back = $("#toolback"); if (back) back.onclick = () => show(state.subjectId ? "subject" : "subjects");
   const tocalc = $("#toolcalc"); if (tocalc) tocalc.onclick = () => show("calculator");
   const apply = $("#apply"); if (apply) apply.onclick = applyAndRun;
-  const clear = $("#clearexample"); if (clear) clear.onclick = clearExampleFields;
+
   const rj = $("#reject"); if (rj) rj.onclick = () => confirmSession(true);
   const cm = $("#confirmmap"); if (cm) cm.onclick = () => confirmSession(false);
   const pg = $("#problemgo"); if (pg) pg.onclick = readProblem;
@@ -9371,11 +9366,6 @@ async function readProblem() {
   }
 }
 
-function clearExampleFields() {
-  $$("#figures input[type=text], #figures textarea").forEach((el) => { el.value = ""; });
-  $$("#figures [data-table]").forEach((box) => { box.innerHTML = ""; });
-  toast("The example figures are cleared. Enter your own, then run the calculation.");
-}
 function readInputs(schema, methodId) {
   const inputs = {};
   const method = methodId || (state.tool && state.tool.method) ||
@@ -11145,12 +11135,7 @@ if (new URLSearchParams(location.search).get("pricing")) {
      that balances, so the student sees the shape the tile reads and the answer it gives.  It is
      the Ashgrove Supplies case, worked through in `qa/manual/statements-case-study.md`.  The
      figures are the example's own; the engine computes every number in the answer. */
-  var EXAMPLE = "The following trial balance was extracted at 31 December 2026.\n" +
-    "Equipment 30,000\nCash 15,900\nTrade receivables 18,400\nInventory 22,600\n" +
-    "Cost of sales 84,000\nWages 19,000\nRent 8,000\nUtilities 3,200\nDepreciation 3,000\n" +
-    "Interest expense 1,200\nTrade payables 14,800 Cr\nLoan 12,000 Cr\nCapital 20,000 Cr\n" +
-    "Retained earnings 8,000 Cr\nSales 140,000 Cr\nOther income 1,500 Cr\n" +
-    "Accumulated depreciation 9,000 Cr";
+  var EXAMPLE = "";
 
   function el(tag, cls, text) {
     var node = document.createElement(tag);
@@ -11166,15 +11151,6 @@ if (new URLSearchParams(location.search).get("pricing")) {
     bound = true;
     var go = document.getElementById("statementsgo");
     if (go) { go.onclick = function () { solve(field().value, go); }; }
-    var demo = document.getElementById("statementsdemo");
-    if (demo) {
-      demo.onclick = function () {
-        var f = field();
-        if (!f) { return; }
-        f.value = EXAMPLE;
-        f.focus();
-      };
-    }
     var clear = document.getElementById("statementsclear");
     if (clear) {
       clear.onclick = function () {
@@ -11229,7 +11205,6 @@ if (new URLSearchParams(location.search).get("pricing")) {
           "<li>Or state it as labelled figures: &ldquo;Data: direct materials 50,000; direct labour 40,000. " +
           "Required: create a cost of goods manufactured schedule.&rdquo;</li>" +
           "<li>Or break a long transaction list into smaller groups of entries.</li>" +
-          "<li>Press <strong>Use an example</strong> to see the shape the tile reads.</li>" +
           "</ul>");
         return;
       }

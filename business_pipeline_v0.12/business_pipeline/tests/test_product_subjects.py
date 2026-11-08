@@ -418,10 +418,10 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("Which one do I need?", self.html)
         self.assertIn("Student guide", self.html)
         self.assertIn("Guided paper", self.html)
-        # The owner deleted the "Before you start" card and the worked-example sentence
-        # (2026-11-08): the example is loaded, and the row carries its Clear button.
+        # The example figures and the "Clear the example figures" button are removed
+        # (2026-11-08): the tile starts blank, no preloaded example.
         self.assertNotIn("A worked example is loaded so you can see the format", self.html)
-        self.assertIn('id="clearexample"', self.html)
+        self.assertNotIn('id="clearexample"', self.html)
         self.assertIn('data-rows="', self.html)
         self.assertIn("function rowsEditor", self.html)
         self.assertIn("View the Gantt", self.html)
