@@ -1055,7 +1055,16 @@ class H(BaseHTTPRequestHandler):
                         product_ops_log.log_run("computation", "solve", "ok" if code < 400 else "error",
                                                problem_text=str(body.get("instruction", ""))[:200] if isinstance(body, dict) else None,
                                                error=payload.get("error") if isinstance(payload, dict) else None)
-                    if code >= 400 and isinstance(payload, dict) and payload.get("error"):
+                    # The error log is for pipeline failures the self-heal can act on.  A
+                    # refused request is not one: an unknown deliverable, a malformed case
+                    # id or a ticker the provider cannot price is answered to the caller
+                    # and must not fill the owner's panel with errors nobody can repair.
+                    # A server fault (5xx) on any path is still logged; a pipeline path
+                    # keeps its 4xx failures because those are real reader/build refusals.
+                    _pipeline_path = ("/chat/" in _path or "/statements" in _path
+                                      or "/frameworks/" in _path)
+                    if (code >= 500 or (code >= 400 and _pipeline_path)) \
+                            and isinstance(payload, dict) and payload.get("error"):
                         product_ops_log.log_error(
                             "paper" if "/chat/" in _path else ("framework" if "/frameworks/" in _path else "computation"),
                             payload["error"],

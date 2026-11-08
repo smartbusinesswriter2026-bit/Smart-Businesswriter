@@ -90,7 +90,12 @@ class AtomicAddRouteTest(unittest.TestCase):
 
     def setUp(self):
         self.folder = tempfile.TemporaryDirectory()
-        self.patch = mock.patch.dict(os.environ, {"BP_CASES_DIR": self.folder.name})
+        self.patch = mock.patch.dict(os.environ, {
+            "BP_CASES_DIR": self.folder.name,
+            # A refused request is not a pipeline failure, so it must not be written to
+            # the owner's error log.  The test keeps its own log to prove that.
+            "BP_OPS_LOG": os.path.join(self.folder.name, "ops_log"),
+        })
         self.patch.start()
 
     def tearDown(self):
@@ -108,6 +113,10 @@ class AtomicAddRouteTest(unittest.TestCase):
         symbols_after = {row["symbol"] for row in instruments.list_instruments()}
         self.assertEqual(symbols_after - symbols_before, set())
         self.assertNotIn("ZZZZINVALID", symbols_after)
+        # The refusal is answered to the caller and is not a defect: the admin error log
+        # stays empty so the repair loop never chases an error nobody can fix.
+        self.assertFalse(
+            os.path.exists(os.path.join(self.folder.name, "ops_log", "errors.jsonl")))
 
 
 if __name__ == "__main__":

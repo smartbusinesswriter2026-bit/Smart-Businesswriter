@@ -20,6 +20,12 @@ os.environ.setdefault("BP_STATEMENT_LIBRARY_DIR",
                       os.path.join(tempfile.gettempdir(), "bp_test_statement_library"))
 os.environ.setdefault("BP_STATEMENT_LIBRARY_ORIGIN", "test")
 
+# The ops log is the owner's admin panel.  A test that exercises a refusal on purpose
+# (the instrument ticker test, for one) used to append to the live errors.jsonl, so the
+# panel filled with failures no one could repair.  Tests keep their own log; a test that
+# asserts on the log sets BP_OPS_LOG itself.
+os.environ.setdefault("BP_OPS_LOG", os.path.join(tempfile.gettempdir(), "bp_test_ops_log"))
+
 # Background reading (Wikipedia) is a live web call.  A unit test must not
 # depend on the network or wait on it, so the orientation layer is off.
 os.environ.setdefault("BP_ORIENTATION", "0")
