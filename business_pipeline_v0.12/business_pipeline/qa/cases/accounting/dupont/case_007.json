@@ -1,0 +1,66 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/dupont/007",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "dupont",
+ "method": "dupont_analysis",
+ "tile_label": "DuPont analysis",
+ "group": "Statement analysis",
+ "objective": "Where does the return on equity come from?",
+ "instruction": "An accounting dupont analysis problem. Declared figures: revenue=30; net_income=30; total_assets=30; equity=30; cost_of_sales=300000; ebit=30.",
+ "inputs": {
+  "revenue": "30",
+  "net_income": "30",
+  "total_assets": "30",
+  "equity": "30",
+  "cost_of_sales": "300000",
+  "ebit": "30",
+  "pretax_income": "30",
+  "tax_expense": "30",
+  "prior_revenue": "30",
+  "prior_net_income": "30",
+  "prior_total_assets": "30",
+  "prior_equity": "30"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "net_margin": "1",
+   "asset_turnover": "1",
+   "equity_multiplier": "1",
+   "return_on_assets": "1",
+   "return_on_equity": "1",
+   "roe_three_step": "1",
+   "revenue": "30",
+   "net_income": "30",
+   "equity_to_assets": "1",
+   "gross_margin": "-9999",
+   "cost_to_revenue": "10000",
+   "revenue_growth": "0",
+   "net_income_growth": "0",
+   "asset_growth": "0",
+   "equity_growth": "0",
+   "return_on_equity_prior": "1",
+   "roe_change": "0",
+   "tax_burden": "1",
+   "interest_burden": "1",
+   "operating_margin": "1",
+   "roe_five_step": "1"
+  },
+  "contains": [
+   "DuPont analysis",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.817740+00:00",
+ "origin": "uploaded",
+ "source_file": "dupont-cases.json"
+}

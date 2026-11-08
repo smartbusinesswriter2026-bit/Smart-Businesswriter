@@ -28,13 +28,13 @@
    "open_rate": "0.3",
    "click_rate": "0.06",
    "click_to_open": "0.2",
-   "revenue_per_subscriber": "4.4864226682408500590318772136953955135773317591499",
-   "revenue_per_send": "5.0666666666666666666666666666666666666666666666667"
+   "revenue_per_subscriber": "4.486422668240850059031877214",
+   "revenue_per_send": "5.066666666666666666666666667"
   },
   "contains": [
    "Email list health",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -43,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.611537+00:00",
+ "created_at": "2026-11-08T06:09:36.833021+00:00",
  "origin": "preset"
 }

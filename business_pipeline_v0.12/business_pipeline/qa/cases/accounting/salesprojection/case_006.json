@@ -1,0 +1,68 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/salesprojection/006",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "salesprojection",
+ "method": "sales_projection",
+ "tile_label": "Sales and profit projection",
+ "group": "Planning and projection",
+ "objective": "Project our sales, costs and profit for the next twelve months",
+ "instruction": "An accounting sales and profit projection problem. Declared figures: start_units=1250.0; price=62.5; unit_variable_cost=125000.0; fixed_cost_per_period=125000.0; growth_rate=0.0375; periods=6.",
+ "inputs": {
+  "start_units": "1250.0",
+  "price": "62.5",
+  "unit_variable_cost": "125000.0",
+  "fixed_cost_per_period": "125000.0",
+  "growth_rate": "0.0375",
+  "periods": "6"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "start_units": "1250.0",
+   "price": "62.5",
+   "unit_variable_cost": "125000.0",
+   "fixed_cost_per_period": "125000.0",
+   "growth_rate": "0.0375",
+   "periods": "6",
+   "units_1": "1250.0",
+   "revenue_1": "78125.00",
+   "profit_1": "-156296875.00",
+   "units_2": "1296.87500",
+   "revenue_2": "81054.687500",
+   "profit_2": "-162153320.312500",
+   "units_3": "1345.507812500",
+   "revenue_3": "84094.2382812500",
+   "profit_3": "-168229382.3242187500",
+   "units_4": "1395.9643554687500",
+   "revenue_4": "87247.77221679687500",
+   "profit_4": "-174533296.66137695312500",
+   "units_5": "1448.31301879882812500",
+   "revenue_5": "90519.563674926757812500",
+   "profit_5": "-181073607.786178588867187500",
+   "units_6": "1502.624757003784179687500",
+   "revenue_6": "93914.0473127365112304687500",
+   "profit_6": "-187859180.5781602859497070312500",
+   "total_units": "8239.284943771362304687500",
+   "total_revenue": "514955.3089857101440429687500",
+   "total_variable_cost": "1029910617.9714202880859375000000",
+   "total_fixed_cost": "750000.0",
+   "total_profit": "-1030145662.6624345779418945312500"
+  },
+  "contains": [
+   "Sales and profit projection",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.983447+00:00",
+ "origin": "uploaded",
+ "source_file": "salesprojection-cases.json"
+}

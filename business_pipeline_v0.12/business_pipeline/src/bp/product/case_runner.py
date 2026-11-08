@@ -197,8 +197,18 @@ def _check(case, result):
             method_id = ""
     problems.extend(case_invariants.check(method_id, case.get("inputs") or {}, computed))
     text = _docx_text(result.get("bytes") or b"")
+    # A case written before the paper became the computation record may still ask
+    # for the old framework phrases.  Map them onto the headings the paper now
+    # carries, and never demand a reference list the paper deliberately omits.
+    legacy = {"Declared inputs": "What you declared",
+              "References": None, "Bibliography": None, "Works Cited": None}
     for phrase in expected.get("contains") or []:
-        if phrase and phrase not in text:
+        if not phrase:
+            continue
+        wanted = legacy.get(phrase, phrase)
+        if wanted is None:
+            continue
+        if wanted not in text:
             problems.append("the paper does not contain %r" % phrase)
     paper_values = expected.get("paper_values")
     if paper_values is None:

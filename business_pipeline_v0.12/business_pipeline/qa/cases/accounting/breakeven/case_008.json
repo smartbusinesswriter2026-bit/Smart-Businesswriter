@@ -1,0 +1,47 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/breakeven/008",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "breakeven",
+ "tile_label": "Break-even point",
+ "group": "Cost and variance analysis",
+ "method": "breakeven",
+ "objective": "Break-even with both an expected volume and a profit target",
+ "instruction": "A catering business in a mid-sized city cooks and delivers boxed meals. Each box is sold for 32 USD, the food, packaging and delivery cost 19 USD per box, and the kitchen's fixed costs are 27500 USD a month. The business expects to sell 4200 boxes next month and has set a pre-tax profit target of 65000 USD for the month. Required: report the break-even quantity, the contribution margin per box, the expected revenue, the margin of safety in units and as a percentage of expected volume, the quantity that must be sold to reach the profit target, and the revenue at the break-even point.",
+ "inputs": {
+  "fixed": "27500",
+  "price": "32",
+  "variable": "19",
+  "expected_units": "4200",
+  "target_profit": "65000"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "breakeven_units": "2115.3846153846153846153846153846153846153846153846",
+   "contribution_margin": "13",
+   "contribution_margin_ratio": "0.40625",
+   "breakeven_revenue": "67692.307692307692307692307692307692307692307692307",
+   "expected_units": "4200",
+   "expected_revenue": "134400",
+   "margin_of_safety_units": "2084.6153846153846153846153846153846153846153846154",
+   "margin_of_safety_ratio": "0.496336996336996336996336996336996336996336996337",
+   "target_profit": "65000",
+   "target_profit_units": "7115.3846153846153846153846153846153846153846153846"
+  },
+  "contains": [
+   "Break-even point",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T00:00:00+00:00",
+ "origin": "authored"
+}

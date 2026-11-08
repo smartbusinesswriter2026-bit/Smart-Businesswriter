@@ -27,31 +27,31 @@
   "status": "ok",
   "result": {
    "net_margin": "0.09",
-   "asset_turnover": "1.6666666666666666666666666666666666666666666666667",
+   "asset_turnover": "1.666666666666666666666666667",
    "equity_multiplier": "2.4",
    "return_on_assets": "0.15",
    "return_on_equity": "0.36",
-   "roe_three_step": "0.36000000000000000000000000000000000000000000000000",
+   "roe_three_step": "0.3600000000000000000000000000",
    "revenue": "20000",
    "net_income": "1800",
-   "equity_to_assets": "0.41666666666666666666666666666666666666666666666667",
+   "equity_to_assets": "0.4166666666666666666666666667",
    "gross_margin": "0.4",
    "cost_to_revenue": "0.6",
-   "revenue_growth": "0.1111111111111111111111111111111111111111111111111",
+   "revenue_growth": "0.111111111111111111111111111",
    "net_income_growth": "0.2",
-   "asset_growth": "0.0909090909090909090909090909090909090909090909091",
-   "equity_growth": "0.0638297872340425531914893617021276595744680851064",
-   "return_on_equity_prior": "0.31914893617021276595744680851063829787234042553191",
-   "roe_change": "0.04085106382978723404255319148936170212765957446809",
+   "asset_growth": "0.090909090909090909090909091",
+   "equity_growth": "0.063829787234042553191489362",
+   "return_on_equity_prior": "0.3191489361702127659574468085",
+   "roe_change": "0.0408510638297872340425531915",
    "tax_burden": "0.75",
    "interest_burden": "0.8",
    "operating_margin": "0.15",
-   "roe_five_step": "0.36000000000000000000000000000000000000000000000000"
+   "roe_five_step": "0.3600000000000000000000000000"
   },
   "contains": [
    "DuPont analysis",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -60,6 +60,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.230448+00:00",
+ "created_at": "2026-11-08T06:09:36.500448+00:00",
  "origin": "preset"
 }

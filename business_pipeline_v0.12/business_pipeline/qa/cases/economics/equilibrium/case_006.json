@@ -1,0 +1,44 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/equilibrium/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "equilibrium",
+ "method": "demand_supply_equilibrium",
+ "tile_label": "Market equilibrium",
+ "group": "Microeconomics",
+ "objective": "Where do demand and supply meet?",
+ "instruction": "In Marlow, prices are not round: The quantity demanded is Qd = 250 - 4P and the quantity supplied is Qs = -35 + 3P. Demand is linear, Qd = demand_intercept - demand_slope x P, and supply is linear, Qs = supply_intercept + supply_slope x P, where P is the price in USD and Q is in units. The demand slope is entered as a positive number (the magnitude). Consumer surplus is the triangle between the demand curve and the price up to the equilibrium quantity; producer surplus is the triangle between the price and the supply curve. Required: equilibrium price, equilibrium quantity, consumer surplus, producer surplus, total surplus.",
+ "inputs": {
+  "demand_intercept": 250,
+  "demand_slope": 4,
+  "supply_intercept": -35,
+  "supply_slope": 3
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "equilibrium_price": 40.71,
+   "equilibrium_quantity": 87.14,
+   "consumer_surplus": 949.23,
+   "producer_surplus": 1265.65,
+   "total_surplus": 2214.88,
+   "demand_choke_price": "62.5",
+   "supply_floor_price": "11.66666666666666666666666667"
+  },
+  "contains": [
+   "Market equilibrium",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:47:07.152243+00:00",
+ "origin": "uploaded",
+ "source_file": "equilibrium.json"
+}

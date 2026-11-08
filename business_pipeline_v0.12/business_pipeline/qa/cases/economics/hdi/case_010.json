@@ -1,0 +1,41 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/hdi/010",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "hdi",
+ "method": "hdi",
+ "tile_label": "Human Development Index",
+ "group": "International",
+ "objective": "What is the Human Development Index?",
+ "instruction": "A human development index problem. Declared figures: life_expectancy=25; expected_years_schooling=25; mean_years_schooling=25; gni_per_capita=50.",
+ "inputs": {
+  "life_expectancy": "25",
+  "expected_years_schooling": "25",
+  "mean_years_schooling": "25",
+  "gni_per_capita": "50"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "life_index": "0.076923076923076923076923076923076923076923076923077",
+   "education_index": "1",
+   "income_index": "0",
+   "hdi": "0"
+  },
+  "contains": [
+   "Human Development Index",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.629015+00:00",
+ "origin": "uploaded",
+ "source_file": "hdi.json"
+}

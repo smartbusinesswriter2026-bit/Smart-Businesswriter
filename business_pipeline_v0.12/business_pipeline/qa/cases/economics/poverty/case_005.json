@@ -1,0 +1,45 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/poverty/005",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "poverty",
+ "method": "poverty_measures",
+ "tile_label": "Poverty measures",
+ "group": "Welfare policy",
+ "objective": "What are the poverty headcount and gap?",
+ "instruction": "A poverty measures problem. Declared figures: incomes=['20', '40', '60']; poverty_line=20.",
+ "inputs": {
+  "incomes": [
+   "20",
+   "40",
+   "60"
+  ],
+  "poverty_line": "20"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "n": "3",
+   "poor_count": "0",
+   "headcount_ratio": "0",
+   "poverty_gap": "0",
+   "squared_gap": "0",
+   "total_gap": "0"
+  },
+  "contains": [
+   "Poverty measures",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.901401+00:00",
+ "origin": "uploaded",
+ "source_file": "poverty.json"
+}

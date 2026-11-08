@@ -1,0 +1,62 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/iv/003",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "iv",
+ "method": "instrumental_variables",
+ "tile_label": "Instrumental variables",
+ "group": "Econometrics",
+ "objective": "What does the instrument imply for the effect?",
+ "instruction": "A instrumental variables problem. Declared figures: y=['0', '1', '0', '1', '0', '1']; x=['1.5', '3.0', '4.5', '6.0', '7.5', '9.0']; z=['1.5', '3.0', '4.5', '6.0', '7.5', '9.0'].",
+ "inputs": {
+  "y": [
+   "0",
+   "1",
+   "0",
+   "1",
+   "0",
+   "1"
+  ],
+  "x": [
+   "1.5",
+   "3.0",
+   "4.5",
+   "6.0",
+   "7.5",
+   "9.0"
+  ],
+  "z": [
+   "1.5",
+   "3.0",
+   "4.5",
+   "6.0",
+   "7.5",
+   "9.0"
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "iv_slope": "0.057142857142857142857142857142857142857142857142857",
+   "iv_intercept": "0.2000000000000000000000000000000000000000000000000",
+   "first_stage_slope": "1",
+   "ols_slope": "0.057142857142857142857142857142857142857142857142857",
+   "n": "6"
+  },
+  "contains": [
+   "Instrumental variables",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.680449+00:00",
+ "origin": "uploaded",
+ "source_file": "iv.json"
+}

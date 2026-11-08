@@ -1,0 +1,51 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/growth/008",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "growth",
+ "method": "growth_rate",
+ "tile_label": "Growth rate and CAGR",
+ "group": "Macroeconomics",
+ "objective": "What compound growth rate does this series imply?",
+ "instruction": "Southfield wants to compare output with population over a short span: Real output was USD 300,000,000 at the start and USD 372,000,000 at the end of a span of 4 year(s), while the population went from 2,000,000 to 2,100,000. Use compound (geometric) annual rates: g = (end / start)^(1/periods) - 1, applied separately to output, to population and to output per person. Periods are years. Required: average annual growth rate, population growth rate, growth gap, per capita start, per capita end, per capita annual growth rate.",
+ "inputs": {
+  "start_value": 300000000,
+  "end_value": 372000000,
+  "periods": 4,
+  "population_start": 2000000,
+  "population_end": 2100000
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "average_annual_growth_rate": 0.0553,
+   "population_growth_rate": 0.0123,
+   "growth_gap": 0.043,
+   "per_capita_start": 150.0,
+   "per_capita_end": 177.14,
+   "per_capita_annual_growth_rate": 0.0425,
+   "start_value": "300000000",
+   "end_value": "372000000",
+   "periods": "4",
+   "total_growth": "0.24",
+   "cagr": "0.055250146915888557282911009",
+   "doubling_time_years": "13.03163955556733639075843639",
+   "per_capita_cagr": "0.042456871802959697917847896"
+  },
+  "contains": [
+   "Growth rate and CAGR",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:48:02.757560+00:00",
+ "origin": "uploaded",
+ "source_file": "growth.json"
+}

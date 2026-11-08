@@ -1,0 +1,45 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/equilibrium/007",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "equilibrium",
+ "method": "demand_supply_equilibrium",
+ "tile_label": "Market equilibrium",
+ "group": "Microeconomics",
+ "objective": "Where do demand and supply meet?",
+ "instruction": "Southfield wants to know who gains more from trade: The quantity demanded is Qd = 800 - 5P and the quantity supplied is Qs = -100 + 15P. Demand is linear, Qd = demand_intercept - demand_slope x P, and supply is linear, Qs = supply_intercept + supply_slope x P, where P is the price in USD and Q is in units. The demand slope is entered as a positive number (the magnitude). Consumer surplus is the triangle between the demand curve and the price up to the equilibrium quantity; producer surplus is the triangle between the price and the supply curve. Required: equilibrium price, equilibrium quantity, consumer surplus, producer surplus, total surplus, consumer minus producer surplus.",
+ "inputs": {
+  "demand_intercept": 800,
+  "demand_slope": 5,
+  "supply_intercept": -100,
+  "supply_slope": 15
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "equilibrium_price": 45.0,
+   "equilibrium_quantity": 575.0,
+   "consumer_surplus": 33062.5,
+   "producer_surplus": 11020.83,
+   "total_surplus": 44083.33,
+   "consumer_minus_producer_surplus": 22041.67,
+   "demand_choke_price": "160",
+   "supply_floor_price": "6.666666666666666666666666667"
+  },
+  "contains": [
+   "Market equilibrium",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:47:07.153491+00:00",
+ "origin": "uploaded",
+ "source_file": "equilibrium.json"
+}

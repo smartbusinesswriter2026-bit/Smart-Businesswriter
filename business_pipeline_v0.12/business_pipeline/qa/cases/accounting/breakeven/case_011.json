@@ -1,0 +1,21 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/breakeven/011",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "breakeven",
+ "method": "breakeven",
+ "tile_label": "Break-even point",
+ "group": "Cost and variance analysis",
+ "objective": "How many units must we sell to break even?",
+ "instruction": "A producer in Northport sells two lines. The first is priced at 40 USD and costs 24 USD to make, and it makes up 3 units of the mix. The second line is priced at 0 USD, costs 18 USD to make and makes up 2 units of the mix. Fixed costs for the period are 72000 USD. Required: report the weighted contribution margin per unit, the total break-even quantity and the break-even quantity for each line.",
+ "inputs": {
+  "fixed": "72000"
+ },
+ "expected": {
+  "status": "error"
+ },
+ "created_at": "2026-11-08T06:11:08.221910+00:00",
+ "origin": "uploaded",
+ "source_file": "multibreakeven-cases.json"
+}

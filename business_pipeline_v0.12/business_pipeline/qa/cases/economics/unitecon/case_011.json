@@ -1,0 +1,46 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/unitecon/011",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "unitecon",
+ "method": "unit_economics",
+ "tile_label": "Unit economics",
+ "group": "Managerial economics",
+ "objective": "What does a customer cost and return?",
+ "instruction": "A unit economics problem. Declared figures: price=500; variable_cost=200; acquisition_cost=1000; churn_rate=0.95.",
+ "inputs": {
+  "price": "500",
+  "variable_cost": "200",
+  "acquisition_cost": "1000",
+  "churn_rate": "0.95"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "unit_margin": "300",
+   "margin_pct": "0.6",
+   "payback_periods": "3.3333333333333333333333333333333333333333333333333",
+   "price": "500",
+   "variable_cost": "200",
+   "acquisition_cost": "1000",
+   "churn_rate": "0.95",
+   "ltv": "315.78947368421052631578947368421052631578947368421",
+   "ltv_cac": "0.31578947368421052631578947368421052631578947368421"
+  },
+  "contains": [
+   "Unit economics",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.523953+00:00",
+ "origin": "uploaded",
+ "source_file": "unitecon.json"
+}

@@ -1,0 +1,49 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/growth/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "growth",
+ "method": "growth_rate",
+ "tile_label": "Growth rate and CAGR",
+ "group": "Macroeconomics",
+ "objective": "What compound growth rate does this series imply?",
+ "instruction": "Northport: Real output was USD 100,000,000 at the start and USD 121,000,000 at the end of a span of 2 year(s), while the population went from 1,000,000 to 1,102,500. Use compound (geometric) annual rates: g = (end / start)^(1/periods) - 1, applied separately to output, to population and to output per person. Periods are years. Required: total growth rate, average annual growth rate, population growth rate, per capita annual growth rate.",
+ "inputs": {
+  "start_value": 100000000,
+  "end_value": 121000000,
+  "periods": 2,
+  "population_start": 1000000,
+  "population_end": 1102500
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "total_growth_rate": 0.21,
+   "average_annual_growth_rate": 0.1,
+   "population_growth_rate": 0.05,
+   "per_capita_annual_growth_rate": 0.0476,
+   "start_value": "100000000",
+   "end_value": "121000000",
+   "periods": "2",
+   "total_growth": "0.21",
+   "cagr": "0.100000000000000000000000000",
+   "doubling_time_years": "7.2",
+   "per_capita_cagr": "0.047619047619047619047619048"
+  },
+  "contains": [
+   "Growth rate and CAGR",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:48:02.745166+00:00",
+ "origin": "uploaded",
+ "source_file": "growth.json"
+}

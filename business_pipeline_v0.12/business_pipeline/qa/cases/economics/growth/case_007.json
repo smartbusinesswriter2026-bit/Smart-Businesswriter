@@ -1,0 +1,49 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/growth/007",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "growth",
+ "method": "growth_rate",
+ "tile_label": "Growth rate and CAGR",
+ "group": "Macroeconomics",
+ "objective": "What compound growth rate does this series imply?",
+ "instruction": "Marlow's output grew by a steady 8% a year for 5 years from USD 10,000,000 (the end figure is rounded to the nearest dollar), while its population grew by 3% a year from 800,000 (also rounded to the nearest person). Real output was USD 10,000,000 at the start and USD 14,693,281 at the end of 5 years, and the population went from 800,000 to 927,419. Use compound (geometric) annual rates: g = (end / start)^(1/periods) - 1, applied separately to output, to population and to output per person. Periods are years. Required: total growth rate, average annual growth rate, population growth rate, per capita annual growth rate.",
+ "inputs": {
+  "start_value": 10000000,
+  "end_value": 14693281,
+  "periods": 5,
+  "population_start": 800000,
+  "population_end": 927419
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "total_growth_rate": 0.4693,
+   "average_annual_growth_rate": 0.08,
+   "population_growth_rate": 0.03,
+   "per_capita_annual_growth_rate": 0.0485,
+   "start_value": "10000000",
+   "end_value": "14693281",
+   "periods": "5",
+   "total_growth": "0.4693281",
+   "cagr": "0.080000003410538495435223730",
+   "doubling_time_years": "8.999999616314435620717173604",
+   "per_capita_cagr": "0.048543751296368003780041111"
+  },
+  "contains": [
+   "Growth rate and CAGR",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:48:02.755015+00:00",
+ "origin": "uploaded",
+ "source_file": "growth.json"
+}

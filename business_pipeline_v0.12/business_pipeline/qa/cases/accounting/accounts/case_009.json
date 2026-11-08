@@ -1,0 +1,137 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/accounts/009",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "accounts",
+ "method": "management_accounts",
+ "tile_label": "Management accounts",
+ "group": "Bookkeeping",
+ "objective": "Prepare the management accounts for the period",
+ "instruction": "An accounting management accounts problem. Declared figures: spec={'period': {'start': '2026-01-01', 'end': '2026-03-31'}, 'currency': 'USD', 'framework': 'local', 'places': 2, 'chart': [{'code': '1000', 'name': 'Cash', 'type': 'asset', 'line': 'Cash', 'role': 'cash'}, {'code': '3000', 'name': 'Owner capital', 'type': 'equity', 'line': 'Capital', 'role': 'capital'}, {'code': '3100', 'name': 'Retained earnings', 'type': 'equity', 'line': 'Retained earnings', 'role': 'retained_earnings'}, {'code': '4000', 'name': 'Sales', 'type': 'income', 'line': 'Revenue'}, {'code': '5000', 'name': 'Rent', 'type': 'expense', 'line': 'Rent'}], 'prior_closing': {'1000': '25000', '3000': '25000'}, 'opening': [{'lines': [{'account': '1000', 'debit': '25000'}, {'account': '3000', 'credit': '25000'}]}], 'entries': [{'date': '2026-01-15', 'description': 'sale', 'lines': [{'account': '1000', 'debit': '10000'}, {'account': '4000', 'credit': '10000'}]}, {'date': '2026-02-28', 'description': 'rent', 'lines': [{'account': '5000', 'debit': '2500'}, {'account': '1000', 'credit': '2500'}]}], 'schedules': []}.",
+ "inputs": {
+  "spec": {
+   "period": {
+    "start": "2026-01-01",
+    "end": "2026-03-31"
+   },
+   "currency": "USD",
+   "framework": "local",
+   "places": 2,
+   "chart": [
+    {
+     "code": "1000",
+     "name": "Cash",
+     "type": "asset",
+     "line": "Cash",
+     "role": "cash"
+    },
+    {
+     "code": "3000",
+     "name": "Owner capital",
+     "type": "equity",
+     "line": "Capital",
+     "role": "capital"
+    },
+    {
+     "code": "3100",
+     "name": "Retained earnings",
+     "type": "equity",
+     "line": "Retained earnings",
+     "role": "retained_earnings"
+    },
+    {
+     "code": "4000",
+     "name": "Sales",
+     "type": "income",
+     "line": "Revenue"
+    },
+    {
+     "code": "5000",
+     "name": "Rent",
+     "type": "expense",
+     "line": "Rent"
+    }
+   ],
+   "prior_closing": {
+    "1000": "25000",
+    "3000": "25000"
+   },
+   "opening": [
+    {
+     "lines": [
+      {
+       "account": "1000",
+       "debit": "25000"
+      },
+      {
+       "account": "3000",
+       "credit": "25000"
+      }
+     ]
+    }
+   ],
+   "entries": [
+    {
+     "date": "2026-01-15",
+     "description": "sale",
+     "lines": [
+      {
+       "account": "1000",
+       "debit": "10000"
+      },
+      {
+       "account": "4000",
+       "credit": "10000"
+      }
+     ]
+    },
+    {
+     "date": "2026-02-28",
+     "description": "rent",
+     "lines": [
+      {
+       "account": "5000",
+       "debit": "2500"
+      },
+      {
+       "account": "1000",
+       "credit": "2500"
+      }
+     ]
+    }
+   ],
+   "schedules": []
+  }
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "net_income": "7500",
+   "total_assets": "32500",
+   "total_liabilities": "0",
+   "total_equity": "32500",
+   "retained_earnings_closing": "7500",
+   "cash_net": "7500",
+   "checks_passed": "9",
+   "checks_total": "11",
+   "checks_na": "2",
+   "n_entries": "5",
+   "n_flags": "0"
+  },
+  "contains": [
+   "Management accounts",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.718991+00:00",
+ "origin": "uploaded",
+ "source_file": "accounts-cases.json"
+}

@@ -21,17 +21,17 @@
  "expected": {
   "status": "ok",
   "result": {
-   "pv_benefits": "69014.565316340464269458352298588984979517523896222",
+   "pv_benefits": "69014.56531634046426945835230",
    "investment": "60000",
-   "sroi_ratio": "1.1502427552723410711576392049764830829919587316037",
-   "net_value": "9014.565316340464269458352298588984979517523896222",
+   "sroi_ratio": "1.150242755272341071157639205",
+   "net_value": "9014.56531634046426945835230",
    "n_periods": "3",
    "discount_rate": "0.04"
   },
   "contains": [
    "Social return on investment",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -40,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.534445+00:00",
+ "created_at": "2026-11-08T06:09:36.762634+00:00",
  "origin": "preset"
 }

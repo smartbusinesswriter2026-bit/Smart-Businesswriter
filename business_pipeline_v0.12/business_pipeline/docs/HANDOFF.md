@@ -279,6 +279,35 @@ the computation, the invariants, the paper and the workbook all agree), and the 
 counts.  The whole run saves its paper, workbook and explainers for a pass as well as a
 fail, so a green result can be opened and read.
 
+### 8.9 The tile paper is the computation record, and it is the same document as the download
+
+The tile preview used to compose a framework-style paper — Introduction, Scope and Method,
+a dimension block, Evidence Base, Discussion, What Would Change the Answer, Conclusion and
+a References list that said "no sources were used".  That was the conductor's framework
+outline, and it did not match what the student downloads.
+
+It now does.  `paper_batch.generate_one` builds the same record the real download renders
+and passes it through the **same renderer** (`session_paper.docx_bytes`), so the preview and
+the download carry the same headings in the same order:
+
+| Section | Content |
+|---|---|
+| Result | one sentence with the computed figures at the method's declared precision |
+| Inputs and results | **What you declared**, then **What was computed** |
+| Assumptions made | the frozen method's own assumptions |
+| Limitations | the frozen method's own limitations |
+| How the figures were checked | the frozen method's own test names |
+
+There is no framework section, no "Scope and Method", no "Evidence Base", no "Discussion"
+and no reference list.  A reference list appears only when a source was actually declared;
+the tile paper never prints a bibliography over an empty corpus.
+
+The combined `combined.docx` is built from the same sections, so it matches the individual
+papers.  `case_runner._check` maps the two legacy phrases it may still meet in old case
+files — `Declared inputs` becomes `What you declared`, and `References` / `Bibliography` /
+`Works Cited` are not required, because the paper deliberately omits them.  Case files are
+migrated to the new phrases as they are re-seeded.
+
 
 ## 9. Intended future work (not yet built)
 

@@ -1,0 +1,66 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/panel/011",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "panel",
+ "method": "panel_regression",
+ "tile_label": "Panel fixed effects",
+ "group": "Econometrics",
+ "objective": "What is the within-entity effect?",
+ "instruction": "A panel fixed effects problem. Declared figures: data=[{'entity': 'A', 'period': '1', 'y': 10, 'x': 2}, {'entity': 'A', 'period': '2', 'y': 12, 'x': 3}, {'entity': 'B', 'period': '1', 'y': 14, 'x': 4}, {'entity': 'B', 'period': '2', 'y': 16, 'x': 5}].",
+ "inputs": {
+  "data": [
+   {
+    "entity": "A",
+    "period": "1",
+    "y": 10,
+    "x": 2
+   },
+   {
+    "entity": "A",
+    "period": "2",
+    "y": 12,
+    "x": 3
+   },
+   {
+    "entity": "B",
+    "period": "1",
+    "y": 14,
+    "x": 4
+   },
+   {
+    "entity": "B",
+    "period": "2",
+    "y": 16,
+    "x": 5
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "slope": "2",
+   "intercept": "6.0",
+   "within_r2": "1",
+   "n_obs": "4",
+   "n_entities": "2",
+   "n_periods": "2",
+   "df": "1"
+  },
+  "contains": [
+   "Panel fixed effects",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.847324+00:00",
+ "origin": "uploaded",
+ "source_file": "panel.json"
+}

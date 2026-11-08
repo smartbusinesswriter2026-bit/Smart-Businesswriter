@@ -1,0 +1,23 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/elasticity/007",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "elasticity",
+ "method": "elasticity",
+ "tile_label": "Price elasticity of demand",
+ "group": "Microeconomics",
+ "objective": "How responsive is quantity to a price change?",
+ "instruction": "In Harbourview a market sold 3,000 units at a price of USD 9.50. After a change in conditions it sold 2,700 units. The new price was not recorded. Use the midpoint (arc) method: percentage change = change / average of the two values. Price elasticity of demand = percentage change in quantity / percentage change in price, reported as a positive number (absolute value). Revenue = price x quantity. Point elasticity from the start = (change in Q / Q1) / (change in P / P1). Required: percentage change quantity, price elasticity of demand.",
+ "inputs": {
+  "quantity_1": 3000,
+  "price_1": 9.5,
+  "quantity_2": 2700
+ },
+ "expected": {
+  "status": "error"
+ },
+ "created_at": "2026-11-08T05:46:54.403908+00:00",
+ "origin": "uploaded",
+ "source_file": "elasticity.json"
+}

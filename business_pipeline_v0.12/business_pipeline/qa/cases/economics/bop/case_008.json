@@ -1,0 +1,45 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/bop/008",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "bop",
+ "method": "balance_of_payments",
+ "tile_label": "Balance of payments",
+ "group": "International",
+ "objective": "Does the balance of payments close?",
+ "instruction": "A balance of payments problem. Declared figures: current_account=30; capital_account=30; financial_account=30; errors_and_omissions=30; gdp=30.",
+ "inputs": {
+  "current_account": "30",
+  "capital_account": "30",
+  "financial_account": "30",
+  "errors_and_omissions": "30",
+  "gdp": "30"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "current_account": "30",
+   "capital_account": "30",
+   "financial_account": "30",
+   "errors_and_omissions": "30",
+   "net_balance": "120",
+   "balanced": "0",
+   "current_account_to_gdp": "1"
+  },
+  "contains": [
+   "Balance of payments",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.219813+00:00",
+ "origin": "uploaded",
+ "source_file": "bop.json"
+}

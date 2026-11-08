@@ -1,0 +1,46 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/labour/011",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "labour",
+ "method": "labour_market",
+ "tile_label": "Real wage and labour market",
+ "group": "Behavioural economics",
+ "objective": "What are the real wage and the wage share?",
+ "instruction": "A real wage and labour market problem. Declared figures: nominal_wage=100; cpi=100; labour_productivity=100; vacancies=100; unemployed=100.",
+ "inputs": {
+  "nominal_wage": "100",
+  "cpi": "100",
+  "labour_productivity": "100",
+  "vacancies": "100",
+  "unemployed": "100"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "nominal_wage": "100",
+   "cpi": "100",
+   "labour_productivity": "100",
+   "real_wage": "100",
+   "wage_share_of_productivity": "1",
+   "vacancies": "100",
+   "unemployed": "100",
+   "labour_market_tightness": "1"
+  },
+  "contains": [
+   "Real wage and labour market",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.707682+00:00",
+ "origin": "uploaded",
+ "source_file": "labour.json"
+}

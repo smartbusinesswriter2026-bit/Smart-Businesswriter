@@ -21,13 +21,13 @@
    "end_value": "200",
    "periods": "10",
    "total_growth": "1",
-   "cagr": "0.0717734625362931642130063250233420229063846049776",
-   "doubling_time_years": "10.031562844497335521071807962777809925107621257345"
+   "cagr": "0.071773462536293164213006325",
+   "doubling_time_years": "10.03156284449733552107180797"
   },
   "contains": [
    "Growth rate and CAGR",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -36,6 +36,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.329243+00:00",
+ "created_at": "2026-11-08T06:09:36.593797+00:00",
  "origin": "preset"
 }

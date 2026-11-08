@@ -1,0 +1,54 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/probit/003",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "probit",
+ "method": "probit",
+ "tile_label": "Probit model",
+ "group": "Econometrics",
+ "objective": "What predicts the binary outcome?",
+ "instruction": "A probit model problem. Declared figures: y=['0', '1', '0', '1', '0', '1']; x=['1.5', '3.0', '4.5', '6.0', '7.5', '9.0'].",
+ "inputs": {
+  "y": [
+   "0",
+   "1",
+   "0",
+   "1",
+   "0",
+   "1"
+  ],
+  "x": [
+   "1.5",
+   "3.0",
+   "4.5",
+   "6.0",
+   "7.5",
+   "9.0"
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "intercept": "-0.7836684312254518",
+   "slope": "0.1492701773762765",
+   "log_likelihood": "-3.8910586816488313",
+   "pseudo_r2": "0.06439815602954713",
+   "marginal_effect_at_mean": "0.0595501849584181"
+  },
+  "contains": [
+   "Probit model",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.063917+00:00",
+ "origin": "uploaded",
+ "source_file": "probit.json"
+}

@@ -28,8 +28,8 @@
   },
   "contains": [
    "Internal rate of return",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -38,6 +38,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.403219+00:00",
+ "created_at": "2026-11-08T06:09:36.654489+00:00",
  "origin": "preset"
 }

@@ -1,0 +1,49 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/dcf/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "dcf",
+ "method": "dcf_valuation",
+ "tile_label": "DCF valuation (year-end)",
+ "group": "Quantitative core",
+ "objective": "Value the project from its free cash flows",
+ "instruction": "A dcf valuation (year-end) problem. Declared figures: cashflows=['10', '20', '30']; discount_rate=0.1; terminal_growth=0.03; timing=end.",
+ "inputs": {
+  "cashflows": [
+   "10",
+   "20",
+   "30"
+  ],
+  "discount_rate": "0.1",
+  "terminal_growth": "0.03",
+  "timing": "end"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "pv_explicit": "48.159278737791134485349361382419233658903080390683",
+   "pv_terminal": "331.65181925512504024900719115595148652999892669314",
+   "terminal_value": "441.42857142857142857142857142857142857142857142857",
+   "enterprise_value": "379.81109799291617473435655253837072018890200708382",
+   "terminal_share": "0.87320202334190521943086444174414332947127476191823",
+   "n_periods": "3",
+   "discount_rate": "0.1",
+   "terminal_growth": "0.03"
+  },
+  "contains": [
+   "DCF valuation (year-end)",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.414719+00:00",
+ "origin": "uploaded",
+ "source_file": "dcf.json"
+}

@@ -1,0 +1,39 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/breakeven/002",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "breakeven",
+ "tile_label": "Break-even point",
+ "group": "Cost and variance analysis",
+ "method": "breakeven",
+ "objective": "Break-even for a repair workshop (20 marks)",
+ "instruction": "Exam question. Riverside Supplies runs a small appliance-repair workshop. In a typical month the workshop incurs fixed costs of 48600 USD, covering rent, the supervisor's salary and fixed overheads. Each repair is invoiced at 135 USD, and the spare parts, consumables and direct labour for one repair cost 87 USD. The examiner asks for the number of repairs the workshop must complete in the month to cover its fixed costs, the contribution each repair makes, the contribution margin as a percentage of the selling price, and the revenue at the break-even point. Required: work out the break-even point and the supporting figures, and show the arithmetic you used.",
+ "inputs": {
+  "fixed": "48600",
+  "price": "135",
+  "variable": "87"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "breakeven_units": "1012.5",
+   "contribution_margin": "48",
+   "contribution_margin_ratio": "0.35555555555555555555555555555555555555555555555556",
+   "breakeven_revenue": "136687.5"
+  },
+  "contains": [
+   "Break-even point",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T00:00:00+00:00",
+ "origin": "authored"
+}

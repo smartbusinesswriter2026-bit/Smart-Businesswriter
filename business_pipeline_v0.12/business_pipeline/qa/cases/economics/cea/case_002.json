@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/cea/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "cea",
+ "method": "cost_effectiveness",
+ "tile_label": "Cost-effectiveness analysis",
+ "group": "Managerial economics",
+ "objective": "Which option gives more effect per unit of cost?",
+ "instruction": "A cost-effectiveness analysis problem. Declared figures: options=[{'name': 'A', 'cost': 100, 'effect': 10}, {'name': 'B', 'cost': 150, 'effect': 18}].",
+ "inputs": {
+  "options": [
+   {
+    "name": "A",
+    "cost": 100,
+    "effect": 10
+   },
+   {
+    "name": "B",
+    "cost": 150,
+    "effect": 18
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "comparator_cost": "100",
+   "comparator_effect": "10",
+   "n_options": "2",
+   "icer_B": "6.25",
+   "delta_cost_B": "50",
+   "delta_effect_B": "8",
+   "dominant_B": "0"
+  },
+  "contains": [
+   "Cost-effectiveness analysis",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.260053+00:00",
+ "origin": "uploaded",
+ "source_file": "cea.json"
+}

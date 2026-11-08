@@ -22,19 +22,19 @@
  "expected": {
   "status": "ok",
   "result": {
-   "pv_explicit": "401133.80233590601734854176627279557407280923434192",
-   "pv_terminal": "1349805.3411652209548528106003688272658971381736220",
+   "pv_explicit": "401133.8023359060173485417663",
+   "pv_terminal": "1349805.341165220954852810600",
    "terminal_value": "1976250",
-   "enterprise_value": "1750939.1435011269722013523666416228399699474079639",
-   "terminal_share": "0.77090362973220729067113963059039222952546273721988",
+   "enterprise_value": "1750939.143501126972201352366",
+   "terminal_share": "0.7709036297322072906711396307",
    "n_periods": "4",
    "discount_rate": "0.10",
    "terminal_growth": "0.02"
   },
   "contains": [
    "DCF valuation (year-end)",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -43,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.283933+00:00",
+ "created_at": "2026-11-08T06:09:36.540840+00:00",
  "origin": "preset"
 }

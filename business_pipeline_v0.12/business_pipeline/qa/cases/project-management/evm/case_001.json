@@ -26,16 +26,16 @@
    "schedule_variance": "-10000",
    "cost_variance": "-5000",
    "spi": "0.9",
-   "cpi": "0.94736842105263157894736842105263157894736842105263",
-   "estimate_at_completion": "211111.11111111111111111111111111111111111111111111",
-   "estimate_to_complete": "116111.11111111111111111111111111111111111111111111",
-   "variance_at_completion": "-11111.11111111111111111111111111111111111111111111",
-   "tcpi": "1.0476190476190476190476190476190476190476190476190"
+   "cpi": "0.9473684210526315789473684211",
+   "estimate_at_completion": "211111.1111111111111111111111",
+   "estimate_to_complete": "116111.1111111111111111111111",
+   "variance_at_completion": "-11111.1111111111111111111111",
+   "tcpi": "1.047619047619047619047619048"
   },
   "contains": [
    "Earned value",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -44,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.441878+00:00",
+ "created_at": "2026-11-08T06:09:36.688210+00:00",
  "origin": "preset"
 }

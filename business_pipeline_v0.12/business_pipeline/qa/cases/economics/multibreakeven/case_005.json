@@ -1,0 +1,55 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/multibreakeven/005",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "multibreakeven",
+ "method": "multi_product_breakeven",
+ "tile_label": "Multi-product break-even",
+ "group": "Managerial economics",
+ "objective": "How many units must the product mix sell to break even?",
+ "instruction": "A multi-product break-even problem. Declared figures: fixed_costs=200000; products=[{'name': 'A', 'price': 50, 'variable_cost': 30, 'mix_units': 2}, {'name': 'B', 'price': 80, 'variable_cost': 50, 'mix_units': 1}].",
+ "inputs": {
+  "fixed_costs": "200000",
+  "products": [
+   {
+    "name": "A",
+    "price": 50,
+    "variable_cost": 30,
+    "mix_units": 2
+   },
+   {
+    "name": "B",
+    "price": 80,
+    "variable_cost": 50,
+    "mix_units": 1
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "weighted_contribution": "23.333333333333333333333333333333333333333333333333",
+   "breakeven_total_units": "8571.4285714285714285714285714285714285714285714287",
+   "breakeven_revenue": "514285.71428571428571428571428571428571428571428571",
+   "fixed_costs": "200000",
+   "total_mix_units": "3",
+   "units_A": "5714.2857142857142857142857142857142857142857142857",
+   "units_B": "2857.1428571428571428571428571428571428571428571429"
+  },
+  "contains": [
+   "Multi-product break-even",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:18:22.704804+00:00",
+ "origin": "uploaded",
+ "source_file": "multibreakeven.json"
+}

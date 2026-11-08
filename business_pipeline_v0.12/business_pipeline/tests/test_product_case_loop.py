@@ -93,7 +93,7 @@ class CaseLoopTest(unittest.TestCase):
             "inputs": inputs,
             "expected": {"status": "ok",
                          "result": {k: str(v) for k, v in computed.items() if not k.startswith("_")},
-                         "contains": ["Declared inputs", "References"],
+                         "contains": ["What you declared", "How the figures were checked"],
                          "xlsx_sheets": ["Summary", "Inputs", "Results", "Record"]},
             "created_at": "2026-11-08T00:00:00+00:00", "origin": "authored"}
         path = case_store._case_path("accounting", "depreciation", 1)

@@ -1,0 +1,50 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/costcurves/007",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "costcurves",
+ "method": "cost_curves",
+ "tile_label": "Cost curves",
+ "group": "Microeconomics",
+ "objective": "What do average and marginal cost look like at this output?",
+ "instruction": "A cost curves problem. Declared figures: fixed_cost=125000.0; linear_cost=25.0; quadratic_cost=0.62; quantity=1250.0; price=62.5.",
+ "inputs": {
+  "fixed_cost": "125000.0",
+  "linear_cost": "25.0",
+  "quadratic_cost": "0.62",
+  "quantity": "1250.0",
+  "price": "62.5"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "total_cost": "1125000.0000",
+   "fixed_cost": "125000.0",
+   "variable_cost": "1000000.0000",
+   "average_cost": "900.000",
+   "average_variable_cost": "800.000",
+   "average_fixed_cost": "100",
+   "marginal_cost": "1575.000",
+   "quantity": "1250.0",
+   "price": "62.5",
+   "total_revenue": "78125.00",
+   "profit": "-1046875.0000",
+   "shutdown": "0"
+  },
+  "contains": [
+   "Cost curves",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.359796+00:00",
+ "origin": "uploaded",
+ "source_file": "costcurves.json"
+}

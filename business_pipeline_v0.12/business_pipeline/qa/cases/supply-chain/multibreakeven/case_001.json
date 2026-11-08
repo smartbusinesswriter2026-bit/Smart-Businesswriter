@@ -30,17 +30,17 @@
   "status": "ok",
   "result": {
    "weighted_contribution": "18",
-   "breakeven_total_units": "5555.5555555555555555555555555555555555555555555556",
-   "breakeven_revenue": "233333.33333333333333333333333333333333333333333334",
+   "breakeven_total_units": "5555.555555555555555555555556",
+   "breakeven_revenue": "233333.3333333333333333333334",
    "fixed_costs": "100000",
    "total_mix_units": "100",
-   "units_Product_A": "3333.3333333333333333333333333333333333333333333334",
-   "units_Product_B": "2222.2222222222222222222222222222222222222222222222"
+   "units_Product_A": "3333.333333333333333333333334",
+   "units_Product_B": "2222.222222222222222222222222"
   },
   "contains": [
    "Multi-product break-even",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -49,6 +49,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.565219+00:00",
+ "created_at": "2026-11-08T06:09:36.787469+00:00",
  "origin": "preset"
 }

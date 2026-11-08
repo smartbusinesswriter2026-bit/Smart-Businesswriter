@@ -1,0 +1,85 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/abc/008",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "abc",
+ "method": "abc_costing",
+ "tile_label": "Activity-based costing",
+ "group": "Cost and variance analysis",
+ "objective": "What does each product really cost once activities are traced?",
+ "instruction": "An accounting activity-based costing problem. Declared figures: activities=[{'name': 'Setup', 'pool_cost': 150000}, {'name': 'Assembly', 'pool_cost': 240000}]; products=[{'name': 'A', 'units': 1000}, {'name': 'B', 'units': 2000}]; allocations=[{'activity': 'Setup', 'product': 'A', 'driver_quantity': 100}, {'activity': 'Setup', 'product': 'B', 'driver_quantity': 200}, {'activity': 'Assembly', 'product': 'A', 'driver_quantity': 300}, {'activity': 'Assembly', 'product': 'B', 'driver_quantity': 400}].",
+ "inputs": {
+  "activities": [
+   {
+    "name": "Setup",
+    "pool_cost": 150000
+   },
+   {
+    "name": "Assembly",
+    "pool_cost": 240000
+   }
+  ],
+  "products": [
+   {
+    "name": "A",
+    "units": 1000
+   },
+   {
+    "name": "B",
+    "units": 2000
+   }
+  ],
+  "allocations": [
+   {
+    "activity": "Setup",
+    "product": "A",
+    "driver_quantity": 100
+   },
+   {
+    "activity": "Setup",
+    "product": "B",
+    "driver_quantity": 200
+   },
+   {
+    "activity": "Assembly",
+    "product": "A",
+    "driver_quantity": 300
+   },
+   {
+    "activity": "Assembly",
+    "product": "B",
+    "driver_quantity": 400
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "total_pool_cost": "390000",
+   "total_allocated": "390000.00000000000000000000000000000000000000000000",
+   "rate_Setup": "500",
+   "driver_Setup": "300",
+   "rate_Assembly": "342.85714285714285714285714285714285714285714285714",
+   "driver_Assembly": "700",
+   "allocated_A": "152857.14285714285714285714285714285714285714285714",
+   "unit_cost_A": "152.85714285714285714285714285714285714285714285714",
+   "allocated_B": "237142.85714285714285714285714285714285714285714286",
+   "unit_cost_B": "118.57142857142857142857142857142857142857142857143"
+  },
+  "contains": [
+   "Activity-based costing",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:14:44.539244+00:00",
+ "origin": "uploaded",
+ "source_file": "abc-cases.json"
+}

@@ -31,10 +31,10 @@
  "expected": {
   "status": "ok",
   "result": {
-   "chi_squared": "56.000000000000000000000000000000000000000000000000",
+   "chi_squared": "56.00000000000000000000000000",
    "df": "4",
    "p_value": "2.00517603101266E-11",
-   "cramers_v": "0.30550504633038933377253647958186723259896377178453",
+   "cramers_v": "0.3055050463303893337725364796",
    "n_total": "300",
    "n_cells": "9",
    "min_expected_count": "25",
@@ -42,8 +42,8 @@
   },
   "contains": [
    "Chi-square association",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -52,6 +52,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.630701+00:00",
+ "created_at": "2026-11-08T06:09:36.844848+00:00",
  "origin": "preset"
 }

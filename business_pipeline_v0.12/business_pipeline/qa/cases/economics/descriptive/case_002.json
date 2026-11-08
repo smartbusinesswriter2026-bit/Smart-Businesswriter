@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/descriptive/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "descriptive",
+ "method": "descriptive_stats",
+ "tile_label": "Descriptive statistics",
+ "group": "Quantitative core",
+ "objective": "Describe the exam scores",
+ "instruction": "A descriptive statistics problem. Declared figures: values=['10', '12', '14', '16', '18', '20', '22', '24']; missing_codes=[].",
+ "inputs": {
+  "values": [
+   "10",
+   "12",
+   "14",
+   "16",
+   "18",
+   "20",
+   "22",
+   "24"
+  ],
+  "missing_codes": []
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "n": "8",
+   "n_missing": "0",
+   "mean": "17",
+   "median": "17",
+   "minimum": "10",
+   "maximum": "24",
+   "variance": "24",
+   "sd": "4.8989794855663561963945681494117827839318949613133"
+  },
+  "contains": [
+   "Descriptive statistics",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.462538+00:00",
+ "origin": "uploaded",
+ "source_file": "descriptive.json"
+}

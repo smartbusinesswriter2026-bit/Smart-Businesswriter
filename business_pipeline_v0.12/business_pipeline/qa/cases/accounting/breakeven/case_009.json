@@ -1,0 +1,22 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/breakeven/009",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "breakeven",
+ "tile_label": "Break-even point",
+ "group": "Cost and variance analysis",
+ "method": "breakeven",
+ "objective": "Refused: the selling price does not exceed the variable cost",
+ "instruction": "A trading company in Northport sells an item for 25 USD per unit. The variable cost of one unit is 25 USD, and fixed costs for the period are 15000 USD. Required: report the break-even quantity, the contribution margin per unit and the break-even revenue.",
+ "inputs": {
+  "fixed": "15000",
+  "price": "25",
+  "variable": "25"
+ },
+ "expected": {
+  "status": "error"
+ },
+ "created_at": "2026-11-08T00:00:00+00:00",
+ "origin": "authored"
+}

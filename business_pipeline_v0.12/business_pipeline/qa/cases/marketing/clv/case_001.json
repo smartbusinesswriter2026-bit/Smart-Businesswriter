@@ -23,18 +23,18 @@
    "churn_rate": "0.04",
    "horizon_periods": "24",
    "discount_rate": "0.10",
-   "clv_undiscounted": "23422.003247733659559157434917428764580700907110400",
-   "clv_discounted": "10305.920846045063119387605872026323710951298800996",
-   "discount_effect": "13116.082401688596439769829045402440869749608309404",
+   "clv_undiscounted": "23422.00324773365955915743491",
+   "clv_discounted": "10305.92084604506311938760587",
+   "discount_effect": "13116.08240168859643976982904",
    "acquisition_cost": "9000",
-   "ltv_cac": "1.1451023162272292354875117635584804123279220889996",
+   "ltv_cac": "1.145102316227229235487511763",
    "payback_within_horizon": "1",
    "payback_periods": "7"
   },
   "contains": [
    "Customer lifetime value",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -43,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.605680+00:00",
+ "created_at": "2026-11-08T06:09:36.827763+00:00",
  "origin": "preset"
 }

@@ -1,0 +1,50 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/taxincidence/004",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "taxincidence",
+ "method": "tax_incidence",
+ "tile_label": "Tax incidence and deadweight loss",
+ "group": "Microeconomics",
+ "objective": "Who bears a per-unit tax?",
+ "instruction": "A tax incidence and deadweight loss problem. Declared figures: demand_intercept=50.0; demand_slope=1.0; supply_intercept=10.0; supply_slope=1.0; tax_per_unit=5.0.",
+ "inputs": {
+  "demand_intercept": "50.0",
+  "demand_slope": "1.0",
+  "supply_intercept": "10.0",
+  "supply_slope": "1.0",
+  "tax_per_unit": "5.0"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "equilibrium_price_no_tax": "20",
+   "equilibrium_quantity_no_tax": "30.0",
+   "tax_per_unit": "5.0",
+   "consumer_price": "22.5",
+   "producer_price": "17.5",
+   "quantity_traded": "27.50",
+   "consumer_incidence": "2.5",
+   "producer_incidence": "2.5",
+   "consumer_share": "0.5",
+   "producer_share": "0.5",
+   "tax_revenue": "137.500",
+   "deadweight_loss": "6.250"
+  },
+  "contains": [
+   "Tax incidence and deadweight loss",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.450026+00:00",
+ "origin": "uploaded",
+ "source_file": "taxincidence.json"
+}

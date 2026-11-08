@@ -1,0 +1,23 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/okun/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "okun",
+ "method": "output_gap_okun",
+ "tile_label": "Output gap and Okun's law",
+ "group": "Macroeconomics",
+ "objective": "What does the output gap imply for unemployment?",
+ "instruction": "Harbourview's actual GDP is USD 1,900,000,000, potential GDP is USD 2,000,000,000 and the current unemployment rate is 8%. No estimate of the Okun coefficient exists for this economy. Use Okun's law in the gap form (actual - potential) / potential = -b x (u - u*), where b is the Okun coefficient, u is the current unemployment rate and u* is the natural rate. The output gap is actual - potential GDP; a negative gap is a recession. Required: unemployment gap, natural unemployment rate.",
+ "inputs": {
+  "actual_gdp": 1900000000,
+  "potential_gdp": 2000000000,
+  "current_unemployment_rate": 0.08
+ },
+ "expected": {
+  "status": "error"
+ },
+ "created_at": "2026-11-08T06:00:28.972564+00:00",
+ "origin": "uploaded",
+ "source_file": "okun.json"
+}

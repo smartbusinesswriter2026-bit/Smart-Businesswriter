@@ -26,17 +26,17 @@
    "engagements": "5700",
    "spend": "25000",
    "engagement_rate": "0.06",
-   "frequency": "1.5789473684210526315789473684210526315789473684211",
-   "cpm": "166.66666666666666666666666666666666666666666666667",
-   "cost_per_engagement": "4.3859649122807017543859649122807017543859649122807",
+   "frequency": "1.578947368421052631578947368",
+   "cpm": "166.6666666666666666666666667",
+   "cost_per_engagement": "4.385964912280701754385964912",
    "follower_growth": "0.05",
    "posts": "15",
    "engagement_per_post": "380"
   },
   "contains": [
    "Social reach and engagement",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -45,6 +45,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.613170+00:00",
+ "created_at": "2026-11-08T06:09:36.833997+00:00",
  "origin": "preset"
 }

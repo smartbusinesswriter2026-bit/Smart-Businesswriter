@@ -23,11 +23,11 @@
  "expected": {
   "status": "ok",
   "result": {
-   "npv": "267.9461785397172324294788607335564510620859230927",
-   "profitability_index": "1.2679461785397172324294788607335564510620859230927",
-   "mirr": "0.1586852896701918133999078580775923860210519070887",
-   "equivalent_annual_annuity": "84.529196293902176255117431588019823313940960999790",
-   "pv_inflows": "1267.9461785397172324294788607335564510620859230927",
+   "npv": "267.946178539717232429478861",
+   "profitability_index": "1.267946178539717232429478861",
+   "mirr": "0.158685289670191813399907858",
+   "equivalent_annual_annuity": "84.52919629390217625511743167",
+   "pv_inflows": "1267.946178539717232429478861",
    "pv_outflows": "-1000",
    "n_periods": "4",
    "payback_period": "2.5",
@@ -35,8 +35,8 @@
   },
   "contains": [
    "Project ranking metrics",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -45,6 +45,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.269655+00:00",
+ "created_at": "2026-11-08T06:09:36.532628+00:00",
  "origin": "preset"
 }

@@ -29,12 +29,12 @@
    "declared_sources": "350000",
    "amount_to_raise": "167000.00",
    "funding_surplus": "0",
-   "funded_share": "0.67698259187620889748549323017408123791102514506770"
+   "funded_share": "0.6769825918762088974854932302"
   },
   "contains": [
    "Start-up capital and amount to raise",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -43,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.500195+00:00",
+ "created_at": "2026-11-08T06:09:36.735404+00:00",
  "origin": "preset"
 }

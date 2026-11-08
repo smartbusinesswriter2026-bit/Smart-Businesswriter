@@ -1,0 +1,43 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/ppp/007",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "ppp",
+ "method": "exchange_rate_ppp",
+ "tile_label": "Purchasing-power parity",
+ "group": "International",
+ "objective": "Is the exchange rate at purchasing-power parity?",
+ "instruction": "A purchasing-power parity problem. Declared figures: price_domestic=62.5; price_foreign=62.5; nominal_rate=0.125; domestic_inflation=12.5; foreign_inflation=12.5.",
+ "inputs": {
+  "price_domestic": "62.5",
+  "price_foreign": "62.5",
+  "nominal_rate": "0.125",
+  "domestic_inflation": "12.5",
+  "foreign_inflation": "12.5"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "ppp_rate": "1",
+   "real_exchange_rate": "0.125",
+   "misalignment": "-0.875",
+   "expected_nominal_rate": "0.125",
+   "expected_depreciation": "0"
+  },
+  "contains": [
+   "Purchasing-power parity",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.972701+00:00",
+ "origin": "uploaded",
+ "source_file": "ppp.json"
+}

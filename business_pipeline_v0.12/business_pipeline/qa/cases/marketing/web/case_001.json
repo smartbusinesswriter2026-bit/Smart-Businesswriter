@@ -40,33 +40,33 @@
    "total_conversions": "2850",
    "total_revenue": "1370000",
    "blended_conversion_rate": "0.038",
-   "revenue_per_session": "18.266666666666666666666666666666666666666666666667",
+   "revenue_per_session": "18.26666666666666666666666667",
    "sessions_1": "42000",
    "conversions_1": "1350",
    "revenue_1": "680000",
    "session_share_1": "0.56",
-   "conversion_rate_1": "0.032142857142857142857142857142857142857142857142857",
-   "revenue_per_session_1": "16.190476190476190476190476190476190476190476190476",
+   "conversion_rate_1": "0.03214285714285714285714285714",
+   "revenue_per_session_1": "16.19047619047619047619047619",
    "sessions_2": "24000",
    "conversions_2": "960",
    "revenue_2": "430000",
    "session_share_2": "0.32",
    "conversion_rate_2": "0.04",
-   "revenue_per_session_2": "17.916666666666666666666666666666666666666666666667",
+   "revenue_per_session_2": "17.91666666666666666666666667",
    "sessions_3": "9000",
    "conversions_3": "540",
    "revenue_3": "260000",
    "session_share_3": "0.12",
    "conversion_rate_3": "0.06",
-   "revenue_per_session_3": "28.888888888888888888888888888888888888888888888889",
+   "revenue_per_session_3": "28.88888888888888888888888889",
    "organic_impressions": "600000",
    "organic_clicks": "24000",
    "organic_ctr": "0.04"
   },
   "contains": [
    "Web traffic and conversion by channel",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -75,6 +75,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.615100+00:00",
+ "created_at": "2026-11-08T06:09:36.834906+00:00",
  "origin": "preset"
 }

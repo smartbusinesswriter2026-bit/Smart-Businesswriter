@@ -39,8 +39,8 @@
    "reach_pct_1": "0.45",
    "impressions_1": "3600000",
    "grp_1": "360.00",
-   "cpm_1": "333.33333333333333333333333333333333333333333333333",
-   "cpp_1": "3333.3333333333333333333333333333333333333333333333",
+   "cpm_1": "333.3333333333333333333333333",
+   "cpp_1": "3333.333333333333333333333333",
    "reach_2": "300000",
    "reach_pct_2": "0.3",
    "impressions_2": "3600000",
@@ -60,12 +60,12 @@
    "total_cost": "1830000",
    "blended_cpm": "238.28125000",
    "net_reach": "661200.00000",
-   "average_frequency": "11.615245009074410163339382940108892921960072595281"
+   "average_frequency": "11.61524500907441016333938294"
   },
   "contains": [
    "Reach, frequency and rating points",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -74,6 +74,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.617832+00:00",
+ "created_at": "2026-11-08T06:09:36.835907+00:00",
  "origin": "preset"
 }

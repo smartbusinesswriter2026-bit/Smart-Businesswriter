@@ -1,0 +1,47 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/socialwelfare/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "socialwelfare",
+ "method": "social_welfare",
+ "tile_label": "Social welfare functions",
+ "group": "Welfare policy",
+ "objective": "Compare utilitarian, Rawlsian and Nash welfare",
+ "instruction": "A social welfare functions problem. Declared figures: incomes=['7.5', '15.0', '22.5']; welfare_function=utilitarian.",
+ "inputs": {
+  "incomes": [
+   "7.5",
+   "15.0",
+   "22.5"
+  ],
+  "welfare_function": "utilitarian"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "n": "3",
+   "mean_income": "15.0",
+   "min_income": "7.5",
+   "max_income": "22.5",
+   "utilitarian_welfare": "45.0",
+   "rawlsian_welfare": "7.5",
+   "nash_welfare": "13.628404446241047441684088172454453768211578473560",
+   "social_welfare": "45.0"
+  },
+  "contains": [
+   "Social welfare functions",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.390337+00:00",
+ "origin": "uploaded",
+ "source_file": "socialwelfare.json"
+}

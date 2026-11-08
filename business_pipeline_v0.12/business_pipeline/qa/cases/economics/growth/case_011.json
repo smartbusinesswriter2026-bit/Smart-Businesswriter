@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/growth/011",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "growth",
+ "method": "growth_rate",
+ "tile_label": "Growth rate and CAGR",
+ "group": "Macroeconomics",
+ "objective": "What compound growth rate does this series imply?",
+ "instruction": "Greenfield's output grew but its population grew faster: Real output was USD 640,000,000 at the start and USD 701,000,000 at the end of a span of 7 year(s), while the population went from 5,000,000 to 5,900,000. Use compound (geometric) annual rates: g = (end / start)^(1/periods) - 1, applied separately to output, to population and to output per person. Periods are years. Required: total growth rate, average annual growth rate, population growth rate, per capita start, per capita end, per capita annual growth rate, growth gap.",
+ "inputs": {
+  "start_value": 640000000,
+  "end_value": 701000000,
+  "periods": 7,
+  "population_start": 5000000,
+  "population_end": 5900000
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "total_growth_rate": 0.0953,
+   "average_annual_growth_rate": 0.0131,
+   "population_growth_rate": 0.0239,
+   "per_capita_start": 128.0,
+   "per_capita_end": 118.81,
+   "per_capita_annual_growth_rate": -0.0106,
+   "growth_gap": -0.0108,
+   "start_value": "640000000",
+   "end_value": "701000000",
+   "periods": "7",
+   "total_growth": "0.0953125",
+   "cagr": "0.013090614560377308174075231",
+   "doubling_time_years": "55.00123746514522565853836187",
+   "per_capita_cagr": "-0.0105828502245606416486778967"
+  },
+  "contains": [
+   "Growth rate and CAGR",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:48:02.762639+00:00",
+ "origin": "uploaded",
+ "source_file": "growth.json"
+}

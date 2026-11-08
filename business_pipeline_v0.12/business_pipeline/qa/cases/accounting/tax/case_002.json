@@ -1,0 +1,50 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/tax/002",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "tax",
+ "method": "tax_declared",
+ "tile_label": "Tax on declared rates",
+ "group": "Tax and reporting",
+ "objective": "What is the tax charge on the declared income?",
+ "instruction": "An accounting tax on declared rates problem. Declared figures: taxable_income=15.0; income_tax_rate=0.15; vat_output_tax=15.0; vat_input_tax=15.0; temporary_difference=15.0; deferred_tax_rate=0.15.",
+ "inputs": {
+  "taxable_income": "15.0",
+  "income_tax_rate": "0.15",
+  "vat_output_tax": "15.0",
+  "vat_input_tax": "15.0",
+  "temporary_difference": "15.0",
+  "deferred_tax_rate": "0.15"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "taxable_income": "15.0",
+   "income_tax_rate": "0.15",
+   "income_tax": "2.250",
+   "net_income_after_tax": "12.750",
+   "vat_output_tax": "15.0",
+   "vat_input_tax": "15.0",
+   "vat_payable": "0.0",
+   "temporary_difference": "15.0",
+   "deferred_tax_rate": "0.15",
+   "deferred_tax": "2.250",
+   "total_tax_charge": "4.500"
+  },
+  "contains": [
+   "Tax on declared rates",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.897509+00:00",
+ "origin": "uploaded",
+ "source_file": "tax-cases.json"
+}

@@ -1,0 +1,43 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/moneymultiplier/004",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "moneymultiplier",
+ "method": "money_multiplier",
+ "tile_label": "Money multiplier",
+ "group": "Macroeconomics",
+ "objective": "How much money does this base support?",
+ "instruction": "A money multiplier problem. Declared figures: monetary_base=15.0; reserve_ratio=0.15; currency_drain_ratio=0.15.",
+ "inputs": {
+  "monetary_base": "15.0",
+  "reserve_ratio": "0.15",
+  "currency_drain_ratio": "0.15"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "monetary_base": "15.0",
+   "reserve_ratio": "0.15",
+   "currency_drain_ratio": "0.15",
+   "simple_money_multiplier": "6.6666666666666666666666666666666666666666666666667",
+   "extended_money_multiplier": "3.8333333333333333333333333333333333333333333333333",
+   "money_supply_simple": "100.00000000000000000000000000000000000000000000000",
+   "money_supply_extended": "57.500000000000000000000000000000000000000000000000"
+  },
+  "contains": [
+   "Money multiplier",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.757928+00:00",
+ "origin": "uploaded",
+ "source_file": "moneymultiplier.json"
+}

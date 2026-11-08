@@ -24,7 +24,7 @@ from . import case_store
 from . import documents
 from . import paper_batch
 
-MAX_UPLOAD = 5 * 1024 * 1024
+MAX_UPLOAD = 25 * 1024 * 1024
 
 
 def _header(text):
@@ -187,7 +187,7 @@ def _store(subject, tile_key, filename, instruction, inputs, recorded, expected=
         "expected": expected or {
             "status": "ok",
             "result": case_store._recorded(recorded),
-            "contains": [tile.get("label") or tile_key, "Declared inputs", "References"],
+            "contains": [tile.get("label") or tile_key, "What you declared", "How the figures were checked"],
             "xlsx_sheets": ["Summary", "Inputs", "Results", "Record"],
         },
         "created_at": case_store._now(),
@@ -200,6 +200,18 @@ def _store(subject, tile_key, filename, instruction, inputs, recorded, expected=
 
 def upload(subject, tile_key, filename, raw):
     """Parse one uploaded file, gate it, and store it as a case."""
+    try:
+        import time as _t
+        _debug = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                              "state", "upload_debug.log")
+        os.makedirs(os.path.dirname(_debug), exist_ok=True)
+        with open(_debug, "a", encoding="utf-8") as _fh:
+            _fh.write("%s | %s | %s | %s bytes | %r\n" % (
+                _t.strftime("%Y-%m-%dT%H:%M:%S"), subject, filename,
+                len(raw) if isinstance(raw, (bytes, bytearray)) else -1,
+                bytes(raw)[:60] if isinstance(raw, (bytes, bytearray)) else raw))
+    except Exception:
+        pass
     if not isinstance(raw, (bytes, bytearray)) or not raw:
         raise ValueError("the uploaded file is empty")
     if len(raw) > MAX_UPLOAD:
@@ -215,12 +227,16 @@ def upload(subject, tile_key, filename, raw):
             raise ValueError("the JSON is not readable: " + str(error)[:160])
         if not isinstance(document, dict):
             raise ValueError("a JSON case must be an object")
+        if isinstance(document.get("problems"), list):
+            from . import case_upload_bundle as _cub
+            return _cub.upload_bundle(subject, tile_key, filename, raw)
         if document.get("tile") and document["tile"] != tile_key:
             raise ValueError("the case names tile %r, but %r was selected"
                              % (document.get("tile"), tile_key))
         inputs = document.get("inputs")
         if not isinstance(inputs, dict) or not inputs:
-            raise ValueError("the case declares no inputs")
+            raise ValueError("the case declares no inputs (keys seen: %s)"
+                             % (", ".join(sorted(str(k) for k in document)) or "none"))
         instruction = document.get("instruction") or info["brief"]
         recorded = _dry_run(tile, inputs)
         expected = document.get("expected") if isinstance(document.get("expected"), dict) else None
@@ -228,7 +244,7 @@ def upload(subject, tile_key, filename, raw):
             expected.setdefault("status", "ok")
             expected.setdefault("result", case_store._recorded(recorded))
             expected.setdefault("contains", [tile.get("label") or tile_key,
-                                            "Declared inputs", "References"])
+                                            "What you declared", "How the figures were checked"])
             expected.setdefault("xlsx_sheets", ["Summary", "Inputs", "Results", "Record"])
         return _store(subject, tile_key, filename, instruction, inputs, recorded, expected)
 

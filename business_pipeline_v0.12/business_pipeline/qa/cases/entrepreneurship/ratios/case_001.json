@@ -39,7 +39,7 @@
    "debt_to_equity": "1.4",
    "equity_multiplier": "2.4",
    "interest_cover": "7.5",
-   "asset_turnover": "1.6666666666666666666666666666666666666666666666667",
+   "asset_turnover": "1.666666666666666666666666667",
    "receivables_days": "27.375",
    "inventory_days": "36.5",
    "payables_days": "27.375",
@@ -47,8 +47,8 @@
   },
   "contains": [
    "Financial statement ratios",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -57,6 +57,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.495563+00:00",
+ "created_at": "2026-11-08T06:09:36.732203+00:00",
  "origin": "preset"
 }

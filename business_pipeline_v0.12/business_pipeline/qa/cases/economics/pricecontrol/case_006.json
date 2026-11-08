@@ -1,0 +1,50 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/pricecontrol/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "pricecontrol",
+ "method": "price_control",
+ "tile_label": "Price ceilings and floors",
+ "group": "Microeconomics",
+ "objective": "What does a price ceiling or floor do?",
+ "instruction": "A price ceilings and floors problem. Declared figures: demand_intercept=75.0; demand_slope=1.5; supply_intercept=15.0; supply_slope=1.5; control_price=37.5; control_type=ceiling.",
+ "inputs": {
+  "demand_intercept": "75.0",
+  "demand_slope": "1.5",
+  "supply_intercept": "15.0",
+  "supply_slope": "1.5",
+  "control_price": "37.5",
+  "control_type": "ceiling"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "equilibrium_price": "20",
+   "equilibrium_quantity": "45.0",
+   "control_price": "37.5",
+   "binding": "0",
+   "quantity_demanded_at_control": "18.75",
+   "quantity_supplied_at_control": "71.25",
+   "quantity_traded": "45.0",
+   "quantity_gap": "0",
+   "shortage": "0",
+   "surplus": "0",
+   "deadweight_loss": "0"
+  },
+  "contains": [
+   "Price ceilings and floors",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.000488+00:00",
+ "origin": "uploaded",
+ "source_file": "pricecontrol.json"
+}

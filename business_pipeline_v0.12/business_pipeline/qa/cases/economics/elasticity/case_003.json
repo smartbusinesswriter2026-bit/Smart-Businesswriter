@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/elasticity/003",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "elasticity",
+ "method": "elasticity",
+ "tile_label": "Price elasticity of demand",
+ "group": "Microeconomics",
+ "objective": "How responsive is quantity to a price change?",
+ "instruction": "A Lakeside utility sells a good that people need whatever the price: At a price of USD 8 the quantity demanded is 500 units; after the price changes to USD 10 the quantity demanded is 500 units. Use the midpoint (arc) method: percentage change = change / average of the two values. Price elasticity of demand = percentage change in quantity / percentage change in price, reported as a positive number (absolute value). Revenue = price x quantity. Point elasticity from the start = (change in Q / Q1) / (change in P / P1). Required: percentage change quantity, percentage change price, price elasticity of demand, revenue 1, revenue 2, revenue change, point elasticity from start.",
+ "inputs": {
+  "quantity_1": 500,
+  "price_1": 8,
+  "quantity_2": 500,
+  "price_2": 10
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "percentage_change_quantity": 0.0,
+   "percentage_change_price": 0.2222,
+   "price_elasticity_of_demand": 0.0,
+   "revenue_1": 4000.0,
+   "revenue_2": 5000.0,
+   "revenue_change": 1000.0,
+   "point_elasticity_from_start": 0.0,
+   "price_elasticity": "0E+28",
+   "absolute_elasticity": "0E+28",
+   "pct_change_quantity": "0",
+   "pct_change_price": "0.2222222222222222222222222222",
+   "total_revenue_1": "4000",
+   "total_revenue_2": "5000",
+   "elastic": "0",
+   "unit_elastic": "0"
+  },
+  "contains": [
+   "Price elasticity of demand",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:46:54.396355+00:00",
+ "origin": "uploaded",
+ "source_file": "elasticity.json"
+}

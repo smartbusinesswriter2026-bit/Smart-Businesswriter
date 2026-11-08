@@ -39,15 +39,15 @@
    "capacity_3": "160",
    "demand": "50",
    "capacity_gap": "10",
-   "utilisation_1": "0.52083333333333333333333333333333333333333333333333",
-   "utilisation_2": "0.83333333333333333333333333333333333333333333333333",
+   "utilisation_1": "0.5208333333333333333333333333",
+   "utilisation_2": "0.8333333333333333333333333333",
    "utilisation_3": "0.3125",
-   "bottleneck_utilisation": "0.83333333333333333333333333333333333333333333333333"
+   "bottleneck_utilisation": "0.8333333333333333333333333333"
   },
   "contains": [
    "Capacity and bottleneck",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -56,6 +56,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.489183+00:00",
+ "created_at": "2026-11-08T06:09:36.726323+00:00",
  "origin": "preset"
 }

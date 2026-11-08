@@ -1,0 +1,46 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/loan/010",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "loan",
+ "method": "loan_amortization",
+ "tile_label": "Loan amortization",
+ "group": "Working capital and financing",
+ "objective": "What is the monthly payment on this loan?",
+ "instruction": "An accounting loan amortization problem. Declared figures: principal=100; annual_rate=0.95; years=50; payments_per_year=50.",
+ "inputs": {
+  "principal": "100",
+  "annual_rate": "0.95",
+  "years": "50",
+  "payments_per_year": "50"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "payment": "1.9000000000000000000069709759575761455035669018255",
+   "total_paid": "4750.0000000000000000174274398939403637589172545638",
+   "total_interest": "4650.0000000000000000174274398939403637589172545638",
+   "principal": "100",
+   "periodic_rate": "0.019",
+   "effective_annual_rate": "1.5627674558415722806114313003757243563449022655836",
+   "n_payments": "2500",
+   "first_interest": "1.900",
+   "first_principal": "6.9709759575761455035669018255E-21"
+  },
+  "contains": [
+   "Loan amortization",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.890771+00:00",
+ "origin": "uploaded",
+ "source_file": "loan-cases.json"
+}

@@ -1,0 +1,59 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/depreciation/010",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "depreciation",
+ "method": "depreciation_schedule",
+ "tile_label": "Depreciation schedule",
+ "group": "Adjustments and depreciation",
+ "objective": "What is the depreciation schedule for the equipment?",
+ "instruction": "An accounting depreciation schedule problem. Declared figures: cost=100000; salvage=10; life=5; method=straight_line; declining_rate=0.1.",
+ "inputs": {
+  "cost": "100000",
+  "salvage": "10",
+  "life": "5",
+  "method": "straight_line",
+  "declining_rate": "0.1"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "depreciation_1": "19998",
+   "accumulated_1": "19998",
+   "carrying_1": "80002",
+   "depreciation_2": "19998",
+   "accumulated_2": "39996",
+   "carrying_2": "60004",
+   "depreciation_3": "19998",
+   "accumulated_3": "59994",
+   "carrying_3": "40006",
+   "depreciation_4": "19998",
+   "accumulated_4": "79992",
+   "carrying_4": "20008",
+   "depreciation_5": "19998",
+   "accumulated_5": "99990",
+   "carrying_5": "10",
+   "cost": "100000",
+   "salvage": "10",
+   "life": "5",
+   "rate": "0.1",
+   "total_depreciation": "99990",
+   "final_carrying": "10"
+  },
+  "contains": [
+   "Depreciation schedule",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:14:44.621400+00:00",
+ "origin": "uploaded",
+ "source_file": "depreciation-cases.json"
+}

@@ -1,0 +1,60 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/nationalincome/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "nationalincome",
+ "method": "national_income",
+ "tile_label": "GDP and national income",
+ "group": "Macroeconomics",
+ "objective": "What is GDP by the expenditure approach?",
+ "instruction": "Northport is a small economy whose price level in the base year is 100. This year household consumption is USD 6,000,000, gross investment is USD 1,500,000, government spending is USD 2,000,000, exports are USD 1,000,000 and imports are USD 900,000. Net factor income from abroad is USD 200,000, depreciation is USD 500,000, the population is 1,000 people and the GDP deflator is 100. Use the expenditure method for GDP, gross national income (GNI) = GDP + net factor income from abroad, net national income (NNI) = GNI - depreciation, and real GDP = nominal GDP / GDP deflator x 100 (base year = 100). Per-person figures divide by the population. Required: gdp, net exports, gni, nni, real gdp, gdp per capita, real gdp per capita.",
+ "inputs": {
+  "consumption": 6000000,
+  "investment": 1500000,
+  "government_spending": 2000000,
+  "exports": 1000000,
+  "imports": 900000,
+  "net_factor_income": 200000,
+  "depreciation": 500000,
+  "population": 1000,
+  "gdp_deflator": 100
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "gdp": 9600000.0,
+   "net_exports": 100000.0,
+   "gni": 9800000.0,
+   "nni": 9300000.0,
+   "real_gdp": 9600000.0,
+   "gdp_per_capita": 9600.0,
+   "real_gdp_per_capita": 9600.0,
+   "gnp": "9800000",
+   "nnp": "9300000",
+   "consumption": "6000000",
+   "investment": "1500000",
+   "government_spending": "2000000",
+   "exports": "1000000",
+   "imports": "900000",
+   "net_factor_income": "200000",
+   "depreciation": "500000",
+   "population": "1000",
+   "gdp_deflator": "100"
+  },
+  "contains": [
+   "GDP and national income",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:50:24.473798+00:00",
+ "origin": "uploaded",
+ "source_file": "nationalincome.json"
+}

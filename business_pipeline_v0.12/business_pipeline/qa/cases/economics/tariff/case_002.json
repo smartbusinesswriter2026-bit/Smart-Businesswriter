@@ -1,0 +1,48 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/tariff/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "tariff",
+ "method": "tariff_welfare",
+ "tile_label": "Tariff welfare",
+ "group": "International",
+ "objective": "What does a tariff cost the small country?",
+ "instruction": "A tariff welfare problem. Declared figures: demand_intercept=25.0; demand_slope=0.5; supply_intercept=5.0; supply_slope=0.5; world_price=12.5; tariff_per_unit=2.5.",
+ "inputs": {
+  "demand_intercept": "25.0",
+  "demand_slope": "0.5",
+  "supply_intercept": "5.0",
+  "supply_slope": "0.5",
+  "world_price": "12.5",
+  "tariff_per_unit": "2.5"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "domestic_price": "15.0",
+   "quantity_demanded": "17.50",
+   "quantity_supplied": "12.50",
+   "imports": "5.00",
+   "imports_free_trade": "7.50",
+   "tariff_revenue": "12.500",
+   "production_dwloss": "1.5625",
+   "consumption_dwloss": "1.5625",
+   "total_dwloss": "3.125"
+  },
+  "contains": [
+   "Tariff welfare",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.424297+00:00",
+ "origin": "uploaded",
+ "source_file": "tariff.json"
+}

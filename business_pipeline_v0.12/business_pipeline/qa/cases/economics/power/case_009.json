@@ -1,0 +1,51 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/power/009",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "power",
+ "method": "power_analysis",
+ "tile_label": "Power and sample size",
+ "group": "Quantitative core",
+ "objective": "Size a study to detect a stated effect",
+ "instruction": "A power and sample size problem. Declared figures: design=two_sample; effect=2.5; n1=250.0; n2=250.0; sd1=3.75; sd2=3.75.",
+ "inputs": {
+  "design": "two_sample",
+  "effect": "2.5",
+  "n1": "250.0",
+  "n2": "250.0",
+  "sd1": "3.75",
+  "sd2": "3.75",
+  "alpha": "0.05",
+  "tails": "two_sided",
+  "target_power": "0.8"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "power": "0.9999999803084503",
+   "mde": "0.9396802488688757",
+   "se": "0.33541019662496846",
+   "ncp": "7.453559924999299",
+   "z_alpha": "1.9599639845400536",
+   "alpha": "0.05",
+   "target_power": "0.8",
+   "n1": "250.0",
+   "n2": "250.0"
+  },
+  "contains": [
+   "Power and sample size",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.949436+00:00",
+ "origin": "uploaded",
+ "source_file": "power.json"
+}

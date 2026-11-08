@@ -36,6 +36,7 @@ from .. import methods
 from . import capabilities
 from . import chat as conductor
 from . import paper
+from . import session_paper
 from . import sources as source_finder
 from . import spreadsheets
 from . import subjects as subject_index
@@ -496,6 +497,49 @@ def _workbook_bundle(subject, tile, objective, inputs, recorded):
     }
 
 
+def _result_sentence(tile, inputs, recorded):
+    """One honest sentence: what the method gives on the declared figures."""
+    method = methods.LIBRARY.get(tile.get("method") or "")
+    label = str(tile.get("label") or tile.get("key") or "").rstrip(" .?!").lower()
+    pairs = [(name, value) for name, value in (recorded or {}).items()
+             if not str(name).startswith("_")]
+    if not pairs:
+        return ("Run on the declared figures, the %s records no result. "
+                "The inputs above are what it used." % label)
+    text = "; ".join(session_paper._render(name, value, method)
+                     for name, value in pairs[:4])
+    return "Run on the declared figures, the %s gives %s." % (label, text)
+
+
+def _tile_delivery(tile, inputs, recorded):
+    """The record the real tile download renders, built from the frozen method.
+
+    The preview and the student's download now go through the same renderer
+    (`session_paper`), so the paper is the same document in both places: the
+    result, what was declared and computed, the assumptions, the limitations
+    and how the figures were checked.  No framework section, and no reference
+    list unless a source was actually declared.
+    """
+    method = methods.LIBRARY.get(tile.get("method") or "")
+    precision = getattr(method, "output_precision", {}) or {}
+    units = getattr(method, "output_units", {}) or {}
+    artifacts = [{"id": str(name), "metric": str(name), "value": value,
+                  "unit": units.get(name, ""), "precision": precision.get(name),
+                  "derivation": ""}
+                 for name, value in (recorded or {}).items()
+                 if not str(name).startswith("_")]
+    appendix = {
+        "method": {"id": getattr(method, "name", None) or tile.get("method") or ""},
+        "reperform": {"inputs": inputs or {}, "outputs": recorded or {}},
+        "assumptions": list(getattr(method, "assumptions", ()) or ()),
+        "limitations": list(getattr(method, "limitations", ()) or ()),
+        "tests": list(getattr(method, "test_names", ()) or ()),
+        "honesty": {},
+        "artifacts": artifacts,
+    }
+    return {"report": _result_sentence(tile, inputs, recorded), "appendix": appendix}
+
+
 def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpus", format="docx",
                  inputs=None, instruction=None):
     """Generate one tile's paper and, when asked, its workbook.
@@ -579,7 +623,14 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
                     "forecast any figure the inputs do not contain.")
     state = conductor.draft(state, implications=implications)
     state = _tidy(state, tile, objective, source_count, background)
-    data = conductor.docx_bytes(state, byline=["Smart Business Writer", "Tile preview"])
+    # The download and the preview are the same paper: render the tile's record
+    # through the renderer the student's download uses, so the sections are the
+    # result, the declared/computed figures, the assumptions, the limitations and
+    # the checks.  The framework outline the conductor builds is not printed.
+    delivery = _tile_delivery(tile, declared, recorded)
+    title = "%s: %s" % (tile.get("label") or tile_key, str(objective).rstrip(" .?!"))
+    paper_sections = session_paper.sections(delivery, title=title)
+    data = session_paper.docx_bytes(delivery, title=title)
     xlsx = None
     if str(format or "docx").lower() in ("xlsx", "both", "excel"):
         try:
@@ -598,8 +649,8 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
         "bytes": data,
         "xlsx_filename": _safe_name("%s - %s" % (subject["label"], tile.get("label") or tile_key)) + ".xlsx",
         "xlsx": xlsx,
-        "sections": state["draft"].get("outline") or [],
-        "title": state["draft"].get("title") or "",
+        "sections": [paper.section(heading, paper.H1, lines) for heading, lines in paper_sections],
+        "title": title,
         "sources": len(state.get("sources") or []),
         "background": len(background),
         "gaps": len(state.get("gaps") or []),

@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/chi-square/009",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "chi_square",
+ "method": "chi_square",
+ "tile_label": "Chi-square association",
+ "group": "Quantitative core",
+ "objective": "Is the outcome category associated with the treatment group?",
+ "instruction": "A chi-square association problem. Declared figures: table=[[10, 20], [30, 40]]; alpha=0.05.",
+ "inputs": {
+  "table": [
+   [
+    10,
+    20
+   ],
+   [
+    30,
+    40
+   ]
+  ],
+  "alpha": "0.05"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "chi_squared": "0.79365079365079365079365079365079365079365079365078",
+   "df": "1",
+   "p_value": "0.3729984836134872",
+   "cramers_v": "0.089087080637474794894851160293251173851333804947112",
+   "n_total": "100",
+   "n_cells": "4",
+   "min_expected_count": "12",
+   "alpha": "0.05"
+  },
+  "contains": [
+   "Chi-square association",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.280131+00:00",
+ "origin": "uploaded",
+ "source_file": "chi_square.json"
+}

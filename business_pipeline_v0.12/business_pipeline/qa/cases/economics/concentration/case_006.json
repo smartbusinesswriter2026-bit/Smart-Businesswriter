@@ -1,0 +1,45 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/concentration/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "concentration",
+ "method": "market_concentration",
+ "tile_label": "Market concentration (HHI)",
+ "group": "Microeconomics",
+ "objective": "How concentrated is this market?",
+ "instruction": "A market concentration (hhi) problem. Declared figures: firm_revenues=['300.0', '225.0', '150.0', '75.0'].",
+ "inputs": {
+  "firm_revenues": [
+   "300.0",
+   "225.0",
+   "150.0",
+   "75.0"
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "n_firms": "4",
+   "total_revenue": "750.0",
+   "hhi": "3000.00",
+   "cr1": "40.0",
+   "cr4": "100.0",
+   "effective_n": "3.3333333333333333333333333333333333333333333333333"
+  },
+  "contains": [
+   "Market concentration (HHI)",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.326426+00:00",
+ "origin": "uploaded",
+ "source_file": "concentration.json"
+}

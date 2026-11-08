@@ -1,0 +1,43 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/unemployment/007",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "unemployment",
+ "method": "unemployment_rate",
+ "tile_label": "Unemployment and participation",
+ "group": "Macroeconomics",
+ "objective": "What are the unemployment and participation rates?",
+ "instruction": "In Marlow the working-age population is 250,000. Of them 64% are in the labour force and exactly 90% of the labour force has a job. In counts: The labour force is 160,000, the number employed is 144,000 and the working-age population is 250,000. Unemployed = labour force - employed. Unemployment rate = unemployed / labour force. Participation rate = labour force / working-age population. Employment-population ratio = employed / working-age population. Required: unemployed, unemployment rate, participation rate, employment population ratio.",
+ "inputs": {
+  "labour_force": 160000,
+  "employed": 144000,
+  "working_age_population": 250000
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "unemployed": 16000.0,
+   "unemployment_rate": 0.1,
+   "participation_rate": 0.64,
+   "employment_population_ratio": 0.576,
+   "labour_force": "160000",
+   "employed": "144000",
+   "labour_force_participation_rate": "0.64"
+  },
+  "contains": [
+   "Unemployment and participation",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:55:11.213489+00:00",
+ "origin": "uploaded",
+ "source_file": "unemployment.json"
+}

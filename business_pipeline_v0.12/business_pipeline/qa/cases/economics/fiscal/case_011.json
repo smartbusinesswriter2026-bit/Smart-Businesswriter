@@ -1,0 +1,45 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/fiscal/011",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "fiscal",
+ "method": "fiscal_multiplier",
+ "tile_label": "Fiscal multipliers",
+ "group": "Macroeconomics",
+ "objective": "What output change does this fiscal package imply?",
+ "instruction": "A fiscal multipliers problem. Declared figures: mpc=0.95; tax_rate=0.5; government_spending_change=50; tax_change=50.",
+ "inputs": {
+  "mpc": "0.95",
+  "tax_rate": "0.5",
+  "government_spending_change": "50",
+  "tax_change": "50"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "mpc": "0.95",
+   "tax_rate": "0.5",
+   "government_spending_multiplier": "1.9047619047619047619047619047619047619047619047619",
+   "tax_multiplier": "-1.8095238095238095238095238095238095238095238095238",
+   "balanced_budget_multiplier": "0.095238095238095238095238095238095238095238095238095",
+   "government_spending_change": "50",
+   "tax_change": "50",
+   "output_change": "4.761904761904761904761904761904761904761904761905"
+  },
+  "contains": [
+   "Fiscal multipliers",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.524569+00:00",
+ "origin": "uploaded",
+ "source_file": "fiscal.json"
+}

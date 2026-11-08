@@ -24,15 +24,15 @@
    "market_risk_premium": "0.06",
    "risk_free_rate": "0.04",
    "market_return": "0.10",
-   "unlevered_beta": "0.84507042253521126760563380281690140845070422535211",
-   "relevered_beta": "1.2000000000000000000000000000000000000000000000000",
+   "unlevered_beta": "0.8450704225352112676056338028",
+   "relevered_beta": "1.200000000000000000000000000",
    "debt_to_equity": "0.6",
    "tax_rate": "0.30"
   },
   "contains": [
    "CAPM and beta",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -41,6 +41,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.271228+00:00",
+ "created_at": "2026-11-08T06:09:36.533605+00:00",
  "origin": "preset"
 }

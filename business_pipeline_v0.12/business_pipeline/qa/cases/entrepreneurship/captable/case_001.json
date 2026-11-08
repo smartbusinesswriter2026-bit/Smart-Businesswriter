@@ -25,17 +25,17 @@
    "price_per_share": "4",
    "new_shares": "250000",
    "option_pool_pct": "0.10",
-   "option_pool_shares": "138888.88888888888888888888888888888888888888888889",
-   "total_shares": "1388888.8888888888888888888888888888888888888888889",
-   "founder_pct": "0.71999999999999999999999999999999999999999999999999",
-   "investor_pct": "0.18000000000000000000000000000000000000000000000000",
+   "option_pool_shares": "138888.8888888888888888888889",
+   "total_shares": "1388888.888888888888888888889",
+   "founder_pct": "0.7199999999999999999999999999",
+   "investor_pct": "0.1800000000000000000000000000",
    "pool_pct_actual": "0.1",
-   "founder_dilution": "0.28000000000000000000000000000000000000000000000001"
+   "founder_dilution": "0.2800000000000000000000000001"
   },
   "contains": [
    "Cap table and dilution",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -44,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.526142+00:00",
+ "created_at": "2026-11-08T06:09:36.756727+00:00",
  "origin": "preset"
 }

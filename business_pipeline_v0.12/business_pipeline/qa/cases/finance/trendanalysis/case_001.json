@@ -57,26 +57,26 @@
   "status": "ok",
   "result": {
    "n_periods": "4",
-   "revenue_cagr": "0.1000000000000000000000000000000000000000000000000",
+   "revenue_cagr": "0.100000000000000000000000000",
    "revenue_growth_latest": "0.1",
    "revenue_index_latest": "133.100",
-   "gross_margin_latest": "0.42900075131480090157776108189331329827197595792637",
-   "operating_margin_latest": "0.23365890308039068369646882043576258452291510142750",
-   "net_margin_latest": "0.14274981217129977460555972952667167543200601051841",
-   "common_size_cost_of_sales": "0.57099924868519909842223891810668670172802404207363",
-   "common_size_operating_expenses": "0.19534184823441021788129226145755071374906085649887",
-   "gross_margin_change": "0.02900075131480090157776108189331329827197595792637",
-   "net_margin_change": "0.02274981217129977460555972952667167543200601051841",
-   "net_income_cagr": "0.1655317761968113601553382456298647241030490193958",
-   "net_income_index_latest": "158.33333333333333333333333333333333333333333333333",
-   "net_income_growth_total": "0.58333333333333333333333333333333333333333333333333",
+   "gross_margin_latest": "0.4290007513148009015777610819",
+   "operating_margin_latest": "0.2336589030803906836964688204",
+   "net_margin_latest": "0.1427498121712997746055597295",
+   "common_size_cost_of_sales": "0.5709992486851990984222389181",
+   "common_size_operating_expenses": "0.1953418482344102178812922615",
+   "gross_margin_change": "0.0290007513148009015777610819",
+   "net_margin_change": "0.0227498121712997746055597295",
+   "net_income_cagr": "0.165531776196811360155338246",
+   "net_income_index_latest": "158.3333333333333333333333333",
+   "net_income_growth_total": "0.5833333333333333333333333333",
    "equity_to_assets_latest": "0.5",
-   "asset_growth_latest": "0.0666666666666666666666666666666666666666666666667"
+   "asset_growth_latest": "0.066666666666666666666666667"
   },
   "contains": [
    "Common-size and trend",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -85,6 +85,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.232102+00:00",
+ "created_at": "2026-11-08T06:09:36.501738+00:00",
  "origin": "preset"
 }

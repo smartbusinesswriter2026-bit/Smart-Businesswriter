@@ -19,8 +19,8 @@
   "status": "ok",
   "result": {
    "unit_margin": "37",
-   "margin_pct": "0.75510204081632653061224489795918367346938775510204",
-   "payback_periods": "2.1621621621621621621621621621621621621621621621622",
+   "margin_pct": "0.7551020408163265306122448980",
+   "payback_periods": "2.162162162162162162162162162",
    "price": "49",
    "variable_cost": "12",
    "acquisition_cost": "80",
@@ -30,8 +30,8 @@
   },
   "contains": [
    "Unit economics",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -40,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.566830+00:00",
+ "created_at": "2026-11-08T06:09:36.788386+00:00",
  "origin": "preset"
 }

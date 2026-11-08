@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/demandcurve/004",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "demandcurve",
+ "method": "demand_curve",
+ "tile_label": "Demand line and revenue-max price",
+ "group": "Managerial economics",
+ "objective": "What do our price and quantity observations imply about demand?",
+ "instruction": "A demand line and revenue-max price problem. Declared figures: prices=['5.0', '10.0', '15.0']; quantities=['50.0', '40.0', '30.0'].",
+ "inputs": {
+  "prices": [
+   "5.0",
+   "10.0",
+   "15.0"
+  ],
+  "quantities": [
+   "50.0",
+   "40.0",
+   "30.0"
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "intercept": "60.0",
+   "slope": "-2",
+   "r_squared": "1",
+   "mean_price": "10.0",
+   "mean_quantity": "40.0",
+   "elasticity_at_mean": "-0.50",
+   "revenue_max_price": "15.0",
+   "revenue_max_quantity": "30.0",
+   "revenue_max_revenue": "450.00"
+  },
+  "contains": [
+   "Demand line and revenue-max price",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.448228+00:00",
+ "origin": "uploaded",
+ "source_file": "demandcurve.json"
+}

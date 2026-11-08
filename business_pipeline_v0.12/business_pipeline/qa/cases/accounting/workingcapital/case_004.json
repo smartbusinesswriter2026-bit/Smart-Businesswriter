@@ -1,0 +1,58 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/workingcapital/004",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "workingcapital",
+ "method": "working_capital",
+ "tile_label": "Working capital and EOQ",
+ "group": "Working capital and financing",
+ "objective": "How long is cash tied up in working capital?",
+ "instruction": "An accounting working capital and eoq problem.",
+ "inputs": {
+  "revenue": "20",
+  "cost_of_sales": "200000",
+  "inventory": "20",
+  "receivables": "20",
+  "payables": "20",
+  "annual_demand": "20",
+  "order_cost": "200000",
+  "holding_cost_per_unit": "200000",
+  "discount_percent": "0.02",
+  "credit_terms_days": "30",
+  "discount_days": "10",
+  "days": "20",
+  "daily_demand": "20",
+  "lead_time_days": "20",
+  "safety_stock": "20"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "dso": "20",
+   "dio": "0.0020",
+   "dpo": "0.0020",
+   "cash_conversion_cycle": "20.0000",
+   "net_working_capital": "20",
+   "eoq": "6.324555320336759",
+   "reorder_point": "420",
+   "cost_of_trade_credit": "0.020408163265306122448979591836734693877551020408163",
+   "daily_demand": "20",
+   "n_orders_per_year": "3.1622776601683791639977870888654459927691424276958"
+  },
+  "contains": [
+   "Working capital and EOQ",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:16:23.019436+00:00",
+ "origin": "uploaded",
+ "source_file": "workingcapital-cases.json"
+}

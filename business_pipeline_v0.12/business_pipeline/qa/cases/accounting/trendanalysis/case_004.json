@@ -1,0 +1,84 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/trendanalysis/004",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "trendanalysis",
+ "method": "trend_analysis",
+ "tile_label": "Common-size and trend",
+ "group": "Statement analysis",
+ "objective": "How has the business performed across these years?",
+ "instruction": "An accounting common-size and trend problem. Declared figures: years=['20', '40', '60']; revenue=['20', '40', '60']; cost_of_sales=['20', '40', '60']; operating_expenses=['20', '40', '60']; net_income=['20', '40', '60']; total_assets=['20', '40', '60'].",
+ "inputs": {
+  "years": [
+   "20",
+   "40",
+   "60"
+  ],
+  "revenue": [
+   "20",
+   "40",
+   "60"
+  ],
+  "cost_of_sales": [
+   "20",
+   "40",
+   "60"
+  ],
+  "operating_expenses": [
+   "20",
+   "40",
+   "60"
+  ],
+  "net_income": [
+   "20",
+   "40",
+   "60"
+  ],
+  "total_assets": [
+   "20",
+   "40",
+   "60"
+  ],
+  "equity": [
+   "20",
+   "40",
+   "60"
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "n_periods": "3",
+   "revenue_cagr": "0.7320508075688772935274463415058723669428052538104",
+   "revenue_growth_latest": "0.5",
+   "revenue_index_latest": "300",
+   "gross_margin_latest": "0",
+   "operating_margin_latest": "-1",
+   "net_margin_latest": "1",
+   "common_size_cost_of_sales": "1",
+   "common_size_operating_expenses": "1",
+   "gross_margin_change": "0",
+   "net_margin_change": "0",
+   "net_income_cagr": "0.7320508075688772935274463415058723669428052538104",
+   "net_income_index_latest": "300",
+   "net_income_growth_total": "2",
+   "equity_to_assets_latest": "1",
+   "asset_growth_latest": "0.5"
+  },
+  "contains": [
+   "Common-size and trend",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.796229+00:00",
+ "origin": "uploaded",
+ "source_file": "trendanalysis-cases.json"
+}

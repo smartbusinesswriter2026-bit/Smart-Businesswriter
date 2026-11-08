@@ -1,0 +1,54 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/prospect/011",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "prospect",
+ "method": "prospect_theory",
+ "tile_label": "Prospect theory",
+ "group": "Behavioural economics",
+ "objective": "How does prospect theory value this gamble?",
+ "instruction": "A prospect theory problem. Declared figures: reference_point=1000; outcomes=['80', '120', '150']; probabilities=['0.3', '0.3', '0.4']; loss_aversion=100; gain_curvature=100; loss_curvature=100.",
+ "inputs": {
+  "reference_point": "1000",
+  "outcomes": [
+   "80",
+   "120",
+   "150"
+  ],
+  "probabilities": [
+   "0.3",
+   "0.3",
+   "0.4"
+  ],
+  "loss_aversion": "100",
+  "gain_curvature": "100",
+  "loss_curvature": "100",
+  "probability_weighting": "0.95"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "prospect_value": "-7.3147891072169715627549719786363424369817864139502E+297",
+   "expected_value": "-880.0",
+   "loss_aversion": "100",
+   "gain_curvature": "100",
+   "loss_curvature": "100",
+   "probability_weighting": "0.95"
+  },
+  "contains": [
+   "Prospect theory",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.327431+00:00",
+ "origin": "uploaded",
+ "source_file": "prospect.json"
+}

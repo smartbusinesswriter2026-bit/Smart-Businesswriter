@@ -8,88 +8,21 @@
  "tile_label": "Check a trial balance",
  "group": "Bookkeeping",
  "objective": "Check my trial balance against my journal",
- "instruction": "A business is preparing a accounting analysis. The question is: Check my trial balance against my journal. The tile covers Compare your own trial balance with the one your journal rebuilds to, and see every line that differs or is missing. The declared figures are: journal period {'start': '2026-01-01', 'end': '2026-03-31'}, currency USD, framework IFRS, places 2, chart [{'code': '1000', 'name': 'Cash', 'type': 'asset', 'line': 'Cash', 'role': 'cash'}, {'code': '3000', 'name': 'Capital', 'type': 'equity', 'line': 'Capital', 'role': 'capital'}, {'code': '3100', 'name': 'Retained earnings', 'type': 'equity', 'line': 'Retained earnings', 'role': 'retained_earnings'}], prior closing {'1000': '1000', '3000': '1000'}, opening [{'description': 'opening', 'lines': [{'account': '1000', 'debit': '1000'}, {'account': '3000', 'credit': '1000'}]}], entries [{'date': '2026-02-01', 'description': 'capital introduced', 'lines': [{'account': '1000', 'debit': '500'}, {'account': '3000', 'credit': '500'}]}]; trial balance row 1: code 1000, name Cash, debit 1500, credit 0; row 2: code 3000, name Capital, debit 0, credit 1500. Use check a trial balance in a competitive market and industry context, and report the method's result.",
+ "instruction": "An accounting check a trial balance problem. Declared figures: places=2; trial_balance=[{'code': '1000', 'name': 'Cash', 'debit': '5000', 'credit': '0'}, {'code': '3000', 'name': 'Capital', 'debit': '0', 'credit': '5000'}].",
  "inputs": {
-  "journal": {
-   "period": {
-    "start": "2026-01-01",
-    "end": "2026-03-31"
-   },
-   "currency": "USD",
-   "framework": "IFRS",
-   "places": 2,
-   "chart": [
-    {
-     "code": "1000",
-     "name": "Cash",
-     "type": "asset",
-     "line": "Cash",
-     "role": "cash"
-    },
-    {
-     "code": "3000",
-     "name": "Capital",
-     "type": "equity",
-     "line": "Capital",
-     "role": "capital"
-    },
-    {
-     "code": "3100",
-     "name": "Retained earnings",
-     "type": "equity",
-     "line": "Retained earnings",
-     "role": "retained_earnings"
-    }
-   ],
-   "prior_closing": {
-    "1000": "1000",
-    "3000": "1000"
-   },
-   "opening": [
-    {
-     "description": "opening",
-     "lines": [
-      {
-       "account": "1000",
-       "debit": "1000"
-      },
-      {
-       "account": "3000",
-       "credit": "1000"
-      }
-     ]
-    }
-   ],
-   "entries": [
-    {
-     "date": "2026-02-01",
-     "description": "capital introduced",
-     "lines": [
-      {
-       "account": "1000",
-       "debit": "500"
-      },
-      {
-       "account": "3000",
-       "credit": "500"
-      }
-     ]
-    }
-   ],
-   "schedules": []
-  },
+  "places": "2",
   "trial_balance": [
    {
     "code": "1000",
     "name": "Cash",
-    "debit": "1500",
+    "debit": "5000",
     "credit": "0"
    },
    {
     "code": "3000",
     "name": "Capital",
     "debit": "0",
-    "credit": "1500"
+    "credit": "5000"
    }
   ]
  },
@@ -97,8 +30,8 @@
   "status": "ok",
   "result": {
    "n_submitted": "2",
-   "n_rebuilt": "2",
-   "n_matched": "2",
+   "n_rebuilt": "0",
+   "n_matched": "0",
    "n_differing": "0",
    "n_missing_submitted": "0",
    "n_missing_rebuilt": "0",
@@ -119,6 +52,7 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.202463+00:00",
- "origin": "preset"
+ "created_at": "2026-11-08T06:12:55.728192+00:00",
+ "origin": "uploaded",
+ "source_file": "tbcheck-cases.json"
 }

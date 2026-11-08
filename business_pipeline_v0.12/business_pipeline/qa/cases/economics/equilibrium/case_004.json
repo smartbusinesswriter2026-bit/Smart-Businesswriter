@@ -1,0 +1,44 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/equilibrium/004",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "equilibrium",
+ "method": "demand_supply_equilibrium",
+ "tile_label": "Market equilibrium",
+ "group": "Microeconomics",
+ "objective": "Where do demand and supply meet?",
+ "instruction": "In a tiny market in Lakeside, one unit trades: The quantity demanded is Qd = 7 - 2P and the quantity supplied is Qs = -2 + 1P. Demand is linear, Qd = demand_intercept - demand_slope x P, and supply is linear, Qs = supply_intercept + supply_slope x P, where P is the price in USD and Q is in units. The demand slope is entered as a positive number (the magnitude). Consumer surplus is the triangle between the demand curve and the price up to the equilibrium quantity; producer surplus is the triangle between the price and the supply curve. Required: equilibrium price, equilibrium quantity, consumer surplus, producer surplus, total surplus.",
+ "inputs": {
+  "demand_intercept": 7,
+  "demand_slope": 2,
+  "supply_intercept": -2,
+  "supply_slope": 1
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "equilibrium_price": 3.0,
+   "equilibrium_quantity": 1.0,
+   "consumer_surplus": 0.25,
+   "producer_surplus": 0.5,
+   "total_surplus": 0.75,
+   "demand_choke_price": "3.5",
+   "supply_floor_price": "2"
+  },
+  "contains": [
+   "Market equilibrium",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:47:07.149028+00:00",
+ "origin": "uploaded",
+ "source_file": "equilibrium.json"
+}

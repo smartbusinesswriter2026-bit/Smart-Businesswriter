@@ -1,0 +1,40 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/npv/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "npv",
+ "method": "npv",
+ "tile_label": "Net present value",
+ "group": "Quantitative core",
+ "objective": "Should we invest in this project?",
+ "instruction": "A net present value problem. Declared figures: rate=0.1; cashflows=['10', '20', '30'].",
+ "inputs": {
+  "rate": "0.1",
+  "cashflows": [
+   "10",
+   "20",
+   "30"
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "value": "52.975206611570247933884297520661157024793388429752"
+  },
+  "contains": [
+   "Net present value",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.804079+00:00",
+ "origin": "uploaded",
+ "source_file": "npv.json"
+}

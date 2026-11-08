@@ -1,0 +1,26 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/budgetdebt/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "budgetdebt",
+ "method": "budget_debt",
+ "tile_label": "Budget balance and debt",
+ "group": "Macroeconomics",
+ "objective": "What are the budget balance and the debt ratio?",
+ "instruction": "Harbourview's revenue is USD 74,000,000, spending excluding interest is USD 69,000,000, interest payments are USD 5,200,000 and the debt stock is USD 130,000,000. Nominal GDP is expected to grow 4% next year with inflation of 2%, but the level of nominal GDP has not been reported. Government spending excludes interest. Primary balance = revenue - spending; overall balance = primary balance - interest; a deficit is financed by new borrowing so next year's debt = debt - overall balance. Nominal GDP next year = nominal GDP x (1 + nominal growth rate). Real growth = (1 + nominal growth) / (1 + inflation) - 1. A negative balance is a deficit and a positive balance is a surplus. Required: debt to gdp, overall balance to gdp, debt to gdp next year.",
+ "inputs": {
+  "government_revenue": 74000000,
+  "government_spending": 69000000,
+  "interest_payments": 5200000,
+  "debt_stock": 130000000,
+  "nominal_growth_rate": 0.04,
+  "inflation_rate": 0.02
+ },
+ "expected": {
+  "status": "error"
+ },
+ "created_at": "2026-11-08T05:45:51.392457+00:00",
+ "origin": "uploaded",
+ "source_file": "budgetdebt.json"
+}

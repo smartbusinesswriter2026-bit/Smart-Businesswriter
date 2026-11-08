@@ -1,0 +1,46 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/sroi/010",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "sroi",
+ "method": "sroi",
+ "tile_label": "Social return on investment",
+ "group": "Managerial economics",
+ "objective": "What is the social return on the investment?",
+ "instruction": "A social return on investment problem. Declared figures: investment=5000; benefits=['750', '1500', '2250']; discount_rate=0.5.",
+ "inputs": {
+  "investment": "5000",
+  "benefits": [
+   "750",
+   "1500",
+   "2250"
+  ],
+  "discount_rate": "0.5"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "pv_benefits": "1833.3333333333333333333333333333333333333333333334",
+   "investment": "5000",
+   "sroi_ratio": "0.36666666666666666666666666666666666666666666666668",
+   "net_value": "-3166.6666666666666666666666666666666666666666666666",
+   "n_periods": "3",
+   "discount_rate": "0.5"
+  },
+  "contains": [
+   "Social return on investment",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.419080+00:00",
+ "origin": "uploaded",
+ "source_file": "sroi.json"
+}

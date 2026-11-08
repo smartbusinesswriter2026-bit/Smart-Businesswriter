@@ -1,0 +1,50 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/cba/007",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "cba",
+ "method": "cost_benefit",
+ "tile_label": "Cost-benefit analysis",
+ "group": "Managerial economics",
+ "objective": "Appraise the programme costs against its benefits",
+ "instruction": "A cost-benefit analysis problem. Declared figures: costs=['125.0', '250.0', '375.0']; benefits=['187.5', '375.0', '562.5']; discount_rate=0.125.",
+ "inputs": {
+  "costs": [
+   "125.0",
+   "250.0",
+   "375.0"
+  ],
+  "benefits": [
+   "187.5",
+   "375.0",
+   "562.5"
+  ],
+  "discount_rate": "0.125"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "pv_costs": "572.01646090534979423868312757201646090534979423868",
+   "pv_benefits": "858.02469135802469135802469135802469135802469135803",
+   "net_present_value": "286.00823045267489711934156378600823045267489711935",
+   "n_periods": "3",
+   "discount_rate": "0.125",
+   "benefit_cost_ratio": "1.5000000000000000000000000000000000000000000000000"
+  },
+  "contains": [
+   "Cost-benefit analysis",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.233739+00:00",
+ "origin": "uploaded",
+ "source_file": "cba.json"
+}

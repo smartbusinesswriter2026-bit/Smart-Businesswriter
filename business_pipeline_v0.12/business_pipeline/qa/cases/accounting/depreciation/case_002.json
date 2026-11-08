@@ -1,0 +1,68 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/depreciation/002",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "depreciation",
+ "method": "depreciation_schedule",
+ "tile_label": "Depreciation schedule",
+ "group": "Adjustments and depreciation",
+ "objective": "What is the depreciation schedule for the equipment?",
+ "instruction": "An accounting depreciation schedule problem. Declared figures: cost=150000.0; salvage=15.0; life=8; method=straight_line; declining_rate=0.15.",
+ "inputs": {
+  "cost": "150000.0",
+  "salvage": "15.0",
+  "life": "8",
+  "method": "straight_line",
+  "declining_rate": "0.15"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "depreciation_1": "18748.125",
+   "accumulated_1": "18748.125",
+   "carrying_1": "131251.875",
+   "depreciation_2": "18748.125",
+   "accumulated_2": "37496.250",
+   "carrying_2": "112503.750",
+   "depreciation_3": "18748.125",
+   "accumulated_3": "56244.375",
+   "carrying_3": "93755.625",
+   "depreciation_4": "18748.125",
+   "accumulated_4": "74992.500",
+   "carrying_4": "75007.500",
+   "depreciation_5": "18748.125",
+   "accumulated_5": "93740.625",
+   "carrying_5": "56259.375",
+   "depreciation_6": "18748.125",
+   "accumulated_6": "112488.750",
+   "carrying_6": "37511.250",
+   "depreciation_7": "18748.125",
+   "accumulated_7": "131236.875",
+   "carrying_7": "18763.125",
+   "depreciation_8": "18748.125",
+   "accumulated_8": "149985.000",
+   "carrying_8": "15.000",
+   "cost": "150000.0",
+   "salvage": "15.0",
+   "life": "8",
+   "rate": "0.15",
+   "total_depreciation": "149985.000",
+   "final_carrying": "15.000"
+  },
+  "contains": [
+   "Depreciation schedule",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.916565+00:00",
+ "origin": "uploaded",
+ "source_file": "depreciation-cases.json"
+}

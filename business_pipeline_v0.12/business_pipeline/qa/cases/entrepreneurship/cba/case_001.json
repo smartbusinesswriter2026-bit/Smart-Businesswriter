@@ -25,17 +25,17 @@
  "expected": {
   "status": "ok",
   "result": {
-   "pv_costs": "65327.718388942878738797106144044919555123636756290",
-   "pv_benefits": "80812.007342619587517546701220170607925709966526293",
-   "net_present_value": "15484.288953676708778749595076125688370586329770003",
+   "pv_costs": "65327.71838894287873879710615",
+   "pv_benefits": "80812.00734261958751754670122",
+   "net_present_value": "15484.28895367670877874959507",
    "n_periods": "3",
    "discount_rate": "0.05",
-   "benefit_cost_ratio": "1.2370247933884297520661157024793388429752066115702"
+   "benefit_cost_ratio": "1.237024793388429752066115702"
   },
   "contains": [
    "Cost-benefit analysis",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -44,6 +44,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.535598+00:00",
+ "created_at": "2026-11-08T06:09:36.763502+00:00",
  "origin": "preset"
 }

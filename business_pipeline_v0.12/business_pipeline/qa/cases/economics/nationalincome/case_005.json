@@ -1,0 +1,60 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/nationalincome/005",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "nationalincome",
+ "method": "national_income",
+ "tile_label": "GDP and national income",
+ "group": "Macroeconomics",
+ "objective": "What is GDP by the expenditure approach?",
+ "instruction": "Prices in Marlow have risen 8% since the base year, so the GDP deflator is above 100. This year household consumption is USD 5,400,000, gross investment is USD 1,350,000, government spending is USD 1,800,000, exports are USD 900,000 and imports are USD 1,000,000. Net factor income from abroad is USD 120,000, depreciation is USD 450,000, the population is 4,000 people and the GDP deflator is 108. Use the expenditure method for GDP, gross national income (GNI) = GDP + net factor income from abroad, net national income (NNI) = GNI - depreciation, and real GDP = nominal GDP / GDP deflator x 100 (base year = 100). Per-person figures divide by the population. Required: gdp, gni, nni, real gdp, real gdp per capita.",
+ "inputs": {
+  "consumption": 5400000,
+  "investment": 1350000,
+  "government_spending": 1800000,
+  "exports": 900000,
+  "imports": 1000000,
+  "net_factor_income": 120000,
+  "depreciation": 450000,
+  "population": 4000,
+  "gdp_deflator": 108
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "gdp": 8450000.0,
+   "gni": 8570000.0,
+   "nni": 8120000.0,
+   "real_gdp": 7824074.07,
+   "real_gdp_per_capita": 1956.02,
+   "gnp": "8570000",
+   "nnp": "8120000",
+   "net_exports": "-100000",
+   "consumption": "5400000",
+   "investment": "1350000",
+   "government_spending": "1800000",
+   "exports": "900000",
+   "imports": "1000000",
+   "net_factor_income": "120000",
+   "depreciation": "450000",
+   "population": "4000",
+   "gdp_per_capita": "2112.5",
+   "gdp_deflator": "108"
+  },
+  "contains": [
+   "GDP and national income",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:50:24.478792+00:00",
+ "origin": "uploaded",
+ "source_file": "nationalincome.json"
+}

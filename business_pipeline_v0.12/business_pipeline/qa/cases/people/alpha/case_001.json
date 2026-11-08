@@ -56,17 +56,17 @@
  "expected": {
   "status": "ok",
   "result": {
-   "alpha": "0.88742449203734211971444261394838001098297638660075",
+   "alpha": "0.8874244920373421197144426136",
    "k_items": "4",
    "n": "8",
    "n_excluded": "0",
-   "sum_item_variance": "3.6250000000000000000000000000000000000000000000001",
-   "total_variance": "10.839285714285714285714285714285714285714285714286"
+   "sum_item_variance": "3.624999999999999999999999999",
+   "total_variance": "10.83928571428571428571428571"
   },
   "contains": [
    "Reliability (Cronbach's alpha)",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -75,6 +75,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.625732+00:00",
+ "created_at": "2026-11-08T06:09:36.841951+00:00",
  "origin": "preset"
 }

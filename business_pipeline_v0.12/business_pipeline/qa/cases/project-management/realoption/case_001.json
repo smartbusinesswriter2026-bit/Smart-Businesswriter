@@ -22,19 +22,19 @@
  "expected": {
   "status": "ok",
   "result": {
-   "option_value": "14.789284890418079714154763622338472300563997136830",
+   "option_value": "14.78928489041807971415476368",
    "intrinsic_value": "0",
-   "delta": "0.61705829976021858215957409934291864302259535679160",
-   "up_factor": "1.1435804413868396145077614195366217870140996756256",
-   "down_factor": "0.87444657481836856991997989948457975492837683376011",
-   "risk_neutral_probability": "0.50385183401398584755879631728530481169415206869883",
+   "delta": "0.6170582997602185821595740999",
+   "up_factor": "1.143580441386839614507761420",
+   "down_factor": "0.8744465748183685699199798991",
+   "risk_neutral_probability": "0.5038518340139858475587963175",
    "steps": "5",
    "terminal_nodes": "6"
   },
   "contains": [
    "Real option valuation",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -43,6 +43,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.411244+00:00",
+ "created_at": "2026-11-08T06:09:36.661090+00:00",
  "origin": "preset"
 }

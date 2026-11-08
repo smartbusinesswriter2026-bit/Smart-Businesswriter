@@ -1,0 +1,62 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/nationalincome/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "nationalincome",
+ "method": "national_income",
+ "tile_label": "GDP and national income",
+ "group": "Macroeconomics",
+ "objective": "What is GDP by the expenditure approach?",
+ "instruction": "Southfield's national accountants want the composition of spending. This year household consumption is USD 6,200,000, gross investment is USD 1,800,000, government spending is USD 2,100,000, exports are USD 1,300,000 and imports are USD 1,400,000. Net factor income from abroad is USD 150,000, depreciation is USD 700,000, the population is 5,000 people and the GDP deflator is 125. Use the expenditure method for GDP, gross national income (GNI) = GDP + net factor income from abroad, net national income (NNI) = GNI - depreciation, and real GDP = nominal GDP / GDP deflator x 100 (base year = 100). Per-person figures divide by the population. Required: gdp, consumption share, investment share, government share, net exports share, real gdp, nominal less real gdp.",
+ "inputs": {
+  "consumption": 6200000,
+  "investment": 1800000,
+  "government_spending": 2100000,
+  "exports": 1300000,
+  "imports": 1400000,
+  "net_factor_income": 150000,
+  "depreciation": 700000,
+  "population": 5000,
+  "gdp_deflator": 125
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "gdp": 10000000.0,
+   "consumption_share": 0.62,
+   "investment_share": 0.18,
+   "government_share": 0.21,
+   "net_exports_share": -0.01,
+   "real_gdp": 8000000.0,
+   "nominal_less_real_gdp": 2000000.0,
+   "gnp": "10150000",
+   "nnp": "9450000",
+   "net_exports": "-100000",
+   "consumption": "6200000",
+   "investment": "1800000",
+   "government_spending": "2100000",
+   "exports": "1300000",
+   "imports": "1400000",
+   "net_factor_income": "150000",
+   "depreciation": "700000",
+   "population": "5000",
+   "gdp_per_capita": "2000",
+   "gdp_deflator": "125"
+  },
+  "contains": [
+   "GDP and national income",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:50:24.480084+00:00",
+ "origin": "uploaded",
+ "source_file": "nationalincome.json"
+}

@@ -22,16 +22,16 @@
    "nominal_wage": "100",
    "cpi": "105",
    "labour_productivity": "120",
-   "real_wage": "95.238095238095238095238095238095238095238095238095",
-   "wage_share_of_productivity": "0.79365079365079365079365079365079365079365079365079",
+   "real_wage": "95.23809523809523809523809524",
+   "wage_share_of_productivity": "0.7936507936507936507936507937",
    "vacancies": "10",
    "unemployed": "50",
    "labour_market_tightness": "0.2"
   },
   "contains": [
    "Labour market tightness",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -40,6 +40,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.641158+00:00",
+ "created_at": "2026-11-08T06:09:36.853809+00:00",
  "origin": "preset"
 }

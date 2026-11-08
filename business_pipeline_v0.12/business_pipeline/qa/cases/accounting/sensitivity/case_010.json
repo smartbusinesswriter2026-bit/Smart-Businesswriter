@@ -1,0 +1,59 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/sensitivity/010",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "sensitivity",
+ "method": "sensitivity_table",
+ "tile_label": "Price and volume sensitivity",
+ "group": "Planning and projection",
+ "objective": "What happens to profit if price or volume changes?",
+ "instruction": "An accounting price and volume sensitivity problem. Declared figures: base_price=500; base_units=10000; base_variable_cost=1000000; base_fixed_cost=1000000; price_changes=['100', '200', '300']; volume_changes=['100', '200', '300'].",
+ "inputs": {
+  "base_price": "500",
+  "base_units": "10000",
+  "base_variable_cost": "1000000",
+  "base_fixed_cost": "1000000",
+  "price_changes": [
+   "100",
+   "200",
+   "300"
+  ],
+  "volume_changes": [
+   "100",
+   "200",
+   "300"
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "base_profit": "-9996000000",
+   "base_price": "500",
+   "base_units": "10000",
+   "profit_1_1": "-958996000000",
+   "profit_1_2": "-1908496000000",
+   "profit_1_3": "-2857996000000",
+   "profit_2_1": "-908496000000",
+   "profit_2_2": "-1807996000000",
+   "profit_2_3": "-2707496000000",
+   "profit_3_1": "-857996000000",
+   "profit_3_2": "-1707496000000",
+   "profit_3_3": "-2556996000000"
+  },
+  "contains": [
+   "Price and volume sensitivity",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.947446+00:00",
+ "origin": "uploaded",
+ "source_file": "sensitivity-cases.json"
+}

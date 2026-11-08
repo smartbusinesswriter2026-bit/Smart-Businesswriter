@@ -1,0 +1,45 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/publicgood/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "publicgood",
+ "method": "public_good",
+ "tile_label": "Public goods",
+ "group": "Welfare policy",
+ "objective": "What is the efficient provision of the public good?",
+ "instruction": "A public goods problem. Declared figures: mb1_intercept=75.0; mb1_slope=1.5; mb2_intercept=75.0; mb2_slope=1.5; mc_intercept=75.0; mc_slope=1.5.",
+ "inputs": {
+  "mb1_intercept": "75.0",
+  "mb1_slope": "1.5",
+  "mb2_intercept": "75.0",
+  "mb2_slope": "1.5",
+  "mc_intercept": "75.0",
+  "mc_slope": "1.5"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "efficient_quantity": "16.666666666666666666666666666666666666666666666667",
+   "social_marginal_benefit": "99.999999999999999999999999999999999999999999999999",
+   "marginal_cost": "100.00000000000000000000000000000000000000000000000",
+   "total_benefit": "2083.3333333333333333333333333333333333333333333333",
+   "total_cost": "1458.3333333333333333333333333333333333333333333333",
+   "net_benefit": "625.0000000000000000000000000000000000000000000000"
+  },
+  "contains": [
+   "Public goods",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.343540+00:00",
+ "origin": "uploaded",
+ "source_file": "publicgood.json"
+}

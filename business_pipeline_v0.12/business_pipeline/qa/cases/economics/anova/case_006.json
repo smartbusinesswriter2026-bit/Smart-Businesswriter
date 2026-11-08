@@ -1,0 +1,71 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/anova/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "anova",
+ "method": "anova",
+ "tile_label": "One-way ANOVA",
+ "group": "Quantitative core",
+ "objective": "Do the three teaching formats differ in exam scores?",
+ "instruction": "A one-way anova problem. Declared figures: groups={'a': ['10', '11', '12'], 'b': ['11', '12', '13'], 'c': ['12', '13', '14']}; missing_codes=[]; alpha=0.05.",
+ "inputs": {
+  "groups": {
+   "a": [
+    "10",
+    "11",
+    "12"
+   ],
+   "b": [
+    "11",
+    "12",
+    "13"
+   ],
+   "c": [
+    "12",
+    "13",
+    "14"
+   ]
+  },
+  "missing_codes": [],
+  "alpha": "0.05"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "f_stat": "3",
+   "df_between": "2",
+   "df_within": "6",
+   "p_value": "0.1250000000000001",
+   "eta_squared": "0.5",
+   "n_groups": "3",
+   "n_total": "9",
+   "n_excluded": "0",
+   "grand_mean": "12",
+   "alpha": "0.05",
+   "n_a": "3",
+   "mean_a": "11",
+   "sd_a": "1",
+   "n_b": "3",
+   "mean_b": "12",
+   "sd_b": "1",
+   "n_c": "3",
+   "mean_c": "13",
+   "sd_c": "1"
+  },
+  "contains": [
+   "One-way ANOVA",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.180299+00:00",
+ "origin": "uploaded",
+ "source_file": "anova.json"
+}

@@ -1,0 +1,67 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/welch/003",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "welch",
+ "method": "welch_t",
+ "tile_label": "Welch two-sample t-test",
+ "group": "Quantitative core",
+ "objective": "Do the two teaching methods differ in exam scores?",
+ "instruction": "A welch two-sample t-test problem. Declared figures: groups={'a': ['10', '11', '12'], 'b': ['11', '12', '13']}; missing_codes=[]; confidence_level=0.95; alpha=0.05.",
+ "inputs": {
+  "groups": {
+   "a": [
+    "10",
+    "11",
+    "12"
+   ],
+   "b": [
+    "11",
+    "12",
+    "13"
+   ]
+  },
+  "missing_codes": [],
+  "confidence_level": "0.95",
+  "alpha": "0.05"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "diff": "-1",
+   "se_diff": "0.81649658092772603273242802490196379732198249355222",
+   "ci_lower": "-3.2669579355275189371910896507865337192624744892680",
+   "ci_upper": "1.2669579355275189371910896507865337192624744892680",
+   "t_stat": "-1.2247448713915890490986420373529456959829737403283",
+   "df": "4",
+   "p_value": "0.2878641347266906",
+   "hedges_g": "-0.8",
+   "g_ci_lower": "-2.4936024482696479386721195853972396660208892057304",
+   "g_ci_upper": "0.8936024482696479386721195853972396660208892057304",
+   "n_a": "3",
+   "mean_a": "11",
+   "sd_a": "1",
+   "n_b": "3",
+   "mean_b": "12",
+   "sd_b": "1",
+   "n_excluded": "0",
+   "confidence_level": "0.95",
+   "alpha": "0.05"
+  },
+  "contains": [
+   "Welch two-sample t-test",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.536171+00:00",
+ "origin": "uploaded",
+ "source_file": "welch.json"
+}

@@ -1,3 +1,28 @@
+## 2026-11-08 - [product] Tile paper is the computation record; preview and download are one document
+
+**Ask.** The tile preview still printed the framework outline — awkward sections, a "no named
+framework" paragraph, and a References list over an empty corpus.  The test download and the
+actual tile download must be the same paper.
+
+**Did.**
+
+- **`paper_batch.generate_one`** now builds the record the real download renders
+  (`_tile_delivery`) and passes it through the **same renderer** (`session_paper.docx_bytes`).
+  The paper is: Result, Inputs and results (What you declared / What was computed),
+  Assumptions made, Limitations, How the figures were checked.  No framework section, no
+  Scope and Method, no Evidence Base, no Discussion, no reference list.
+- **`_result_sentence`** prints the computed figures at the method's declared precision.
+- **`combined.docx`** is built from the same sections, so it matches the individual papers.
+- **`case_store` / `case_upload` / `case_upload_bundle`** default expectations move to
+  "What you declared" and "How the figures were checked".
+- **`case_runner._check`** maps the two legacy phrases in old case files: `Declared inputs`
+  becomes `What you declared`; `References`/`Bibliography`/`Works Cited` are no longer
+  required.  All 643 existing case files were migrated; 246 preset cases re-seeded.
+- **`docs/HANDOFF.md`** gains section 8.9 recording the structure and the sync.
+
+**Measured.** A Finance TVM preview and the ZIP's combined docx both carry the five headings
+and no References; 246 cases re-seeded; samples across every subject pass 30/30 and 20/20.
+
 ## 2026-11-08 - [deploy] The local server serves the site Cloudflare publishes
 
 **Ask.** Harmonise local access with the published Cloudflare site: one tree, one set of URLs.

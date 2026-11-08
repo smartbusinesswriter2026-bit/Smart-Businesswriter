@@ -1,0 +1,56 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/salesprojection/003",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "salesprojection",
+ "method": "sales_projection",
+ "tile_label": "Sales and profit projection",
+ "group": "Planning and projection",
+ "objective": "Project our sales, costs and profit for the next twelve months",
+ "instruction": "An accounting sales and profit projection problem. Declared figures: start_units=500.0; price=25.0; unit_variable_cost=50000.0; fixed_cost_per_period=50000.0; growth_rate=0.015; periods=2.",
+ "inputs": {
+  "start_units": "500.0",
+  "price": "25.0",
+  "unit_variable_cost": "50000.0",
+  "fixed_cost_per_period": "50000.0",
+  "growth_rate": "0.015",
+  "periods": "2"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "start_units": "500.0",
+   "price": "25.0",
+   "unit_variable_cost": "50000.0",
+   "fixed_cost_per_period": "50000.0",
+   "growth_rate": "0.015",
+   "periods": "2",
+   "units_1": "500.0",
+   "revenue_1": "12500.00",
+   "profit_1": "-25037500.00",
+   "units_2": "507.5000",
+   "revenue_2": "12687.50000",
+   "profit_2": "-25412312.50000",
+   "total_units": "1007.5000",
+   "total_revenue": "25187.50000",
+   "total_variable_cost": "50375000.00000",
+   "total_fixed_cost": "100000.0",
+   "total_profit": "-50449812.50000"
+  },
+  "contains": [
+   "Sales and profit projection",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.979733+00:00",
+ "origin": "uploaded",
+ "source_file": "salesprojection-cases.json"
+}

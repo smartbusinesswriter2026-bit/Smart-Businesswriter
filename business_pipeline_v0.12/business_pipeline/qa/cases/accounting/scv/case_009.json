@@ -1,0 +1,63 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/scv/009",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "scv",
+ "method": "standard_cost_variances",
+ "tile_label": "Standard-cost variances",
+ "group": "Cost and variance analysis",
+ "objective": "Compute the material, labour and overhead variances for the period",
+ "instruction": "An accounting standard-cost variances problem. Declared figures: actual_units=5000; standard_material_per_unit=50; standard_material_price=250; actual_material_quantity=5000; actual_material_price=250; standard_hours_per_unit=50.",
+ "inputs": {
+  "actual_units": "5000",
+  "standard_material_per_unit": "50",
+  "standard_material_price": "250",
+  "actual_material_quantity": "5000",
+  "actual_material_price": "250",
+  "standard_hours_per_unit": "50",
+  "standard_labour_rate": "0.5",
+  "actual_hours": "50",
+  "actual_labour_rate": "0.5",
+  "standard_variable_overhead_rate": "0.5",
+  "actual_variable_overhead": "50",
+  "budgeted_fixed_overhead": "500000",
+  "actual_fixed_overhead": "500000",
+  "denominator_hours": "50"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "actual_units": "5000",
+   "standard_material_quantity": "250000",
+   "standard_hours": "250000",
+   "material_price_variance": "0",
+   "material_usage_variance": "-61250000",
+   "labour_rate_variance": "0.0",
+   "labour_efficiency_variance": "-124975.0",
+   "material_variance": "-61250000",
+   "labour_variance": "-124975.0",
+   "standard_variable_overhead_rate": "0.5",
+   "variable_overhead_spending_variance": "25.0",
+   "variable_overhead_efficiency_variance": "-124975.0",
+   "standard_fixed_overhead_rate": "10000",
+   "fixed_overhead_spending_variance": "0",
+   "fixed_overhead_volume_variance": "-2499500000",
+   "total_variance": "-2560999925.0"
+  },
+  "contains": [
+   "Standard-cost variances",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:12:55.837294+00:00",
+ "origin": "uploaded",
+ "source_file": "scv-cases.json"
+}

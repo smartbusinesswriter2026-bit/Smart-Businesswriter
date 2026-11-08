@@ -112,13 +112,15 @@ class PaperPreviewTest(unittest.TestCase):
         self.assertTrue(result["bytes"].startswith(b"PK"))
         text = _docx_text(result["bytes"])
         self.assertIn("Break-even point", text)
-        self.assertIn("Declared inputs: fixed 1,000; price 20; variable 10", text)
-        self.assertIn("References", text)
-        self.assertIn("Managerial Accounting for Decision Makers", text)
-        self.assertIn("Doe, 2020", text)
-        self.assertNotIn("No framework", text)
+        self.assertIn("What you declared", text)
+        self.assertIn("What was computed", text)
+        self.assertIn("Fixed: 1000.00", text)
+        self.assertIn("How the figures were checked", text)
+        # The tile paper is the computation record: no framework section and no
+        # reference list printed over an empty corpus.
+        self.assertNotIn("Scope and Method", text)
         self.assertNotIn("No named framework is used", text)
-        self.assertIn("no named framework", text)
+        self.assertNotIn("References", text)
 
     @mock.patch.object(paper_batch.source_finder, "search_academic", side_effect=_weak_search)
     def test_a_weak_page_is_labelled_background_not_a_citation(self, _search):
@@ -127,10 +129,11 @@ class PaperPreviewTest(unittest.TestCase):
         self.assertEqual(result["sources"], 0)
         self.assertEqual(result["background"], 1)
         text = _docx_text(result["bytes"])
-        self.assertIn("Background Reading (not cited)", text)
-        self.assertIn("A General Business Text", text)
-        self.assertIn("No sources were used", text)
+        # A weak page is never printed as a citation in the computation paper.
+        self.assertNotIn("A General Business Text", text)
         self.assertNotIn("Doe, 2020", text)
+        self.assertNotIn("References", text)
+        self.assertIn("What was computed", text)
 
     @mock.patch.object(paper_batch.source_finder, "search_academic", side_effect=_fake_search)
     def test_a_run_exports_a_zip_and_the_prefilled_instructions(self, _search):

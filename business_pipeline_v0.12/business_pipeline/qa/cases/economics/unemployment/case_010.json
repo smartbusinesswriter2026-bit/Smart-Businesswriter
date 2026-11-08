@@ -1,0 +1,22 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/unemployment/010",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "unemployment",
+ "method": "unemployment_rate",
+ "tile_label": "Unemployment and participation",
+ "group": "Macroeconomics",
+ "objective": "What are the unemployment and participation rates?",
+ "instruction": "In Harbourview the labour force is 910,000 and 858,000 people are employed. The survey did not record the size of the working-age population. Unemployed = labour force - employed. Unemployment rate = unemployed / labour force. Participation rate = labour force / working-age population. Employment-population ratio = employed / working-age population. Required: unemployment rate, participation rate, employment population ratio.",
+ "inputs": {
+  "labour_force": 910000,
+  "employed": 858000
+ },
+ "expected": {
+  "status": "error"
+ },
+ "created_at": "2026-11-08T05:55:11.219635+00:00",
+ "origin": "uploaded",
+ "source_file": "unemployment.json"
+}

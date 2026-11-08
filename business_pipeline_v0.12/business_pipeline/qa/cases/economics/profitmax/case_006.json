@@ -1,0 +1,46 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/profitmax/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "profitmax",
+ "method": "profit_maximization",
+ "tile_label": "Profit maximisation",
+ "group": "Microeconomics",
+ "objective": "What output and price maximise profit?",
+ "instruction": "A profit maximisation problem. Declared figures: demand_intercept=75.0; demand_slope=1.5; fixed_cost=75000.0; linear_cost=15.0; quadratic_cost=0.38.",
+ "inputs": {
+  "demand_intercept": "75.0",
+  "demand_slope": "1.5",
+  "fixed_cost": "75000.0",
+  "linear_cost": "15.0",
+  "quadratic_cost": "0.38"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "profit_maximizing_quantity": "15.957446808510638297872340425531914893617021276596",
+   "profit_maximizing_price": "51.063829787234042553191489361702127659574468085106",
+   "total_revenue": "814.84834766862833861475780896333182435491172476234",
+   "total_cost": "75336.124943413309189678587596197374377546401086465",
+   "profit": "-74521.276595744680851063829787234042553191489361703",
+   "marginal_cost_at_optimum": "27.127659574468085106382978723404255319148936170213",
+   "markup": "23.936170212765957446808510638297872340425531914893",
+   "lerner_index": "0.46874999999999999999999999999999999999999999999999"
+  },
+  "contains": [
+   "Profit maximisation",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.187283+00:00",
+ "origin": "uploaded",
+ "source_file": "profitmax.json"
+}

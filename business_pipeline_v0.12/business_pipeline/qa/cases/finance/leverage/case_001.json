@@ -31,7 +31,7 @@
    "eps": "2.80",
    "earnings_before_tax": "400000",
    "interest_tax_shield": "30000.00",
-   "debt_to_equity": "0.66666666666666666666666666666666666666666666666667",
+   "debt_to_equity": "0.6666666666666666666666666667",
    "ebit": "500000",
    "interest_expense": "100000",
    "tax_rate": "0.30",
@@ -50,8 +50,8 @@
   },
   "contains": [
    "Leverage, EPS and Altman Z",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -60,6 +60,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.272665+00:00",
+ "created_at": "2026-11-08T06:09:36.534552+00:00",
  "origin": "preset"
 }

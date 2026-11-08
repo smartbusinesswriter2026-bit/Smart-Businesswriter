@@ -1,0 +1,41 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/frommarket/007",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "frommarket",
+ "method": "sales_from_market",
+ "tile_label": "Sales from market share",
+ "group": "Planning and projection",
+ "objective": "What revenue does our target market share imply?",
+ "instruction": "An accounting sales from market share problem. Declared figures: market_size=30; target_share=0.1; price=150.",
+ "inputs": {
+  "market_size": "30",
+  "target_share": "0.1",
+  "price": "150"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "market_size": "30",
+   "target_share": "0.1",
+   "price": "150",
+   "target_revenue": "3.0",
+   "target_units": "0.02"
+  },
+  "contains": [
+   "Sales from market share",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:14:44.664502+00:00",
+ "origin": "uploaded",
+ "source_file": "frommarket-cases.json"
+}

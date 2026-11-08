@@ -1,0 +1,55 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "accounting/multibreakeven/018",
+ "subject": "accounting",
+ "subject_label": "Accounting",
+ "tile": "multibreakeven",
+ "method": "multi_product_breakeven",
+ "tile_label": "Multi-product break-even",
+ "group": "Cost and variance analysis",
+ "objective": "How many units must the product mix sell to break even?",
+ "instruction": "An accounting multi-product break-even problem. Declared figures: fixed_costs=25000.0; products=[{'name': 'A', 'price': 50, 'variable_cost': 30, 'mix_units': 2}, {'name': 'B', 'price': 80, 'variable_cost': 50, 'mix_units': 1}].",
+ "inputs": {
+  "fixed_costs": "25000.0",
+  "products": [
+   {
+    "name": "A",
+    "price": 50,
+    "variable_cost": 30,
+    "mix_units": 2
+   },
+   {
+    "name": "B",
+    "price": 80,
+    "variable_cost": 50,
+    "mix_units": 1
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "weighted_contribution": "23.333333333333333333333333333333333333333333333333",
+   "breakeven_total_units": "1071.4285714285714285714285714285714285714285714286",
+   "breakeven_revenue": "64285.714285714285714285714285714285714285714285716",
+   "fixed_costs": "25000.0",
+   "total_mix_units": "3",
+   "units_A": "714.28571428571428571428571428571428571428571428573",
+   "units_B": "357.14285714285714285714285714285714285714285714287"
+  },
+  "contains": [
+   "Multi-product break-even",
+   "Declared inputs",
+   "References"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:14:44.577249+00:00",
+ "origin": "uploaded",
+ "source_file": "multibreakeven-cases.json"
+}

@@ -1,0 +1,40 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/marketpower/011",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "marketpower",
+ "method": "market_power",
+ "tile_label": "Markup and Lerner index",
+ "group": "Microeconomics",
+ "objective": "How much market power does this price imply?",
+ "instruction": "A markup and lerner index problem. Declared figures: price=500; marginal_cost=200.",
+ "inputs": {
+  "price": "500",
+  "marginal_cost": "200"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "price": "500",
+   "marginal_cost": "200",
+   "markup": "300",
+   "lerner_index": "0.6",
+   "implied_demand_elasticity": "1.6666666666666666666666666666666666666666666666667"
+  },
+  "contains": [
+   "Markup and Lerner index",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.736481+00:00",
+ "origin": "uploaded",
+ "source_file": "marketpower.json"
+}

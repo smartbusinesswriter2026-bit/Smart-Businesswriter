@@ -1,0 +1,24 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/inflation/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "inflation",
+ "method": "inflation_cpi",
+ "tile_label": "Inflation and real interest",
+ "group": "Macroeconomics",
+ "objective": "What is the inflation rate and the real interest rate?",
+ "instruction": "Harbourview's CPI stood at 140 at the start of the year, the nominal interest rate is 6%, and the hourly wage rose from USD 22 to USD 23.10. The end-of-year CPI has not been published yet. Inflation is the percentage change in the CPI. Use the exact Fisher relation 1 + r = (1 + i) / (1 + inflation) for the real interest rate, its approximation r = i - inflation, and real wage growth = (1 + nominal wage growth) / (1 + inflation) - 1. Required: inflation rate, real interest rate, real wage growth.",
+ "inputs": {
+  "cpi_start": 140,
+  "nominal_interest_rate": 0.06,
+  "wage_start": 22,
+  "wage_end": 23.1
+ },
+ "expected": {
+  "status": "error"
+ },
+ "created_at": "2026-11-08T05:48:29.650626+00:00",
+ "origin": "uploaded",
+ "source_file": "inflation.json"
+}

@@ -1,0 +1,46 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/irp/005",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "irp",
+ "method": "interest_rate_parity",
+ "tile_label": "Interest-rate parity",
+ "group": "International",
+ "objective": "What forward rate does interest parity imply?",
+ "instruction": "A interest-rate parity problem. Declared figures: spot_rate=0.2; domestic_rate=0.2; foreign_rate=0.2; time_to_maturity=20; forward_rate=0.2; domestic_inflation=20.",
+ "inputs": {
+  "spot_rate": "0.2",
+  "domestic_rate": "0.2",
+  "foreign_rate": "0.2",
+  "time_to_maturity": "20",
+  "forward_rate": "0.2",
+  "domestic_inflation": "20",
+  "foreign_inflation": "20"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "implied_forward": "0.2",
+   "forward_premium": "0",
+   "forward_rate": "0.2",
+   "cip_gap": "0",
+   "real_domestic_rate": "-0.94285714285714285714285714285714285714285714285714",
+   "real_foreign_rate": "-0.94285714285714285714285714285714285714285714285714"
+  },
+  "contains": [
+   "Interest-rate parity",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.666607+00:00",
+ "origin": "uploaded",
+ "source_file": "irp.json"
+}

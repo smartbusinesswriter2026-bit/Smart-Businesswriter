@@ -1,0 +1,44 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/equilibrium/003",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "equilibrium",
+ "method": "demand_supply_equilibrium",
+ "tile_label": "Market equilibrium",
+ "group": "Microeconomics",
+ "objective": "Where do demand and supply meet?",
+ "instruction": "The Riverside bakers' association estimates the weekly market for loaves: The quantity demanded is Qd = 5,000 - 40P and the quantity supplied is Qs = -1,000 + 60P. Demand is linear, Qd = demand_intercept - demand_slope x P, and supply is linear, Qs = supply_intercept + supply_slope x P, where P is the price in USD and Q is in units. The demand slope is entered as a positive number (the magnitude). Consumer surplus is the triangle between the demand curve and the price up to the equilibrium quantity; producer surplus is the triangle between the price and the supply curve. Required: equilibrium price, equilibrium quantity, consumer surplus, producer surplus, total surplus.",
+ "inputs": {
+  "demand_intercept": 5000,
+  "demand_slope": 40,
+  "supply_intercept": -1000,
+  "supply_slope": 60
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "equilibrium_price": 60.0,
+   "equilibrium_quantity": 2600.0,
+   "consumer_surplus": 84500.0,
+   "producer_surplus": 56333.33,
+   "total_surplus": 140833.33,
+   "demand_choke_price": "125",
+   "supply_floor_price": "16.66666666666666666666666667"
+  },
+  "contains": [
+   "Market equilibrium",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T05:47:07.147287+00:00",
+ "origin": "uploaded",
+ "source_file": "equilibrium.json"
+}

@@ -163,8 +163,8 @@
   },
   "contains": [
    "Logistic regression",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -173,6 +173,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.655145+00:00",
+ "created_at": "2026-11-08T06:09:36.866359+00:00",
  "origin": "preset"
 }

@@ -1,0 +1,41 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/okun/005",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "okun",
+ "method": "output_gap_okun",
+ "tile_label": "Output gap and Okun's law",
+ "group": "Macroeconomics",
+ "objective": "What does the output gap imply for unemployment?",
+ "instruction": "A output gap and okun's law problem. Declared figures: actual_gdp=5.0; potential_gdp=5.0; current_unemployment_rate=0.05; okun_coefficient=5.0.",
+ "inputs": {
+  "actual_gdp": "5.0",
+  "potential_gdp": "5.0",
+  "current_unemployment_rate": "0.05",
+  "okun_coefficient": "5.0"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "output_gap": "0",
+   "predicted_unemployment_change_pp": "-0.0",
+   "predicted_unemployment_rate": "0.05",
+   "okun_coefficient": "5.0"
+  },
+  "contains": [
+   "Output gap and Okun's law",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.821673+00:00",
+ "origin": "uploaded",
+ "source_file": "okun.json"
+}

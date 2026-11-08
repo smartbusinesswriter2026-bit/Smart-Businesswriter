@@ -1,0 +1,44 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/cournot/005",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "cournot",
+ "method": "cournot_duopoly",
+ "tile_label": "Cournot duopoly",
+ "group": "Microeconomics",
+ "objective": "What is the Cournot duopoly outcome?",
+ "instruction": "A cournot duopoly problem. Declared figures: demand_intercept=200; demand_slope=4; marginal_cost_1=20; marginal_cost_2=20.",
+ "inputs": {
+  "demand_intercept": "200",
+  "demand_slope": "4",
+  "marginal_cost_1": "20",
+  "marginal_cost_2": "20"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "quantity_1": "15",
+   "quantity_2": "15",
+   "total_output": "30",
+   "price": "80",
+   "profit_1": "900",
+   "profit_2": "900",
+   "total_profit": "1800"
+  },
+  "contains": [
+   "Cournot duopoly",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.373107+00:00",
+ "origin": "uploaded",
+ "source_file": "cournot.json"
+}

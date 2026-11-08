@@ -1,0 +1,23 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/fiscal/002",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "fiscal",
+ "method": "fiscal_multiplier",
+ "tile_label": "Fiscal multipliers",
+ "group": "Macroeconomics",
+ "objective": "What output change does this fiscal package imply?",
+ "instruction": "Harbourview's government plans to raise spending by USD 20,000,000, leave lump-sum taxes unchanged (USD 0) and keep the income tax rate at 20%. No estimate of households' marginal propensity to consume is available. Use the closed-economy multiplier with a proportional income tax: spending multiplier = 1 / (1 - mpc x (1 - t)); lump-sum tax multiplier = -mpc / (1 - mpc x (1 - t)). A positive tax change is a lump-sum tax increase and a positive spending change is an increase in government purchases. Change in tax revenue = lump-sum change + t x total change in income; change in budget balance = change in tax revenue - change in spending. Required: spending multiplier, total income change.",
+ "inputs": {
+  "tax_rate": 0.2,
+  "government_spending_change": 20000000,
+  "tax_change": 0
+ },
+ "expected": {
+  "status": "error"
+ },
+ "created_at": "2026-11-08T05:47:30.396340+00:00",
+ "origin": "uploaded",
+ "source_file": "fiscal.json"
+}

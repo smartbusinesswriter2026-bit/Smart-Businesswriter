@@ -20,20 +20,20 @@
  "expected": {
   "status": "ok",
   "result": {
-   "future_value": "412169.50589505043384053371598616910344392272576332",
+   "future_value": "412169.5058950504338405337162",
    "present_value_input": "100000",
-   "present_value_payments": "206023.66542098316188539904687695437449708020464249",
-   "future_value_payments": "277484.00524004483008047441420992809195015353401184",
+   "present_value_payments": "206023.6654209831618853990469",
+   "future_value_payments": "277484.0052400448300804744144",
    "total_payments": "240000",
    "periodic_rate": "0.015",
    "effective_annual_rate": "0.061363550625",
    "n_periods": "20",
-   "annuity_factor": "17.168638785081930157116587239746197874756683720208"
+   "annuity_factor": "17.16863878508193015711658724"
   },
   "contains": [
    "Time value of money",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -42,6 +42,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.226588+00:00",
+ "created_at": "2026-11-08T06:09:36.497197+00:00",
  "origin": "preset"
 }

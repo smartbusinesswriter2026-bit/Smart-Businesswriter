@@ -1,0 +1,40 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/did/006",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "did",
+ "method": "difference_in_differences",
+ "tile_label": "Difference-in-differences",
+ "group": "Econometrics",
+ "objective": "What is the difference-in-differences estimate?",
+ "instruction": "A difference-in-differences problem. Declared figures: treated_pre=7.5; treated_post=7.5; control_pre=7.5; control_post=7.5.",
+ "inputs": {
+  "treated_pre": "7.5",
+  "treated_post": "7.5",
+  "control_pre": "7.5",
+  "control_post": "7.5"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "treated_change": "0.0",
+   "control_change": "0.0",
+   "did_estimate": "0.0"
+  },
+  "contains": [
+   "Difference-in-differences",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:19.484376+00:00",
+ "origin": "uploaded",
+ "source_file": "did.json"
+}

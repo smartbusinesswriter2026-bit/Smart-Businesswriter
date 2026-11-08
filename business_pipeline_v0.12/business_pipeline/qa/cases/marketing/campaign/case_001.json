@@ -28,19 +28,19 @@
    "ctr": "0.024",
    "cpc": "10",
    "cpm": "240.00",
-   "conversion_rate": "0.036666666666666666666666666666666666666666666666667",
-   "cpa": "272.72727272727272727272727272727272727272727272727",
+   "conversion_rate": "0.03666666666666666666666666667",
+   "cpa": "272.7272727272727272727272727",
    "roas": "2.5",
    "acos": "0.4",
    "contribution_margin_rate": "0.45",
-   "break_even_roas": "2.2222222222222222222222222222222222222222222222222",
+   "break_even_roas": "2.222222222222222222222222222",
    "profit_after_media": "7500.00",
-   "roas_gap": "0.2777777777777777777777777777777777777777777777778"
+   "roas_gap": "0.277777777777777777777777778"
   },
   "contains": [
    "Campaign efficiency",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
   "xlsx_sheets": [
    "Summary",
@@ -49,6 +49,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-07T21:53:56.607917+00:00",
+ "created_at": "2026-11-08T06:09:36.830140+00:00",
  "origin": "preset"
 }

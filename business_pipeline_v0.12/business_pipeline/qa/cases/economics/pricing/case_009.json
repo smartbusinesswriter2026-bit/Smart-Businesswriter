@@ -1,0 +1,51 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/pricing/009",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "pricing",
+ "method": "pricing_decision",
+ "tile_label": "Pricing rules",
+ "group": "Managerial economics",
+ "objective": "What price should we set under each pricing rule?",
+ "instruction": "A pricing rules problem. Declared figures: unit_cost=5.0; fixed_cost=25000.0; expected_units=250.0; markup_rate=0.025; target_margin_rate=0.025; target_profit=2.5.",
+ "inputs": {
+  "unit_cost": "5.0",
+  "fixed_cost": "25000.0",
+  "expected_units": "250.0",
+  "markup_rate": "0.025",
+  "target_margin_rate": "0.025",
+  "target_profit": "2.5"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "unit_cost": "5.0",
+   "fixed_cost": "25000.0",
+   "expected_units": "250.0",
+   "markup_rate": "0.025",
+   "total_cost": "26250.00",
+   "cost_plus_price": "5.1250",
+   "gross_margin_at_cost_plus": "0.024390243902439024390243902439024390243902439024390",
+   "break_even_price": "105.0",
+   "target_margin_rate": "0.025",
+   "margin_price": "5.1282051282051282051282051282051282051282051282051",
+   "target_profit": "2.5",
+   "target_return_price": "105.01"
+  },
+  "contains": [
+   "Pricing rules",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.053122+00:00",
+ "origin": "uploaded",
+ "source_file": "pricing.json"
+}

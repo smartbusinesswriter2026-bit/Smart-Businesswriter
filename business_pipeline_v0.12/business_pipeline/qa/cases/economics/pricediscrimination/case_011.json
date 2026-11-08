@@ -1,0 +1,46 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/pricediscrimination/011",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "pricediscrimination",
+ "method": "price_discrimination",
+ "tile_label": "Price discrimination",
+ "group": "Microeconomics",
+ "objective": "What prices does third-degree discrimination set?",
+ "instruction": "A price discrimination problem. Declared figures: demand_intercept_1=1000; demand_slope_1=20; demand_intercept_2=1000; demand_slope_2=20; marginal_cost=200.",
+ "inputs": {
+  "demand_intercept_1": "1000",
+  "demand_slope_1": "20",
+  "demand_intercept_2": "1000",
+  "demand_slope_2": "20",
+  "marginal_cost": "200"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "quantity_1": "20",
+   "price_1": "600",
+   "quantity_2": "20",
+   "price_2": "600",
+   "revenue_1": "12000",
+   "revenue_2": "12000",
+   "total_revenue": "24000",
+   "total_profit": "16000"
+  },
+  "contains": [
+   "Price discrimination",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-08T06:10:20.033908+00:00",
+ "origin": "uploaded",
+ "source_file": "pricediscrimination.json"
+}
