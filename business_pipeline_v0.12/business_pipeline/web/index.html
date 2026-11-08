@@ -873,8 +873,12 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
   main{padding:20px 16px 90px}
   .hero h1{font-size:32.2px}
   .hero img{height:74px;margin-top:4px}
-  .actionrow{flex-direction:column;align-items:stretch}
-  .runbtn{align-self:flex-end;margin-left:0}
+  /* The four upload buttons stay on one row on a phone: a column of four
+     full-width buttons pushed the composer off the screen.  Each takes a
+     quarter of the row and its label wraps inside the button. */
+  .actionrow{flex-direction:row;flex-wrap:wrap;align-items:center;gap:6px}
+  .actionrow .btn{flex:1 1 20%;min-width:0;padding:8px 4px;font-size:11.5px;line-height:1.2;white-space:normal;text-align:center}
+  .runbtn{flex:0 0 auto;align-self:center;margin-left:auto}
   .drawer{width:100%}
   .subjectgrid,.capgrid,.grid2{grid-template-columns:1fr}
   .wsheet .wmeta{flex-direction:column;align-items:stretch}
@@ -1190,7 +1194,7 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
             <div class="wordtarget" role="group" aria-labelledby="homewords-cap">
               <span class="wordtarget-field">
                 <label class="visually-hidden" for="homelength">Target body word count</label>
-                <input id="homelength" type="number" min="600" max="50000" step="100" inputmode="numeric" placeholder="2500">
+                <input id="homelength" type="number" min="600" max="50000" step="100" inputmode="numeric" value="1000" placeholder="1000">
                 <span class="wordtarget-unit">words</span>
               </span>
             </div>
@@ -2885,7 +2889,7 @@ RENDERERS.home = function () {
             '<div class="wordtarget" role="group" aria-labelledby="homewords-cap">' +
               '<span class="wordtarget-field">' +
                 '<label class="visually-hidden" for="homelength">Target body word count</label>' +
-                '<input id="homelength" type="number" min="600" max="50000" step="100" inputmode="numeric" placeholder="2500">' +
+                '<input id="homelength" type="number" min="600" max="50000" step="100" inputmode="numeric" value="1000" placeholder="1000">' +
                 '<span class="wordtarget-unit">words</span>' +
               "</span>" +
             "</div>" +
@@ -3396,7 +3400,7 @@ async function reviseChat(text) {
 /* ---- capabilities: what the paper carries, and the figures for it ---- */
 /* ---- report length: three options with ranges, one vocabulary ---- */
 function reportLengthRow(plan) {
-  const target = Number(plan.target_words || 2500);
+  const target = Number(plan.target_words || 1000);
   return '<div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">' +
     '<h4 class="levelhead" style="margin-top:0">Body word count</h4>' +
     '<div class="wordtarget" role="group" aria-label="Body word count">' +
@@ -4292,7 +4296,7 @@ function renderPlan() {
         '<option value="open"' + (plan.mode === "open" ? " selected" : "") + '>Open composition</option></select></label>' +
       '<span class="wordtarget-field" style="max-width:170px">' +
         '<label class="visually-hidden" for="planwords">Target body word count</label>' +
-        '<input id="planwords" type="number" min="600" max="50000" step="100" inputmode="numeric" value="' + esc(String(plan.target_words || 600)) + '">' +
+        '<input id="planwords" type="number" min="600" max="50000" step="100" inputmode="numeric" value="' + esc(String(plan.target_words || 1000)) + '">' +
         '<span class="wordtarget-unit">words</span></span>' +
       '<button class="btn sm" id="plansetwords">Set</button>' +
       '<button class="btn sm" id="plancustomise">Apply</button></div>' +
