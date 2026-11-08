@@ -74,6 +74,12 @@ class NarrativeBalanceTest(unittest.TestCase):
                    "Capital $10,000; Loan $5,000. Prepare a trial balance.")
         self.assertEqual(narrative_balance(problem), 0)
 
+    def test_the_generator_drops_the_narrative_unbalanced_fixture(self):
+        from bp.product import chat_heal
+        # The intake path, not just the checker: a generated narrative trial balance
+        # that does not balance never reaches the solver or the error log.
+        self.assertEqual(chat_heal._valid_problems([MAPLE]), [])
+
     def test_a_problem_with_adjustments_is_not_classified(self):
         problem = ("Trial balance before adjustments: Cash $10,000; Equipment $5,000; "
                    "Capital $15,000. Adjusting entries: depreciation $1,000. Prepare the "
