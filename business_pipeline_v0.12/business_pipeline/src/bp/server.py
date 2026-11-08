@@ -156,7 +156,10 @@ def _load_opencode_env():
         "BP_LLM_MODEL_TIER3": values.get("LLM_MODEL_TIER3"),
     }
     for key, value in mapping.items():
-        if value and not _os.environ.get(key):
+        # An exported BP_* name wins, and an explicitly *empty* one means "not
+        # configured": the test suite sets them empty so a developer's .env cannot
+        # hand a unit test a live provider (a test that wants a model stubs one).
+        if value and key not in _os.environ:
             _os.environ[key] = value
 
 

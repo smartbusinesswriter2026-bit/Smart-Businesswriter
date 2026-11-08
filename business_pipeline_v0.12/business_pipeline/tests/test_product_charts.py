@@ -159,3 +159,76 @@ class ChartTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def pareto_bundle():
+    """Four causes, each with its stored running total."""
+    base = product_fixtures.make_bundle()
+    causes = (("Late delivery", "42", "42"), ("Damaged stock", "27", "69"),
+              ("Wrong item", "18", "87"), ("Other", "13", "100"))
+    artifacts, outputs = [], {}
+    for index, (label, value, running) in enumerate(causes, 1):
+        for key, stored in (("cause_%d" % index, label), ("count_%d" % index, value),
+                            ("running_%d" % index, running)):
+            artifacts.append([key, [key, "", "entity", "base"], "declared"])
+            outputs[key] = stored
+    base["delivery"]["appendix"]["artifacts"] = artifacts
+    base["reperform"]["outputs"] = outputs
+    return base
+
+
+def pareto_spec(**overrides):
+    spec = {"format": "bp-chart/1", "kind": "pareto", "title": "Complaint causes",
+            "y_label": "Complaints", "y2_label": "Running total",
+            "series": [{"label": label, "artifact": "count_%d" % index,
+                        "cumulative": "running_%d" % index}
+                       for index, label in enumerate(
+                           ("Late delivery", "Damaged stock", "Wrong item", "Other"), 1)]}
+    spec.update(overrides)
+    return spec
+
+
+class ParetoTest(unittest.TestCase):
+    """Two stored series on two scales; the drawing adds nothing up."""
+
+    def test_both_stored_series_are_drawn(self):
+        svg = charts.render_svg(pareto_bundle(), pareto_spec())
+        ET.fromstring(svg)
+        self.assertIn("<polyline", svg)
+        for stored in ("42", "27", "18", "13", "69", "87", "100"):
+            self.assertIn(">%s<" % stored, svg)
+
+    def test_every_number_in_the_drawing_is_a_stored_value(self):
+        svg = charts.render_svg(pareto_bundle(), pareto_spec())
+        stored = {"42", "27", "18", "13", "69", "87", "100"}
+        for text in SVG_TEXT.findall(svg):
+            for number in NUMBERS.findall(text):
+                self.assertIn(number, stored, "the drawing printed %r, which is not stored" % number)
+
+    def test_a_series_without_a_running_total_is_refused(self):
+        spec = pareto_spec()
+        del spec["series"][0]["cumulative"]
+        with self.assertRaises(charts.ChartError):
+            charts.render_svg(pareto_bundle(), spec)
+
+    def test_a_running_total_that_falls_is_refused(self):
+        spec = pareto_spec()
+        spec["series"][2]["cumulative"] = "running_1"
+        with self.assertRaises(charts.ChartError):
+            charts.render_svg(pareto_bundle(), spec)
+
+    def test_a_negative_bar_is_refused(self):
+        raw = pareto_bundle()
+        raw["reperform"]["outputs"]["count_1"] = "-42"
+        with self.assertRaises(charts.ChartError):
+            charts.render_svg(raw, pareto_spec())
+
+    def test_the_legend_labels_may_not_carry_digits(self):
+        with self.assertRaises(charts.ChartError):
+            charts.render_svg(pareto_bundle(), pareto_spec(y2_label="Total 100"))
+
+    def test_the_series_resolver_exposes_the_running_total(self):
+        series = charts.series_of(pareto_bundle(), pareto_spec())
+        self.assertEqual(len(series), 4)
+        self.assertEqual(str(series[0]["cumulative"]), "42")
+        self.assertEqual(series[-1]["cumulative_stored"], "100")

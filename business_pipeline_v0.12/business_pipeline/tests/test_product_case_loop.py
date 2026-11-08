@@ -73,6 +73,41 @@ class CaseLoopTest(unittest.TestCase):
             self.assertTrue(case["instruction"])
             self.assertTrue(case["expected"]["result"])
 
+    def test_a_case_replays_on_a_tile_with_no_published_default(self):
+        """A case carries its own figures; the preset is only a preview fallback.
+
+        `generate_one` used to refuse any tile without `has_defaults` before it looked
+        at the case's inputs, so every accounting case failed the runner even when its
+        figures were complete and its expected result was the core's own output.
+        """
+        inputs = {"cost": "500000", "salvage": "50000", "life": "5", "method": "straight_line"}
+        computed = methods.LIBRARY["depreciation_schedule"].impl(inputs)
+        payload = {
+            "format": case_store.FORMAT, "id": "accounting/depreciation/001",
+            "subject": "accounting", "subject_label": "Accounting",
+            "tile": "depreciation", "tile_label": "Depreciation schedule",
+            "group": "Adjustments and depreciation", "method": "depreciation_schedule",
+            "objective": "Depreciation schedule at a declared rate",
+            "instruction": "A machine costs 500,000 with a residual value of 50,000 and a "
+                           "five-year life. Prepare the straight-line depreciation schedule.",
+            "inputs": inputs,
+            "expected": {"status": "ok",
+                         "result": {k: str(v) for k, v in computed.items() if not k.startswith("_")},
+                         "contains": ["Declared inputs", "References"],
+                         "xlsx_sheets": ["Summary", "Inputs", "Results", "Record"]},
+            "created_at": "2026-11-08T00:00:00+00:00", "origin": "authored"}
+        path = case_store._case_path("accounting", "depreciation", 1)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump(payload, handle)
+        run = case_runner.run_case("accounting/depreciation/001", log=False)
+        self.assertEqual(run["status"], "pass", run.get("error"))
+
+    def test_a_tile_with_no_inputs_still_asks_for_them(self):
+        result = paper_batch.generate_one("accounting", "depreciation")
+        self.assertEqual(result["status"], "needs_input")
+        self.assertIn("no published default inputs", result["error"])
+
     def _failing_case(self):
         cases = self._seed()
         case = next(c for c in cases if c["tile"] == "breakeven")

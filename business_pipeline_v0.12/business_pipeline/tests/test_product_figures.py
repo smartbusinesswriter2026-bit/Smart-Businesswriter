@@ -381,7 +381,12 @@ class SavedFigureTest(unittest.TestCase):
             deliverables.write_export(self._bundle_with_figure(), "workpapers", "xlsx", path)
             with zipfile.ZipFile(path) as archive:
                 names = archive.namelist()
-            self.assertTrue([name for name in names if name.startswith("xl/media/")], names)
+            # a chart the workbook can draw itself arrives as cells plus a chart part;
+            # any other figure arrives as its picture.  Either way the drawing is there.
+            self.assertTrue([name for name in names if name.startswith("xl/drawings/")], names)
+            self.assertTrue([name for name in names
+                             if name.startswith("xl/media/") or name.startswith("xl/charts/")],
+                            names)
         finally:
             shutil.rmtree(root, ignore_errors=True)
 

@@ -319,17 +319,14 @@ class ServedUiContractTest(unittest.TestCase):
 
         The panel told every method that the engagement is declared once - the
         period, the chart, the opening balances, the entries and any schedules.
-        That is false for NPV, IRR and the case comparison, so the wording now
-        follows the method.
+        That line, and every other descriptive paragraph under a heading, was
+        deleted at the owner's instruction (2026-11-08): the fields say what the
+        panel takes, and the Method section is collapsed.
         """
-        self.assertIn("function figuresCopy(plan)", self.html)
-        self.assertIn('methodId === "management_accounts"', self.html)
-        # The generic "these are the figures the engine will post" line was deleted as clutter
-        # on the owner's instruction (2026-11-02); only the engagement copy remains, and it is
-        # rendered only when non-empty.
-        self.assertIn("figuresCopy(plan) ? '<p class=\"sub\">'", self.html)
-        self.assertNotIn("exactly as you enter them", self.html)
-        self.assertEqual(self.html.count("the chart, the opening balances"), 1)
+        self.assertNotIn("function figuresCopy(plan)", self.html)
+        self.assertNotIn("These are the figures the engine will post", self.html)
+        self.assertIn('<details class="studynote"><summary>Method</summary>', self.html,
+                      "the method is read on demand, not printed over the form")
 
 
     def test_the_served_page_carries_every_subject_and_the_rail_toggle(self):
@@ -421,7 +418,10 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("Which one do I need?", self.html)
         self.assertIn("Student guide", self.html)
         self.assertIn("Guided paper", self.html)
-        self.assertIn("Before you start", self.html)
+        # The owner deleted the "Before you start" card and the worked-example sentence
+        # (2026-11-08): the example is loaded, and the row carries its Clear button.
+        self.assertNotIn("A worked example is loaded so you can see the format", self.html)
+        self.assertIn('id="clearexample"', self.html)
         self.assertIn('data-rows="', self.html)
         self.assertIn("function rowsEditor", self.html)
         self.assertIn("View the Gantt", self.html)
@@ -768,7 +768,7 @@ class CalculatorGuardTest(unittest.TestCase):
         finance_methods_ids = {name for name in dir(finance_methods)
                               if not name.startswith("_") and callable(getattr(finance_methods, name, None))}
         # Statement-registered helpers are not subject compute tools.
-        finance_methods_ids = finance_methods_ids | {"eps"}
+        finance_methods_ids = finance_methods_ids | {"eps", "working_capital_cycle", "tax_reconciliation"}
         frozen_methods = {method["method_id"] for method in methods.list_methods()
                           if method["method_id"] not in finance_methods_ids}
         self.assertEqual(frozen_methods - launched, set(),

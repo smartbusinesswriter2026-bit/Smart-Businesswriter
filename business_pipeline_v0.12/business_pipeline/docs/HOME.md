@@ -1,6 +1,6 @@
 # Home Ã¢â‚¬â€ map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.125**, **4334 tests**, 2026-11-08. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.127**, **4337 tests**, 2026-11-08. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -146,6 +146,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`DEBUG_MANUAL.md`](DEBUG_MANUAL.md) | Living debugging and improvement guide for the statements pipeline | Read before any debug, fix or improvement work on the financial statements tile |
 | [`HOME_CHAT_ORCHESTRATION_MANUAL.md`](HOME_CHAT_ORCHESTRATION_MANUAL.md) | Living manual — how the chat orchestrates a paper | Read before adding a framework, computation, or model-assisted step |
 | [`MINIMAX_XLSX_FIX.md`](MINIMAX_XLSX_FIX.md) | Living note on the xlsx fix | Update when the xlsx export changes |
+| [`CASE_AUTHORING_BRIEF.md`](CASE_AUTHORING_BRIEF.md) | Living brief for authoring a stored tile case | Read before writing or changing a case in `qa/cases/` |
 | [`sources/`](sources/) | Supplied authority material | **Read-only** Ã¢â‚¬â€ never edit; amend via decisions |
 
 ## 5. Conventions for this map

@@ -22,6 +22,7 @@ PRODUCT_DIR = os.path.join(ROOT, "src", "bp", "product")
 
 
 def attach():
+    statements.reset_core()
     statements.attach_core(
         solve=lambda spec: methods.LIBRARY["management_accounts"].impl({"spec": spec}),
         diagnose=lambda rows, places: methods.LIBRARY["trial_balance_check"].impl(

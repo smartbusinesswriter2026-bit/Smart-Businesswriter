@@ -258,26 +258,14 @@ _RATIO_LINES = (
 #: Ratios a student may ask for that the registry does not define.  Each is named with the inputs
 #: it needs, so the tile can say what is missing instead of inventing a definition or a number.
 RATIO_GAPS = (
-    {"ratio": "market_to_book", "group": "market", "needs": ["share_price", "shares_outstanding"],
-     "why": "a market value needs a share price and the number of shares; neither is part of a trial balance"},
-    {"ratio": "price_earnings", "group": "market", "needs": ["share_price", "shares_outstanding"],
-     "why": "a price-earnings ratio needs a share price"},
-    {"ratio": "earnings_per_share", "group": "market", "needs": ["shares_outstanding"],
-     "why": "a per-share figure needs the number of shares"},
-    {"ratio": "dividend_payout", "group": "market", "needs": ["dividends_declared", "shares_outstanding"],
-     "why": "a payout ratio needs the dividends declared and the number of shares"},
-    {"ratio": "dividend_yield", "group": "market", "needs": ["dividends_declared", "share_price"],
-     "why": "a yield needs the dividends and a share price"},
-    {"ratio": "operating_cash_flow_ratio", "group": "cash flow", "needs": ["operating_cash_flow", "current_liabilities"],
-     "why": "the registry holds no cash-flow ratios; the cash flow statement is recorded but not wired into it"},
     {"ratio": "free_cash_flow", "group": "cash flow", "needs": ["operating_cash_flow", "capital_expenditure"],
-     "why": "free cash flow needs operating cash flow and capital expenditure, which the registry does not define"},
-    {"ratio": "accruals_ratio", "group": "quality", "needs": ["net_income", "operating_cash_flow", "total_assets"],
-     "why": "an accruals ratio compares accounting profit with cash flow; it is not in the registry"},
-    {"ratio": "altman_z_score", "group": "quality", "needs": ["working_capital", "retained_earnings", "ebit", "market_value_of_equity", "sales", "total_assets"],
-     "why": "a distress score needs five declared inputs, one of them a market value"},
-    {"ratio": "beneish_m_score", "group": "quality", "needs": ["two consecutive periods for eight indices"],
-     "why": "a manipulation score needs two consecutive periods; one period is not enough"},
+     "why": "the registry reports the free cash flow margin; the amount itself is operating cash flow less capital expenditure, read from the cash flow statement"},
+    {"ratio": "piotroski_f_score", "group": "quality",
+     "needs": ["two periods", "diluted shares"],
+     "why": "a Piotroski score is computed by the two-record analysis (POST /api/cases/statements/piotroski); the single-record ratio pack names it here rather than computing it from one period"},
+    {"ratio": "beneish_m_score", "group": "quality",
+     "needs": ["two consecutive periods for eight indices"],
+     "why": "a manipulation score is computed by the two-record analysis (POST /api/cases/statements/beneish); the single-record ratio pack names it here rather than deriving eight indices from one period"},
 )
 
 

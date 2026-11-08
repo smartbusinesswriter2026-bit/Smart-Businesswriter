@@ -26,7 +26,7 @@ from pathlib import Path
 from . import theme
 
 FORMAT = "bp-diagram/1"
-KINDS = ("process", "matrix2x2", "pyramid", "funnel", "tree", "board", "journey", "kpi")
+KINDS = ("process", "matrix2x2", "pyramid", "funnel", "tree", "board", "journey", "kpi", "wbs")
 WIDTH, HEIGHT = 720, 420
 #: The diagram palette is the chart palette, defined once in `theme`.
 PALETTE = theme.SERIES[:6]
@@ -72,6 +72,30 @@ def validate_spec(spec):
             raise DiagramError("a tree diagram needs a non-empty 'children' list")
         labels = [_text(entry.get("label") if isinstance(entry, dict) else None, "child label") for entry in children]
         return kind, title, labels
+    if kind == "wbs":
+        root = spec.get("root")
+        if not isinstance(root, dict):
+            raise DiagramError("a wbs needs a 'root' object")
+
+        def check(node, where, depth):
+            if depth > 5:
+                raise DiagramError("a wbs carries at most five levels")
+            label = _text(node.get("label"), where + " label")
+            code = node.get("code")
+            if code is not None and (not isinstance(code, str) or not code.strip()):
+                raise DiagramError(where + " code must be text when supplied")
+            children = node.get("children") or []
+            if not isinstance(children, list):
+                raise DiagramError(where + " children must be a list")
+            clean = []
+            for index, child in enumerate(children):
+                if not isinstance(child, dict):
+                    raise DiagramError(where + " child %d must be an object" % (index + 1))
+                clean.append(check(child, where + ".%d" % (index + 1), depth + 1))
+            return {"label": label, "code": str(code or "").strip(), "children": clean}
+
+        return kind, title, check(root, "root", 0)
+
     if kind == "kpi":
         items = spec.get("items")
         if not isinstance(items, list) or not items:
@@ -386,6 +410,59 @@ def _kpi(items, title, bundle):
     return _open(title) + _title(title) + "".join(body) + _close()
 
 
+def _wbs(root, title):
+    """A work breakdown: levels down the page, siblings across it, codes allowed."""
+    nodes = []
+
+    def add(node, depth, parent):
+        index = len(nodes)
+        nodes.append({"label": node["label"], "code": node["code"], "depth": depth,
+                      "parent": parent, "children": []})
+        for child in node["children"]:
+            nodes[index]["children"].append(add(child, depth + 1, index))
+        return index
+
+    add(root, 0, None)
+    order = [0]
+
+    def place(index):
+        entry = nodes[index]
+        if not entry["children"]:
+            entry["x"] = order[0]
+            order[0] += 1
+            return
+        for child in entry["children"]:
+            place(child)
+        entry["x"] = sum(nodes[child]["x"] for child in entry["children"]) / float(len(entry["children"]))
+
+    place(0)
+    count = max(1, order[0])
+    margin = 20
+    slot = (WIDTH - 2 * margin) / count
+    deepest = max(node["depth"] for node in nodes)
+    top, bottom = 88, HEIGHT - 40
+    row = (bottom - top) / max(1, deepest + 1)
+    box_w = min(slot * 0.92, 152)
+    box_h = min(48, row * 0.62)
+    body = []
+    for node in nodes:
+        x = margin + slot * (node["x"] + 0.5) - box_w / 2
+        y = top + row * node["depth"]
+        body.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" rx="4" fill="%s"/>'
+                    % (x, y, box_w, box_h, PALETTE[0] if node["depth"] == 0 else "#e8edf4"))
+        if node["parent"] is not None:
+            parent = nodes[node["parent"]]
+            body.append('<line x1="%.2f" y1="%.2f" x2="%.2f" y2="%.2f" stroke="#8a8a85"/>'
+                        % (margin + slot * (parent["x"] + 0.5), top + row * parent["depth"] + box_h,
+                           x + box_w / 2, y))
+        text = (node["code"] + "  " if node["code"] else "") + node["label"]
+        body.append('<text x="%.2f" y="%.2f" text-anchor="middle" font-family="Georgia, serif" '
+                    'font-size="10" fill="%s">%s</text>'
+                    % (x + box_w / 2, y + box_h / 2 + 4,
+                       "#ffffff" if node["depth"] == 0 else "#1b1b1b", html.escape(text)))
+    return _open(title) + _title(title) + "".join(body) + _close()
+
+
 def render_svg(spec, bundle=None):
     """Draw one diagram as deterministic SVG. Returns the SVG string."""
     kind, title, labels = validate_spec(spec)
@@ -403,6 +480,8 @@ def render_svg(spec, bundle=None):
         return _journey(labels, title)
     if kind == "kpi":
         return _kpi(labels, title, bundle)
+    if kind == "wbs":
+        return _wbs(labels, title)
     return _tree(spec, labels, title)
 
 

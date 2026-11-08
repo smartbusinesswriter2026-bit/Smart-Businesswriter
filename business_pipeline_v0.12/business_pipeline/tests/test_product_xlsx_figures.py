@@ -139,3 +139,117 @@ class BundleTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def chart_figure(kind="bar", cumulative=False):
+    """A rendered figure as the exporter sees it: a picture, and the values themselves."""
+    from decimal import Decimal
+
+    labels = ["Q1", "Q2", "Q3"]
+    values = ["120000", "240000", "360000"]
+    running = ["120000", "360000", "720000"]
+    series = []
+    for index, label in enumerate(labels):
+        entry = {"label": label, "value": Decimal(values[index]), "stored": values[index]}
+        if cumulative:
+            entry["cumulative"] = Decimal(running[index])
+            entry["cumulative_stored"] = running[index]
+        series.append(entry)
+    spec_series = [{"label": label, "artifact": "v%d" % index}
+                   for index, label in enumerate(labels)]
+    if cumulative:
+        for index, entry in enumerate(spec_series):
+            entry["cumulative"] = "c%d" % index
+    return {"id": "fig_chart", "place": "", "caption": "Revenue by quarter",
+            "spec": {"format": "bp-chart/1", "kind": kind,
+                     "title": "Revenue by quarter", "series": spec_series},
+            "asset": {"png": PNG_1X1}, "series": series}
+
+
+def chart_workbook(figure=None):
+    """The two-sheet workbook the figure is attached to, as the exporter builds it."""
+    sheets = [("Summary", [["A"]], {}),
+              ("Results", [["Metric", "Value"], ["Revenue", 10]], {})]
+    return spreadsheets.write_xlsx(
+        spreadsheets._with_figures(sheets, [figure or chart_figure()]))
+
+
+class NativeChartTest(unittest.TestCase):
+    """A chart the workbook can draw itself: cells, a chart part, and a graphic frame."""
+
+    def test_the_workbook_carries_a_chart_part(self):
+        names = parts(chart_workbook())
+        self.assertIn("xl/charts/chart1.xml", names)
+
+    def test_the_content_types_declare_the_chart(self):
+        declared = parts(chart_workbook())["[Content_Types].xml"].decode()
+        self.assertIn("/xl/charts/chart1.xml", declared)
+        self.assertIn("drawingml.chart+xml", declared)
+
+    def test_the_drawing_anchors_a_graphic_frame(self):
+        drawing = parts(chart_workbook())["xl/drawings/drawing1.xml"].decode()
+        self.assertIn("<xdr:graphicFrame", drawing)
+        self.assertIn("drawingml/2006/chart", drawing)
+        self.assertNotIn("<xdr:pic>", drawing)
+
+    def test_the_drawing_points_at_the_chart_part(self):
+        names = parts(chart_workbook())
+        rels = names["xl/drawings/_rels/drawing1.xml.rels"].decode()
+        self.assertIn("../charts/chart1.xml", rels)
+        self.assertIn("relationships/chart", rels)
+
+    def test_the_values_are_on_the_sheet_above_the_chart(self):
+        sheet = parts(chart_workbook())["xl/worksheets/sheet2.xml"].decode()
+        self.assertIn("Revenue by quarter", sheet)
+        for label, value in (("Q1", "120000"), ("Q3", "360000")):
+            self.assertIn(">%s<" % label, sheet)
+            self.assertIn("<v>%s</v>" % value, sheet)
+
+    def test_the_chart_caches_the_recorded_values(self):
+        chart = parts(chart_workbook())["xl/charts/chart1.xml"].decode()
+        for value in ("120000", "240000", "360000"):
+            self.assertIn("<c:v>%s</c:v>" % value, chart)
+        self.assertIn("<c:barChart>", chart)
+        self.assertIn("'Results'!$B$", chart)
+
+    def test_a_pareto_is_a_bar_and_a_line_on_two_axes(self):
+        chart = parts(chart_workbook(chart_figure("pareto", cumulative=True)))[
+            "xl/charts/chart1.xml"].decode()
+        self.assertIn("<c:barChart>", chart)
+        self.assertIn("<c:lineChart>", chart)
+        self.assertEqual(chart.count("<c:valAx>"), 2)
+        self.assertIn("720000", chart)
+
+    def test_a_stacked_bar_says_so(self):
+        chart = parts(chart_workbook(chart_figure("stacked_bar")))[
+            "xl/charts/chart1.xml"].decode()
+        self.assertIn('<c:grouping val="stacked"/>', chart)
+        self.assertIn('<c:overlap val="100"/>', chart)
+
+    def test_a_pie_carries_no_axes(self):
+        chart = parts(chart_workbook(chart_figure("pie")))[
+            "xl/charts/chart1.xml"].decode()
+        self.assertIn("<c:pieChart>", chart)
+        self.assertNotIn("<c:catAx>", chart)
+
+    def test_a_shape_with_no_native_equivalent_keeps_its_picture(self):
+        figure = chart_figure("waterfall")
+        names = parts(chart_workbook(figure))
+        self.assertIn("xl/media/image1.png", names)
+        self.assertFalse([name for name in names if name.startswith("xl/charts/")])
+
+    def test_every_part_is_well_formed_and_resolves(self):
+        names = parts(chart_workbook(chart_figure("pareto", cumulative=True)))
+        for name, body in names.items():
+            if name.endswith(".xml") or name.endswith(".rels"):
+                ET.fromstring(body)
+        for name, body in names.items():
+            if not name.endswith(".rels"):
+                continue
+            base = posixpath.dirname(posixpath.dirname(name))
+            for relationship in ET.fromstring(body):
+                resolved = posixpath.normpath(posixpath.join(base, relationship.get("Target")))
+                self.assertIn(resolved, names, "%s -> %s" % (name, relationship.get("Target")))
+
+    def test_the_bytes_are_stable(self):
+        self.assertEqual(chart_workbook(), chart_workbook())

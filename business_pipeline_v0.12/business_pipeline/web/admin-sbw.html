@@ -271,6 +271,16 @@
   .at-results th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: #F8FAFC; }
   .at-downloads { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); }
   .at-downloads a.btn { text-decoration: none; }
+  .dropzone {
+    margin-top: 12px; padding: 22px 18px; text-align: center; cursor: pointer;
+    border: 1.5px dashed var(--line-strong); border-radius: var(--radius-sm);
+    background: #FBFCFD; color: var(--muted); transition: background .15s, border-color .15s;
+  }
+  .dropzone:hover, .dropzone:focus-visible { border-color: var(--accent); background: var(--accent-soft); outline: none; }
+  .dropzone.dragover { border-color: var(--accent); background: var(--accent-soft); border-style: solid; }
+  .dropzone.busy { opacity: .6; cursor: progress; }
+  .dropzone-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+  .dropzone-hint { font-size: 12px; margin-top: 4px; }
   #errorsTable, #runsTable, #findingsTable, #proposalsTable, #arHistory,
   #healHistory, #caseResults, #caseSubjects { overflow-x: auto; }
   #errorsTable table { min-width: 720px; }
@@ -523,6 +533,11 @@
                 <label>Tile <select id="uploadTile"><option value="">— select tile —</option></select></label>
                 <button class="btn primary" id="uploadFilesBtn">Upload files</button>
                 <input type="file" id="uploadFiles" multiple style="display:none">
+              </div>
+              <div class="dropzone" id="uploadDrop" tabindex="0" role="button"
+                   aria-label="Drop test files here, or choose files">
+                <div class="dropzone-title">Drop test files here</div>
+                <div class="dropzone-hint">JSON, CSV/TSV, Excel, Word, PDF, TXT or an image — or use <strong>Upload files</strong>.</div>
               </div>
               <div id="uploadResults" class="at-results"></div>
               <h3 style="margin-top:18px;font-size:14px;">Accepted files</h3>
@@ -1832,29 +1847,120 @@ document.getElementById('uploadFilesBtn').addEventListener('click', () => {
   document.getElementById('uploadFiles').click();
 });
 
-document.getElementById('uploadFiles').addEventListener('change', async (event) => {
-  const files = Array.from(event.target.files || []);
-  const subject = document.getElementById('uploadSubject').value;
-  const tile = document.getElementById('uploadTile').value;
+async function uploadTestFiles(subject, tile, files) {
+  const list = Array.from(files || []);
+  if (!list.length) return;
+  if (!subject || !tile) {
+    toast('Choose a subject and tile first, then drop the files');
+    const select = document.getElementById('uploadSubject');
+    if (select) select.focus();
+    return;
+  }
+  const host = document.getElementById('uploadResults');
+  const drop = document.getElementById('uploadDrop');
+  if (drop) drop.classList.add('busy');
+  host.innerHTML = '<div class="at-status">Uploading ' + list.length + ' file(s)…</div>';
   let ok = 0;
+  const accepted = [];
   const rejected = [];
-  for (const file of files) {
-    const content = await readBase64(file);
+  for (const file of list) {
+    let content = '';
+    try {
+      content = await readBase64(file);
+    } catch (err) {
+      rejected.push(file.name + ': the file could not be read');
+      continue;
+    }
     const r = await apiFetch('/api/ops/cases/upload', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ subject: subject, tile: tile, name: file.name, content: content })
     });
-    if (r.status === 200) ok += 1;
-    else rejected.push(file.name + ': ' + ((r.data && r.data.error) || r.status));
+    if (r.status === 200) {
+      ok += 1;
+      accepted.push(file.name + ' → ' + ((r.data && r.data.id) || 'stored'));
+    } else {
+      rejected.push(file.name + ': ' + ((r.data && r.data.error) || r.status));
+    }
   }
-  event.target.value = '';
+  if (drop) drop.classList.remove('busy');
   toast(ok + ' file(s) accepted' + (rejected.length ? '; ' + rejected.length + ' rejected' : ''));
-  document.getElementById('uploadResults').innerHTML = rejected.length
-    ? '<div class="empty">Rejected:<br>' + rejected.map(escapeHtml).join('<br>') + '</div>'
-    : (ok ? '<div class="at-status">' + ok + ' file(s) stored. Both testers can use them now.</div>' : '');
+  const parts = [];
+  if (accepted.length) {
+    parts.push('<div class="at-status">' + ok + ' file(s) stored. Both testers can use them now.</div>');
+    parts.push('<table><thead><tr><th>File</th><th>Case</th></tr></thead><tbody>'
+      + accepted.map(line => {
+        const cut = line.indexOf(' → ');
+        return '<tr><td>' + escapeHtml(line.slice(0, cut)) + '</td><td>'
+          + escapeHtml(line.slice(cut + 3)) + '</td></tr>';
+      }).join('') + '</tbody></table>');
+  }
+  if (rejected.length) {
+    parts.push('<div class="empty">Rejected:<br>' + rejected.map(escapeHtml).join('<br>') + '</div>');
+  }
+  host.innerHTML = parts.join('');
   await loadCases();
+}
+
+document.getElementById('uploadFiles').addEventListener('change', async (event) => {
+  const files = Array.from(event.target.files || []);
+  const subject = document.getElementById('uploadSubject').value;
+  const tile = document.getElementById('uploadTile').value;
+  event.target.value = '';
+  await uploadTestFiles(subject, tile, files);
 });
+
+/* Drag and drop onto the store. The dropzone is also a click target for the picker. */
+(function wireUploadDropzone() {
+  const drop = document.getElementById('uploadDrop');
+  if (!drop) return;
+  const hasFiles = (event) => {
+    const types = (event.dataTransfer && event.dataTransfer.types) || [];
+    return Array.prototype.indexOf.call(types, 'Files') !== -1;
+  };
+  drop.addEventListener('click', () => {
+    const subject = document.getElementById('uploadSubject').value;
+    const tile = document.getElementById('uploadTile').value;
+    if (!subject || !tile) { toast('Choose a subject and tile first'); return; }
+    document.getElementById('uploadFiles').click();
+  });
+  drop.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); drop.click(); }
+  });
+  ['dragenter', 'dragover'].forEach(name => {
+    drop.addEventListener(name, (event) => {
+      if (!hasFiles(event)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+      drop.classList.add('dragover');
+    });
+  });
+  drop.addEventListener('dragleave', (event) => {
+    event.preventDefault();
+    if (drop.contains(event.relatedTarget)) return;
+    drop.classList.remove('dragover');
+  });
+  drop.addEventListener('drop', async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    drop.classList.remove('dragover');
+    const subject = document.getElementById('uploadSubject').value;
+    const tile = document.getElementById('uploadTile').value;
+    const items = (event.dataTransfer && event.dataTransfer.files) || [];
+    const files = Array.prototype.filter.call(items, file => file && file.size >= 0 && file.name);
+    if (!files.length) { toast('No file was dropped'); return; }
+    await uploadTestFiles(subject, tile, files);
+  });
+  /* A file dropped outside the zone must not navigate away from the console. */
+  ['dragover', 'drop'].forEach(name => {
+    window.addEventListener(name, (event) => {
+      if (!hasFiles(event)) return;
+      if (drop.contains(event.target)) return;
+      event.preventDefault();
+    });
+  });
+})();
 
 function readBase64(file) {
   return new Promise((resolve, reject) => {

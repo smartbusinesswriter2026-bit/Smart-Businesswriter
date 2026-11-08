@@ -1919,6 +1919,16 @@ _RATIO_FIGURES = {
     "operating_profit": "operating profit for the period",
     "net_income": "net income for the period (as supplied; no tax computation is performed)",
     "interest_expense": "interest expense for the period, as a positive amount",
+    "operating_cash_flow": "operating cash flow for the period",
+    "capital_expenditure": "capital expenditure for the period, as a positive amount",
+    "working_capital": "current assets minus current liabilities",
+    "retained_earnings": "retained earnings at the period end",
+    "ebit": "earnings before interest and tax",
+    "sales": "revenue for the period",
+    "market_value_equity": "market value of equity (share price x shares outstanding)",
+    "share_price": "market price per share",
+    "shares_outstanding": "shares outstanding",
+    "dividends_declared": "dividends declared for the period",
 }
 
 # (name, group, figures needed, denominator figures, formula, unit, definition)
@@ -1953,6 +1963,37 @@ _RATIOS = (
      lambda f: f["inventory"] / f["cost_of_sales"] * 365, "days", "inventory / cost of sales x 365"),
     ("payables_days", "efficiency", ("payables", "cost_of_sales"), ("cost_of_sales",),
      lambda f: f["payables"] / f["cost_of_sales"] * 365, "days", "payables / cost of sales x 365"),
+    ("operating_cash_flow_ratio", "cash flow", ("operating_cash_flow", "current_liabilities"), ("current_liabilities",),
+     lambda f: f["operating_cash_flow"] / f["current_liabilities"], "ratio", "operating cash flow / current liabilities"),
+    ("cash_flow_margin", "cash flow", ("operating_cash_flow", "revenue"), ("revenue",),
+     lambda f: f["operating_cash_flow"] / f["revenue"], "ratio", "operating cash flow / revenue"),
+    ("cash_flow_to_debt", "cash flow", ("operating_cash_flow", "total_liabilities"), ("total_liabilities",),
+     lambda f: f["operating_cash_flow"] / f["total_liabilities"], "ratio", "operating cash flow / total liabilities"),
+    ("free_cash_flow_margin", "cash flow", ("operating_cash_flow", "capital_expenditure", "revenue"), ("revenue",),
+     lambda f: (f["operating_cash_flow"] - f["capital_expenditure"]) / f["revenue"], "ratio", "(operating cash flow - capital expenditure) / revenue"),
+    ("accruals_ratio", "quality", ("net_income", "operating_cash_flow", "total_assets"), ("total_assets",),
+     lambda f: (f["net_income"] - f["operating_cash_flow"]) / f["total_assets"], "ratio", "(net income - operating cash flow) / total assets"),
+    ("earnings_per_share", "market", ("net_income", "shares_outstanding"), ("shares_outstanding",),
+     lambda f: f["net_income"] / f["shares_outstanding"], "ratio", "net income / shares outstanding"),
+    ("book_value_per_share", "market", ("equity", "shares_outstanding"), ("shares_outstanding",),
+     lambda f: f["equity"] / f["shares_outstanding"], "ratio", "equity / shares outstanding"),
+    ("price_earnings", "market", ("share_price", "net_income", "shares_outstanding"), ("net_income", "shares_outstanding"),
+     lambda f: f["share_price"] / (f["net_income"] / f["shares_outstanding"]), "ratio", "share price / earnings per share"),
+    ("market_to_book", "market", ("share_price", "equity", "shares_outstanding"), ("equity", "shares_outstanding"),
+     lambda f: f["share_price"] / (f["equity"] / f["shares_outstanding"]), "ratio", "share price / book value per share"),
+    ("dividend_payout", "market", ("dividends_declared", "net_income"), ("net_income",),
+     lambda f: f["dividends_declared"] / f["net_income"], "ratio", "dividends declared / net income"),
+    ("dividend_yield", "market", ("dividends_declared", "shares_outstanding", "share_price"), ("shares_outstanding", "share_price"),
+     lambda f: (f["dividends_declared"] / f["shares_outstanding"]) / f["share_price"], "ratio", "dividends per share / share price"),
+    ("altman_z_score", "quality",
+     ("working_capital", "total_assets", "retained_earnings", "ebit", "market_value_equity",
+      "total_liabilities", "sales"), ("total_assets", "total_liabilities"),
+     lambda f: (f["working_capital"] * 6 / (5 * f["total_assets"])
+                + f["retained_earnings"] * 7 / (5 * f["total_assets"])
+                + f["ebit"] * 33 / (10 * f["total_assets"])
+                + f["market_value_equity"] * 3 / (5 * f["total_liabilities"])
+                + f["sales"] / f["total_assets"]),
+     "ratio", "1.2 WC/TA + 1.4 RE/TA + 3.3 EBIT/TA + 0.6 MVE/TL + 1.0 Sales/TA"),
 )
 _RATIO_GROUP = {r[0]: r[1] for r in _RATIOS}
 _RATIO_DENOMS = {r[0]: r[3] for r in _RATIOS}
@@ -1963,7 +2004,14 @@ _RATIO_LABEL = {"current_ratio": "current ratio", "quick_ratio": "quick ratio", 
                 "return_on_assets": "return on assets", "return_on_equity": "return on equity",
                 "debt_to_equity": "debt to equity", "equity_multiplier": "equity multiplier", "interest_cover": "interest cover",
                 "asset_turnover": "asset turnover", "receivables_days": "receivables days", "inventory_days": "inventory days",
-                "payables_days": "payables days"}
+                "payables_days": "payables days",
+                "operating_cash_flow_ratio": "operating cash flow ratio", "cash_flow_margin": "cash flow margin",
+                "cash_flow_to_debt": "cash flow to debt", "free_cash_flow_margin": "free cash flow margin",
+                "accruals_ratio": "accruals ratio",
+                "earnings_per_share": "earnings per share", "book_value_per_share": "book value per share",
+                "price_earnings": "price-earnings", "market_to_book": "market to book",
+                "dividend_payout": "dividend payout", "dividend_yield": "dividend yield",
+                "altman_z_score": "Altman Z-score"}
 
 def _ratio_figures(inp): return {k: D(str(inp[k])) for k in _RATIO_FIGURES if k in inp}
 
@@ -2039,7 +2087,7 @@ def ratio_template(outputs, period, thresholds=None):
     P = period; tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
     order = [r[0] for r in _RATIOS if r[0] in outputs]
     t = f"The analysis computes {tok('n_computed')} financial-statement ratios from the figures supplied. "
-    for group in ("liquidity", "profitability", "solvency", "efficiency"):
+    for group in ("liquidity", "profitability", "solvency", "efficiency", "cash flow", "quality"):
         names = [n for n in order if _RATIO_GROUP[n] == group]
         if names: t += "The " + group + " ratios are " + ", ".join(_RATIO_LABEL[n] + " of " + tok(n) for n in names) + ". "
     return t + "Ratios are descriptive: no benchmark, industry average or pass/fail cut-off is applied, and ratios that cannot be computed are listed in the appendix rather than estimated."
@@ -4354,6 +4402,67 @@ def _wc_template(out, P, th):
             " inventory days and " + tok("dpo") + " payable days). Net working capital is " + tok("net_working_capital") +
             ", the economic order quantity is " + tok("eoq") + " units and the reorder point is " + tok("reorder_point") +
             " units. Forgoing the declared discount costs " + tok("cost_of_trade_credit") + " a year.")
+
+# ----- cash conversion cycle (the cycle alone) -----
+# The combined `working_capital` method needs order-quantity and trade-credit terms that a
+# financial statement does not carry, so a statement-driven tile could not use it.  This method
+# is the cycle by itself: revenue, cost of sales, inventory, receivables and payables are all a
+# statement supplies.
+def ccc_impl(inp):
+    rev, cogs = D(str(inp["revenue"])), D(str(inp["cost_of_sales"]))
+    inv, rec, pay = D(str(inp["inventory"])), D(str(inp["receivables"])), D(str(inp["payables"]))
+    days = D(str(inp.get("days", "365")))
+    if rev <= 0 or cogs <= 0: raise DataError("revenue and cost of sales must be positive")
+    if min(inv, rec, pay) < 0: raise DataError("inventory, receivables and payables must be non-negative")
+    if days <= 0: raise DataError("days must be positive")
+    dso, dio, dpo = rec / rev * days, inv / cogs * days, pay / cogs * days
+    return {"dso": dso, "dio": dio, "dpo": dpo, "cash_conversion_cycle": dso + dio - dpo,
+            "net_working_capital": inv + rec - pay}
+
+def _ccc_ref(inp):
+    rev, cogs = float(D(str(inp["revenue"]))), float(D(str(inp["cost_of_sales"])))
+    inv, rec, pay = float(D(str(inp["inventory"]))), float(D(str(inp["receivables"]))), float(D(str(inp["payables"])))
+    days = float(D(str(inp.get("days", "365"))))
+    dso, dio, dpo = rec / rev * days, inv / cogs * days, pay / cogs * days
+    return {"dso": dso, "dio": dio, "dpo": dpo, "cash_conversion_cycle": dso + dio - dpo,
+            "net_working_capital": inv + rec - pay}
+
+def _ccc_tests(inp, impl):
+    base, ref = impl(inp), _ccc_ref(inp)
+    more = impl({**inp, "receivables": str(D(str(inp["receivables"])) + D("100"))})
+    checks = [
+        ("second_implementation_agrees", all(_close(base[k], _fd(ref[k])) for k in ref), "float route agrees with the Decimal route"),
+        ("the_cash_conversion_cycle_is_the_three_periods", _close(base["cash_conversion_cycle"], base["dso"] + base["dio"] - base["dpo"]), "DSO + DIO - DPO is the cycle"),
+        ("a_longer_receivable_period_lengthens_the_cycle", more["cash_conversion_cycle"] > base["cash_conversion_cycle"], "more receivables lengthens the cycle"),
+        ("net_working_capital_is_inventory_plus_receivables_minus_payables",
+         _close(base["net_working_capital"], D(str(inp["inventory"])) + D(str(inp["receivables"])) - D(str(inp["payables"]))),
+         "inventory + receivables - payables"),
+    ]
+    return [(n_, ok) for n_, ok, _ in checks]
+
+def _ccc_profile(inp):
+    try:
+        errs = []
+        if D(str(inp["revenue"])) <= 0 or D(str(inp["cost_of_sales"])) <= 0: errs.append("revenue and cost of sales must be positive")
+        if D(str(inp.get("days", "365"))) <= 0: errs.append("days must be positive")
+        for k in ("inventory", "receivables", "payables"):
+            if D(str(inp[k])) < 0: errs.append(f"{k} must be non-negative")
+        return errs
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["cash-conversion inputs are malformed: revenue, cost_of_sales, inventory, receivables and payables are required numbers"]
+
+def _ccc_typing(metric):
+    if metric in ("dso", "dio", "dpo", "cash_conversion_cycle"): return ("days", 1)
+    return ("currency", 2)
+
+def _ccc_caveats(out, th):
+    return ["The turnover ratios use period-end balances and a declared day count; average balances would give different numbers.",
+            "A negative cycle means the business is paid before it pays its suppliers; that is a working-capital fact, not a profit measure."]
+
+def _ccc_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The cash conversion cycle is " + tok("cash_conversion_cycle") + " days (" + tok("dso") + " receivable days, " + tok("dio") +
+            " inventory days and " + tok("dpo") + " payable days). Net working capital is " + tok("net_working_capital") + ".")
 
 # ----- portfolio return, risk and performance -----
 def portfolio_impl(inp):
@@ -14115,6 +14224,120 @@ def tax_declared_template(out, P, th):
     return t
 
 
+# ---------- Tax reconciliation (B-052 resumed) ----------
+
+def tax_reconciliation_impl(inp):
+    profit = D(str(inp["accounting_profit"]))
+    rate = D(str(inp["tax_rate"]))
+    if rate > 1:
+        rate = rate / D(100)
+    if not (D(0) <= rate <= D(1)):
+        raise DataError("tax_rate must be between zero and one")
+    non_deductible = _optional_decimal(inp, "non_deductible") or D(0)
+    non_taxable = _optional_decimal(inp, "non_taxable") or D(0)
+    allowances = _optional_decimal(inp, "capital_allowances") or D(0)
+    if min(non_deductible, non_taxable, allowances) < 0:
+        raise DataError("the reconciling items must be non-negative")
+    taxable = profit + non_deductible - non_taxable - allowances
+    current = taxable * rate if taxable > 0 else D(0)
+    out = {"accounting_profit": profit, "tax_rate": rate, "taxable_income": taxable,
+           "current_tax": current,
+           "effective_tax_rate": current / profit if profit != 0 else D(0)}
+    diff = _optional_decimal(inp, "temporary_difference")
+    d_rate = _optional_decimal(inp, "deferred_tax_rate")
+    if diff is not None or d_rate is not None:
+        if diff is None or d_rate is None:
+            raise DataError("declare both temporary_difference and deferred_tax_rate, or neither")
+        if d_rate < 0 or d_rate > 1:
+            raise DataError("deferred_tax_rate must be between zero and one")
+        out["temporary_difference"] = diff
+        out["deferred_tax_rate"] = d_rate
+        out["deferred_tax"] = diff * d_rate
+    out["total_tax_expense"] = current + out.get("deferred_tax", D(0))
+    if profit != 0:
+        out["effective_tax_rate"] = out["total_tax_expense"] / profit
+    vat_out = _optional_decimal(inp, "vat_output_tax")
+    vat_in = _optional_decimal(inp, "vat_input_tax")
+    if vat_out is not None or vat_in is not None:
+        if vat_out is None or vat_in is None:
+            raise DataError("declare both vat_output_tax and vat_input_tax, or neither")
+        if vat_out < 0 or vat_in < 0:
+            raise DataError("VAT figures must be non-negative")
+        out["vat_payable"] = vat_out - vat_in
+    return out
+
+def _tax_reconciliation_ref(inp):
+    profit = float(D(str(inp["accounting_profit"])))
+    rate = float(D(str(inp["tax_rate"])))
+    if rate > 1:
+        rate /= 100
+    non_deductible = float(D(str(inp.get("non_deductible", 0) or 0)))
+    non_taxable = float(D(str(inp.get("non_taxable", 0) or 0)))
+    allowances = float(D(str(inp.get("capital_allowances", 0) or 0)))
+    taxable = profit + non_deductible - non_taxable - allowances
+    current = taxable * rate if taxable > 0 else 0.0
+    return {"taxable_income": taxable, "current_tax": current}
+
+def tax_reconciliation_tests(inp, impl):
+    base, ref = impl(inp), _tax_reconciliation_ref(inp)
+    non_deductible = _optional_decimal(inp, "non_deductible") or D(0)
+    non_taxable = _optional_decimal(inp, "non_taxable") or D(0)
+    allowances = _optional_decimal(inp, "capital_allowances") or D(0)
+    checks = [
+        ("second_implementation_agrees",
+         _close(base["taxable_income"], D(str(ref["taxable_income"])))
+         and _close(base["current_tax"], D(str(ref["current_tax"]))),
+         "float route agrees with the Decimal route"),
+        ("taxable_income_is_profit_plus_deductible_adjustments",
+         _close(base["taxable_income"], base["accounting_profit"] + non_deductible - non_taxable - allowances),
+         "accounting profit plus non-deductible less non-taxable and allowances"),
+        ("current_tax_is_the_rate_on_positive_taxable_income",
+         _close(base["current_tax"], max(D(0), base["taxable_income"]) * base["tax_rate"]),
+         "a loss carries no positive current tax"),
+        ("total_tax_expense_is_current_plus_deferred",
+         _close(base["total_tax_expense"], base["current_tax"] + base.get("deferred_tax", D(0))),
+         "current tax plus deferred tax"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+def tax_reconciliation_profile(inp):
+    try:
+        D(str(inp["accounting_profit"]))
+        rate = D(str(inp["tax_rate"]))
+        if rate > 1:
+            rate = rate / D(100)
+        if not (0 <= rate <= 1):
+            return ["tax_rate must be between zero and one"]
+        for key in ("non_deductible", "non_taxable", "capital_allowances"):
+            value = _optional_decimal(inp, key)
+            if value is not None and value < 0:
+                return [key + " must be non-negative"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["tax inputs are malformed: accounting_profit and tax_rate are required numbers"]
+
+def _tax_reconciliation_typing(metric):
+    if metric in ("tax_rate", "effective_tax_rate", "deferred_tax_rate"):
+        return ("rate", 4)
+    return ("currency", 2)
+
+def tax_reconciliation_caveats(out, th):
+    return ["Every rate and reconciling item is declared by you; no jurisdiction's tax law, credits, thresholds or filing rules are applied.",
+            "The reconciliation is an arithmetic bridge from the declared accounting profit to the declared taxable income, not a tax computation under any code.",
+            "VAT payable is output tax less input tax, with no timing, classification or refund rules."]
+
+def tax_reconciliation_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    t = ("Accounting profit of " + tok("accounting_profit") + " reconciles to taxable income of "
+         + tok("taxable_income") + " after the declared non-deductible, non-taxable and allowance "
+         "items. The current tax at the declared rate is " + tok("current_tax") + ".")
+    if "deferred_tax" in out:
+        t += " The deferred tax is " + tok("deferred_tax") + "."
+    t += (" The total tax expense is " + tok("total_tax_expense") + " and the effective rate is "
+          + tok("effective_tax_rate") + ".")
+    return t
+
+
 # ---------- Business-plan spine (B-121) ----------
 
 def depreciation_schedule_impl(inp):
@@ -15541,6 +15764,23 @@ LIBRARY = {
                   assumptions=("The period-end balances and the annual demand are the owner's figures.", "Demand, order cost and holding cost are constant over the year.", "The credit terms are as declared."),
                   limitations=("No seasonality, quantity discounts or stock-out cost.", "No cash budget or forecast.", "The trade-credit cost is an annualised convention, not a financing recommendation."),
                   default_period="annual", caveats=_wc_caveats, template=_wc_template, claim_ceiling="descriptive", typing=_wc_typing),
+    "working_capital_cycle": Method("working_capital_cycle", "T1", ccc_impl, _ccc_tests, _ccc_profile, "cash_conversion_cycle", "days", None,
+                  ("second_implementation_agrees", "the_cash_conversion_cycle_is_the_three_periods",
+                   "a_longer_receivable_period_lengthens_the_cycle",
+                   "net_working_capital_is_inventory_plus_receivables_minus_payables"),
+                  category="working capital",
+                  intended_use="Measure the cash conversion cycle from receivable, inventory and payable days, without the order-quantity and trade-credit terms the combined working-capital method needs.",
+                  unsupported_use="Forecasting working capital; seasonality or average balances; bad-debt and credit-scoring models; a full cash budget.",
+                  input_schema={"revenue": {"type": "decimal", "desc": "revenue for the period"},
+                                "cost_of_sales": {"type": "decimal", "desc": "cost of sales for the period"},
+                                "inventory": {"type": "decimal", "desc": "inventory at the period end"},
+                                "receivables": {"type": "decimal", "desc": "trade receivables at the period end"},
+                                "payables": {"type": "decimal", "desc": "trade payables at the period end"},
+                                "days": {"type": "decimal", "required": False, "desc": "days in the period; default 365"}},
+                  defaults=({"question": "Which balances?", "default_chosen": "Period-end balances and a 365-day year; average balances would give different days.", "impact": "A seasonal business can look very different at a peak or trough date."},),
+                  assumptions=("The period-end balances are the owner's figures.", "A 365-day year unless declared."),
+                  limitations=("No seasonality or average balances.", "No cash budget or forecast.", "No order-quantity or trade-credit term."),
+                  default_period="annual", caveats=_ccc_caveats, template=_ccc_template, claim_ceiling="descriptive", typing=_ccc_typing),
     "portfolio_analysis": Method("portfolio_analysis", "T1", portfolio_impl, _portfolio_tests, _portfolio_profile, "portfolio_return", "rate", None,
                   ("second_implementation_agrees", "the_correlation_lies_between_minus_one_and_one", "a_full_weight_reproduces_the_first_asset",
                    "the_portfolio_variance_identity_holds", "beta_is_the_covariance_over_the_market_variance",
@@ -17266,6 +17506,28 @@ LIBRARY = {
                   limitations=("No credits, exemptions, thresholds, progressive bands, NOLCO, withholding or filing rules.", "No link to the accounting profit or the statements.", "Deferred tax is one declared difference times one declared rate."),
                   default_period="annual", caveats=tax_declared_caveats, template=tax_declared_template,
                   claim_ceiling="descriptive", typing=_tax_declared_typing),
+    "tax_reconciliation": Method("tax_reconciliation", "T1", tax_reconciliation_impl, tax_reconciliation_tests,
+                  tax_reconciliation_profile, "total_tax_expense", "currency", None,
+                  ("second_implementation_agrees", "taxable_income_is_profit_plus_deductible_adjustments",
+                   "current_tax_is_the_rate_on_positive_taxable_income",
+                   "total_tax_expense_is_current_plus_deferred"),
+                  category="taxation",
+                  intended_use="Reconcile a declared accounting profit to taxable income through declared non-deductible, non-taxable and allowance items, then compute current tax, deferred tax, the total tax expense, the effective rate and VAT payable from declared figures.",
+                  unsupported_use="Applying any jurisdiction's tax law, credits, exemptions, thresholds, loss carryforwards or filing rules; retrieving tax rates; a tax return.",
+                  input_schema={"accounting_profit": {"type": "decimal", "desc": "accounting profit before tax"},
+                                "tax_rate": {"type": "decimal", "desc": "income tax rate as a decimal (0.25) or a percentage (25)"},
+                                "non_deductible": {"type": "decimal", "required": False, "desc": "expenses added back to profit (default 0)"},
+                                "non_taxable": {"type": "decimal", "required": False, "desc": "income deducted from profit (default 0)"},
+                                "capital_allowances": {"type": "decimal", "required": False, "desc": "tax allowances deducted from profit (default 0)"},
+                                "temporary_difference": {"type": "decimal", "required": False, "desc": "temporary difference for deferred tax"},
+                                "deferred_tax_rate": {"type": "decimal", "required": False, "desc": "deferred tax rate, if a temporary difference is declared"},
+                                "vat_output_tax": {"type": "decimal", "required": False, "desc": "VAT charged on sales"},
+                                "vat_input_tax": {"type": "decimal", "required": False, "desc": "VAT paid on purchases"}},
+                  defaults=({"question": "Which items?", "default_chosen": "Only the declared reconciling items; nothing is inferred.", "impact": "A missing item understates or overstates taxable income."},),
+                  assumptions=("The accounting profit and every reconciling item are the owner's declared figures.", "The tax rate is a declared rate, not a retrieved one."),
+                  limitations=("No tax law, credits, exemptions, thresholds or loss carryforwards.", "No deferred tax asset/liability classification.", "VAT is output less input, with no refund or timing rules."),
+                  default_period="annual", caveats=tax_reconciliation_caveats, template=tax_reconciliation_template,
+                  claim_ceiling="descriptive", typing=_tax_reconciliation_typing),
     "depreciation_schedule": Method("depreciation_schedule", "T1", depreciation_schedule_impl, depreciation_schedule_tests,
                   depreciation_schedule_profile, "total_depreciation", "currency", None,
                   ("second_implementation_agrees", "depreciation_never_takes_carrying_below_salvage",

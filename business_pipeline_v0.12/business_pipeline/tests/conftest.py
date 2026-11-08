@@ -27,6 +27,14 @@ os.environ.setdefault("BP_ORIENTATION", "0")
 # student's search, so the fixtures never reach the real corpus history.
 os.environ.setdefault("BP_LEARNING_LOG", "0")
 
+# The model lanes are live HTTPS calls (see `tests/__init__.py`).  pytest may import
+# a test file without importing the package first, so the keys are cleared here too.
+for _name in ("BP_LLM_PROVIDER", "BP_LLM_MODEL", "BP_LLM_MODEL_TIER2", "BP_LLM_MODEL_TIER3",
+              "BP_LLM_REVIEWER_MODEL", "BP_LLM_BASE_URL", "BP_OPENGO_API_KEY",
+              "BP_PROSE_URL", "BP_PROSE_MODEL",
+              "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "DEEPSEEK_API_KEY"):
+    os.environ[_name] = ""
+
 import pytest
 
 from bp.product import sources

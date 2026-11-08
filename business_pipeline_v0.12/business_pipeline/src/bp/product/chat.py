@@ -465,6 +465,7 @@ PROJECT_PLAN_SECTIONS = [
     {"key": "risk", "heading": "Risk Register", "kind": "table", "level": 1},
     {"key": "governance", "heading": "Governance and Change Control", "kind": "input", "level": 1},
     {"key": "monitoring", "heading": "Monitoring and Success Measures", "kind": "input", "level": 1},
+    {"key": "limitations", "heading": "Limitations", "kind": "integration", "level": 1},
     {"key": "conclusion", "heading": "Conclusion", "kind": "integration", "level": 1},
     {"key": "references", "heading": "References", "kind": "references", "level": 1},
 ]
@@ -1602,6 +1603,10 @@ def _plan(state):
         "figure_problems": [dict(item) for item in state.get("figure_filings") or []
                             if item.get("refused") or item.get("unused")],
         "figures": figure_selection(state),
+        "attached_visuals": [{"id": entry["figure"]["id"],
+                              "title": entry["figure"].get("caption") or "",
+                              "place": entry["figure"].get("place") or ""}
+                             for entry in (state.get("attached_visuals") or {}).values()],
         "selection_hash": selection.get("hash"),
         "catalogue_version": selection.get("catalogue_version"),
         # The report length is part of the plan, so the card and the draft agree.
@@ -5536,6 +5541,14 @@ def _project_money(value, currency="USD"):
         return "not declared"
 
 
+def _periods(value):
+    try:
+        number = float(value)
+        return str(int(number)) if number.is_integer() else ("%g" % number)
+    except (TypeError, ValueError):
+        return str(value)
+
+
 def _draft_project_plan(state, accepted_ids=None, style=None):
     """Compose the complete project plan from the record and the frozen CPM run."""
     if state.get("stage") not in ("plan", "research_ready", "evidence", "evidence_reviewed", "computed", "inputs", "draft"):
@@ -5566,13 +5579,13 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
     # -- executive summary and authorisation
     intro = ["This plan authorises " + (title or "the project") + "."]
     if objective:
-        intro.append("Its objective: " + objective + ".")
+        intro.append("Its objective: " + objective.rstrip(".") + ".")
     if sponsor:
         intro.append("The sponsor is " + sponsor + ".")
     if total_budget:
         intro.append("The declared budget is " + _project_money(total_budget, currency) + ".")
     if duration is not None:
-        intro.append("The critical path runs " + str(duration) + " periods, with "
+        intro.append("The critical path runs " + _periods(duration) + " periods, with "
                      + str(critical or 0) + " critical activities.")
     intro.append("The plan carries the charter, scope, work breakdown, schedule, cost, assignments and risks; "
                  "a record that is missing is named rather than guessed.")
@@ -5584,7 +5597,13 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
              ["Budget", _project_money(total_budget, currency)],
              ["Start", charter.get("start_date") or "not stated"],
              ["End", charter.get("end_date") or "not stated"]]
-    sections.append(paper.section("Project Charter", paper.H1,
+    charter_line = ("The charter authorises " + (title or "the project") + " under " + (sponsor or "the sponsor")
+                    + ". " + (manager and ("The project manager is " + manager + ". ") or "")
+                    + (total_budget and ("The declared budget is " + _project_money(total_budget, currency) + ". ")
+                       or "")
+                    + (charter.get("start_date") and ("Work starts on " + charter["start_date"] + ". ") or "")
+                    + (charter.get("end_date") and ("It is due on " + charter["end_date"] + ".") or ""))
+    sections.append(paper.section("Project Charter", paper.H1, [paper.paragraph([charter_line])],
                                   figure=_project_table("Project charter", ["Field", "Value"], pairs)))
 
     # -- scope and exclusions
@@ -5595,14 +5614,27 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
                   + [["Out of scope", item] for item in scope_out]
                   + [["Deliverable", item] for item in deliverables])
     sections.append(paper.section("Scope and Exclusions", paper.H1,
-                                  [paper.paragraph(["The scope below is the student's declaration; the WBS "
-                                                    "decomposes it and the exclusions bound it."])],
+                                  [paper.paragraph([
+                                      "The scope declares " + str(len(scope_in)) + " included item"
+                                      + ("" if len(scope_in) == 1 else "s") + ", " + str(len(scope_out))
+                                      + " exclusion" + ("" if len(scope_out) == 1 else "s") + " and "
+                                      + str(len(deliverables)) + " deliverable"
+                                      + ("" if len(deliverables) == 1 else "s")
+                                      + ". The WBS decomposes the deliverables; the exclusions bound the work "
+                                        "the project will not do."])],
                                   figure=_project_table("Scope and deliverables",
                                                         ["Direction", "Item"],
                                                         scope_rows or [["", "No scope was declared."]])))
 
     # -- WBS
+    leaves = [row for row in record.get("wbs") or []
+              if not any(other.get("parent") == row.get("id") for other in record.get("wbs") or [])]
     sections.append(paper.section("Work Breakdown Structure", paper.H1,
+                                  [paper.paragraph([
+                                      "The WBS carries " + str(len(record.get("wbs") or [])) + " nodes and "
+                                      + str(len(leaves)) + " work package" + ("" if len(leaves) == 1 else "s")
+                                      + ". Each work package states an owner, a cost and the test that shows it "
+                                        "is complete; the parent nodes carry the roll-up."])],
                                   figure=_project_table("Work breakdown structure",
                                                         ["ID", "Work package", "Owner", "Cost", "Acceptance"],
                                                         project_plan_mod.wbs_rows(record)
@@ -5613,10 +5645,12 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
         result = scheduled["result"]
         rows = project_plan_mod.schedule_rows(record, result)
         sections.append(paper.section("Schedule", paper.H1,
-                                      [paper.paragraph(["The critical path runs " + str(result.get("project_duration"))
-                                                        + " periods and carries " + str(result.get("critical_count"))
-                                                        + " critical activities. Early and late dates are the "
-                                                          "frozen method's own values."])],
+                                      [paper.paragraph([
+                                          "The schedule carries " + str(len(record.get("activities") or []))
+                                          + " activities. The critical path runs " + _periods(result.get("project_duration"))
+                                          + " periods and carries " + str(result.get("critical_count"))
+                                          + " critical activities. Early and late dates and float are the frozen "
+                                            "method's own values; an activity with float is not on the critical path."])],
                                       figure=_project_table("Critical path schedule",
                                                             ["ID", "Activity", "Duration", "ES", "EF", "LS", "LF",
                                                              "Float", "Critical"],
@@ -5628,12 +5662,18 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
                                        + " No date is reported."]))
 
     # -- cost
-    cost_lines = ["The WBS roll-up is " + _project_money(rolled["total"], currency) + "."]
+    cost_lines = ["The WBS rolls " + str(len(record.get("wbs") or [])) + " nodes up to a total of "
+                  + _project_money(rolled["total"], currency) + "."]
     if rolled.get("budget"):
         cost_lines.append("The declared budget is " + _project_money(rolled["budget"], currency)
                           + "; the variance is " + _project_money(rolled["variance"], currency) + ".")
+    if rolled.get("contingency"):
+        cost_lines.append("A declared contingency of " + _project_money(rolled["contingency"], currency)
+                          + " gives " + _project_money(rolled["with_contingency"], currency) + ".")
     if rolled.get("uncosted"):
         cost_lines.append("Work packages with no declared cost: " + ", ".join(rolled["uncosted"]) + ".")
+    cost_lines.append("Cost is carried by the work package, not by the activity; no estimate is added where the "
+                      "record declares none.")
     sections.append(paper.section("Cost Plan", paper.H1,
                                   [paper.paragraph(cost_lines)],
                                   figure=_project_table("Cost roll-up by work package",
@@ -5645,8 +5685,12 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
                       str(row.get("capacity") if row.get("capacity") is not None else "")]
                      for row in record.get("resources") or []]
     sections.append(paper.section("Organisation and Assignments", paper.H1,
-                                  [paper.paragraph(["Resources and the RACI matrix state who does the work and "
-                                                    "who answers for it. A cell left blank is a named gap."])],
+                                  [paper.paragraph([
+                                      "The plan names " + str(len(record.get("resources") or [])) + " resource"
+                                      + ("" if len(record.get("resources") or []) == 1 else "s")
+                                      + ". Every activity carries exactly one accountable role and at least one "
+                                        "responsible role in the RACI matrix; a blank cell or a missing role is a "
+                                        "named gap, not an inferred assignment."])],
                                   figure=_project_table("Resources", ["Name", "Role", "Capacity"],
                                                         resource_rows or [["", "No resources were supplied.", ""]])))
     raci_columns, raci_data = project_plan_mod.raci_rows(record)
@@ -5655,7 +5699,13 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
                                                         raci_data or [["", "No RACI rows were supplied."]])))
 
     # -- risk register
+    risk_count = len(record.get("risks") or [])
     sections.append(paper.section("Risk Register", paper.H1,
+                                  [paper.paragraph([
+                                      "The register carries " + str(risk_count) + " risk"
+                                      + ("" if risk_count == 1 else "s") + ". Likelihood and impact are labels, "
+                                        "not probabilities, and each risk states a response and an owner. "
+                                        "No risk score or expected loss is computed."])],
                                   figure=_project_table("Risk register",
                                                         ["ID", "Risk", "Likelihood", "Impact", "Response", "Owner"],
                                                         project_plan_mod.risk_rows(record)
@@ -5664,8 +5714,13 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
     # -- governance and monitoring
     governance = _plan_input(state, "governance") or charter.get("governance") or ""
     change = _plan_input(state, "change_control") or charter.get("change_control") or ""
+    governance_lines = [part for part in (governance, change) if part]
+    if governance_lines:
+        governance_lines.append("Decisions above the stated change threshold go to the sponsor; decisions below "
+                                "it stay with the project manager. The plan records the arrangement the student "
+                                "declared and adds no approval route of its own.")
     sections.append(paper.section("Governance and Change Control", paper.H1,
-                                  [paper.paragraph([part for part in (governance, change) if part]
+                                  [paper.paragraph(governance_lines
                                                    or ["No governance arrangement was supplied."])]))
     measures = charter.get("success_measures") or _plan_input(state, "success_measures")
     if isinstance(measures, str):
@@ -5676,16 +5731,38 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
                  [[item, "assumption"] for item in assumptions] + \
                  [[item, "constraint"] for item in constraints]
     sections.append(paper.section("Monitoring and Success Measures", paper.H1,
+                                  [paper.paragraph([
+                                      "Progress is judged against " + str(len(measures)) + " success measure"
+                                      + ("" if len(measures) == 1 else "s") + ", " + str(len(assumptions))
+                                      + " assumption" + ("" if len(assumptions) == 1 else "s") + " and "
+                                      + str(len(constraints)) + " constraint"
+                                      + ("" if len(constraints) == 1 else "s")
+                                      + ". A success measure without a baseline is reported as stated, not "
+                                        "converted into a target."])],
                                   figure=_project_table("Success measures, assumptions and constraints",
                                                         ["Item", "Type"],
                                                         monitoring or [["No success measure was supplied.",
                                                                         "success measure"]])))
 
+    # -- limitations
+    limits = ["The plan is limited to the record the student supplied. The CPM uses the declared single-point "
+              "durations; PERT was not run unless the record asks for it. Costs are work-package estimates, not "
+              "commitments. The plan does not assess procurement, financing or benefits beyond the declared "
+              "success measures, and it does not rank the risks. The schedule and cost are tied to the WBS as "
+              "recorded, so a changed scope changes both and must follow the change-control route above. A "
+              "reader should treat the named gaps as open questions, not as conditions already met."]
+    if rolled.get("uncosted"):
+        limits.append("The uncosted work packages named in the cost plan are gaps, not zero-cost work.")
+    sections.append(paper.section("Limitations", paper.H1, [paper.paragraph(limits)]))
+
     # -- conclusion
     conclusion = ["The plan states what the project delivers, how it is broken down, what it costs, who does "
                   "the work and what could go wrong."]
+    conclusion.append("The WBS rolls up to " + _project_money(rolled["total"], currency)
+                      + " against a declared budget of " + _project_money(rolled["budget"], currency) + ".")
     if duration is not None:
-        conclusion.append("The critical path is " + str(duration) + " periods.")
+        conclusion.append("The critical path is " + _periods(duration) + " periods over "
+                          + str(len(record.get("activities") or [])) + " activities.")
     if problems:
         conclusion.append("The record still has " + str(len(problems)) + " named problem"
                           + ("" if len(problems) == 1 else "s") + "; the export gate lists them.")
@@ -7235,6 +7312,50 @@ def set_figure(state, ident, enabled=True, reason=""):
     return state
 
 
+def attach_visual(state, visual_id, section=""):
+    """Pull a standalone visual into this paper by id, so it can be exported with it."""
+    from . import visuals
+
+    record = visuals.load(visual_id)
+    stored = (record.get("figures") or [{}])[0]
+    if not stored.get("id"):
+        raise ChatError("that visual carries no figure.")
+    figure = dict(stored)
+    figure["place"] = _clean(section, 120) or ""
+    state.setdefault("attached_visuals", {})[figure["id"]] = {
+        "figure": figure, "bundle": record.get("bundle") or {}}
+    state["updated_at"] = _now()
+    return state
+
+
+def detach_visual(state, visual_id):
+    """Remove a standalone visual from this paper."""
+    from . import visuals
+
+    record = visuals.load(visual_id)
+    stored = (record.get("figures") or [{}])[0]
+    state.setdefault("attached_visuals", {}).pop(stored.get("id"), None)
+    state["updated_at"] = _now()
+    return state
+
+
+def _attached_figures(state):
+    """The standalone visuals attached to this paper, drawn from their own records."""
+    from . import figures
+
+    out = []
+    for entry in (state.get("attached_visuals") or {}).values():
+        figure = dict(entry.get("figure") or {})
+        bundle = entry.get("bundle") or {}
+        try:
+            figures.render(figure, bundle)
+            figures.stamp(figure, bundle)
+        except Exception:
+            continue
+        out.append(figure)
+    return out
+
+
 def _selected_figures(state):
     """The ticked figures, drawn from the stored values and ready to place."""
     from . import figure_plan, figures
@@ -7272,7 +7393,11 @@ def docx_bytes(state, byline=None):
     from . import figure_plan
     blocks = [item if isinstance(item, dict)
               else {"heading": item[0], "level": 1, "lines": item[1]} for item in outline]
-    blocks, _placed, _unplaced = figure_plan.attach(blocks, _selected_figures(state))
+    blocks, _placed, unplaced = figure_plan.attach(
+        blocks, _selected_figures(state) + _attached_figures(state))
+    for record in unplaced:
+        blocks.append({"heading": record.get("caption") or "Figure", "level": 1,
+                       "lines": [], "figure": record})
     return docx.render_academic(draft["title"], blocks, draft.get("style", "apa"), byline=lines)
 
 
@@ -7287,8 +7412,11 @@ def pptx_bytes(state):
     outline = draft.get("outline") or paper.flatten(draft.get("sections") or [])
     blocks = [item if isinstance(item, dict)
               else {"heading": item[0], "level": 1, "lines": item[1]} for item in outline]
-    selected = _selected_figures(state)
-    blocks, _placed, _unplaced = figure_plan.attach(blocks, selected)
+    selected = _selected_figures(state) + _attached_figures(state)
+    blocks, _placed, unplaced = figure_plan.attach(blocks, selected)
+    for record in unplaced:
+        blocks.append({"heading": record.get("caption") or "Figure", "level": 1,
+                       "lines": [], "figure": record})
     built = deck.from_paper(blocks, draft["title"])
     return deck.render(built, {record["id"]: record for record in selected})
 
@@ -7304,8 +7432,11 @@ def pdf_bytes(state):
     outline = draft.get("outline") or paper.flatten(draft.get("sections") or [])
     blocks = [item if isinstance(item, dict)
               else {"heading": item[0], "level": 1, "lines": item[1]} for item in outline]
-    selected = _selected_figures(state)
-    blocks, _placed, _unplaced = figure_plan.attach(blocks, selected)
+    selected = _selected_figures(state) + _attached_figures(state)
+    blocks, _placed, unplaced = figure_plan.attach(blocks, selected)
+    for record in unplaced:
+        blocks.append({"heading": record.get("caption") or "Figure", "level": 1,
+                       "lines": [], "figure": record})
     built = deck.from_paper(blocks, draft["title"])
     data = deck.pdf_bytes(built, {record["id"]: record for record in selected})
     if data is None:

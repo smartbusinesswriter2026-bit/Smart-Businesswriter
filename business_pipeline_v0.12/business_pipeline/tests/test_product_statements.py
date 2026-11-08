@@ -281,7 +281,9 @@ class SolveTest(unittest.TestCase):
         asked = statements.solve(TB + "\nGive me the market to book ratio and the ratios.")
         named = {row["ratio"]: row for row in asked["ratios"]["named_unsupported"]}
         self.assertIn("market_to_book", named)
-        self.assertIn("share_price", named["market_to_book"]["needs"])
+        # The market ratio is now defined in the registry, so it is named as not computed with the
+        # input it lacks, rather than as an undefined gap.
+        self.assertIn("share_price", named["market_to_book"]["reason"])
 
     def test_a_philippine_currency_or_place_is_refused_with_a_reason(self):
         for text in ("Prepare this in PHP: Cash 5,000, Capital 5,000.",

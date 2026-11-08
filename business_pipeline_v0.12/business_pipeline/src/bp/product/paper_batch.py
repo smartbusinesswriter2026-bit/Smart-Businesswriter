@@ -511,7 +511,12 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
     """
     subject, group, tile = _find_tile(subject_id, tile_key)
     started = time.perf_counter()
-    if not tile.get("has_defaults"):
+    # A case carries its own figures.  The published preset is only the fallback for a
+    # preview with no inputs, so a tile without defaults can still replay a stored case:
+    # refusing here made every accounting case unreplayable even when its figures were
+    # complete and correct.
+    supplied = isinstance(inputs, dict) and bool(inputs)
+    if not tile.get("has_defaults") and not supplied:
         reason = ("this tile has no published default inputs" if tile.get("supported")
                   else "this tile is a decision framework, not a frozen computation")
         return {"tile_key": tile_key, "label": tile.get("label") or tile_key,

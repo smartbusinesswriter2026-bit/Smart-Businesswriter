@@ -157,6 +157,10 @@ def _labels(field):
     words = key.replace("_", " ").strip()
     if words and words not in out:
         out.append(words)
+    from . import problem_reader
+    for alias in problem_reader.SYNONYMS.get(key, ()):
+        if alias not in out:
+            out.append(alias)
     return sorted(out, key=len, reverse=True)
 
 

@@ -56,7 +56,8 @@ PROFILES = {
                           "monitoring_evaluation", "risk", "conclusion", "references"]),
     "project_plan": ("project-management",
                      ["executive_summary", "charter", "scope", "wbs", "schedule", "cost",
-                      "organisation", "risk", "governance", "monitoring", "conclusion", "references"]),
+                      "organisation", "risk", "governance", "monitoring", "limitations",
+                      "conclusion", "references"]),
 }
 
 #: A complete project record for the plan profile; no number is invented here.

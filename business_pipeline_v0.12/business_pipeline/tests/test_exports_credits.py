@@ -225,6 +225,19 @@ class DeliverableProfileTest(unittest.TestCase):
         self.assertIn("Recorded values", names)
         self.assertNotIn("Workings", names)
 
+    def test_the_statements_alone_are_a_deliverable(self):
+        """A reader who wants the statements gets the statements, not the paper around them."""
+        catalogue = {entry["id"]: entry for entry in self.d.catalogue()}
+        self.assertEqual(catalogue["statements"]["label"], "Financial statements")
+        self.assertEqual(catalogue["statements"]["formats"], ["docx", "html"])
+        sections = self.d.sections(self.accounting_bundle(), "statements")
+        self.assertEqual([name for name, _ in sections], ["Statements"])
+        self.assertIn("BALANCE SHEET", sections[0][1][0])
+        destination = os.path.join(self.root, "statements.docx")
+        result = self.d.write_export(self.accounting_bundle(), "statements", "docx", destination)
+        self.assertTrue(os.path.isfile(destination))
+        self.assertEqual(result["deliverable"], "statements")
+
     def test_each_offered_format_produces_a_file(self):
         for profile, fmt, suffix in (("submission", "docx", "docx"),
                                      ("submission", "html", "html"),

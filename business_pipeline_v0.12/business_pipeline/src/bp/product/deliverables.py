@@ -52,6 +52,14 @@ PROFILES = {
         "default": "xlsx",
         "available": True,
     },
+    "statements": {
+        "label": "Financial statements",
+        "audience": "A reader who wants the statements themselves, without the workings or the report.",
+        "blocks": ["statements"],
+        "formats": ["docx", "html"],
+        "default": "docx",
+        "available": True,
+    },
     "worksheet": {
         "label": "Worksheet submission",
         "audience": "A marker reading a completed framework and its evidence audit.",

@@ -182,6 +182,50 @@ def _plotly_multi_line(go, spec, rows, groups, scale):
         return None
 
 
+def _plotly_pareto(go, spec, rows, scale):
+    """Bars and the stored running total on a second axis, never one derived from the other."""
+    try:
+        from plotly.subplots import make_subplots
+    except Exception:
+        return None
+    labels, values, stored, running, running_stored = [], [], [], [], []
+    for entry in spec.get("series") or []:
+        value = _stored(rows, entry.get("artifact"))
+        total = _stored(rows, entry.get("cumulative"))
+        try:
+            values.append(float(value))
+            running.append(float(total))
+        except (TypeError, ValueError):
+            return None
+        labels.append(entry.get("label"))
+        stored.append(str(value))
+        running_stored.append(str(total))
+    if len(labels) < 2:
+        return None
+    palette = theme.TOKENS["palette"]
+    figure = make_subplots(specs=[[{"secondary_y": True}]])
+    figure.add_trace(go.Bar(x=labels, y=values, text=stored, textposition="outside",
+                            name=str(spec.get("y_label") or "Recorded value"),
+                            marker_color=palette["accent"],
+                            textfont=dict(color=palette["ink"])), secondary_y=False)
+    figure.add_trace(go.Scatter(x=labels, y=running, mode="lines+markers+text",
+                                text=running_stored, textposition="top center",
+                                name=str(spec.get("y2_label") or "Running total"),
+                                line=dict(color=palette["series"][1],
+                                          width=theme.TOKENS["stroke"]["series"]),
+                                marker=dict(size=8)), secondary_y=True)
+    template = theme.plotly_template()
+    if template is not None:
+        figure.update_layout(template=template)
+    figure.update_layout(title=dict(text=spec.get("title")), showlegend=True,
+                         legend=dict(orientation="h", y=1.02, x=1, xanchor="right",
+                                     yanchor="bottom"))
+    try:
+        return figure.to_image(format="png", width=CHART_WIDTH, height=CHART_HEIGHT, scale=scale)
+    except Exception:
+        return None
+
+
 def _plotly_png(spec, bundle, scale):
     """A PNG from Plotly, or None when Plotly (or its engine) is not installed."""
     try:
@@ -193,6 +237,8 @@ def _plotly_png(spec, bundle, scale):
         return None  # the builtin renderer owns these shapes
     rows = case_export.artifact_rows(bundle)
     charts.verify_labels(spec, rows)
+    if kind == "pareto":
+        return _plotly_pareto(go, spec, rows, scale)
     groups = []
     for entry in spec.get("series") or []:
         name = str(entry.get("group") or "").strip()

@@ -8,7 +8,15 @@ Each function takes an inp dict and returns a number (or dict with 'amount'/'val
 from decimal import Decimal as D
 from . import methods
 
-def _d(x):
+def _d(x, key=None):
+    """A declared figure as a Decimal.
+
+    Two call shapes are in the file: ``_d(inputs, "key")`` (the older form, which reads one
+    declared input) and ``_d(value)`` (a value already in hand).  Accepting both keeps the
+    finance shelf's forensic methods runnable without rewriting every call.
+    """
+    if key is not None:
+        return D(str(x[key]))
     return D(str(x))
 
 def _stub_tests(inp, impl):
@@ -524,9 +532,9 @@ def days_payable_outstanding(inputs):
 
 def cash_conversion_cycle(inputs):
     """DSO + DIO - DPO. Days to convert investment to cash."""
-    dso = _d(inputs, "dso")
-    dio = _d(inputs, "dio")
-    dpo = _d(inputs, "dpo")
+    dso = _d(inputs["dso"])
+    dio = _d(inputs["dio"])
+    dpo = _d(inputs["dpo"])
     return {"cash_conversion_cycle": dso + dio - dpo}
 
 
@@ -539,26 +547,29 @@ def working_capital_ratio(inputs):
 
 def altman_z_score(inputs):
     """1.2*X1 + 1.4*X2 + 3.3*X3 + 0.6*X4 + 1.0*X5. Bankruptcy prediction."""
-    x1 = _d(inputs, "working_capital") / _d(inputs, "total_assets") if _d(inputs, "total_assets") else 0
-    x2 = _d(inputs, "retained_earnings") / _d(inputs, "total_assets") if _d(inputs, "total_assets") else 0
-    x3 = _d(inputs, "ebit") / _d(inputs, "total_assets") if _d(inputs, "total_assets") else 0
-    x4 = _d(inputs, "market_value_equity") / _d(inputs, "total_liabilities") if _d(inputs, "total_liabilities") else 0
-    x5 = _d(inputs, "sales") / _d(inputs, "total_assets") if _d(inputs, "total_assets") else 0
-    z = 1.2 * x1 + 1.4 * x2 + 3.3 * x3 + 0.6 * x4 + 1.0 * x5
+    ta = _d(inputs, "total_assets")
+    tl = _d(inputs, "total_liabilities")
+    x1 = _d(inputs, "working_capital") / ta if ta else D(0)
+    x2 = _d(inputs, "retained_earnings") / ta if ta else D(0)
+    x3 = _d(inputs, "ebit") / ta if ta else D(0)
+    x4 = _d(inputs, "market_value_equity") / tl if tl else D(0)
+    x5 = _d(inputs, "sales") / ta if ta else D(0)
+    z = D("1.2") * x1 + D("1.4") * x2 + D("3.3") * x3 + D("0.6") * x4 + D("1.0") * x5
     return {"altman_z_score": z}
 
 
 def beneish_m_score(inputs):
     """8-variable earnings manipulation detection."""
-    dsri = _d(inputs, "dsri") if "dsri" in inputs else 1.0
-    gmi = _d(inputs, "gmi") if "gmi" in inputs else 1.0
-    aqi = _d(inputs, "aqi") if "aqi" in inputs else 1.0
-    sgi = _d(inputs, "sgi") if "sgi" in inputs else 1.0
-    depi = _d(inputs, "depi") if "depi" in inputs else 1.0
-    sgai = _d(inputs, "sgai") if "sgai" in inputs else 1.0
-    lvgi = _d(inputs, "lvgi") if "lvgi" in inputs else 1.0
-    tata = _d(inputs, "tata") if "tata" in inputs else 0.0
-    m = -4.84 + 0.92*dsri + 0.528*gmi + 0.404*aqi + 0.892*sgi + 0.115*depi - 0.172*sgai + 4.679*tata - 0.327*lvgi
+    dsri = _d(inputs, "dsri") if "dsri" in inputs else D(1)
+    gmi = _d(inputs, "gmi") if "gmi" in inputs else D(1)
+    aqi = _d(inputs, "aqi") if "aqi" in inputs else D(1)
+    sgi = _d(inputs, "sgi") if "sgi" in inputs else D(1)
+    depi = _d(inputs, "depi") if "depi" in inputs else D(1)
+    sgai = _d(inputs, "sgai") if "sgai" in inputs else D(1)
+    lvgi = _d(inputs, "lvgi") if "lvgi" in inputs else D(1)
+    tata = _d(inputs, "tata") if "tata" in inputs else D(0)
+    m = (D("-4.84") + D("0.92") * dsri + D("0.528") * gmi + D("0.404") * aqi + D("0.892") * sgi
+         + D("0.115") * depi - D("0.172") * sgai + D("4.679") * tata - D("0.327") * lvgi)
     return {"beneish_m_score": m}
 
 

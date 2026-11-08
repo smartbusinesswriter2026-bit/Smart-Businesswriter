@@ -336,6 +336,169 @@ COMMON_PATTERNS: Dict[str, str] = {
 }
 
 
+def _p(*labels):
+    """A number pattern for a label: ``\\blabel\\b [of|is|was|:] amount``.
+
+    Word boundaries stop ``payments`` matching inside ``repayments`` and ``depreciation``
+    matching inside ``accumulated depreciation`` reads the right figure.  Spaces in a label
+    become ``\\s+`` so a line-wrapped label still matches; the connector is optional so
+    "beginning inventory 10,000", "beginning inventory is 10,000" and
+    "beginning inventory: 10,000" all read.  A label that is a regex fragment is escaped.
+    """
+    heads = []
+    for label in labels:
+        words = re.sub(r"[^a-z0-9]+", " ", label.lower()).strip().split()
+        heads.append(r"\b" + r"\s+".join(re.escape(w) for w in words) + r"\b")
+    head = "(?:" + "|".join(heads) + ")"
+    return head + r"\s*(?:of|is|was|were|are|:|=|equals?)?\s*\$?(-?[\d,]+(?:\.\d+)?)"
+
+
+#: Vocabulary for the raw inputs the first pass could not supply (§5.3 of the manual).
+#: This closes the "131 input names with no parse pattern" gap: every raw input a spec
+#: declares now has a pattern that reads it from the student's text.
+_EXTRA_PATTERNS: Dict[str, str] = {
+    # --- Section A: income statement raw inputs ---
+    "cogs": _p("cogs", "cost of goods sold", "cost of sales"),
+    "cogs_available": _p("cost of goods available", "goods available"),
+    "freight": _p("freight", "freight in", "freight out"),
+    "amortization_expense": _p("amortization expense", "amortization"),
+    "depreciation_expense": r"(?<!accumulated )\b(?:depreciation expense|depreciation)\b\s*(?:of|is|was|:|=)?\s*\$?(-?[\d,]+(?:\.\d+)?)",
+    "depreciation_amortization": _p("depreciation and amortization"),
+    "depreciation_on_disposals": _p("depreciation on disposals"),
+    "other_income": _p("other income"),
+    "other_expenses": _p("other expenses"),
+    "taxable_income": _p("taxable income"),
+    "deferred_tax": _p("deferred tax"),
+    "discontinued_ops_net": _p("discontinued operations", "discontinued operations net of tax"),
+    "after_tax_interest_convertibles": _p("after tax interest on convertibles", "after tax interest"),
+    "weighted_average_shares": _p("weighted average shares", "weighted average number of shares"),
+    "potential_shares": _p("potential shares", "incremental shares"),
+    "goods_available": _p("goods available for sale"),
+    "estimated_cogs": _p("estimated cogs", "estimated cost of goods sold"),
+    # --- Section B: equity raw inputs ---
+    "beginning_re": _p("beginning retained earnings", "opening retained earnings"),
+    "prior_period_adjustments": _p("prior period adjustments"),
+    "prior_period_error_correction": _p("prior period error correction"),
+    "dividends": _p("dividends"),
+    "dividends_declared": _p("dividends declared", "declared dividends"),
+    "dividends_received": _p("dividends received"),
+    "preferred_shares": _p("preferred shares", "preference shares"),
+    "preferred_rate": _p("preferred rate", "preference dividend rate", "preferred dividend rate"),
+    "years_due": _p("years due", "years in arrears"),
+    "stock_dividend_percent": _p("stock dividend percent", "stock dividend percentage", "stock dividend"),
+    "par_or_fair_value": _p("par or fair value"),
+    "shares_issued": _p("shares issued"),
+    "issue_price": _p("issue price"),
+    "par_value": _p("par value"),
+    "shares_reacquired": _p("shares reacquired", "shares repurchased"),
+    "reacquire_price": _p("reacquire price", "repurchase price"),
+    "reissue_price": _p("reissue price"),
+    "cost_per_share": _p("cost per share"),
+    "old_shares": _p("old shares", "shares before split"),
+    "split_ratio": _p("split ratio"),
+    "old_par": _p("old par value", "old par"),
+    "reserve_amount": _p("reserve amount"),
+    "fair_value_grant": _p("fair value at grant", "grant date fair value"),
+    "options_expected_to_vest": _p("options expected to vest"),
+    "years_elapsed": _p("years elapsed"),
+    "vesting_period": _p("vesting period"),
+    "beginning_aoci": _p("beginning aoci", "beginning accumulated oci"),
+    "oci_period": _p("oci for the period", "other comprehensive income"),
+    "beginning_nci": _p("beginning nci", "beginning non controlling interest"),
+    "nci_share_income": _p("nci share of income"),
+    "nci_dividends": _p("nci dividends"),
+    "share_capital": _p("share capital", "common stock", "capital stock"),
+    "apic": _p("additional paid in capital", "additional paid-in capital", "apic", "share premium"),
+    "aoci": _p("accumulated oci", "aoci", "accumulated other comprehensive income"),
+    "treasury_shares": _p("treasury shares", "treasury stock"),
+    "nci": _p("non controlling interest", "non-controlling interest", "nci"),
+    "beginning_capital": _p("beginning capital", "opening capital"),
+    "investments": r"(?<!short-term )(?<!short term )\binvestments\b\s*(?:of|is|was|:|=)?\s*\$?(-?[\d,]+(?:\.\d+)?)",
+    "share_of_income": _p("share of income"),
+    "withdrawals": _p("withdrawals", "drawings"),
+    # --- Section C: balance-sheet raw inputs ---
+    "cash_on_hand": _p("cash on hand"),
+    "bank_balances": _p("bank balances", "bank balance"),
+    "short_term_investments": _p("short term investments", "short-term investments"),
+    "marketable_securities": _p("marketable securities"),
+    "aging_allowance_total": _p("allowance total", "aging allowance", "required allowance"),
+    "fifo_units": _p("fifo units", "units on hand"),
+    "fifo_recent_cost": _p("most recent unit cost", "recent unit cost"),
+    "ending_inventory_retail": _p("ending inventory at retail", "inventory at retail"),
+    "cost_to_retail_ratio": _p("cost to retail ratio"),
+    "units_on_hand": _p("units on hand"),
+    "units_available": _p("units available"),
+    "inventory_cost": _p("inventory cost"),
+    "nrv": _p("net realizable value", "nrv"),
+    "amount_paid": _p("amount paid"),
+    "portion_expired": _p("portion expired", "expired portion"),
+    "purchase_price": _p("purchase price"),
+    "installation": _p("installation"),
+    "testing": _p("testing", "testing costs"),
+    "other_costs": _p("other costs"),
+    "beg_accum_depreciation": _p("beginning accumulated depreciation", "opening accumulated depreciation"),
+    "accumulated_amortization": _p("accumulated amortization"),
+    "carrying_amount": _p("carrying amount", "carrying value"),
+    "fair_value": _p("fair value"),
+    "intangible_cost": _p("intangible cost"),
+    "intangible_impairment": _p("intangible impairment", "impairment of intangibles"),
+    "consideration": _p("consideration"),
+    "prior_interest": _p("prior interest"),
+    "fair_value_net_identifiable_assets": _p("fair value of net identifiable assets", "net identifiable assets"),
+    "investment_cost": _p("investment cost"),
+    "initial_direct_costs": _p("initial direct costs"),
+    "prepaid_payments": _p("prepaid payments"),
+    "lease_liability": _p("lease liability"),
+    "expense_incurred": _p("expense incurred"),
+    "advance_payments": _p("advance payments", "advances received"),
+    "portion_earned": _p("portion earned", "earned portion"),
+    "beg_payable": _p("beginning payable", "opening payable", "beginning accounts payable"),
+    "payments": _p("payments", "cash paid to suppliers"),
+    "preferred_equity": _p("preferred equity", "preference equity"),
+    "common_shares_outstanding": _p("common shares outstanding", "ordinary shares outstanding"),
+    "ar_increase": _p("increase in accounts receivable", "accounts receivable increase"),
+    "ap_increase": _p("increase in accounts payable", "accounts payable increase"),
+    "inventory_increase": _p("increase in inventory", "inventory increase"),
+    "nwc_increase": _p("increase in net working capital", "net working capital increase"),
+    "beginning_cash": _p("beginning cash", "opening cash", "cash at start"),
+    "ending_inventory_fifo": _p("ending inventory fifo"),
+    "wc_adjustments": _p("working capital adjustments"),
+    # --- Section D: cash-flow raw inputs ---
+    "cash_receipts": _p("cash receipts", "receipts from customers"),
+    "cash_payments_operations": _p("cash payments for operations", "cash paid for operations"),
+    "beginning_ppe_gross": _p("beginning ppe gross", "beginning ppe"),
+    "ending_ppe_gross": _p("ending ppe gross", "ending ppe"),
+    "cost_of_assets_sold": _p("cost of assets sold"),
+    "carrying_value_sold": _p("carrying value sold"),
+    "gain_on_sale": _p("gain on sale", "gain on disposal"),
+    "investment_purchases": _p("investment purchases", "purchases of investments"),
+    "capital_inflows": _p("capital inflows", "proceeds from issuance"),
+    "borrowings_inflows": _p("borrowings inflows", "new borrowings", "proceeds from borrowings"),
+    "debt_repayments": _p("debt repayments", "repayment of debt"),
+    "increase_in_dividends_payable": _p("increase in dividends payable"),
+    "beginning_value": _p("beginning value", "base value"),
+    "ending_value": _p("ending value", "current value"),
+    "current_year_value": _p("current year value", "current year"),
+    "base_year_value": _p("base year value", "base year"),
+    "item_value": _p("item value"),
+    "n_years": _p("number of years", "n years", "years"),
+    "daily_operating_expenses": _p("daily operating expenses"),
+    "average_receivables": _p("average receivables"),
+    "average_inventory": _p("average inventory"),
+    "average_payables": _p("average payables"),
+    "average_total_assets": _p("average total assets"),
+    "average_equity": _p("average equity"),
+    "average_common_equity": _p("average common equity"),
+    "average_working_capital": _p("average working capital"),
+    "net_credit_sales": _p("net credit sales"),
+    "net_credit_purchases": _p("net credit purchases"),
+    "net_operating_income": _p("net operating income"),
+    "total_debt_service": _p("total debt service", "debt service"),
+}
+
+COMMON_PATTERNS.update(_EXTRA_PATTERNS)
+
+
 # ============================================================================
 # Section A: Statement of Comprehensive Income (items 3-45)
 # ============================================================================

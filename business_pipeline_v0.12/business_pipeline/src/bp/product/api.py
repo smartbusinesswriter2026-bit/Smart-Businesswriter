@@ -98,6 +98,7 @@ from . import proposals
 from . import drafting
 from . import mapsheet
 from . import explain
+from . import problem_reader
 from . import sources as source_finder
 from . import subjects as subject_index
 from . import versions as version_store
@@ -107,6 +108,11 @@ from . import screener
 from . import prefill as prefill_builder
 from . import statements
 
+#: The frozen core's own descriptor, attached by ``attach_methods``.  The problem
+#: reader needs a method's input schema, and it must be the *core's* schema, not a
+#: copy kept here.
+_DESCRIBE = None
+
 
 def attach_compute(fn):
     """Attach the frozen-core computation callable used by the chat draft."""
@@ -115,6 +121,8 @@ def attach_compute(fn):
 
 def attach_methods(run, describe=None):
     """Attach the frozen core to the chat's plan blocks (run and describe)."""
+    global _DESCRIBE
+    _DESCRIBE = describe
     chat_conductor.set_method_compute(run, describe)
     visual_store.set_method_compute(run)
     economics_service.set_runner(run, describe)
@@ -456,6 +464,29 @@ def handle(method, path, body=None):
     # -- the economics service tiles: macro, micro and managerial ------------------
     if segments and segments[0] == "economics":
         return economics_service.handle(verb, segments[1:], body)
+
+    # -- reading a method's figures from a pasted problem (finance, economics) ------
+    if segments == ["solve", "read"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on a problem read" % verb}
+        body = body if isinstance(body, dict) else {}
+        method_id = str(body.get("method") or "").strip()
+        if not method_id:
+            return 422, {"error": "name the method whose figures are being read"}
+        if _DESCRIBE is None:
+            return 503, {"error": "the computation core is not attached on this server"}
+        try:
+            described = dict(_DESCRIBE(method_id) or {})
+        except (KeyError, ValueError) as error:
+            return 404, {"error": "unknown method %r: %s" % (method_id, error)}
+        try:
+            result = problem_reader.read(method_id, described.get("input_schema") or {},
+                                         body.get("instruction") or "",
+                                         body.get("inputs") or {})
+        except problem_reader.ReaderError as error:
+            return 422, {"error": str(error)}
+        result["label"] = described.get("input_schema") and described.get("intended_use") or ""
+        return 200, result
 
     # -- the case collection -------------------------------------------------
     if not segments:

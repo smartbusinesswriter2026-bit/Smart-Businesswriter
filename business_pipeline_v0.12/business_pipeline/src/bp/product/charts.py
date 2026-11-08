@@ -14,12 +14,18 @@ that is not already recorded.  Rules, all enforced:
 * geometry arithmetic (bar lengths, point positions) is rendering-only: the
   labels a reader sees are the stored strings, verbatim.
 
-Kinds: bar, line, stacked_bar, waterfall, pie, sparkline, table, gantt.
+Kinds: bar, line, stacked_bar, waterfall, pie, sparkline, table, gantt, pareto.
 
 A Gantt chart is drawn from the stored CPM artifacts: each activity names its
 early-start and early-finish artifact, and optionally its float and critical
 flag.  The drawing scales those stored values into the frame; it does not
 schedule, level resources or infer a dependency.
+
+A Pareto chart is drawn from **two stored series**: the bars (each entry's
+`artifact`) and the running total (the same entry's `cumulative`).  The drawing
+never adds the bars up - a running total it worked out itself would be a figure
+the record does not hold.  The running total is only checked to be
+non-decreasing; that is a rule, not arithmetic.
 """
 
 import html
@@ -30,7 +36,8 @@ from . import export as case_export
 from . import theme
 
 FORMAT = "bp-chart/1"
-KINDS = ("bar", "line", "stacked_bar", "waterfall", "pie", "sparkline", "table", "gantt")
+KINDS = ("bar", "line", "stacked_bar", "waterfall", "pie", "sparkline", "table", "gantt",
+         "pareto")
 WIDTH, HEIGHT = 720, 300
 #: The categorical palette is defined once, in `theme`, so the builtin drawing and
 #: the Plotly template cannot drift apart.
@@ -92,6 +99,33 @@ def validate_spec(spec):
         _text(spec["x_label"], "x axis label")
     if spec.get("y_label") is not None:
         _text(spec["y_label"], "y axis label")
+    if spec.get("y2_label") is not None:
+        _text(spec["y2_label"], "second y axis label")
+    if kind == "pareto":
+        entries = spec.get("series")
+        if not isinstance(entries, list) or len(entries) < 2:
+            raise ChartError("a pareto chart needs at least two 'series' entries")
+        clean = []
+        for index, entry in enumerate(entries):
+            where = "series[%d]" % index
+            if not isinstance(entry, dict):
+                raise ChartError("%s must be an object" % where)
+            source = entry.get("label_artifact")
+            if source is not None:
+                if not isinstance(source, str) or not source.strip():
+                    raise ChartError("%s 'label_artifact' must be a stored artifact id" % where)
+                if not isinstance(entry.get("label"), str) or not entry["label"].strip():
+                    raise ChartError("%s needs a 'label'" % where)
+            else:
+                _text(entry.get("label"), "%s label" % where)
+            for key in ("artifact", "cumulative"):
+                value = entry.get(key)
+                if not isinstance(value, str) or not value.strip():
+                    raise ChartError("%s needs a stored artifact id in %r" % (where, key))
+            clean.append({"label": entry["label"], "artifact": entry["artifact"].strip(),
+                          "cumulative": entry["cumulative"].strip(),
+                          "label_artifact": source})
+        return kind, title, clean
     if kind == "gantt":
         activities = spec.get("activities")
         if not isinstance(activities, list) or not activities:
@@ -165,7 +199,7 @@ def verify_labels(spec, rows):
         row = _row_for(rows, source.strip())
         stored = str(row.get("value"))
         numbers = re.findall(r"\d+(?:\.\d+)?", str(entry.get("label")))
-        if stored not in numbers:
+        if stored != str(entry.get("label")) and stored not in numbers:
             raise ChartError("the label %r does not carry the recorded value %r of %r"
                              % (entry.get("label"), stored, source))
 
@@ -174,10 +208,30 @@ def _series_values(spec, rows):
     series = []
     for entry in spec["series"]:
         row = _row_for(rows, entry["artifact"].strip())
-        series.append({"label": entry["label"].strip(), "value": _number(row, entry["artifact"].strip()),
-                       "stored": str(row.get("value")), "unit": row.get("unit"),
-                       "group": str(entry.get("group") or "").strip()})
+        item = {"label": entry["label"].strip(), "value": _number(row, entry["artifact"].strip()),
+                "stored": str(row.get("value")), "unit": row.get("unit"),
+                "group": str(entry.get("group") or "").strip()}
+        source = entry.get("cumulative")
+        if isinstance(source, str) and source.strip():
+            running = _row_for(rows, source.strip())
+            item["cumulative"] = _number(running, source.strip())
+            item["cumulative_stored"] = str(running.get("value"))
+        series.append(item)
     return series
+
+
+def series_of(bundle, spec):
+    """The resolved series a chart draws, for a writer that needs the values themselves.
+
+    The workbook's native chart and the Plotly trace both read this, so the picture
+    and the numbers beside it come from one resolution of the record.
+    """
+    kind, _title, _payload = validate_spec(spec)
+    if kind in ("table", "gantt"):
+        return []
+    rows = _stored_rows(bundle)
+    verify_labels(spec, rows)
+    return _series_values(spec, rows)
 
 
 def _svg_open(title):
@@ -429,6 +483,76 @@ def _gantt(payload, rows, title):
     return _frame(title, "".join(body))
 
 
+def _pareto(series, title, spec):
+    """Bars in the order given, and the stored running total on its own scale.
+
+    The bars are scaled to the tallest stored value and the line to the largest
+    stored running total; neither is computed from the other.  Every figure a
+    reader sees - above a bar or beside a point - is the stored string.
+    """
+    values = [item["value"] for item in series]
+    if any(value < 0 for value in values):
+        raise ChartError("a pareto chart draws positive bars; a fall belongs in a waterfall")
+    previous = None
+    running = []
+    for item in series:
+        value = item.get("cumulative")
+        if value is None:
+            raise ChartError("series entry %r needs a stored 'cumulative' artifact" % item["label"])
+        if previous is not None and value < previous:
+            raise ChartError("the running total falls at %r, so it is not a running total" % item["label"])
+        previous = value
+        running.append(value)
+    tallest = max(values) or Decimal(1)
+    highest = max(running) or Decimal(1)
+    top, bottom, left, right = 92, HEIGHT - 66, 44, WIDTH - 44
+    slot = (right - left) / float(max(1, len(series)))
+    width = slot * 0.56
+    body = []
+    points = []
+    for index, item in enumerate(series):
+        x = left + slot * index + (slot - width) / 2.0
+        height = float(item["value"] / tallest) * (bottom - top)
+        y = bottom - height
+        body.append('<rect x="%s" y="%s" width="%s" height="%s" fill="%s" rx="2"/>'
+                    % (_fmt(x), _fmt(y), _fmt(width), _fmt(max(height, 1.0)), PALETTE[0]))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Consolas, monospace" '
+                    'font-size="11" fill="#1b1b1b">%s</text>'
+                    % (_fmt(x + width / 2.0), _fmt(max(y - 8, top - 4)),
+                       html.escape(item["stored"], quote=False)))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Georgia, serif" '
+                    'font-size="10" fill="#555550">%s</text>'
+                    % (_fmt(x + width / 2.0), _fmt(bottom + 18),
+                       html.escape(item["label"], quote=False)))
+        point_y = bottom - float(item["cumulative"] / highest) * (bottom - top)
+        points.append((x + width / 2.0, point_y, item))
+    body.append('<polyline fill="none" stroke="%s" stroke-width="2" points="%s"/>'
+                % (PALETTE[1], " ".join("%s,%s" % (_fmt(px), _fmt(py)) for px, py, _ in points)))
+    for px, py, item in points:
+        body.append('<circle cx="%s" cy="%s" r="3.5" fill="%s"/>' % (_fmt(px), _fmt(py), PALETTE[1]))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Consolas, monospace" '
+                    'font-size="10" fill="%s">%s</text>'
+                    % (_fmt(px), _fmt(max(py - 10, top - 4)), PALETTE[1],
+                       html.escape(item.get("cumulative_stored") or "", quote=False)))
+    body.append('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#c9c9c4"/>'
+                % (left, bottom, right, bottom))
+    body.append('<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#c9c9c4"/>'
+                % (left, top, left, bottom))
+    bars_label = str(spec.get("y_label") or "Recorded value")
+    line_label = str(spec.get("y2_label") or "Running total")
+    body.append('<rect x="%d" y="22" width="10" height="10" fill="%s"/>' % (WIDTH - 268, PALETTE[0]))
+    body.append('<text x="%d" y="31" font-family="Georgia, serif" font-size="11" fill="#1b1b1b">%s</text>'
+                % (WIDTH - 254, html.escape(bars_label, quote=False)))
+    body.append('<line x1="%d" y1="27" x2="%d" y2="27" stroke="%s" stroke-width="3"/>'
+                % (WIDTH - 150, WIDTH - 138, PALETTE[1]))
+    body.append('<text x="%d" y="31" font-family="Georgia, serif" font-size="11" fill="#1b1b1b">%s</text>'
+                % (WIDTH - 132, html.escape(line_label, quote=False)))
+    body.append('<text x="24" y="%d" font-family="Georgia, serif" font-size="11" fill="#555550">'
+                'Bars are the stored values; the line is the stored running total on its own '
+                'scale.</text>' % (HEIGHT - 34))
+    return _frame(title, "".join(body))
+
+
 def _table(rows, title):
     body, y = [], 62
     header = ("Artifact", "Metric", "Unit", "Value", "Derivation")
@@ -466,4 +590,6 @@ def render_svg(bundle, spec):
         return _waterfall(series, title)
     if kind == "pie":
         return _pie(series, title)
+    if kind == "pareto":
+        return _pareto(series, title, spec)
     return _line(series, title, sparkline=True)

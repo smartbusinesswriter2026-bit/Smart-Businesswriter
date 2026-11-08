@@ -4135,6 +4135,11 @@
   },
   "ratio_analysis": {
    "inputs": {
+    "capital_expenditure": {
+     "desc": "capital expenditure for the period, as a positive amount",
+     "required": false,
+     "type": "decimal"
+    },
     "cash": {
      "desc": "cash and cash equivalents",
      "required": false,
@@ -4155,6 +4160,16 @@
      "required": false,
      "type": "decimal"
     },
+    "dividends_declared": {
+     "desc": "dividends declared for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "ebit": {
+     "desc": "earnings before interest and tax",
+     "required": false,
+     "type": "decimal"
+    },
     "equity": {
      "desc": "total equity",
      "required": false,
@@ -4170,8 +4185,18 @@
      "required": false,
      "type": "decimal"
     },
+    "market_value_equity": {
+     "desc": "market value of equity (share price x shares outstanding)",
+     "required": false,
+     "type": "decimal"
+    },
     "net_income": {
      "desc": "net income for the period (as supplied; no tax computation is performed)",
+     "required": false,
+     "type": "decimal"
+    },
+    "operating_cash_flow": {
+     "desc": "operating cash flow for the period",
      "required": false,
      "type": "decimal"
     },
@@ -4190,8 +4215,28 @@
      "required": false,
      "type": "decimal"
     },
+    "retained_earnings": {
+     "desc": "retained earnings at the period end",
+     "required": false,
+     "type": "decimal"
+    },
     "revenue": {
      "desc": "revenue for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "sales": {
+     "desc": "revenue for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "share_price": {
+     "desc": "market price per share",
+     "required": false,
+     "type": "decimal"
+    },
+    "shares_outstanding": {
+     "desc": "shares outstanding",
      "required": false,
      "type": "decimal"
     },
@@ -4202,6 +4247,11 @@
     },
     "total_liabilities": {
      "desc": "total liabilities",
+     "required": false,
+     "type": "decimal"
+    },
+    "working_capital": {
+     "desc": "current assets minus current liabilities",
      "required": false,
      "type": "decimal"
     }
@@ -5005,6 +5055,57 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "tax_reconciliation": {
+   "inputs": {
+    "accounting_profit": {
+     "desc": "accounting profit before tax",
+     "required": true,
+     "type": "decimal"
+    },
+    "capital_allowances": {
+     "desc": "tax allowances deducted from profit (default 0)",
+     "required": false,
+     "type": "decimal"
+    },
+    "deferred_tax_rate": {
+     "desc": "deferred tax rate, if a temporary difference is declared",
+     "required": false,
+     "type": "decimal"
+    },
+    "non_deductible": {
+     "desc": "expenses added back to profit (default 0)",
+     "required": false,
+     "type": "decimal"
+    },
+    "non_taxable": {
+     "desc": "income deducted from profit (default 0)",
+     "required": false,
+     "type": "decimal"
+    },
+    "tax_rate": {
+     "desc": "income tax rate as a decimal (0.25) or a percentage (25)",
+     "required": true,
+     "type": "decimal"
+    },
+    "temporary_difference": {
+     "desc": "temporary difference for deferred tax",
+     "required": false,
+     "type": "decimal"
+    },
+    "vat_input_tax": {
+     "desc": "VAT paid on purchases",
+     "required": false,
+     "type": "decimal"
+    },
+    "vat_output_tax": {
+     "desc": "VAT charged on sales",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "time_value": {
    "inputs": {
     "compounding": {
@@ -5418,6 +5519,42 @@
     "safety_stock": {
      "desc": "buffer units held; default 0",
      "required": false,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "working_capital_cycle": {
+   "inputs": {
+    "cost_of_sales": {
+     "desc": "cost of sales for the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "days": {
+     "desc": "days in the period; default 365",
+     "required": false,
+     "type": "decimal"
+    },
+    "inventory": {
+     "desc": "inventory at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "payables": {
+     "desc": "trade payables at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "receivables": {
+     "desc": "trade receivables at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "revenue for the period",
+     "required": true,
      "type": "decimal"
     }
    },

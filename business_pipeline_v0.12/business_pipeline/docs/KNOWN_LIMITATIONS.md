@@ -718,10 +718,44 @@ If an assignment needs one of these, say so in the limitations and show the meth
   does not carry is reported as unplaced, never dropped into an arbitrary heading.
 - **A stale figure is detectable, not yet blocked.** `figures.stale()` compares the record's digest with
   the stored values, but no export gate refuses a stale figure yet.
-- **A chart in a spreadsheet is a picture, not a native Excel chart.** It cannot be edited in the workbook, and a
-  workbook only carries one when a rasterizer produced the PNG; without one the figure is skipped, never broken.
-- **Native Excel charts are not built.** A chart in a workbook is an anchored picture, not a `<c:chart>` the student can
-  edit, and it is only carried when a rasterizer produced the PNG.
-- **A deck is a minimal .pptx.** `deck.py` writes title, claim, figure and section slides with one theme,
-  no speaker notes, no native charts and no transitions. A figure reaches a slide as a picture, or as its
-  stored values when no rasterizer is installed. The deck route and its credit price are not wired yet.
+- **A chart reaches a spreadsheet two ways, and the native one needs numbers.** A bar, line, stacked bar,
+  pie or pareto figure is written as **cells plus a `<c:chart>` part**: the labels and values sit on the
+  sheet above a `xdr:graphicFrame`, the chart caches the record's own strings and references those cells,
+  so Excel redraws it and a reader can check every figure in the cells. A waterfall, a gantt and a table
+  keep their anchored picture, because there is no faithful native shape for them; a figure whose values
+  are not all numbers also keeps its picture. A picture is only carried when a rasterizer produced the PNG.
+- **A pareto is drawn from two stored series.** Each entry names its bar artifact and its running-total
+  artifact; the drawing checks that the running total never falls, and scales the line to its own stored
+  maximum. It never sums the bars to make the curve, so a pareto the record does not hold cannot appear.
+- **A work breakdown is labels and codes.** A code may carry digits (`1.1.2`); a label may not, five levels
+  is the limit, and the drawing places leaves across the page with parents centred over their children.
+  A breakdown with more leaves than fit is drawn small rather than paginated.
+- **A figure sheet is one Word page per visual, in the order given.** `visuals.export_sheet` exports as
+  DOCX only; a PDF or a workbook sheet of several visuals is not built.
+- **A deck carries speaker notes and one transition.** `deck.py` writes title, claim, figure, section and
+  table slides with one theme, `notesSlide` parts for the speaker notes and a fade by default. A figure
+  reaches a slide as a picture, or as its stored values when no rasterizer is installed.
+
+## Added with the visual store (B-228)
+- **A visual has its own store.** `state/visuals/` holds one JSON record per visual; a case is not
+  required, and a visual is never merged into a case's artifacts.
+- **A declared series is student data, not evidence.** It is labelled "Figures you declared" on the
+  figure and in the record, and it never enters a case's artifact table.
+- **The chart is proposed, not chosen by a model.** `visuals.propose()` ranks at most three kinds
+  from the data shape and the student's words; the student confirms the kind.
+- **A table has no SVG.** `visuals.export(..., "svg")` refuses a table and names the formats that work.
+- **A PNG or PDF needs a rasterizer or Chrome.** Without one the export is refused with the reason,
+  never an empty file.
+
+## Added with the offline test suite
+- **The suite never reaches a model.** `bp.server` maps `Backend/.env` onto `BP_LLM_PROVIDER`,
+  `BP_OPENGO_API_KEY` and their siblings when those names are *absent*, so a developer machine
+  handed the tests a live provider: the analysis lane drafted paragraphs no test expected, the
+  proposal lane waited on HTTPS, and two runs of one template no longer produced the same bytes.
+  `tests/__init__.py` (and `conftest.py` for pytest) now sets those names **empty** before any
+  test module imports, and `bp.server` treats a name that is present-but-empty as "not
+  configured". A test that wants a model patches `prose.available` and `prose._call`, as
+  `tests/test_matrix_assist.py` does.
+- **The suite therefore does not prove the model lanes against a live provider.** They are
+  covered by stubs and by the provider unit tests with an injected opener; a live call is still
+  the owner's first run, as `bp/llm.py` says of every provider.

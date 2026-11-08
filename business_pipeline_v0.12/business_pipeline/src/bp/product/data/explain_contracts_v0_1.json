@@ -9287,6 +9287,11 @@
     }
    ],
    "inputs": {
+    "capital_expenditure": {
+     "desc": "capital expenditure for the period, as a positive amount",
+     "required": false,
+     "type": "decimal"
+    },
     "cash": {
      "desc": "cash and cash equivalents",
      "required": false,
@@ -9307,6 +9312,16 @@
      "required": false,
      "type": "decimal"
     },
+    "dividends_declared": {
+     "desc": "dividends declared for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "ebit": {
+     "desc": "earnings before interest and tax",
+     "required": false,
+     "type": "decimal"
+    },
     "equity": {
      "desc": "total equity",
      "required": false,
@@ -9322,8 +9337,18 @@
      "required": false,
      "type": "decimal"
     },
+    "market_value_equity": {
+     "desc": "market value of equity (share price x shares outstanding)",
+     "required": false,
+     "type": "decimal"
+    },
     "net_income": {
      "desc": "net income for the period (as supplied; no tax computation is performed)",
+     "required": false,
+     "type": "decimal"
+    },
+    "operating_cash_flow": {
+     "desc": "operating cash flow for the period",
      "required": false,
      "type": "decimal"
     },
@@ -9342,8 +9367,28 @@
      "required": false,
      "type": "decimal"
     },
+    "retained_earnings": {
+     "desc": "retained earnings at the period end",
+     "required": false,
+     "type": "decimal"
+    },
     "revenue": {
      "desc": "revenue for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "sales": {
+     "desc": "revenue for the period",
+     "required": false,
+     "type": "decimal"
+    },
+    "share_price": {
+     "desc": "market price per share",
+     "required": false,
+     "type": "decimal"
+    },
+    "shares_outstanding": {
+     "desc": "shares outstanding",
      "required": false,
      "type": "decimal"
     },
@@ -9354,6 +9399,11 @@
     },
     "total_liabilities": {
      "desc": "total liabilities",
+     "required": false,
+     "type": "decimal"
+    },
+    "working_capital": {
+     "desc": "current assets minus current liabilities",
      "required": false,
      "type": "decimal"
     }
@@ -11196,6 +11246,86 @@
    "unsupported_use": "Estimating taxes; a full Kakwani or Reynolds-Smolensky index; deductions, exemptions or behavioural responses; a policy verdict.",
    "version": "1.0.0"
   },
+  "tax_reconciliation": {
+   "assumptions": [
+    "The accounting profit and every reconciling item are the owner's declared figures.",
+    "The tax rate is a declared rate, not a retrieved one."
+   ],
+   "category": "taxation",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "Only the declared reconciling items; nothing is inferred.",
+     "impact": "A missing item understates or overstates taxable income.",
+     "question": "Which items?"
+    }
+   ],
+   "inputs": {
+    "accounting_profit": {
+     "desc": "accounting profit before tax",
+     "required": true,
+     "type": "decimal"
+    },
+    "capital_allowances": {
+     "desc": "tax allowances deducted from profit (default 0)",
+     "required": false,
+     "type": "decimal"
+    },
+    "deferred_tax_rate": {
+     "desc": "deferred tax rate, if a temporary difference is declared",
+     "required": false,
+     "type": "decimal"
+    },
+    "non_deductible": {
+     "desc": "expenses added back to profit (default 0)",
+     "required": false,
+     "type": "decimal"
+    },
+    "non_taxable": {
+     "desc": "income deducted from profit (default 0)",
+     "required": false,
+     "type": "decimal"
+    },
+    "tax_rate": {
+     "desc": "income tax rate as a decimal (0.25) or a percentage (25)",
+     "required": true,
+     "type": "decimal"
+    },
+    "temporary_difference": {
+     "desc": "temporary difference for deferred tax",
+     "required": false,
+     "type": "decimal"
+    },
+    "vat_input_tax": {
+     "desc": "VAT paid on purchases",
+     "required": false,
+     "type": "decimal"
+    },
+    "vat_output_tax": {
+     "desc": "VAT charged on sales",
+     "required": false,
+     "type": "decimal"
+    }
+   },
+   "intended_use": "Reconcile a declared accounting profit to taxable income through declared non-deductible, non-taxable and allowance items, then compute current tax, deferred tax, the total tax expense, the effective rate and VAT payable from declared figures.",
+   "limitations": [
+    "No tax law, credits, exemptions, thresholds or loss carryforwards.",
+    "No deferred tax asset/liability classification.",
+    "VAT is output less input, with no refund or timing rules."
+   ],
+   "method_id": "tax_reconciliation",
+   "planned_checks": [
+    "second_implementation_agrees",
+    "taxable_income_is_profit_plus_deductible_adjustments",
+    "current_tax_is_the_rate_on_positive_taxable_income",
+    "total_tax_expense_is_current_plus_deferred"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Applying any jurisdiction's tax law, credits, exemptions, thresholds, loss carryforwards or filing rules; retrieving tax rates; a tax return.",
+   "version": "1.0.0"
+  },
   "time_value": {
    "assumptions": [
     "The rate, payment and term are the owner's declared inputs.",
@@ -12113,6 +12243,71 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Forecasting working capital; seasonal or step demand; quantity discounts; bad-debt and credit-scoring models; a full cash budget.",
+   "version": "1.0.0"
+  },
+  "working_capital_cycle": {
+   "assumptions": [
+    "The period-end balances are the owner's figures.",
+    "A 365-day year unless declared."
+   ],
+   "category": "working capital",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "Period-end balances and a 365-day year; average balances would give different days.",
+     "impact": "A seasonal business can look very different at a peak or trough date.",
+     "question": "Which balances?"
+    }
+   ],
+   "inputs": {
+    "cost_of_sales": {
+     "desc": "cost of sales for the period",
+     "required": true,
+     "type": "decimal"
+    },
+    "days": {
+     "desc": "days in the period; default 365",
+     "required": false,
+     "type": "decimal"
+    },
+    "inventory": {
+     "desc": "inventory at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "payables": {
+     "desc": "trade payables at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "receivables": {
+     "desc": "trade receivables at the period end",
+     "required": true,
+     "type": "decimal"
+    },
+    "revenue": {
+     "desc": "revenue for the period",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "intended_use": "Measure the cash conversion cycle from receivable, inventory and payable days, without the order-quantity and trade-credit terms the combined working-capital method needs.",
+   "limitations": [
+    "No seasonality or average balances.",
+    "No cash budget or forecast.",
+    "No order-quantity or trade-credit term."
+   ],
+   "method_id": "working_capital_cycle",
+   "planned_checks": [
+    "second_implementation_agrees",
+    "the_cash_conversion_cycle_is_the_three_periods",
+    "a_longer_receivable_period_lengthens_the_cycle",
+    "net_working_capital_is_inventory_plus_receivables_minus_payables"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Forecasting working capital; seasonality or average balances; bad-debt and credit-scoring models; a full cash budget.",
    "version": "1.0.0"
   },
   "working_capital_ratio": {

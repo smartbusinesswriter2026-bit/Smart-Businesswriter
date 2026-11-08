@@ -108,6 +108,28 @@ def explain(bundle, plan=None):
                     why=why, origin="plan", place=section))
                 continue
 
+            entries = [entry for entry in (block.get("pareto") or [])
+                       if isinstance(entry, dict) and entry.get("label")
+                       and entry.get("artifact") and entry.get("cumulative")]
+            if entries:
+                if len(entries) < MIN_SERIES:
+                    skipped.append({"block": label,
+                                    "reason": "a pareto needs at least %d points, this block "
+                                              "records %d" % (MIN_SERIES, len(entries))})
+                    continue
+                spec = {"format": "bp-chart/1", "kind": "pareto",
+                        "title": str(block.get("figure_title") or block.get("label")
+                                     or "Recorded results"),
+                        "series": [{"label": str(entry["label"]),
+                                    "artifact": str(entry["artifact"]),
+                                    "cumulative": str(entry["cumulative"])}
+                                   for entry in entries]}
+                proposed.append(figures.make(
+                    "chart", spec, caption=str(block.get("figure_caption") or label),
+                    why="the block records a running total for %d points" % len(entries),
+                    origin="plan", place=section))
+                continue
+
             for key, kind, minimum in (("composition", "stacked_bar", MIN_SERIES),
                                        ("alternatives", "bar", MIN_SERIES)):
                 series = _pairs(block, key)

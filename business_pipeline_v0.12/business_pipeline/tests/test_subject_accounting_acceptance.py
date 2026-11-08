@@ -304,10 +304,11 @@ class ShelfShapeTest(unittest.TestCase):
                               "if accounting gains `need` text, update GAP G-acc-01 and this row")
         with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:
             html = stream.read()
-        # The tool's own "what to gather" line and the generic fallback are both deleted as
-        # clutter on the owner's instruction (2026-11-02). The card carries the worked-example
-        # line only.
-        self.assertIn("A worked example is loaded so you can see the format", html)
+        # The tool's "what to gather" line, the generic fallback and the worked-example
+        # sentence are all deleted as clutter; the header row carries the Clear button
+        # instead (owner's instruction, 2026-11-08).
+        self.assertNotIn("A worked example is loaded so you can see the format", html)
+        self.assertIn('id="clearexample"', html)
         self.assertNotIn("Gather the figures this calculation needs", html)
         self.assertNotIn("state.tool.need ?", html)
 

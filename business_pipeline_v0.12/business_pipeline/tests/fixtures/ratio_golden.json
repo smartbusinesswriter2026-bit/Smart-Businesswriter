@@ -37,7 +37,56 @@
         "inventory_days": "36.500000000000",
         "payables_days": "27.375000000000"
       },
-      "not_computed": []
+      "not_computed": [
+        {
+          "ratio": "accruals_ratio",
+          "reason": "missing input: operating_cash_flow"
+        },
+        {
+          "ratio": "altman_z_score",
+          "reason": "missing input: working_capital, retained_earnings, ebit, market_value_equity, sales"
+        },
+        {
+          "ratio": "book_value_per_share",
+          "reason": "missing input: shares_outstanding"
+        },
+        {
+          "ratio": "cash_flow_margin",
+          "reason": "missing input: operating_cash_flow"
+        },
+        {
+          "ratio": "cash_flow_to_debt",
+          "reason": "missing input: operating_cash_flow"
+        },
+        {
+          "ratio": "dividend_payout",
+          "reason": "missing input: dividends_declared"
+        },
+        {
+          "ratio": "dividend_yield",
+          "reason": "missing input: dividends_declared, shares_outstanding, share_price"
+        },
+        {
+          "ratio": "earnings_per_share",
+          "reason": "missing input: shares_outstanding"
+        },
+        {
+          "ratio": "free_cash_flow_margin",
+          "reason": "missing input: operating_cash_flow, capital_expenditure"
+        },
+        {
+          "ratio": "market_to_book",
+          "reason": "missing input: share_price, shares_outstanding"
+        },
+        {
+          "ratio": "operating_cash_flow_ratio",
+          "reason": "missing input: operating_cash_flow"
+        },
+        {
+          "ratio": "price_earnings",
+          "reason": "missing input: share_price, shares_outstanding"
+        }
+      ]
     },
     {
       "name": "partial_balance_sheet_and_income",
@@ -53,20 +102,96 @@
       },
       "not_computed": [
         {
-          "ratio": "quick_ratio",
-          "reason": "missing input: inventory"
+          "ratio": "accruals_ratio",
+          "reason": "missing input: operating_cash_flow, total_assets"
+        },
+        {
+          "ratio": "altman_z_score",
+          "reason": "missing input: working_capital, total_assets, retained_earnings, ebit, market_value_equity, total_liabilities, sales"
+        },
+        {
+          "ratio": "asset_turnover",
+          "reason": "missing input: total_assets"
+        },
+        {
+          "ratio": "book_value_per_share",
+          "reason": "missing input: equity, shares_outstanding"
+        },
+        {
+          "ratio": "cash_flow_margin",
+          "reason": "missing input: operating_cash_flow"
+        },
+        {
+          "ratio": "cash_flow_to_debt",
+          "reason": "missing input: operating_cash_flow, total_liabilities"
         },
         {
           "ratio": "cash_ratio",
           "reason": "missing input: cash"
         },
         {
+          "ratio": "debt_to_equity",
+          "reason": "missing input: total_liabilities, equity"
+        },
+        {
+          "ratio": "dividend_payout",
+          "reason": "missing input: dividends_declared"
+        },
+        {
+          "ratio": "dividend_yield",
+          "reason": "missing input: dividends_declared, shares_outstanding, share_price"
+        },
+        {
+          "ratio": "earnings_per_share",
+          "reason": "missing input: shares_outstanding"
+        },
+        {
+          "ratio": "equity_multiplier",
+          "reason": "missing input: total_assets, equity"
+        },
+        {
+          "ratio": "free_cash_flow_margin",
+          "reason": "missing input: operating_cash_flow, capital_expenditure"
+        },
+        {
           "ratio": "gross_margin",
           "reason": "missing input: cost_of_sales"
         },
         {
+          "ratio": "interest_cover",
+          "reason": "missing input: operating_profit, interest_expense"
+        },
+        {
+          "ratio": "inventory_days",
+          "reason": "missing input: inventory, cost_of_sales"
+        },
+        {
+          "ratio": "market_to_book",
+          "reason": "missing input: share_price, equity, shares_outstanding"
+        },
+        {
+          "ratio": "operating_cash_flow_ratio",
+          "reason": "missing input: operating_cash_flow"
+        },
+        {
           "ratio": "operating_margin",
           "reason": "missing input: operating_profit"
+        },
+        {
+          "ratio": "payables_days",
+          "reason": "missing input: payables, cost_of_sales"
+        },
+        {
+          "ratio": "price_earnings",
+          "reason": "missing input: share_price, shares_outstanding"
+        },
+        {
+          "ratio": "quick_ratio",
+          "reason": "missing input: inventory"
+        },
+        {
+          "ratio": "receivables_days",
+          "reason": "missing input: receivables"
         },
         {
           "ratio": "return_on_assets",
@@ -75,34 +200,6 @@
         {
           "ratio": "return_on_equity",
           "reason": "missing input: equity"
-        },
-        {
-          "ratio": "debt_to_equity",
-          "reason": "missing input: total_liabilities, equity"
-        },
-        {
-          "ratio": "equity_multiplier",
-          "reason": "missing input: total_assets, equity"
-        },
-        {
-          "ratio": "interest_cover",
-          "reason": "missing input: operating_profit, interest_expense"
-        },
-        {
-          "ratio": "asset_turnover",
-          "reason": "missing input: total_assets"
-        },
-        {
-          "ratio": "receivables_days",
-          "reason": "missing input: receivables"
-        },
-        {
-          "ratio": "inventory_days",
-          "reason": "missing input: inventory, cost_of_sales"
-        },
-        {
-          "ratio": "payables_days",
-          "reason": "missing input: payables, cost_of_sales"
         }
       ]
     },
@@ -119,24 +216,100 @@
       },
       "not_computed": [
         {
-          "ratio": "quick_ratio",
-          "reason": "missing input: inventory"
+          "ratio": "accruals_ratio",
+          "reason": "missing input: operating_cash_flow, total_assets"
+        },
+        {
+          "ratio": "altman_z_score",
+          "reason": "missing input: working_capital, total_assets, retained_earnings, ebit, market_value_equity, total_liabilities, sales"
+        },
+        {
+          "ratio": "asset_turnover",
+          "reason": "missing input: total_assets"
+        },
+        {
+          "ratio": "book_value_per_share",
+          "reason": "missing input: equity, shares_outstanding"
+        },
+        {
+          "ratio": "cash_flow_margin",
+          "reason": "missing input: operating_cash_flow"
+        },
+        {
+          "ratio": "cash_flow_to_debt",
+          "reason": "missing input: operating_cash_flow, total_liabilities"
         },
         {
           "ratio": "cash_ratio",
           "reason": "missing input: cash"
         },
         {
+          "ratio": "debt_to_equity",
+          "reason": "missing input: total_liabilities, equity"
+        },
+        {
+          "ratio": "dividend_payout",
+          "reason": "missing input: dividends_declared"
+        },
+        {
+          "ratio": "dividend_yield",
+          "reason": "missing input: dividends_declared, shares_outstanding, share_price"
+        },
+        {
+          "ratio": "earnings_per_share",
+          "reason": "missing input: shares_outstanding"
+        },
+        {
+          "ratio": "equity_multiplier",
+          "reason": "missing input: total_assets, equity"
+        },
+        {
+          "ratio": "free_cash_flow_margin",
+          "reason": "missing input: operating_cash_flow, capital_expenditure"
+        },
+        {
           "ratio": "gross_margin",
           "reason": "missing input: cost_of_sales"
+        },
+        {
+          "ratio": "interest_cover",
+          "reason": "missing input: operating_profit, interest_expense"
+        },
+        {
+          "ratio": "inventory_days",
+          "reason": "missing input: inventory, cost_of_sales"
+        },
+        {
+          "ratio": "market_to_book",
+          "reason": "missing input: share_price, equity, shares_outstanding"
+        },
+        {
+          "ratio": "net_margin",
+          "reason": "zero denominator: revenue"
+        },
+        {
+          "ratio": "operating_cash_flow_ratio",
+          "reason": "missing input: operating_cash_flow"
         },
         {
           "ratio": "operating_margin",
           "reason": "missing input: operating_profit"
         },
         {
-          "ratio": "net_margin",
-          "reason": "zero denominator: revenue"
+          "ratio": "payables_days",
+          "reason": "missing input: payables, cost_of_sales"
+        },
+        {
+          "ratio": "price_earnings",
+          "reason": "missing input: share_price, shares_outstanding"
+        },
+        {
+          "ratio": "quick_ratio",
+          "reason": "missing input: inventory"
+        },
+        {
+          "ratio": "receivables_days",
+          "reason": "missing input: receivables"
         },
         {
           "ratio": "return_on_assets",
@@ -145,34 +318,6 @@
         {
           "ratio": "return_on_equity",
           "reason": "missing input: equity"
-        },
-        {
-          "ratio": "debt_to_equity",
-          "reason": "missing input: total_liabilities, equity"
-        },
-        {
-          "ratio": "equity_multiplier",
-          "reason": "missing input: total_assets, equity"
-        },
-        {
-          "ratio": "interest_cover",
-          "reason": "missing input: operating_profit, interest_expense"
-        },
-        {
-          "ratio": "asset_turnover",
-          "reason": "missing input: total_assets"
-        },
-        {
-          "ratio": "receivables_days",
-          "reason": "missing input: receivables"
-        },
-        {
-          "ratio": "inventory_days",
-          "reason": "missing input: inventory, cost_of_sales"
-        },
-        {
-          "ratio": "payables_days",
-          "reason": "missing input: payables, cost_of_sales"
         }
       ]
     }

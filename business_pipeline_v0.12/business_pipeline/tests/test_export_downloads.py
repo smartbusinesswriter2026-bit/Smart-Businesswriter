@@ -92,9 +92,70 @@ class DownloadsReachTheBrowserTest(unittest.TestCase):
         self.assertIn('{ kind: "docx", deliverable: "submission", download: true }', PAGE,
                       "a saved case can still produce its Word paper")
 
+    def test_e_dl_007__the_accounting_statements_download_as_a_word_file(self):
+        """The management-accounts panel's statements button: bytes, not a server path.
+
+        Reported by the owner: "users cannot download the result of their computation in
+        accounting".  The button posted to `/api/cases//export` with an empty id and a
+        destination path, so nothing ever reached the browser.
+        """
+        bundle = product_fixtures.make_bundle()
+        bundle["delivery"].setdefault("appendix", {})["accounts"] = {
+            "statements_export": {"trial_balance": "TRIAL BALANCE\n  Cash 100.00",
+                                  "income_statement": "INCOME STATEMENT\n  Net income 50.00"}}
+        case_id = cases.save(bundle)
+        status, payload = api.handle("POST", "/api/cases/%s/export" % case_id,
+                                     {"kind": "docx", "deliverable": "statements",
+                                      "download": True})
+        self.assertEqual(status, 200, payload)
+        self.assertNotIn("path", payload, "the browser cannot fetch a server path")
+        raw = base64.b64decode(payload["data"])
+        self.assertTrue(raw.startswith(b"PK"), "a real .docx is a zip package")
+        self.assertTrue(payload["filename"].endswith(".docx"), payload["filename"])
+        self.assertEqual(payload["deliverable"], "statements")
+
+    def test_e_dl_008__the_accounting_panel_asks_for_the_statements_as_bytes(self):
+        self.assertIn('{ kind: "docx", deliverable: "statements", download: true }', PAGE,
+                      "the statements button asks the route for a file")
+        self.assertNotIn('destination: "exports/statements.html"', PAGE,
+                         "a destination path is not a download")
+        self.assertIn("async function exportStatements()", PAGE)
+        self.assertIn("ensureSavedCase()", PAGE,
+                      "the statements come from a saved case, as every download does")
+
+    def test_e_dl_009__a_delivered_tool_shows_its_downloads_on_its_own_page(self):
+        """The tool page a student ran the calculation on carries the result and its files.
+
+        Reported by the owner: the downloads sat at the bottom of the containers
+        "except for Tool - management accounts and others".  A delivered run used to
+        leave the tool page with no result at all, so the only route to a file was the
+        Result page; now the report and the download row are rendered there.
+        """
+        self.assertIn('id="toolresult"', PAGE)
+        for button in ('id="toolsavecase"', 'id="toolxlsx"', 'id="tooldocx"',
+                       'id="toolexplain"', 'id="toolopenresult"'):
+            self.assertIn(button, PAGE)
+        self.assertIn('id="toolstatements"', PAGE,
+                      "management accounts can download its statements from its own page")
+        self.assertIn("if (delivered) {", PAGE)
+
+    def test_e_dl_010__every_saved_file_is_named_subject_tile_and_a_number(self):
+        """The owner's format: subject_subtile_NNN.ext, on every file the page saves."""
+        self.assertIn("function downloadName(tile, filename, subject)", PAGE)
+        self.assertIn("function nextFileNumber(subject, tile)", PAGE)
+        self.assertIn('padStart(3, "0")', PAGE)
+        self.assertIn("link.download = downloadName(", PAGE)
+        self.assertIn('downloadName("Statements"', PAGE,
+                      "the statements tile names its files Accounting_Statements_NNN")
+        self.assertIn('downloadName(d.problem_label', PAGE,
+                      "an economics file is named Economics_<problem>_NNN")
+        self.assertIn('downloadName(b.title', PAGE,
+                      "a case report is named by its own title")
+
     def test_e_dl_003__the_pairs_the_page_requests_are_pairs_the_core_allows(self):
         for deliverable, kind in (("workpapers", "xlsx"), ("submission", "docx"),
-                                  ("submission", "html"), ("worksheet", "docx")):
+                                  ("submission", "html"), ("worksheet", "docx"),
+                                  ("statements", "docx"), ("statements", "html")):
             deliverables.check_pair(deliverable, kind)  # raises on an impossible pair
 
     def test_e_dl_004__the_export_route_still_serves_the_bytes_and_hides_the_path(self):

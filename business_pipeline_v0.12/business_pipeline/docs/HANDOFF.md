@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch corpus/merge-v1, remote origin = smartbusinesswriter2026-bit/smart-businesswriter002; `main` is the deployment branch and carries the same tree; clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.125 (see docs/CHANGELOG.md)
-Tests        : 4334 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Build        : 1.127 (see docs/CHANGELOG.md)
+Tests        : 4337 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -176,22 +176,25 @@ and defaults to the **Self-Healing** panel.
   error, skips errors with neither a problem nor a case id (no model call), resolves a case
   by code and a problem by flash -> pro, and when no open errors remain it replays the
   whole 246-case suite and stops only when that passes.  Metric is errors-closed %.
-- **`web/admin-sbw.html`** — Self-Healing panel: subject sections (permanent), collapsible
+- **`web/admin-sbw.html`** — Self-Healing panel with six tabs: Overview, Errors & fixes,
+  Testing, Cases, Uploads, Tools.  Testing keeps subject sections (permanent), collapsible
   tile groups, tickable tiles (ticks survive a subsection switch and a reload), Format
-  selector, Generate selected, progress, results table, download ZIP at the bottom of each
-  section.  Tile cases card: seed, run a subject or all, results, Add files per subject.
+  selector, Generate selected, progress, results table and download links.  Cases runs the
+  stored tests and reports pass/fail.  Uploads is the single test-file store (picker or
+  drag-and-drop) that both testers read.
 
 ### 8.2 Routes
 
-- `GET /api/ops/papers/tiles`, `POST /api/ops/papers/batch`, `GET /api/ops/papers/batch/{id}`, `GET /api/ops/papers/batch/{id}/download?format=zip|docx`, `GET /api/ops/papers/runs`
+- `GET /api/ops/papers/tiles`, `POST /api/ops/papers/batch`, `GET /api/ops/papers/batch/{id}`, `GET /api/ops/papers/batch/{id}/download?format=zip|docx|explainer`, `GET /api/ops/papers/runs`
 - `GET /api/ops/cases`, `POST /api/ops/cases/seed`, `POST /api/ops/cases/upload`, `POST /api/ops/cases/run`, `GET /api/ops/cases/runs`, `GET /api/ops/cases/runs/{id}`, `GET /api/ops/cases/runs/{id}/file/{name}`
 - `POST /api/ops/errors/resolve` — in-pipeline fix ladder.
 
 ### 8.3 How to debug a failing case
 
 1. Run the case (Tile cases card -> Run, or `POST /api/ops/cases/run`).
-2. Every case run saves its paper and workbook in `state/case_runs/<run_id>/`; the result
-   carries `paper` and `workbook`, and the Output column links to
+2. Every case run saves its paper, workbook and explainers in `state/case_runs/<run_id>/`; the
+   result carries `paper`, `workbook` and `explainer_file`, and the Quick-check result table
+   shows pass/fail only while the paper-preview result table links each output to
    `/api/ops/cases/runs/{id}/file/{name}`.  A pass can be opened and read, not only a fail.
 3. On fail, the error appears in the error log (`/api/ops/errors`) with `lane: tile-case`
    and the `case_id`.  The failing paper is in `state/case_runs/<run_id>/`.
@@ -234,24 +237,176 @@ utilisation.  A missing input or output key skips the invariant; a wrong
 relationship fails the case.  This is the durable version of the checks the
 statements tile used to need, applied to the other tiles.
 
+### 8.7 The unified upload store
+
+There is **one** upload facility, on the **Uploads** tab.  A file is dropped or picked once,
+against a chosen subject and tile, and it is stored as a case under
+`qa/cases/<subject>/<tile-slug>/case_NNN.json` with `origin: "uploaded"`.  The store is
+shared: it is not duplicated per subject, and the Testing and Cases tabs carry no file
+picker of their own.
+
+The two testers differ only in what they hand back:
+
+| Tester | Where | What it returns |
+|---|---|---|
+| Quick check | Cases tab | pass/fail, duration, error text.  No paper, workbook or explainer links. |
+| Paper previews | Testing tab, source `uploaded` (or `both`) | the paper plus **Word**, **Excel** and **explainer** downloads. |
+
+Upload path, always in this order: read the file -> parse it by extension -> map table
+headers (or the JSON `inputs`) onto the tile's input names -> `validate_inputs` -> run the
+method -> only then write the case.  A file that cannot be replayed is rejected with the
+reason; it is never stored as a case that fails later.
+
+Accepted formats: JSON, CSV/TSV, XLSX/XLSM (first worksheet), Word (`.docx`/`.docm`), PDF,
+TXT/MD and images.  Limit 5 MB per file.  Several files can be picked or dropped at once,
+and each is gated separately, so one bad file does not discard the good ones.
+
+The dropzone (`#uploadDrop`) is a second way into the same handler
+`uploadTestFiles(subject, tile, files)`; the picker and the drop run the same code.  A drop
+outside the zone is cancelled so the browser does not navigate away from the console.
+
+### 8.8 The explainer
+
+Every paper-preview run writes `explainer.md` into the run folder and into the ZIP.  It
+carries, per tile: the objective, the prefilled instruction, the declared inputs, the
+computed result, the evidence counts (cited sources, background pages, named gaps) and the
+generation status — labelled **Generation**, never "test passed", because the pass/fail
+authority is the case runner.
+
+Every case run writes one `<case>_explainer.md` per result plus a run-level `explainer.md`.
+The per-case file has a **Check** section: the status, the problems (or the sentence that
+the computation, the invariants, the paper and the workbook all agree), and the evidence
+counts.  The whole run saves its paper, workbook and explainers for a pass as well as a
+fail, so a green result can be opened and read.
+
+
 ## 9. Intended future work (not yet built)
 
 These are recorded so a future enhancer can pick them up without re-discovering them.
 They are not implemented today.
 
-1. Autonomous growth loop (the "write the codes" idea).  Out-of-scope instructions are
-   logged as findings, but the loop cannot author new capabilities (new method, capability
-   entry, preset, tests).  That needs a proposal-apply-verify pipeline: a model writes a
-   code patch, a sandbox applies it, the test suite runs, and the patch is kept only when
-   green.  This is a separate, large project and is not the current loop.
+1. Human-gated growth loop (the "write the codes" idea), designed in section 10 below.  The
+   autonomous version — a model writes a patch, a sandbox applies it, the suite runs, the
+   patch is kept when green — is **not** to be built: without a reference implementation the
+   test is written to match the code.  What is worth building is gap logging plus a
+   scaffold generator, with the method logic written by the computation owner.
 2. Local models.  Rejected on this hardware (Ryzen 5 2600 / 16 GB / RX 580 4 GB, no
    CUDA/ROCm).  Stay on beam -> flash -> pro.
 3. XLSX per tile in the paper preview.  Done for the paper preview (Format selector).
    Still open: the case runner's xlsx check is sheet-name based only; cell-level
    assertions would be stronger.
-4. Multi-case upload.  One file at a time today; a ZIP of cases would be convenient.
-5. Excel upload mapping.  Automatic header -> input mapping; merged cells are not handled.
+4. Multi-case upload.  Several files can now be picked or dropped at once on the Uploads
+   tab, and each is gated separately.  Still open: a ZIP of cases in one drop.
+5. Excel upload mapping.  Automatic header -> input mapping is built (CSV/TSV and the first
+   worksheet of an XLSX).  Still open: merged cells and multi-sheet workbooks.
 6. Re-open a dismissed error.  There is no reopen route; a dismissed error stays dismissed.
 7. Case versioning.  One case per tile today; multiple variants per tile would need
    numbering beyond case_001.
+
+## 10. Growth loop vs repair loop (design note, 2026-11-08)
+
+This section records a decision, not a build.  It exists so a later enhancer does not
+re-open the "let the system write its own agents" idea and land on the wrong side of it.
+
+### 10.1 The distinction
+
+The system has two loops that are easy to confuse:
+
+- **Repair loop** (`autoresearch` + `auto_resolve`): picks an open error, replays it, fixes
+  it, pins a regression case.  It creates nothing new; it only checks whether something that
+  used to work still works.  It can be autonomous because a **reference implementation**
+  exists for every one of its checks.
+- **Growth loop** (proposed, human-gated): when a capability gap is logged — an instruction
+  the system refuses as out of scope — the system scaffolds a new method, capability entry,
+  preset and test sketch.  A human writes the logic, runs the suite, and only then is the
+  capability committed and a case seeded.  The repair loop then protects it.
+
+The growth loop is **not** the repair loop, and it is not autonomous.  It is a proposal
+generator.  Its loop only starts *after* a human has supplied the reference implementation.
+
+### 10.2 Why human approval is what makes it sound
+
+The repair loop is sound because every step has a reference that exists independently of the
+loop: the frozen method, the stored problem, the regression suite.  A capability gap has no
+such reference — the code you write *is* the reference.  If a model wrote both the method
+and the test, the test would pass by construction and prove nothing.
+
+So the first gate is not a formality, it is the thing that makes verification possible:
+
+**Human writes the method logic** (computation owner) is step one.  Everything the growth
+loop does before that point is design lane.  Steps 1-2 are computation-owner work; steps
+3-5 are automated.
+
+### 10.3 How the two loops connect
+
+```
+Growth loop (human-gated)                Repair loop (autonomous)
+------------------------------           ------------------------------
+capability gap logged                    error logged (open)
+   |                                        |
+scaffold generated (design lane)         autoresearch picks it up
+   |                                        |
+human writes the method + tests          auto_resolve: replay the case
+   |                                        |
+human runs the suite                     if pass -> mark verified
+   |                                        |
+if green -> committed (computation       case pinned in qa/regression/
+  owner change)                             |
+   |                                        |
+case_store seeds a case for the tile     regression suite replays it
+   |                                        |
+repair loop now has a reference          if a future change breaks it -> fail
+```
+
+The **connection point is the case store**.  The growth loop creates a new tile capability;
+the case store seeds a case from its published preset; the repair loop now has a reference to
+check against.  The two loops do not compete: the growth loop *creates* references, the
+repair loop *protects* them.
+
+### 10.4 Soundness gates (all must hold)
+
+| Gate | Who enforces | What it prevents |
+|---|---|---|
+| Human writes the method logic | Computation owner | Invented formulas, silent substitutions |
+| Human runs the suite | Computation owner | Green-by-construction tests |
+| Frozen contract passes | `test_frozen_contract.py` | Unreviewed core changes |
+| Case seeded from the preset | `case_store.seed` | A capability with no test |
+| Repair loop replays the case | `auto_resolve` | A fix that does not actually work |
+| Regression suite pins the fix | `regression_cases` | The same error reappearing |
+
+Remove any gate and the growth loop stops being sound.
+
+### 10.5 What to build when this is picked up (design lane, no core edits)
+
+1. **Gap logging.**  `chat.start`'s `not_supported` path and the case runner's "no method"
+   path call `ops_log.log_finding(rule="capability_gap", ...)` with the instruction, the
+   subject and the refusal reason attached.  Today those refusals are shown to the user and
+   then lost.
+2. **Scaffold generator.**  Emits skeleton files into `qa/scaffolds/<subject>/<tile>/`: a
+   method stub, a capability entry, a preset and a test sketch, all marked `PROVISIONAL` and
+   none wired into the running system.
+3. **A triage filter.**  The Validation panel gains `source=capability_gap`, so the backlog
+   is "things users asked for that we cannot do yet" rather than a guess.
+4. **A scaffold button.**  "Generate scaffold" on a gap finding writes the skeletons for a
+   human to fill in.
+
+The system captures the demand and scaffolds the shape; the human provides the substance.
+
+### 10.6 What not to build
+
+- **Autonomous code writing.**  The patch cannot be verified without a reference, and the
+  reference is what the human writes.
+- **Auto-wiring of scaffolds.**  A scaffold is a draft; wiring it in before review lets
+  unverified computation into the frozen core.
+- **Agent factory (agents creating agents).**  Recursive agent creation without a trust
+  boundary is how runaway cost and unreviewed computation get into the product.
+
+### 10.7 The honest boundary
+
+What exists today is a **repair loop + a test harness + a case store**.  It is good at
+detecting that something broke, verifying a fix by replay, keeping the fix durable, and
+surfacing what it cannot fix.  It is not a software engineer, and it should not pretend to
+be.  The step from "here is a gap" to "here is the code that closes it" needs judgment about
+what the capability does, what it refuses, and how it fits the frozen contract — and that
+judgment is the computation owner's.
 

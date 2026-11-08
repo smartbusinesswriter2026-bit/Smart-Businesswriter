@@ -58,7 +58,6 @@ TEMPLATES = {
 }
 RECORDS = ["OPS-09", "QNT-OPS-01", "QNT-OPS-02", "QNT-OPS-04", "QNT-OPS-05", "QNT-OPS-06", "QNT-OPS-08"]
 
-
 def page():
     return subjects.detail(SUBJECT)
 

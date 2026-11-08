@@ -624,9 +624,9 @@ class TrapTest(unittest.TestCase):
         import json
         fixture = json.load(open(os.path.join(ROOT, "tests", "fixtures", "frozen_contract.json"),
                                  encoding="utf-8"))
-        self.assertEqual(len(LIBRARY), 209)
+        self.assertEqual(len(LIBRARY), 211)
         self.assertEqual(len(server.PRESETS), 144)
-        self.assertEqual(len(fixture["methods"]), 209)
+        self.assertEqual(len(fixture["methods"]), 211)
         self.assertEqual(len(fixture["presets"]), 144)
         for method_id in {tool["method"] for tool in tools()}:
             self.assertIn(method_id, fixture["methods"],

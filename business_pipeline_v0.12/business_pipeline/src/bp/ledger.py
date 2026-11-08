@@ -324,9 +324,13 @@ def closing_entries(j, st=None):
         if a.role == "cash":
             continue    # cash may legitimately be overdrawn; not screened as abnormal
         if n < 0: bad.append(f"{code} ({a.name})")
-        if a.type == "income": inc.append({"account": code, "debit": str(n)})
-        elif a.type == "expense": exp.append({"account": code, "credit": str(n)})
-        elif a.role == "dividends": divs.append({"account": code, "credit": str(n)})   # dividends carry a debit balance and reduce equity
+        # Close on the side opposite the account's normal side.  A contra income (sales returns)
+        # has its normal side flipped to debit, so a positive balance closes with a credit;
+        # posting a fixed "income -> debit" line left it open and over-credited retained earnings.
+        close_side = "credit" if a.normal == "D" else "debit"
+        if a.type == "income": inc.append({"account": code, close_side: str(n)})
+        elif a.type == "expense": exp.append({"account": code, close_side: str(n)})
+        elif a.role == "dividends": divs.append({"account": code, close_side: str(n)})   # dividends carry a debit balance and reduce equity
     if bad: raise LedgerError("closing with abnormal balances needs a human decision (flags(j) reports them): " + ", ".join(bad) + ". An abnormal balance usually means an entry has the wrong sign or an account type is misclassified; check the entries for those accounts.")
     if oci and not oci_res_codes:
         raise LedgerError("closing other comprehensive income needs an equity account with role 'oci_reserve'")
@@ -340,12 +344,24 @@ def closing_entries(j, st=None):
         if total > 0: lines.append({"account": reserve, "credit": str(total)})
         elif total < 0: lines.append({"account": reserve, "debit": str(-total)})
         if lines: out.append({"date": j.end, "description": "closing: other comprehensive income to reserve", "closing": True, "lines": lines})
-    if inc: out.append({"date": j.end, "description": "closing: income to retained earnings", "closing": True,
-                        "lines": inc + [{"account": re_code, "credit": str(sum((D(l["debit"]) for l in inc), D(0)))}]})
-    if exp: out.append({"date": j.end, "description": "closing: expenses to retained earnings", "closing": True,
-                        "lines": [{"account": re_code, "debit": str(sum((D(l["credit"]) for l in exp), D(0)))}] + exp})
-    if divs: out.append({"date": j.end, "description": "closing: dividends to retained earnings", "closing": True,
-                         "lines": [{"account": re_code, "debit": str(sum((D(l["credit"]) for l in divs), D(0)))}] + divs})
+
+    def _balanced(lines, description, re_first=False):
+        """Close a set of lines into retained earnings, whichever side the net falls on."""
+        debits = sum((D(l["debit"]) for l in lines if "debit" in l), D(0))
+        credits = sum((D(l["credit"]) for l in lines if "credit" in l), D(0))
+        re_line = None
+        if debits > credits:
+            re_line = {"account": re_code, "credit": str(debits - credits)}
+        elif credits > debits:
+            re_line = {"account": re_code, "debit": str(credits - debits)}
+        ordered = list(lines)
+        if re_line is not None:
+            ordered = ([re_line] + ordered) if re_first else (ordered + [re_line])
+        return {"date": j.end, "description": description, "closing": True, "lines": ordered}
+
+    if inc: out.append(_balanced(inc, "closing: income to retained earnings", re_first=False))
+    if exp: out.append(_balanced(exp, "closing: expenses to retained earnings", re_first=True))
+    if divs: out.append(_balanced(divs, "closing: dividends to retained earnings", re_first=True))
     return out
 
 def retained_earnings_rollforward(j, st_pre=None):

@@ -178,3 +178,70 @@ class KpiTest(unittest.TestCase):
         spec = {"format": "bp-diagram/1", "kind": "kpi", "title": "Sprint KPIs",
                 "items": [{"label": "Velocity", "value": "nope"}]}
         self.assertIn("not recorded", diagrams.render_svg(spec, kpi_bundle()))
+
+
+WBS = {"format": "bp-diagram/1", "kind": "wbs", "title": "Launch plan",
+       "root": {"label": "Launch", "code": "1", "children": [
+           {"label": "Research", "code": "1.1", "children": [
+               {"label": "Interviews", "code": "1.1.1"},
+               {"label": "Survey", "code": "1.1.2"}]},
+           {"label": "Build", "code": "1.2", "children": [
+               {"label": "Prototype", "code": "1.2.1"},
+               {"label": "Pilot", "code": "1.2.2"}]}]}}
+
+
+class WorkBreakdownTest(unittest.TestCase):
+    """A work breakdown is labels and codes: the codes may carry digits, the labels may not."""
+
+    def test_a_tree_of_work_packages_is_drawn(self):
+        svg = diagrams.render_svg(WBS)
+        ET.fromstring(svg)
+        for label in ("Launch", "Research", "Build", "Interviews", "Pilot"):
+            self.assertIn(label, svg)
+
+    def test_the_codes_are_drawn_beside_the_labels(self):
+        svg = diagrams.render_svg(WBS)
+        for code in ("1.1.1", "1.2.2"):
+            self.assertIn(code, svg)
+
+    def test_a_label_may_not_carry_a_digit(self):
+        spec = {"format": "bp-diagram/1", "kind": "wbs", "title": "Bad",
+                "root": {"label": "Phase 2"}}
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.validate_spec(spec)
+
+    def test_a_code_may_carry_a_digit(self):
+        kind, _title, payload = diagrams.validate_spec(WBS)
+        self.assertEqual(kind, "wbs")
+        self.assertEqual(payload["code"], "1")
+        self.assertEqual(payload["children"][0]["code"], "1.1")
+
+    def test_a_root_is_required(self):
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.validate_spec({"format": "bp-diagram/1", "kind": "wbs", "title": "Bad"})
+
+    def test_children_must_be_objects(self):
+        spec = {"format": "bp-diagram/1", "kind": "wbs", "title": "Bad",
+                "root": {"label": "Root", "children": ["Not an object"]}}
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.validate_spec(spec)
+
+    def test_five_levels_is_the_limit(self):
+        node = {"label": "Leaf"}
+        for _ in range(6):
+            node = {"label": "Level", "children": [node]}
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.validate_spec({"format": "bp-diagram/1", "kind": "wbs",
+                                    "title": "Deep", "root": node})
+
+    def test_an_empty_code_is_not_a_code(self):
+        spec = {"format": "bp-diagram/1", "kind": "wbs", "title": "Bad",
+                "root": {"label": "Root", "code": "  "}}
+        with self.assertRaises(diagrams.DiagramError):
+            diagrams.validate_spec(spec)
+
+    def test_the_svg_export_writes_the_file(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, "wbs.svg")
+            self.assertEqual(diagrams.export_svg(WBS, path), path)
+            self.assertIn("<svg", open(path, encoding="utf-8").read())

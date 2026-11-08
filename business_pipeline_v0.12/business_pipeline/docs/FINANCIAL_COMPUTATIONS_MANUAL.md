@@ -69,7 +69,7 @@ came from the model. It now comes from the deterministic layer, and the model's 
 | **Integrated case solver (Tip 5 Type 7 / Tip 6)** | **built, wired, tested — nine-stage state machine** | **`src/bp/case_solver.py`** |
 | **Guards G1–G22 (Tip 7)** | **built, wired into every record** | **`src/bp/guards.py`** |
 
-**Build:** 1.121 (see `docs/CHANGELOG.md`) · **Branch:** `corpus/merge-v1`
+**Build:** 1.127 (see `docs/CHANGELOG.md`) · **Branch:** `corpus/merge-v1`
 **Repo:** `D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline`
 
 ### What the engine can actually do — measured

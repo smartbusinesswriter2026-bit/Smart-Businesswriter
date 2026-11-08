@@ -70,7 +70,7 @@ def _sources(kind, spec):
     for entry in spec.get("series") or []:
         if not isinstance(entry, dict):
             continue
-        for key in ("artifact", "label_artifact"):
+        for key in ("artifact", "label_artifact", "cumulative"):
             if isinstance(entry.get(key), str) and entry[key].strip():
                 found.append(entry[key].strip())
     return found
@@ -215,6 +215,12 @@ def rows_for(figure, bundle):
             pairs.append((label, "%s to %s" % (start, end)))
         return pairs
     pairs = []
+    if spec.get("kind") == "pareto":
+        for entry in spec.get("series") or []:
+            pairs.append((entry.get("label"),
+                          "%s / %s" % (_stored(stored, entry.get("artifact")),
+                                       _stored(stored, entry.get("cumulative")))))
+        return pairs
     for entry in spec.get("series") or []:
         pairs.append((entry.get("label"), _stored(stored, entry.get("artifact"))))
     return pairs
@@ -236,6 +242,12 @@ def render(figure, bundle, scale=3):
     figure["asset"] = {"svg": renderers.svg(figure, bundle),
                        "png": renderers.png(figure, bundle, scale=scale)}
     figure["rows"] = rows_for(figure, bundle)
+    try:
+        figure["series"] = charts.series_of(bundle, figure.get("spec") or {})
+    except Exception:
+        # A shape the chart resolver does not own (a gantt, a table) carries no
+        # series, and a writer that needs values falls back to the picture.
+        figure["series"] = []
     return figure
 
 

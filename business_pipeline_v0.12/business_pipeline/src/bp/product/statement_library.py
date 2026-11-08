@@ -16,6 +16,7 @@ import re
 from datetime import datetime, timezone
 from hashlib import sha256
 from collections import Counter
+from uuid import uuid4
 
 _STORE_DIR = os.environ.get("BP_STATEMENT_LIBRARY_DIR") or os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -39,7 +40,8 @@ CREATE TABLE IF NOT EXISTS problems (
     gate_failures TEXT,
     entries_json TEXT,
     adjustments_json TEXT,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    acct_group TEXT
 );
 """
 
@@ -50,6 +52,7 @@ _MIGRATE = [
     "ALTER TABLE problems ADD COLUMN origin TEXT",
     "ALTER TABLE problems ADD COLUMN refusal TEXT",
     "ALTER TABLE problems ADD COLUMN kind TEXT",
+    "ALTER TABLE problems ADD COLUMN acct_group TEXT",
 ]
 
 
@@ -104,7 +107,7 @@ def _gap_label(item):
     return text[:160]
 
 
-def record(record, origin=None):
+def record(record, origin=None, group=None):
     """Store a statements record (dict) in the library. Append-only.
 
     `record` is called for every outcome: a solve, a route that returned an unsolved record, and
@@ -114,13 +117,21 @@ def record(record, origin=None):
     `origin` says where the problem came from — ``app`` (a student in the workbench), ``test``
     (a fixture), ``manual`` (an acceptance probe), ``seed`` (the corpus).  Nothing is ever
     deleted: origin lets a reader separate evidence from fixtures without throwing evidence away.
+
+    `group` is the accounting shelf the problem belongs to — ``Statements``, ``Cost and variance
+    analysis``, ``Working capital and financing``, ``Planning and projection``, ``Tax and
+    reporting``, ``Statement analysis`` or ``Bookkeeping``.  It is how a gap report can ask
+    "what keeps failing in this tile?" without reading the instruction text.  A record that names
+    no group is stored without one rather than guessed into a shelf.
     """
     if not isinstance(record, dict):
         return
     origin = origin or record.get("origin") or os.environ.get("BP_STATEMENT_LIBRARY_ORIGIN") or "app"
+    group = (group or record.get("acct_group") or record.get("group")
+             or os.environ.get("BP_STATEMENT_LIBRARY_GROUP"))
     try:
         c = _conn()
-        rid = str(record.get("id") or record.get("plan_hash") or "")
+        rid = str(record.get("id") or record.get("plan_hash") or uuid4().hex[:12])
         text = str(record.get("instruction") or record.get("text") or "")
         th = sha256(text.encode("utf-8")).hexdigest()
         period = record.get("period") or _reading(record).get("period") or {}
@@ -152,8 +163,9 @@ def record(record, origin=None):
         c.execute(
             "INSERT OR REPLACE INTO problems (id, text_hash, text, period_start, period_end, model, "
             "attempts, solved, reading_source, net_income, missing, unplaceable, methods_used, "
-            "gate_failures, entries_json, adjustments_json, created_at, origin, refusal, kind) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "gate_failures, entries_json, adjustments_json, created_at, origin, refusal, kind, "
+            "acct_group) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (rid, th, text, ps, pe, record.get("reading_source"),
              record.get("attempts"),
              1 if record.get("solved") else 0, record.get("reading_source"),
@@ -165,11 +177,49 @@ def record(record, origin=None):
              json.dumps(adjustments) if adjustments is not None else None,
              datetime.now(timezone.utc).isoformat(), origin,
              str(refusal)[:1000] if refusal else None,
-             record.get("problem_type")))
+             record.get("problem_type"),
+             group))
         c.commit()
         c.close()
     except Exception:
         pass  # library is best-effort; never break the pipeline
+
+
+def record_problem(group, instruction, solved=False, refusal=None, error=None,
+                   problem_type=None, origin=None):
+    """Record one problem from any accounting tile, tagged with its shelf.
+
+    A calculator (``standard_cost_variances``, ``abc_costing``, ``working_capital``,
+    ``proforma_statements``, ``tax_declared``, ...) calls this so its successes and failures are
+    counted beside the statements tile's.  It writes nothing the caller did not supply: no figure,
+    no reading, no guess.  The group is one of the accounting groups in
+    ``bp.product.subjects.ACCOUNTING_GROUPS`` (``Cost and variance analysis``, ``Working capital
+    and financing``, ``Planning and projection``, ``Tax and reporting``, ``Statement analysis`` or
+    ``Bookkeeping``).
+    """
+    text = str(instruction or "")
+    record({"instruction": text, "solved": bool(solved),
+            "refusal": refusal or error, "problem_type": problem_type,
+            "group": group}, origin=origin, group=group)
+
+
+def record_calculator(method_id, objective, solved, refusal=None, problem_type=None):
+    """Record a calculator run against the shelf its method belongs to.
+
+    The shelf comes from the subject page's own map (`subjects.accounting_group_for_method`), so a
+    method that is not an accounting tool is not recorded here at all — this never turns the
+    library into a log of every finance and statistics run.  Returns the group it used, or None.
+    """
+    try:
+        from . import subjects
+        group = subjects.accounting_group_for_method(method_id)
+        if not group:
+            return None
+        record_problem(group, objective or method_id, solved=solved, refusal=refusal,
+                       problem_type=problem_type or method_id)
+        return group
+    except Exception:
+        return None
 
 
 #: Words too common to say two problems are alike.  Two shared stopwords are not a similarity.
@@ -234,7 +284,7 @@ def few_shot(text, n=2, kind=None):
     return [s[1] for s in scored[:n]]
 
 
-def gap_report(top=15):
+def gap_report(top=15, group=None):
     """Produce a proposal report (dict) from the library. Never auto-changes code.
 
     The report reads the fields where gaps are actually written — ``missing``, ``unplaceable``,
@@ -242,12 +292,22 @@ def gap_report(top=15):
     **distinct problem** as well as by row.  A fixture solved 140 times is one problem; treating
     it as 140 observations is what made the old report propose nothing while a real defect
     repeated 196 times stayed invisible.
+
+    ``group`` limits the report to one accounting shelf (``Cost and variance analysis``,
+    ``Working capital and financing``, ...), so a tile can ask what keeps failing in its own
+    group.  ``by_group`` always reports the whole library's split, even when a filter is given.
     """
     try:
         c = _conn()
-        rows = c.execute(
-            "SELECT text_hash, solved, missing, unplaceable, gate_failures, refusal, kind, "
-            "reading_source, origin, created_at FROM problems").fetchall()
+        if group:
+            rows = c.execute(
+                "SELECT text_hash, solved, missing, unplaceable, gate_failures, refusal, kind, "
+                "reading_source, origin, created_at, acct_group FROM problems "
+                "WHERE acct_group = ?", (group,)).fetchall()
+        else:
+            rows = c.execute(
+                "SELECT text_hash, solved, missing, unplaceable, gate_failures, refusal, kind, "
+                "reading_source, origin, created_at, acct_group FROM problems").fetchall()
         c.close()
     except Exception:
         return {"total": 0, "solved": 0, "unsolved": 0, "proposals": []}
@@ -255,7 +315,7 @@ def gap_report(top=15):
     total = len(rows)
     solved = sum(1 for r in rows if r[1])
     problems = {r[0] for r in rows}
-    by_kind, by_source, by_origin = Counter(), Counter(), Counter()
+    by_kind, by_source, by_origin, by_group = Counter(), Counter(), Counter(), Counter()
     gap_rows, gap_problems = Counter(), Counter()
     gap_reason = {}
     unplaceable_rows, unplaceable_problems = Counter(), Counter()
@@ -272,10 +332,11 @@ def gap_report(top=15):
         if label not in last_seen or seen_at > last_seen[label]:
             last_seen[label] = seen_at
 
-    for text_hash, is_solved, missing, unplaceable, gates, refusal, kind, source, origin, seen_at in rows:
+    for text_hash, is_solved, missing, unplaceable, gates, refusal, kind, source, origin, seen_at, acct_group in rows:
         by_kind[str(kind or "unrecorded")] += 1
         by_source[str(source or "unrecorded")] += 1
         by_origin[str(origin or "unrecorded")] += 1
+        by_group[str(acct_group or "unrecorded")] += 1
         for item in _as_items(missing):
             label = _gap_label(item)
             if not label:
@@ -354,7 +415,8 @@ def gap_report(top=15):
             "by_kind": dict(by_kind.most_common()),
             "by_source": dict(by_source.most_common()),
             "by_origin": dict(by_origin.most_common()),
-            "most_repeated": [{"rows": n, "text": next((r[2] for r in rows if r[0] == h), "")[:90]}
+            "by_group": dict(by_group.most_common()),
+            "most_repeated": [{"rows": n, "text": str(next((r[2] for r in rows if r[0] == h), "") or "")[:90]}
                               for h, n in duplicates.most_common(5) if n > 1],
             "singles": singles[:top],
             "proposals": proposals}

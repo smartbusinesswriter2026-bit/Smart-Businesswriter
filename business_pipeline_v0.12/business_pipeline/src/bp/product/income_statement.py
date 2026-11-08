@@ -306,6 +306,20 @@ def _classify_account(account: str) -> Tuple[str, str]:
     if re.search(r"^(retained earnings?|accumulated (profit|earnings)|revenue reserve|revaluation reserve|translation reserve)$", a):
         return ("equity", "Retained Earnings")
 
+    # Stated totals: a problem may give "Current assets 50,000" or "Total liabilities 90,000"
+    # with no components.  They are recognised so the analysis can use them when the components
+    # are absent, and never double-count when both are present.
+    if re.search(r"^(total )?current assets?$", a):
+        return ("total_current_assets", "Current Assets")
+    if re.search(r"^(total )?current liabilities?$", a):
+        return ("total_current_liabilities", "Current Liabilities")
+    if re.search(r"^(total )?assets$", a):
+        return ("total_assets", "Total Assets")
+    if re.search(r"^(total )?liabilities$", a):
+        return ("total_liabilities", "Total Liabilities")
+    if re.search(r"^(total )?(equity|shareholders?'? funds?|capital employed)$", a):
+        return ("total_equity", "Total Equity")
+
     # Tax rate — only if explicitly a tax account
     if re.search(r"\btax\b", a):
         return ("tax_rate", "Income Tax Expense")
@@ -524,6 +538,10 @@ def compute_balance_sheet_analysis(lines: List[AccountLine]) -> BalanceSheetResu
     current_liabilities = Decimal("0")
     non_current_assets = Decimal("0")
     non_current_liabilities = Decimal("0")
+    stated_current_assets = None
+    stated_current_liabilities = None
+    stated_total_assets = None
+    stated_total_liabilities = None
 
     for line in lines:
         if line.kind == "current_asset":
@@ -534,6 +552,25 @@ def compute_balance_sheet_analysis(lines: List[AccountLine]) -> BalanceSheetResu
             non_current_assets += line.amount
         elif line.kind == "non_current_liability":
             non_current_liabilities += line.amount
+        elif line.kind == "total_current_assets":
+            stated_current_assets = line.amount
+        elif line.kind == "total_current_liabilities":
+            stated_current_liabilities = line.amount
+        elif line.kind == "total_assets":
+            stated_total_assets = line.amount
+        elif line.kind == "total_liabilities":
+            stated_total_liabilities = line.amount
+
+    # A stated total is used only when its components are absent; when both are present the
+    # components are the detail and are kept, so nothing is counted twice.
+    if current_assets == 0 and stated_current_assets is not None:
+        current_assets = stated_current_assets
+    if current_liabilities == 0 and stated_current_liabilities is not None:
+        current_liabilities = stated_current_liabilities
+    if non_current_assets == 0 and stated_total_assets is not None:
+        non_current_assets = max(Decimal("0"), stated_total_assets - current_assets)
+    if non_current_liabilities == 0 and stated_total_liabilities is not None:
+        non_current_liabilities = max(Decimal("0"), stated_total_liabilities - current_liabilities)
 
     total_assets = current_assets + non_current_assets
     total_liabilities = current_liabilities + non_current_liabilities

@@ -618,6 +618,21 @@ def from_paper(sections, title):
         else:
             bullets = [_first_sentence(line) for line in lines[1:4]]
             slides.append(slide("claim", claim=claim, bullets=bullets, notes=notes))
+    # A figure the pitch roles did not claim still belongs in the deck, so it is not
+    # dropped for failing to match a heading.
+    used = {id(item) for item in found.values()}
+    for item in sections or []:
+        if not isinstance(item, dict) or id(item) in used:
+            continue
+        figure = item.get("figure")
+        if not figure or not figure.get("id"):
+            continue
+        lines = [str(line).strip() for line in item.get("lines") or [] if str(line).strip()]
+        claim = (_first_sentence(lines[0]) if lines
+                 else str(item.get("heading") or "Figure"))
+        layout = "table" if figure.get("kind") == "table" else "figure"
+        extra = {"table": figure["id"]} if layout == "table" else {"figure": figure["id"]}
+        slides.append(slide(layout, claim=claim, notes=" ".join(lines), **extra))
     return {"format": DECK_FORMAT, "title": title, "slides": slides}
 
 HTML_TEMPLATE = """<!doctype html><html lang="en"><head><meta charset="utf-8">

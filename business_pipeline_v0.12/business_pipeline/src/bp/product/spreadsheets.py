@@ -382,13 +382,33 @@ def _drawing_ext(png):
     return int(width * _EMU_PER_PIXEL * scale), int(height * _EMU_PER_PIXEL * scale)
 
 
-def _drawing_xml(items, media_ids):
-    """One `xdr:wsDr` part: each picture anchored to a cell, sized from its own pixels."""
+def _drawing_xml(items, rel_ids):
+    """One `xdr:wsDr` part: each picture or chart anchored to a cell."""
     anchors = []
-    for index, (item, media_id) in enumerate(zip(items, media_ids), start=1):
-        cx, cy = _drawing_ext(item["png"])
+    for index, (item, rel_id) in enumerate(zip(items, rel_ids), start=1):
         row = max(0, int(item.get("row") or 0))
         column = max(0, int(item.get("col") or 0))
+        if item.get("chart"):
+            # a native chart is a graphic frame; its data sits on the sheet above it
+            cx, cy = _CHART_EMU
+            anchors.append(
+                '<xdr:oneCellAnchor>'
+                '<xdr:from><xdr:col>%d</xdr:col><xdr:colOff>0</xdr:colOff>'
+                '<xdr:row>%d</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>'
+                '<xdr:ext cx="%d" cy="%d"/>'
+                '<xdr:graphicFrame macro=""><xdr:nvGraphicFramePr>'
+                '<xdr:cNvPr id="%d" name="Chart %d"/><xdr:cNvGraphicFramePr/>'
+                '</xdr:nvGraphicFramePr>'
+                '<xdr:xfrm><a:off x="0" y="0"/><a:ext cx="%d" cy="%d"/></xdr:xfrm>'
+                '<a:graphic><a:graphicData '
+                'uri="http://schemas.openxmlformats.org/drawingml/2006/chart">'
+                '<c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" '
+                'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+                'r:id="rId%d"/></a:graphicData></a:graphic></xdr:graphicFrame>'
+                '<xdr:clientData/></xdr:oneCellAnchor>'
+                % (column, row, cx, cy, index, index, cx, cy, rel_id))
+            continue
+        cx, cy = _drawing_ext(item["png"])
         anchors.append(
             '<xdr:oneCellAnchor>'
             '<xdr:from><xdr:col>%d</xdr:col><xdr:colOff>0</xdr:colOff>'
@@ -401,7 +421,7 @@ def _drawing_xml(items, media_ids):
             '<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="%d" cy="%d"/></a:xfrm>'
             '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr></xdr:pic>'
             '<xdr:clientData/></xdr:oneCellAnchor>'
-            % (column, row, cx, cy, index, index, index, cx, cy))
+            % (column, row, cx, cy, index, index, rel_id, cx, cy))
     return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" '
             'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
@@ -409,12 +429,20 @@ def _drawing_xml(items, media_ids):
             + "".join(anchors) + "</xdr:wsDr>")
 
 
-def _drawing_rels(media_ids):
-    """The drawing's relationships: one picture per anchor."""
-    parts = ['<Relationship Id="rId%d" '
-             'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" '
-             'Target="../media/image%d.png"/>' % (index, media_id)
-             for index, media_id in enumerate(media_ids, start=1)]
+#: The size a native chart is anchored at, in EMU: six inches by three.
+_CHART_EMU = (5486400, 2743200)
+
+#: The chart shapes the workbook can carry natively.  Everything else keeps its
+#: picture: a waterfall, a gantt and a table have no faithful native equivalent.
+NATIVE_CHARTS = ("bar", "line", "stacked_bar", "pie", "pareto")
+
+
+def _drawing_rels(relationships):
+    """The drawing's relationships: a picture or a chart part per anchor, in order."""
+    types = {"image": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image",
+             "chart": "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart"}
+    parts = ['<Relationship Id="rId%d" Type="%s" Target="%s"/>'
+             % (rel_id, types[kind], target) for rel_id, kind, target in relationships]
     return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
             '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
             + "".join(parts) + "</Relationships>")
@@ -503,7 +531,7 @@ def _xlsx_sheet(rows, options=None):
         footer = ('<headerFooter><oddFooter>&amp;L%s&amp;RPage &amp;P of &amp;N</oddFooter>'
                   '</headerFooter>' % _text(options["footer"]))
     drawing = ""
-    if any(item.get("png") for item in (options.get("figures") or [])):
+    if any(item.get("png") or item.get("chart") for item in (options.get("figures") or [])):
         # `drawing` is a child of CT_Worksheet and comes after headerFooter
         drawing = '<drawing r:id="rId1"/>'
     root = ('<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"'
@@ -1536,24 +1564,177 @@ def _statements_engagement(bundle):
     return accounts if accounts.get("statements") else None
 
 
+def _chart_values(figure):
+    """The values a figure can carry as a native chart, or None.
+
+    A native chart is drawn by Excel from cells on the sheet, so every value has
+    to be a number the record holds; a figure whose values are not all numbers
+    keeps its picture instead.
+    """
+    spec = figure.get("spec") or {}
+    kind = str(spec.get("kind") or "")
+    if kind not in NATIVE_CHARTS:
+        return None
+    series = figure.get("series") or []
+    if len(series) < 2:
+        return None
+    labels, values, running = [], [], []
+    for item in series:
+        number = _number(item.get("value"))
+        if number is None or item.get("label") is None:
+            return None
+        labels.append(str(item.get("label")))
+        values.append(number)
+    if kind == "pareto":
+        for item in series:
+            number = _number(item.get("cumulative"))
+            if number is None:
+                return None
+            running.append(number)
+    return {"kind": kind, "labels": labels, "values": values, "running": running}
+
+
+def _chart_ref(sheet, column, first, last):
+    """An absolute reference to a block of cells on a named sheet."""
+    name = "'" + str(sheet).replace("'", "''") + "'"
+    return "%s!$%s$%d:$%s$%d" % (name, column, first, column, last)
+
+
+def _chart_series(index, name, cat_ref, labels, val_ref, values):
+    """One `c:ser`, with both ranges and their cached values.
+
+    The cache is what a reader sees before Excel recalculates, so it carries the
+    record's own strings; the reference is what Excel redraws from, so the chart
+    and the cells cannot disagree.
+    """
+    points = "".join('<c:pt idx="%d"><c:v>%s</c:v></c:pt>' % (position, escape(str(value)))
+                     for position, value in enumerate(values))
+    categories = "".join('<c:pt idx="%d"><c:v>%s</c:v></c:pt>' % (position, escape(str(label)))
+                         for position, label in enumerate(labels))
+    return ('<c:ser><c:idx val="%d"/><c:order val="%d"/>'
+            '<c:tx><c:strRef><c:f>%s</c:f><c:strCache><c:ptCount val="1"/>'
+            '<c:pt idx="0"><c:v>%s</c:v></c:pt></c:strCache></c:strRef></c:tx>'
+            '<c:cat><c:strRef><c:f>%s</c:f><c:strCache><c:ptCount val="%d"/>%s</c:strCache>'
+            '</c:strRef></c:cat>'
+            '<c:val><c:numRef><c:f>%s</c:f><c:numCache><c:formatCode>General</c:formatCode>'
+            '<c:ptCount val="%d"/>%s</c:numCache></c:numRef></c:val></c:ser>'
+            % (index, index, escape(name), escape(name), escape(cat_ref), len(labels),
+               categories, escape(val_ref), len(values), points))
+
+
+def _chart_axes(kind):
+    """The axes a chart kind needs, with the secondary axis a pareto's line reads."""
+    category = ('<c:catAx><c:axId val="5001"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+                '<c:delete val="0"/><c:axPos val="b"/><c:crossAx val="5002"/></c:catAx>')
+    primary = ('<c:valAx><c:axId val="5002"/><c:scaling><c:orientation val="minMax"/></c:scaling>'
+               '<c:delete val="0"/><c:axPos val="l"/><c:crossAx val="5001"/>'
+               '<c:crosses val="autoZero"/></c:valAx>')
+    if kind == "pareto":
+        secondary = ('<c:valAx><c:axId val="5003"/>'
+                     '<c:scaling><c:orientation val="minMax"/></c:scaling>'
+                     '<c:delete val="0"/><c:axPos val="r"/><c:crossAx val="5002"/>'
+                     '<c:crosses val="max"/></c:valAx>')
+        return category + primary + secondary
+    return category + primary
+
+
+def _chart_xml(chart):
+    """A `c:chartSpace` part: the chart Excel draws from the cells beside it."""
+    kind = chart["kind"]
+    sheet = chart["sheet"]
+    first, last = chart["first"], chart["last"]
+    labels = chart["labels"]
+    values = chart["values"]
+    running = chart.get("running") or []
+    cat_ref = _chart_ref(sheet, "A", first, last)
+    val_ref = _chart_ref(sheet, "B", first, last)
+    bar = _chart_series(0, "Value", cat_ref, labels, val_ref, values)
+    if kind == "pie":
+        plot = ('<c:pieChart><c:varyColors val="1"/>' + bar
+                + '<c:firstSliceAng val="0"/></c:pieChart>')
+        axes = ""
+    elif kind == "line":
+        plot = ('<c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>' + bar
+                + '<c:marker val="1"/><c:axId val="5001"/><c:axId val="5002"/></c:lineChart>')
+        axes = _chart_axes(kind)
+    elif kind == "pareto":
+        line_ref = _chart_ref(sheet, "C", first, last)
+        line = _chart_series(1, "Running total", cat_ref, labels, line_ref, running)
+        plot = ('<c:barChart><c:barDir val="col"/><c:grouping val="clustered"/>'
+                '<c:varyColors val="0"/>' + bar + '<c:gapWidth val="60"/>'
+                '<c:axId val="5001"/><c:axId val="5002"/></c:barChart>'
+                '<c:lineChart><c:grouping val="standard"/><c:varyColors val="0"/>' + line
+                + '<c:marker val="1"/><c:axId val="5001"/><c:axId val="5003"/></c:lineChart>')
+        axes = _chart_axes(kind)
+    else:
+        grouping = "stacked" if kind == "stacked_bar" else "clustered"
+        overlap = '<c:overlap val="100"/>' if kind == "stacked_bar" else ""
+        plot = ('<c:barChart><c:barDir val="col"/><c:grouping val="%s"/>'
+                '<c:varyColors val="0"/>' % grouping + bar
+                + '<c:gapWidth val="60"/>' + overlap
+                + '<c:axId val="5001"/><c:axId val="5002"/></c:barChart>')
+        axes = _chart_axes(kind)
+    title = str(chart.get("title") or "").strip()
+    if title:
+        heading = ('<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/><a:p><a:r>'
+                   '<a:t>%s</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>'
+                   '<c:autoTitleDeleted val="0"/>' % escape(title))
+    else:
+        heading = '<c:autoTitleDeleted val="1"/>'
+    legend = ('<c:legend><c:legendPos val="t"/><c:overlay val="0"/></c:legend>'
+              if kind in ("pie", "pareto") else "")
+    return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" '
+            'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            '<c:chart>' + heading + '<c:plotArea><c:layout/>' + plot + axes + '</c:plotArea>'
+            + legend + '<c:plotVisOnly val="1"/><c:dispBlanksAs val="gap"/></c:chart>'
+            '</c:chartSpace>')
+
+
 def _with_figures(sheets, figures):
     """Attach each rendered figure to the sheet it names, below that sheet's data.
 
-    A figure with no PNG is skipped: the workbook never carries a picture it
-    cannot show.  A figure that names no sheet, or names one this workbook does
-    not carry, is placed on the last sheet rather than dropped.
+    A chart that can be drawn natively is written as **cells plus a chart part**,
+    so Excel redraws it and the reader can check every value in the cells above
+    it.  Any other figure is anchored as its picture, and a figure with neither
+    is skipped: the workbook never carries a picture it cannot show.  A figure
+    that names no sheet, or names one this workbook does not carry, is placed on
+    the last sheet rather than dropped.
     """
-    out = [(name, rows, dict(options or {})) for name, rows, options in sheets]
+    out = [(name, [list(row) for row in rows], dict(options or {}))
+           for name, rows, options in sheets]
     if not out:
         return out
     by_name = {str(entry[0]).strip().lower(): entry for entry in out}
     for figure in figures or []:
+        entry = by_name.get(str(figure.get("place") or "").strip().lower()) or out[-1]
+        rows = entry[1]
+        anchor = len(rows) + 2
+        native = _chart_values(figure)
+        if native:
+            title = str(figure.get("caption") or "")
+            header = ["Label", "Value"] + (["Running total"] if native["running"] else [])
+            rows.append([(title, ST_BOLD)])
+            rows.append([(cell, ST_HEADER) for cell in header])
+            first = len(rows) + 1
+            for index, label in enumerate(native["labels"]):
+                cells = [(label, ST_TEXT), (native["values"][index], ST_AMOUNT)]
+                if native["running"]:
+                    cells.append((native["running"][index], ST_AMOUNT))
+                rows.append(cells)
+            entry[2].setdefault("figures", []).append({
+                "chart": {"kind": native["kind"], "title": title, "sheet": entry[0],
+                          "first": first, "last": len(rows),
+                          "labels": native["labels"],
+                          "values": [str(value) for value in native["values"]],
+                          "running": [str(value) for value in native["running"]]},
+                "row": len(rows) + 2})
+            continue
         picture = (figure.get("asset") or {}).get("png")
         if not picture:
             continue
-        entry = by_name.get(str(figure.get("place") or "").strip().lower()) or out[-1]
-        entry[2].setdefault("figures", []).append(
-            {"png": picture, "row": len(entry[1]) + 2})
+        entry[2].setdefault("figures", []).append({"png": picture, "row": anchor})
     return out
 
 
@@ -1568,9 +1749,10 @@ def to_xlsx(bundle, figures=None):
     Every cell is copied from the stored bundle; nothing is recomputed.  A statement's amounts
     are written as numbers, in the record's decimal places.
 
-    `figures` is a list of rendered figure records; each one is anchored below the data of
-    the sheet it names.  A figure with no PNG is skipped, so a workbook never carries a
-    picture it cannot show.
+    `figures` is a list of rendered figure records.  A chart the workbook can draw itself is
+    written as cells plus a chart part on the sheet it names, so Excel redraws it from the
+    record's own numbers; any other figure is anchored as its picture below that sheet's data.
+    A figure with neither is skipped, so a workbook never carries a picture it cannot show.
     """
     accounts = _statements_engagement(bundle)
     if accounts is not None:
@@ -1607,18 +1789,27 @@ def write_xlsx(sheets, places=2, working_paper=False):
     """
     drawings = []
     for index, (_name, _rows, options) in enumerate(sheets, start=1):
-        items = [item for item in ((options or {}).get("figures") or []) if item.get("png")]
+        items = [item for item in ((options or {}).get("figures") or [])
+                 if item.get("png") or item.get("chart")]
         if items:
             drawings.append((index, items))
+    chart_parts = sum(1 for _index, items in drawings for item in items if item.get("chart"))
+    pictures = any(item.get("png") for _index, items in drawings for item in items)
     overrides = "".join(
         '<Override PartName="/xl/worksheets/sheet%d.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' % i
         for i in range(1, len(sheets) + 1))
     if drawings:
-        overrides = ('<Default Extension="png" ContentType="image/png"/>' + overrides
+        if pictures:
+            overrides = '<Default Extension="png" ContentType="image/png"/>' + overrides
+        overrides = (overrides
                      + "".join(
                          '<Override PartName="/xl/drawings/drawing%d.xml" '
                          'ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>' % order
-                         for order, _entry in enumerate(drawings, start=1)))
+                         for order, _entry in enumerate(drawings, start=1))
+                     + "".join(
+                         '<Override PartName="/xl/charts/chart%d.xml" '
+                         'ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>' % number
+                         for number in range(1, chart_parts + 1)))
     # the header band repeats on every printed page; the name is workbook-level, so it names the
     # sheet by its position.  A workbook that asks for no repeat carries no defined name.
     defined = "".join(
@@ -1651,19 +1842,25 @@ def write_xlsx(sheets, places=2, working_paper=False):
                       _xlsx_sheet(rows, options))
                      for i, (_name, rows, options) in enumerate(sheets, start=1))
         media = 0
+        charts = 0
         for order, (sheet_index, items) in enumerate(drawings, start=1):
-            media_ids = []
-            for item in items:
-                media += 1
-                media_ids.append(media)
+            relationships, pictures_out = [], []
+            for rel_id, item in enumerate(items, start=1):
+                if item.get("chart"):
+                    charts += 1
+                    parts.append(("xl/charts/chart%d.xml" % charts, _chart_xml(item["chart"])))
+                    relationships.append((rel_id, "chart", "../charts/chart%d.xml" % charts))
+                else:
+                    media += 1
+                    relationships.append((rel_id, "image", "../media/image%d.png" % media))
+                    pictures_out.append(("xl/media/image%d.png" % media, item["png"]))
             parts.append(("xl/drawings/drawing%d.xml" % order,
-                          _drawing_xml(items, media_ids)))
+                          _drawing_xml(items, [rel[0] for rel in relationships])))
             parts.append(("xl/drawings/_rels/drawing%d.xml.rels" % order,
-                          _drawing_rels(media_ids)))
+                          _drawing_rels(relationships)))
             parts.append(("xl/worksheets/_rels/sheet%d.xml.rels" % sheet_index,
                           _sheet_drawing_rels(order)))
-            for item, media_id in zip(items, media_ids):
-                parts.append(("xl/media/image%d.png" % media_id, item["png"]))
+            parts.extend(pictures_out)
         for name, text in parts:
             # a fixed timestamp keeps two exports of the same content byte-identical
             archive.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), text)
