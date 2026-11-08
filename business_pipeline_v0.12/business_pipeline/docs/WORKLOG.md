@@ -1,3 +1,29 @@
+## 2026-11-08 - [product] Drag-and-drop uploads, explainers, and the growth-loop decision
+
+**Ask.** One upload facility for both testers, with drag-and-drop; Excel and explainer
+downloads; and a manual note on whether a growth loop complements the repair loop.
+
+**Did.**
+
+- **web/admin-sbw.html**: the Uploads tab gains a dropzone (`#uploadDrop`) and one handler
+  `uploadTestFiles(subject, tile, files)` that both the picker and a drop use.  A drop
+  outside the zone is cancelled so the browser cannot navigate away from the console.
+  Multiple files are gated one by one, so a bad file does not discard the good ones.  The
+  accepted list shows file, case id and date; the paper-preview result table links
+  **paper**, **xlsx** and **explainer**, while the Cases result table shows pass/fail only.
+- **src/bp/product/case_runner.py**: every case run writes `<case>_explainer.md` per
+  result and a run-level `explainer.md`; the result carries `explainer_file`.
+- **src/bp/product/paper_batch.py** and **src/bp/server.py**: `?format=explainer`
+  returns the Markdown explainer, and the ZIP carries `explainer.md`.
+- **docs/HANDOFF.md**: section 8.7 (the unified upload store), 8.8 (the explainer), a
+  refreshed section 9, and a new section 10 recording the growth-loop decision: a
+  human-gated growth loop is sound because the human supplies the reference
+  implementation; the autonomous version and the agent factory are not to be built.
+
+**Why it matters.** The two testers now read one store, so an uploaded file is tested once
+and used twice.  Section 10 pins the trust boundary: gap logging plus a scaffold generator
+is design lane, and the method logic stays with the computation owner.
+
 ## 2026-11-08 - [product] Cases replay on every tile; the authoring brief
 
 **Ask.** An instruction block for another model to write ten cases per accounting tile.
@@ -5635,30 +5661,3 @@ can reference it.  Separately record the intended future work.
   versioning as not-yet-built.
 - Sections 8.3 and 8.4 are written so a debugger can follow them without reading the
   code first.
-
-
-## 2026-11-08 - [product] Drag-and-drop uploads, explainers, and the growth-loop decision
-
-**Ask.** One upload facility for both testers, with drag-and-drop; Excel and explainer
-downloads; and a manual note on whether a growth loop complements the repair loop.
-
-**Did.**
-
-- **web/admin-sbw.html**: the Uploads tab gains a dropzone (`#uploadDrop`) and one handler
-  `uploadTestFiles(subject, tile, files)` that both the picker and a drop use.  A drop
-  outside the zone is cancelled so the browser cannot navigate away from the console.
-  Multiple files are gated one by one, so a bad file does not discard the good ones.  The
-  accepted list shows file, case id and date; the paper-preview result table links
-  **paper**, **xlsx** and **explainer**, while the Cases result table shows pass/fail only.
-- **src/bp/product/case_runner.py**: every case run writes `<case>_explainer.md` per
-  result and a run-level `explainer.md`; the result carries `explainer_file`.
-- **src/bp/product/paper_batch.py** and **src/bp/server.py**: `?format=explainer`
-  returns the Markdown explainer, and the ZIP carries `explainer.md`.
-- **docs/HANDOFF.md**: section 8.7 (the unified upload store), 8.8 (the explainer), a
-  refreshed section 9, and a new section 10 recording the growth-loop decision: a
-  human-gated growth loop is sound because the human supplies the reference
-  implementation; the autonomous version and the agent factory are not to be built.
-
-**Why it matters.** The two testers now read one store, so an uploaded file is tested once
-and used twice.  Section 10 pins the trust boundary: gap logging plus a scaffold generator
-is design lane, and the method logic stays with the computation owner.
