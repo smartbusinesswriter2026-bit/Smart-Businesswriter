@@ -1181,12 +1181,12 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
             <span class="homectl-cap" id="homemode-cap">Mode</span>
             <div class="segmented" role="group" aria-labelledby="homemode-cap">
               <button type="button" class="segbtn" data-homemode="chat" aria-pressed="true">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l6-4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>Chat</button>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l6-4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>Reports</button>
               <button type="button" class="segbtn" data-homemode="chart" aria-pressed="false">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h4v7H4zM10 4h4v16h-4zM16 9h4v11h-4z"/></svg>Chart chat</button>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h4v7H4zM10 4h4v16h-4zM16 9h4v11h-4z"/></svg>Chart</button>
             </div>
             <select id="homemode" class="visually-hidden" tabindex="-1" aria-hidden="true">
-              <option value="chat">Chat</option><option value="chart">Chart chat</option></select>
+              <option value="chat">Reports</option><option value="chart">Chart</option></select>
           </div>
         </div>
         <label class="visually-hidden" for="objective">What would you like to work on?</label>
@@ -2882,12 +2882,12 @@ RENDERERS.home = function () {
           '<span class="homectl-cap" id="homemode-cap">Mode</span>' +
           '<div class="segmented" role="group" aria-labelledby="homemode-cap">' +
             '<button type="button" class="segbtn" data-homemode="chat" aria-pressed="true">' +
-              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l6-4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>Chat</button>' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4v4l6-4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"/></svg>Reports</button>' +
             '<button type="button" class="segbtn" data-homemode="chart" aria-pressed="false">' +
-              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h4v7H4zM10 4h4v16h-4zM16 9h4v11h-4z"/></svg>Chart chat</button>' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h4v7H4zM10 4h4v16h-4zM16 9h4v11h-4z"/></svg>Chart</button>' +
           "</div>" +
           '<select id="homemode" class="visually-hidden" tabindex="-1" aria-hidden="true">' +
-            '<option value="chat">Chat</option><option value="chart">Chart chat</option></select>' +
+            '<option value="chat">Reports</option><option value="chart">Chart</option></select>' +
         "</div>" +
       "</div>" +
       '<div id="chatmode">' +
