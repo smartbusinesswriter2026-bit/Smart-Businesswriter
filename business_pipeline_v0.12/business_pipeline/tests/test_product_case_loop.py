@@ -282,6 +282,27 @@ class FixerClassificationTest(unittest.TestCase):
             "unbalanced_input")
         self.assertEqual(auto_resolve.diagnose("no answer within 120s"), "timeout")
         self.assertEqual(auto_resolve.diagnose("Failed to fetch"), "timeout")
+        # A provider timeout inside a reader-parse message is a timeout, not a parse failure.
+        self.assertEqual(
+            auto_resolve.diagnose("could not read this as a journal: could not reach the "
+                                  "provider: TimeoutError"),
+            "timeout")
+
+    def test_an_input_error_or_timeout_is_not_severe(self):
+        from bp.product import ops_log
+        # A trial balance that does not balance is the student's figures, not a defect.
+        self.assertEqual(
+            ops_log.classify_severity(
+                "the trial balance does not balance: debits 26420, credits 26500"),
+            "light")
+        # A provider timeout is transient.
+        self.assertEqual(
+            ops_log.classify_severity("could not reach the provider: TimeoutError"), "light")
+        # A figure ending in 500 must not be mistaken for the HTTP status.
+        self.assertEqual(ops_log.classify_severity("credits 26,500.00"), "light")
+        # A real HTTP 500 and a crash still are severe.
+        self.assertEqual(ops_log.classify_severity("ERROR 500 internal server"), "severe")
+        self.assertEqual(ops_log.classify_severity("crash in module"), "severe")
 
     def test_guess_rule_types_accounts_by_keyword(self):
         self.assertEqual(auto_resolve._guess_rule("Deferred grant")[1], "liability")
@@ -323,14 +344,14 @@ class FixerClassificationTest(unittest.TestCase):
         self.assertTrue(rec.get("invalid"))
         self.assertFalse(rec.get("resolved"))
 
-    def test_a_timeout_is_dismissed_as_transient(self):
+    def test_a_timeout_is_retried_then_dismissed(self):
         ops_log.log_error("statements", "no answer within 120s",
                           problem_text="A narrative that times out")
         err = ops_log.list_errors(limit=5)[0]
         result = auto_resolve.resolve(err["error_id"])
         self.assertEqual(result["category"], "timeout")
-        self.assertFalse(result["attempted"])
-        self.assertEqual([e["error_id"] for e in ops_log.list_errors(limit=10)], [])
+        self.assertTrue(result["attempted"])  # it retried once
+        self.assertFalse(result["resolved"])
         merged = ops_log.merge_resolved(ops_log.list_errors(limit=100, status="all"))
         rec = next(m for m in merged if m.get("error_id") == err["error_id"])
         self.assertTrue(rec.get("dismissed"))

@@ -44,6 +44,13 @@ def diagnose(error_text):
     low = str(error_text or "").lower()
     if "429" in low or "rate limit" in low or "too many requests" in low or "provider returned http" in low:
         return "rate_limit"
+    # A provider timeout is transient and must be checked BEFORE the reader-parse cue:
+    # "could not read this as a journal: could not reach the provider: TimeoutError" is
+    # a timeout, not a parse failure.
+    if ("timeout" in low or "timed out" in low or "could not reach" in low
+            or "failed to fetch" in low or "no answer within" in low
+            or "connection" in low):
+        return "timeout"
     if "exceeds" in low and "character" in low:
         return "input_too_large"
     if "appears twice" in low or "appears more than once" in low:
@@ -54,9 +61,6 @@ def diagnose(error_text):
         return "reader_parse"
     if "does not balance" in low or "do not balance" in low:
         return "unbalanced_input"
-    if ("no answer within" in low or "failed to fetch" in low or "timed out" in low
-            or "timeout" in low):
-        return "timeout"
     if "names no transaction" in low or "does not read as an accounting problem" in low:
         return "unsupported_instruction"
     return "unknown"
@@ -75,6 +79,39 @@ def _replay_on(problem, model):
         os.environ["BP_LLM_MODEL_TIER3"] = model
         results, _err = chat_heal.solve_problems([problem])
         return results[0] if results else {}
+    finally:
+        for name, value in zip(("BP_LLM_MODEL", "BP_LLM_MODEL_TIER2", "BP_LLM_MODEL_TIER3"), saved):
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
+
+
+def _silent_solve(problem, model):
+    """Solve one problem on `model` without logging a new error.
+
+    The timeout retry uses this: a second timeout must not add a second error to the
+    queue, and a pass proves the fix without touching the log.
+    """
+    import os
+    try:
+        from . import statements as stmt_mod
+    except Exception:
+        return {"status": "error", "error": "statements module unavailable"}
+    saved = (os.environ.get("BP_LLM_MODEL"),
+             os.environ.get("BP_LLM_MODEL_TIER2"),
+             os.environ.get("BP_LLM_MODEL_TIER3"))
+    try:
+        os.environ["BP_LLM_MODEL"] = model
+        os.environ["BP_LLM_MODEL_TIER2"] = model
+        os.environ["BP_LLM_MODEL_TIER3"] = model
+        record = stmt_mod.solve(str(problem))
+        if isinstance(record, dict) and record.get("solved"):
+            return {"status": "ok", "error": ""}
+        error = (record.get("refusal") if isinstance(record, dict) else "") or "not solved"
+        return {"status": "error", "error": str(error)[:200]}
+    except Exception as exc:
+        return {"status": "error", "error": str(exc)[:200]}
     finally:
         for name, value in zip(("BP_LLM_MODEL", "BP_LLM_MODEL_TIER2", "BP_LLM_MODEL_TIER3"), saved):
             if value is None:
@@ -304,12 +341,35 @@ def resolve(error_id):
                 "reason": "the trial balance does not balance — the input is wrong, not the pipeline"}
 
     if category == "timeout":
-        # A model timeout is transient, not a defect in the problem.  Dismiss it with the
-        # reason so it stops blocking the queue; a re-run reopens it if it happens again.
+        # A provider timeout is transient: retry the stored problem once on the fix model
+        # before giving up.  If the provider is back, the retry proves the fix; if it times
+        # out again, dismiss it so it stops blocking the queue (a re-run reopens it).
+        problem = record.get("problem") or ""
+        if problem:
+            fix_model, _escalation = _fix_models()
+            retry = _silent_solve(problem, fix_model)
+            if retry.get("status") == "ok":
+                try:
+                    from . import regression_cases
+                    normalized, notes = normalize_problem(problem)
+                    regression_cases.record_case(
+                        error_id, category, problem, normalized, notes, fix_model,
+                        deterministic_ok=_deterministic_ok(normalized))
+                except Exception:
+                    pass
+                _ops_log.mark_error_verified(
+                    error_id, "retried after a provider timeout and passed on %s" % fix_model)
+                steps = [{"strategy": "retry after timeout", "model": fix_model,
+                          "outcome": "solved"}]
+                _ops_log.log_resolution_attempt(error_id, category, steps, "solved")
+                return {"resolved": True, "verified": True, "attempted": True,
+                        "invalid": False, "category": category, "steps": steps,
+                        "model": fix_model, "siblings_resolved": 0,
+                        "reason": "retried after a provider timeout and passed on %s" % fix_model}
         _ops_log.mark_error_dismissed(
-            error_id, "the model reader timed out; re-run the problem to retry")
-        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
-                "category": category, "steps": [], "siblings_resolved": 0,
+            error_id, "the model reader timed out twice; re-run the problem to retry")
+        return {"resolved": False, "verified": False, "attempted": bool(problem),
+                "invalid": False, "category": category, "steps": [], "siblings_resolved": 0,
                 "reason": "the model reader timed out — transient, retry by re-running"}
 
     problem = record.get("problem") or ""

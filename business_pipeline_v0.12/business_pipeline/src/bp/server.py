@@ -1820,6 +1820,20 @@ def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     SANDBOX_ENABLED = bool(sandbox)
     print(f"Workbench on http://{host}:{port} (sandbox {'ON' if sandbox else 'OFF: development only'}; model assistance {'ON: ' + MODELS.builder.name + ' ' + MODELS.builder.model if MODELS else 'OFF'}; literature ON: {', '.join(LITERATURE_SOURCES)})")
     print("Health: /api/health | cases: /api/cases | request log: " + (str(product_ops.request_log_path()) if product_ops.request_log_path() else "disabled"))
+    # Start the repair loop when there is something to repair.  A queue of open errors
+    # beside an "idle" loop is the defect the owner reported: the loop only ran when
+    # someone pressed Start.  Auto-start is opt-out with BP_AUTORESEARCH_AUTOSTART=0.
+    try:
+        import os as _os
+        if _os.environ.get("BP_AUTORESEARCH_AUTOSTART", "1") != "0":
+            from .product import ops_log as _ol
+            waiting = [e for e in _ol.list_errors(limit=200)
+                       if e.get("problem") or e.get("case_id")]
+            if waiting:
+                product_autoresearch.start()
+                print("Repair loop: started (%d replayable error(s) waiting)" % len(waiting))
+    except Exception as _exc:
+        print("Repair loop: auto-start skipped (%s)" % _exc)
     class _Reusable(ThreadingHTTPServer):
         allow_reuse_address = True
     try:

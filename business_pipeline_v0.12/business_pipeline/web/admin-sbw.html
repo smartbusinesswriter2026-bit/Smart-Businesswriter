@@ -715,7 +715,22 @@ async function refreshOverview() {
       document.getElementById('overviewCases').textContent = cases.data.summary.total || 0;
     }
     if (loop.status === 200 && loop.data) {
-      document.getElementById('overviewLoop').textContent = loop.data.status_message || 'idle';
+      const openCount = (errors.status === 200 && errors.data)
+        ? (errors.data.errors || []).length : 0;
+      if (!loop.data.running && openCount > 0) {
+        document.getElementById('overviewLoop').textContent =
+          'idle - ' + openCount + ' open error(s), not running';
+        // The owner's report: a queue of open errors beside an idle loop.  Start it
+        // once per page load so the repair work actually happens.
+        if (!window.__autoStartedLoop) {
+          window.__autoStartedLoop = true;
+          apiFetch('/api/ops/autoresearch/start', { method: 'POST' })
+            .then(() => setTimeout(refreshOverview, 800))
+            .catch(() => {});
+        }
+      } else {
+        document.getElementById('overviewLoop').textContent = loop.data.status_message || 'idle';
+      }
     }
   } catch (e) { /* the dashboard must never break the page */ }
 }

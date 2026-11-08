@@ -111,13 +111,31 @@ def log_error(lane, error, problem_text=None, gap_label=None, count=1, case_id=N
 def classify_severity(error_text):
     """Classify an error as light/moderate/severe based on keywords.
 
-    Returns 'light', 'moderate', or 'severe'.
+    An **input error** (a trial balance that does not balance, a problem that is not an
+    accounting problem) is not a pipeline defect, so it is light: it must not drive a
+    ten-problem generation run.  A **transient provider failure** (timeout, rate limit,
+    unreachable) is light too.  A real crash or a hallucination is severe.  "500" is the
+    HTTP status only: a figure like 26,500 must not trip it.
     """
     text = str(error_text or "").lower()
-    severe_keywords = ["crash", "exception", "traceback", "500", "fatal", "refused", "cannot", "unable", "hallucination", "invented"]
-    moderate_keywords = ["fail", "missing", "invalid", "wrong", "incorrect", "mismatch", "refusal", "untraceable", "irrelevant"]
-    if any(kw in text for kw in severe_keywords):
+    # Input errors — the figures are the student's, not a pipeline defect.
+    if ("does not balance" in text or "do not balance" in text
+            or "not an accounting problem" in text
+            or "names no transaction" in text
+            or "declares no figure" in text):
+        return "light"
+    # Transient provider failures — retry, not a defect.
+    if any(kw in text for kw in ("timeout", "timed out", "could not reach", "failed to fetch",
+                                 "rate limit", "429", "could not read this as a journal",
+                                 "connection", "provider returned http")):
+        return "light"
+    # Severe: a real crash, a traceback, or a hallucination.  "500" is the HTTP status only.
+    if (re.search(r"\b(?:http|status|error|code)\s*500\b", text)
+            or any(kw in text for kw in ("crash", "exception", "traceback", "fatal",
+                                          "hallucination", "invented"))):
         return "severe"
+    moderate_keywords = ["fail", "missing", "invalid", "wrong", "incorrect", "mismatch",
+                         "refusal", "untraceable", "irrelevant"]
     if any(kw in text for kw in moderate_keywords):
         return "moderate"
     return "light"
