@@ -43,7 +43,8 @@ class AccountingTileTest(unittest.TestCase):
 
     def test_the_shelf_still_offers_its_calculators(self):
         self.assertEqual(len(self.detail["tools"]), 18)
-        self.assertEqual(len(self.tiles), 8)
+        # Two service tiles (statements, business plan) and seven calculator groups.
+        self.assertEqual(len(self.tiles), 9)
 
     def test_the_served_ui_carries_the_tile_and_its_hook(self):
         with open(os.path.join(ROOT, "web", "index.html"), encoding="utf-8") as stream:

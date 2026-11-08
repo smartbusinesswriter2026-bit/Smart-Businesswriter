@@ -396,5 +396,42 @@ class ScopeTest(unittest.TestCase):
         self.assertEqual(record["core"]["scalars"]["total_assets"], "5000")
 
 
+class ParserCauseTest(unittest.TestCase):
+    """A journal-entry list and a narrative clause are not a comparative trial balance."""
+
+    JOURNAL = ("Journal-entry format: Urban Threads Ltd recorded the following journal "
+               "entries for April: Dr Equipment 3,000 Cr Capital 3,000; "
+               "Dr Cash 18,000 Cr Capital 18,000; Dr Inventory 7,500 Cr Accounts Payable "
+               "7,500. Prepare the management accounts.")
+
+    def test_a_journal_entry_list_is_a_transactions_problem(self):
+        kind, _cue, _sentence = statements.classify(self.JOURNAL)
+        self.assertEqual(kind, "transactions")
+
+    def test_a_trial_balance_with_one_side_per_account_stays_a_trial_balance(self):
+        text = ("Trial balance as at 31 December: Dr Cash 12,500; "
+                "Dr Accounts Receivable 8,300; Cr Accounts Payable 5,200; "
+                "Cr Capital 15,600.")
+        self.assertEqual(statements.classify(text)[0], "trial_balance")
+
+    def test_a_narrative_clause_with_a_verb_is_not_a_comparative(self):
+        self.assertEqual(statements.column_lines(
+            "During the year it earned $42,000 service revenue, incurred $28,000 expenses, "
+            "and collected $39,000 cash."), [])
+        self.assertEqual(statements.column_lines(
+            "The owner invested cash of $25,000 and equipment valued at $8,000."), [])
+
+    def test_a_comparative_column_is_still_refused(self):
+        self.assertTrue(statements.column_lines("Cash 2025 10,000 2024 8,000"))
+
+    def test_a_transactions_reading_is_not_diagnosed_as_a_trial_balance(self):
+        from unittest import mock
+        reading = {"problem_type": "transactions", "places": 2, "journal": [{"lines": []}]}
+        with mock.patch.object(statements, "_diagnose") as diagnose:
+            returned = statements.derive_balancing_figure(reading, [{"label": "Capital"}])
+        diagnose.assert_not_called()
+        self.assertIs(returned, reading)
+
+
 if __name__ == "__main__":
     unittest.main()
