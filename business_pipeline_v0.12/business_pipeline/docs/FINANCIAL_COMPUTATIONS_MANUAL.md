@@ -535,6 +535,7 @@ correction and case-solver contracts (27 tests).
 - **Guards runner:** `src/bp/guards.py` (Tip 7, G1–G22)
 - **Live credentials loader:** `src/bp/server.py` (`_load_opencode_env`, maps `Backend/.env` names to `BP_*`)
 - **Self-healing fixer:** `src/bp/product/auto_resolve.py` (`diagnose` classifies a failure; `resolve` replays, or for an unbalanced trial balance recognises a skipped account whose amount equals the imbalance and adds it to the vocabulary — `_try_fix_unbalanced` + `_guess_rule` + `tier1_tables.append_rule` — and for a timeout dismisses it as transient)
+- **Invalid-fixture guard:** `src/bp/product/problem_norm.py` (`trial_balance_imbalance` detects a generated TB whose sides disagree) and `src/bp/product/chat_heal.py` (`_valid_problems` drops one; `solve_problems` classifies a "does not balance" refusal as `invalid`, not a pipeline error)
 - **Reader layer:** `src/bp/statement_period.py` (one period model), `src/bp/statement_chart.py` (one chart), `src/bp/statement_detect.py` (deterministic transactions), `src/bp/statement_extract.py` (the model boundary and the grounding rule), `src/bp/statement_plan.py` (the plan layer)
 - **Tile wiring:** `src/bp/product/statements.py` (`_solve_financial_computations`, `_solve_eps`, `_solve_income_statement`, `_solve_balance_sheet_analysis`, `_solve_given_balances`)
 - **Measurements:** `qa/manual/reader-seams-probe.py`, `qa/manual/ashgrove-remeasure.py`, `qa/manual/statements-case-study.md`

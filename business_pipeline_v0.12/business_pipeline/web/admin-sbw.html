@@ -1108,12 +1108,15 @@ async function solveOneByOne(problems, logEl) {
     logEl.scrollTop = logEl.scrollHeight;
     if (typeof loadErrors === 'function') loadErrors();
   }
-  const passed = results.filter(r => r.status === 'ok' || r.status === 'solved').length;
-  logEl.textContent += '\n[Result: ' + passed + '/' + results.length + ' passed]\n';
-  if (passed === results.length && results.length) {
+  const valid = results.filter(r => r.status !== 'invalid');
+  const invalid = results.length - valid.length;
+  const passed = valid.filter(r => r.status === 'ok' || r.status === 'solved').length;
+  logEl.textContent += '\n[Result: ' + passed + '/' + valid.length + ' passed' +
+    (invalid ? ' (' + invalid + ' invalid fixture' + (invalid === 1 ? '' : 's') + ' excluded)' : '') + ']\n';
+  if (passed === valid.length && valid.length) {
     logEl.textContent += '[All passed]\n';
   } else {
-    logEl.textContent += '[' + (results.length - passed) + ' failed - click "Propose fix" to improve]\n';
+    logEl.textContent += '[' + (valid.length - passed) + ' failed - click "Propose fix" to improve]\n';
   }
   logEl.scrollTop = logEl.scrollHeight;
   return results;

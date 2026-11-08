@@ -206,6 +206,23 @@ def generate_problems_from_error(error_text, count=5, difficulty="medium"):
     return problems, instruction, err
 
 
+def _valid_problems(problems):
+    """Drop a generated trial balance that does not balance.
+
+    A generator that writes "Cash 7,600; Capital 10,000; ..." can easily leave the two
+    sides unequal.  Such a problem is an invalid fixture, not a pipeline failure, so it
+    is dropped before it reaches the solver and the pass rate.
+    """
+    from .problem_norm import trial_balance_imbalance
+    kept = []
+    for problem in problems or []:
+        imbalance = trial_balance_imbalance(problem)
+        if imbalance is not None and imbalance != 0:
+            continue
+        kept.append(problem)
+    return kept
+
+
 def generate_problems(instruction, count=5, difficulty="medium"):
     """Generate N test problems from an instruction.
 
@@ -232,26 +249,29 @@ def generate_problems(instruction, count=5, difficulty="medium"):
         "analysis question or scenario. " + diff_note + " "
         "Vary the format: some as word problems, some as trial balances, some as journal entries, "
         "some as narrative instructions. "
+        "A trial balance you write MUST balance: the total debits must equal the total credits. "
+        "Check that before you return it. "
         "Return ONLY a JSON object: {\"problems\": [\"problem 1\", \"problem 2\", ...]}. "
         "No markdown, no extra text. Do not include reasoning or thinking. Output only the JSON."
     )
     user = json.dumps({"instruction": instruction, "count": count, "difficulty": difficulty}, ensure_ascii=False)
     raw = _call_model(models, system, user)
-    problems = _parse_problems(raw, count) if raw else []
+    problems = _valid_problems(_parse_problems(raw, count)) if raw else []
     if problems:
         return problems[:count], None
     # One strict retry: reasoning leaked out and no usable problems came back
     raw2 = _call_model(
         models,
         "You generate test problems. Output ONLY compact JSON like "
-        '{"problems": ["...", "..."]}. No reasoning, no markdown, no commentary.',
+        '{"problems": ["...", "..."]}. No reasoning, no markdown, no commentary. '
+        "Every trial balance must balance: total debits must equal total credits.",
         user)
     if raw2 is None:
         return [], "model call failed"
-    problems = _parse_problems(raw2, count)
+    problems = _valid_problems(_parse_problems(raw2, count))
     if problems:
         return problems[:count], None
-    return [], "could not parse model response"
+    return [], "could not parse model response (or every generated trial balance was out of balance)"
 
 
 # ── Solver ──────────────────────────────────────────────────────────────────
@@ -302,13 +322,25 @@ def solve_problems(problems):
     Returns (results: list[dict], error: str or None).
     Each result: {problem, status, answer, error, gaps, normalization}.
     """
-    from .problem_norm import normalize_problem
+    from .problem_norm import normalize_problem, trial_balance_imbalance
     results = []
     for problem in problems:
         result = {"problem": problem, "status": "unknown", "answer": None, "error": None, "gaps": []}
         normalized, norm_notes = normalize_problem(problem)
         if norm_notes:
             result["normalization"] = norm_notes
+        # A generated trial balance that does not balance is an invalid test fixture,
+        # not a pipeline failure: no pipeline change can make two figures the generator
+        # wrote agree.  Mark it invalid before solving, so it is not counted against
+        # the pipeline and does not reach the fixer as a defect.
+        imbalance = trial_balance_imbalance(normalized)
+        if imbalance is not None and imbalance != 0:
+            result["status"] = "invalid"
+            result["invalid"] = True
+            result["error"] = ("the generated trial balance does not balance (out by %s); "
+                               "it is an invalid test fixture, not a pipeline defect" % imbalance)
+            results.append(result)
+            continue
         try:
             from . import statements as stmt_mod
             try:
@@ -327,18 +359,29 @@ def solve_problems(problems):
                     result["answer"] = "Solved"
                     result["gaps"] = record.get("working", {}).get("missing", []) or []
                 else:
-                    result["status"] = "error"
-                    result["error"] = str(record.get("refusal") or record.get("error") or "not solved")[:200]
-                    if _looks_rate_limited(rl_error := (record.get("error") or result["error"])):
-                        retry = _solve_with_fallback(problem)
-                        if isinstance(retry, dict) and retry.get("solved"):
-                            result["status"] = "ok"
-                            result["answer"] = "Solved"
-                            result["gaps"] = retry.get("working", {}).get("missing", []) or []
-                    result["gaps"] = result["gaps"] or record.get("working", {}).get("missing", []) or []
-                    # Log to error log so it appears in Self-Healing panel
-                    _ops_log.log_error("statements", result["error"], problem_text=problem,
-                                       gap_label=result["error"][:80])
+                    refusal = str(record.get("refusal") or record.get("error") or "not solved")
+                    result["error"] = refusal[:200]
+                    if "does not balance" in refusal.lower():
+                        # The figures the problem declared do not balance.  That is an
+                        # invalid test fixture (the generator wrote them), not a pipeline
+                        # defect: no pipeline change can make two figures agree.  Mark it
+                        # invalid instead of logging it as a pipeline error.
+                        result["status"] = "invalid"
+                        result["invalid"] = True
+                        result["error"] = ("the trial balance in the problem does not balance; "
+                                           "it is an invalid test fixture, not a pipeline defect")
+                    else:
+                        result["status"] = "error"
+                        if _looks_rate_limited(rl_error := (record.get("error") or result["error"])):
+                            retry = _solve_with_fallback(problem)
+                            if isinstance(retry, dict) and retry.get("solved"):
+                                result["status"] = "ok"
+                                result["answer"] = "Solved"
+                                result["gaps"] = retry.get("working", {}).get("missing", []) or []
+                        result["gaps"] = result["gaps"] or record.get("working", {}).get("missing", []) or []
+                        # Log to error log so it appears in Self-Healing panel
+                        _ops_log.log_error("statements", result["error"], problem_text=problem,
+                                           gap_label=result["error"][:80])
             else:
                 result["status"] = "error"
                 result["error"] = "unexpected result type"

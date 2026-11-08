@@ -84,3 +84,49 @@ def normalize_problem(text):
         notes.append("shortened oversized input")
         out = shortened
     return out, notes
+
+
+def trial_balance_imbalance(problem):
+    """Debits minus credits of a problem read as a trial balance, or None if it is not one.
+
+    A *generated* trial balance that does not balance is an invalid test fixture, not a
+    pipeline failure: no pipeline change can make two figures the generator wrote agree.
+    The heal loop uses this to tell the two apart before it counts a result against the
+    pipeline.  A narrative problem, or one the reader cannot read as a trial balance,
+    returns None (it is not classified here).
+    """
+    from decimal import Decimal, InvalidOperation
+    try:
+        from . import statements
+    except Exception:
+        return None
+    # A problem that carries adjustments is not a pure trial balance: the adjusted route
+    # reads it, and the *post-solve* refusal check catches an imbalance there.  Only a
+    # pure trial balance is checked here.
+    try:
+        if statements._needs_adjustments(problem):
+            return None
+    except Exception:
+        pass
+    try:
+        reading = statements.read_deterministic(problem)
+    except Exception:
+        return None
+    if not isinstance(reading, dict):
+        return None
+    debits = credits = Decimal("0")
+    for entry in reading.get("journal") or []:
+        for line in entry.get("lines") or []:
+            for side in ("debit", "credit"):
+                raw = line.get(side)
+                if not raw:
+                    continue
+                try:
+                    value = Decimal(str(raw).replace(",", ""))
+                except (InvalidOperation, ValueError):
+                    return None
+                if side == "debit":
+                    debits += value
+                else:
+                    credits += value
+    return debits - credits

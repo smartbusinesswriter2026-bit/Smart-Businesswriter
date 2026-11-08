@@ -336,5 +336,55 @@ class FixerClassificationTest(unittest.TestCase):
         self.assertTrue(rec.get("dismissed"))
 
 
+class InvalidFixtureTest(unittest.TestCase):
+    """A generated trial balance that does not balance is an invalid fixture, not a defect."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp(prefix="bp-invalid-")
+        self.previous_ops_log = os.environ.get("BP_OPS_LOG")
+        os.environ["BP_OPS_LOG"] = os.path.join(self.root, "ops_log")
+        from bp.product import tier1_tables
+        self._previous_store = tier1_tables._STORE_DIR
+        self._previous_path = tier1_tables._TABLES_PATH
+        tier1_tables._STORE_DIR = os.path.join(self.root, "library")
+        tier1_tables._TABLES_PATH = os.path.join(tier1_tables._STORE_DIR, "tier1_tables.json")
+        tier1_tables.reload()
+
+    def tearDown(self):
+        from bp.product import tier1_tables
+        if self.previous_ops_log is None:
+            os.environ.pop("BP_OPS_LOG", None)
+        else:
+            os.environ["BP_OPS_LOG"] = self.previous_ops_log
+        tier1_tables._STORE_DIR = self._previous_store
+        tier1_tables._TABLES_PATH = self._previous_path
+        tier1_tables.reload()
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_a_balanced_trial_balance_reads_zero(self):
+        from bp.product.problem_norm import trial_balance_imbalance
+        self.assertEqual(
+            trial_balance_imbalance("Cash 10,000\nCapital 10,000 Cr"), 0)
+
+    def test_an_unbalanced_trial_balance_reads_nonzero(self):
+        from bp.product.problem_norm import trial_balance_imbalance
+        self.assertNotEqual(
+            trial_balance_imbalance("Cash 10,000\nCapital 8,000 Cr"), 0)
+
+    def test_a_narrative_problem_is_not_classified(self):
+        from bp.product.problem_norm import trial_balance_imbalance
+        self.assertIsNone(
+            trial_balance_imbalance("The owner started the business with 20,000 cash."))
+
+    def test_solve_problems_marks_an_unbalanced_tb_invalid_without_a_pipeline_error(self):
+        from bp.product import chat_heal
+        problems = ["The following trial balance was extracted.\nCash 10,000\nCapital 8,000 Cr"]
+        results, _ = chat_heal.solve_problems(problems)
+        self.assertEqual(results[0]["status"], "invalid")
+        self.assertTrue(results[0]["invalid"])
+        # It must not be logged as a pipeline error.
+        self.assertEqual([e["error_id"] for e in ops_log.list_errors(limit=10)], [])
+
+
 if __name__ == "__main__":
     unittest.main()
