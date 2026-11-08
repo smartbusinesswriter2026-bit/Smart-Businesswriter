@@ -7218,9 +7218,7 @@ function engShell() {
   html += "</tbody></table></div>" +
     '<div class="row" style="margin-top:6px"><button class="btn sm" type="button" data-eng-add="account">Add an account</button></div>';
 
-  html += '<h4>Opening balances</h4><p class="engnote">The balance on each account at the start of the period, ' +
-    "on its natural side (a contra account is on the other side). The opening entry is built from these, so it " +
-    "always agrees with them.</p>" +
+  html += '<h4>Opening balances</h4>' +
     '<div class="tablewrap"><table class="engtable"><thead><tr><th>Account</th>' +
     '<th class="num" style="width:150px">Balance</th><th style="width:54px">Side</th></tr></thead><tbody>';
   chart.forEach((a) => {
@@ -7232,8 +7230,7 @@ function engShell() {
   });
   html += '</tbody></table></div><p class="engnote" id="eng-open-status"></p>';
 
-  html += '<h4>Journal entries</h4><p class="engnote">Each entry must balance. The tick turns red with the ' +
-    "amount it is out by, so the engine never has to refuse it.</p>";
+  html += '<h4>Journal entries</h4>';
   entries.forEach((e, i) => {
     const lines = e.lines || [];
     html += '<div class="engentry"><div class="engentryhead">' +
@@ -7287,9 +7284,6 @@ function engShell() {
   }
 
   html += '<details class="engadv"><summary>Advanced: the engagement as JSON</summary>' +
-    '<p class="engnote">Depreciation, disposals, prepayments, deferred income, bad debts, revaluations and policy ' +
-    "changes are declared here. The form above covers the accounts, the opening balances, the entries and the bank " +
-    "statement; this box always shows exactly what will be posted.</p>" +
     '<textarea id="eng-json" rows="12" class="jsoninput" spellcheck="false">' +
       esc(JSON.stringify(engSerialise(), null, 1)) + "</textarea>" +
     '<div class="row" style="margin-top:6px"><button class="btn sm" type="button" id="eng-load">Load this JSON</button>' +
