@@ -31,8 +31,8 @@ class AnthropicProvider(Provider):
     and error handling are unit-tested with an injected opener; the owner must run a first live call."""
     name = "anthropic"
     URL = "https://api.anthropic.com/v1/messages"; VERSION = "2023-06-01"
-    def __init__(self, model, api_key=None, timeout=60, opener=None):
-        super().__init__(model); self._key = api_key or os.environ.get("ANTHROPIC_API_KEY"); self.timeout = timeout; self._open = opener
+    def __init__(self, model, api_key=None, timeout=None, opener=None):
+        super().__init__(model); self._key = api_key or os.environ.get("ANTHROPIC_API_KEY"); self.timeout = int(timeout or os.environ.get("BP_LLM_TIMEOUT", "120")); self._open = opener
         if not self._key: raise ProviderError("no API key: set the ANTHROPIC_API_KEY environment variable on the server")
     def complete(self, system, user, max_tokens=1500):
         import urllib.request, urllib.error
@@ -54,8 +54,8 @@ class OpenAICompatProvider(Provider):
     request construction and error handling are unit-tested with an injected opener; the owner must run a first live call."""
     name = "openai"
     URL = "https://api.openai.com/v1/chat/completions"; KEY_ENV = "OPENAI_API_KEY"
-    def __init__(self, model, api_key=None, base_url=None, timeout=60, opener=None):
-        super().__init__(model); self._key = api_key or os.environ.get(self.KEY_ENV); self.timeout = timeout; self._open = opener
+    def __init__(self, model, api_key=None, base_url=None, timeout=None, opener=None):
+        super().__init__(model); self._key = api_key or os.environ.get(self.KEY_ENV); self.timeout = int(timeout or os.environ.get("BP_LLM_TIMEOUT", "120")); self._open = opener
         self.base_url = base_url or self.URL
         self.extra_headers = dict(getattr(self, "extra_headers", {}) or {})
         if not self._key: raise ProviderError(f"no API key: set the {self.KEY_ENV} environment variable on the server")

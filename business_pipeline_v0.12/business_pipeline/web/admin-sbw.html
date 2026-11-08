@@ -1096,8 +1096,8 @@ async function solveOneByOne(problems, logEl) {
     logEl.textContent += '  ' + (i+1) + '. solving: ' + String(p).slice(0, 60) + '...\n';
     logEl.scrollTop = logEl.scrollHeight;
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 120000);
-    let res = { problem: p, status: 'timeout', error: 'no answer within 120s' };
+    const timer = setTimeout(() => ctrl.abort(), 300000);
+    let res = { problem: p, status: 'timeout', error: 'no answer within 300s' };
     try {
       const r = await fetch('/api/ops/chat/solve', {
         method: 'POST',

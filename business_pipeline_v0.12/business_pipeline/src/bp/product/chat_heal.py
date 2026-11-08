@@ -195,31 +195,65 @@ def _parse_problems(raw, count):
 def generate_problems_from_error(error_text, count=5, difficulty="medium"):
     """Reframe an error into an instruction and generate problems.
 
+    The error is a **defect report**, not a problem to solve.  The generated
+    problems exercise the same failure class but must themselves be valid and
+    fully declared: a trial balance must balance, and every figure the reader
+    needs must be written next to its label.  An unbalanced trial balance in the
+    error text must never be copied into a generated problem.
+
     Returns (problems: list[str], instruction: str, error: str or None).
     """
     instruction = (
-        "The pipeline failed with this error: " + str(error_text)[:300] + ". "
-        "Create " + str(count) + " realistic test problems that exercise the "
-        "scenario described by this error. Include edge cases and variations."
+        "The pipeline refused an input with this error: " + str(error_text)[:300] + ". "
+        "That error is a defect report, not a problem to solve. Create " + str(count) + " "
+        "realistic test problems that exercise the same failure class, but every problem "
+        "you write must be VALID and fully declared: state the period, name the "
+        "transaction or the accounts, and write every figure next to its label. A trial "
+        "balance MUST balance (total debits equal total credits). Do not copy the "
+        "unbalanced totals or the numbers from the error; write fresh, consistent "
+        "figures. Include edge cases and variations, but never a problem that cannot be "
+        "answered from the figures it states."
     )
     problems, err = generate_problems(instruction, count, difficulty=difficulty)
     return problems, instruction, err
 
 
 def _valid_problems(problems):
-    """Drop a generated trial balance that does not balance.
+    """Drop a generated problem that cannot be answered as written.
 
-    A generator that writes "Cash 7,600; Capital 10,000; ..." can easily leave the two
-    sides unequal.  Such a problem is an invalid fixture, not a pipeline failure, so it
-    is dropped before it reaches the solver and the pass rate.
+    Two failure classes are fixtures, not pipeline defects: a trial balance whose
+    two sides do not agree, and a problem that declares no figure at all (the
+    reader then says "names no transaction and declares no figure").  Either is
+    dropped before it reaches the solver and the pass rate.
     """
     from .problem_norm import trial_balance_imbalance
+    import re as _re
     kept = []
     for problem in problems or []:
-        imbalance = trial_balance_imbalance(problem)
+        text = str(problem or "")
+        if not any(ch.isdigit() for ch in text):
+            continue
+        if not any(cue in text.lower() for cue in (
+                "debit", "credit", "balance", "journal", "trial balance", "revenue",
+                "expense", "cash", "receivable", "payable", "equity", "entry")):
+            continue
+        # A problem that states its own totals must state equal ones.  The
+        # balance parser reads the account lines; this catches the case where
+        # only the summary totals are written.
+        debits = _re.search(r"debits?\s*(?:of|are|total(?:led)?|:)?\s*([0-9][0-9,.]*)", text, _re.I)
+        credits = _re.search(r"credits?\s*(?:of|are|total(?:led)?|:)?\s*([0-9][0-9,.]*)", text, _re.I)
+        if debits and credits:
+            try:
+                left = float(debits.group(1).replace(",", ""))
+                right = float(credits.group(1).replace(",", ""))
+                if abs(left - right) > 0.005:
+                    continue
+            except ValueError:
+                pass
+        imbalance = trial_balance_imbalance(text)
         if imbalance is not None and imbalance != 0:
             continue
-        kept.append(problem)
+        kept.append(text)
     return kept
 
 

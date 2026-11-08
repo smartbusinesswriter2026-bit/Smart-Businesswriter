@@ -1,3 +1,27 @@
+## 2026-11-08 - [product] Generated problems must be valid; provider timeout raised
+
+**Ask.** Self-healing generated 10 problems from an unbalanced-trial-balance error and 7
+failed: figure-less narratives, copied unbalanced totals, and provider timeouts.
+
+**Did.**
+
+- **`chat_heal.generate_problems_from_error`**: the error is now framed as a defect report,
+  not a problem to solve.  The instruction requires fully declared figures, a balanced trial
+  balance, and fresh numbers (never the error's totals).
+- **`chat_heal._valid_problems`**: drops a problem that declares no figure, carries no
+  accounting cue, states unequal debit/credit totals, or parses to an unbalanced trial
+  balance.  These are invalid fixtures, not pipeline defects, so they no longer count as
+  failures.
+- **`llm`**: the provider timeout is now 120s (env `BP_LLM_TIMEOUT`), up from 60s, so a slow
+  OpenCode Go call is not reported as "could not reach the provider: TimeoutError".
+- **Admin**: the per-problem solve abort is now 300s, up from 120s, so a retried call no
+  longer ends as "TIMEOUT - signal is aborted without reason".
+- The fixer already treats a timeout as transient and an unbalanced trial balance as wrong
+  input; both are unchanged and now reach it less often.
+
+**Measured.** The new filter keeps a balanced trial balance and drops the user's two bad
+shapes (figure-less narrative, debits 26,420 / credits 26,500).  Provider timeout reads 120.
+
 ## 2026-11-08 - [product] Statements get an Excel workbook; explainers are Word
 
 **Ask.** Include Excel when applicable (financial statements), and make the explainer a docx,
