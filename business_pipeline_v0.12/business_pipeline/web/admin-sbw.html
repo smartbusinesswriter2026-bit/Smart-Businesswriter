@@ -916,8 +916,9 @@ async function loadErrors() {
 }
 function renderErrorsTable(errors, container) {
   if (!errors.length) { container.innerHTML = '<div class="empty"><div class="icon">⚠️</div>No errors recorded.</div>'; return; }
-  let html = '<table><thead><tr><th>Time</th><th>Lane</th><th>Error</th><th>Count</th><th>Status</th><th>Action</th></tr></thead><tbody>';
-  errors.forEach(e => {
+  let html = '<div class="at-status" style="margin-bottom:8px;">' + errors.length + ' error(s) shown (numbered #1–#' + errors.length + ').</div>'
+    + '<table><thead><tr><th>#</th><th>Time</th><th>Lane</th><th>Error</th><th>Hits</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+  errors.forEach((e, i) => {
     const eid = e.error_id || e.id || '';
     const resolved = e.resolved ? true : false;
     const sev = e.severity || 'moderate';
@@ -931,7 +932,7 @@ function renderErrorsTable(errors, container) {
     const genBtn = (resolved || e.invalid || e.dismissed) ? '' : '<button class="btn primary" onclick="genFromError(\'' + escapeHtml(eid) + '\',\'' + escapeHtml((e.error||'').replace(/'/g,"\\'")) + '\',\'' + escapeHtml(e.severity||'moderate') + '\')">Generate</button>';
     const resolveBtn = (resolved || e.invalid || e.dismissed) ? '' : '<button class="btn" title="Re-runs the failing problem; resolves only if it now passes" onclick="resolveError(\'' + escapeHtml(eid) + '\')">Resolve</button>';
     const dismissBtn = (!resolved && !invalid && !e.dismissed && !e.replayable) ? '<button class="btn" title="No replayable problem was stored; closes it without claiming a fix" onclick="dismissError(\'' + escapeHtml(eid) + '\')">Dismiss</button>' : '';
-    html += '<tr><td class="nowrap">' + fmtShortTs(e.ts) + '</td><td class="nowrap">' + escapeHtml(e.lane) + '</td><td style="font-size:12px;">' + escapeHtml((e.error||'').slice(0,110)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td><div class="error-actions">' + genBtn + resolveBtn + dismissBtn + '</div></td></tr>';
+    html += '<tr><td class="nowrap" style="font-weight:600;color:var(--muted);">' + (i + 1) + '</td><td class="nowrap">' + fmtShortTs(e.ts) + '</td><td class="nowrap">' + escapeHtml(e.lane) + '</td><td style="font-size:12px;">' + escapeHtml((e.error||'').slice(0,110)) + '</td><td>' + (e.count || 1) + '</td><td>' + statusPill + '</td><td><div class="error-actions">' + genBtn + resolveBtn + dismissBtn + '</div></td></tr>';
   });
   html += '</tbody></table>';
   container.innerHTML = html;
@@ -1772,6 +1773,7 @@ async function loadCases() {
       + '<span>' + escapeHtml(label) + ' <span class="at-status">' + rows.length + ' case(s)</span></span>'
       + '<span style="display:flex;gap:6px;align-items:center;">'
       + '<button class="btn" data-case-run="' + escapeHtml(sid) + '">Run all</button>'
+      + '<button class="btn" data-case-run-random="' + escapeHtml(sid) + '">Run one random</button>'
       + '</span></div>'
       + '<details class="at-group"><summary>Select cases / generate problems<span>'
       + rows.length + ' stored</span></summary>'
@@ -1995,6 +1997,8 @@ async function uploadCaseFiles(subject, tile, files) {
 document.getElementById('caseSubjects').addEventListener('click', (event) => {
   const run = event.target.closest('button[data-case-run]');
   if (run) { runCasesFor(run.dataset.caseRun, run); return; }
+  const runRandom = event.target.closest('button[data-case-run-random]');
+  if (runRandom) { runRandomFor(runRandom.dataset.caseRunRandom, runRandom); return; }
   const upload = event.target.closest('button[data-case-upload]');
   if (upload) {
     const sid = upload.dataset.caseUpload;
@@ -2063,6 +2067,48 @@ function setCaseBusy(button, busy) {
 async function runCasesFor(subject, button) {
   const ids = caseCache.filter(c => c.subject === subject).map(c => c.id);
   await runCases(ids, subject, 0, button);
+}
+
+async function runRandomFor(subject, button) {
+  if (caseRunning) { toast('A case run is already in progress'); return; }
+  caseRunning = true;
+  setCaseBusy(button, true);
+  const summary = document.getElementById('caseSummary');
+  const summaryText = summary.textContent;
+  summary.textContent = 'Running one random case for ' + subject + '…';
+  try {
+    const r = await apiFetch('/api/ops/cases/run-random', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject: subject,
+        style: document.getElementById('atStyle').value,
+        length: parseInt(document.getElementById('atLength').value, 10) || 1200 })
+    });
+    if (r.status !== 200 || !r.data) {
+      document.getElementById('caseResults').innerHTML =
+        '<div class="empty">Random case failed: ' + escapeHtml((r.data && r.data.error) || r.status) + '</div>';
+      return;
+    }
+    const row = r.data;
+    const cls = row.status === 'pass' ? 'ok' : 'err';
+    const errs = (row.problems || []).map(escapeHtml).join('<br>') || escapeHtml(row.error || '');
+    document.getElementById('caseResults').innerHTML =
+      '<div class="row" style="justify-content:space-between;margin-top:6px;">'
+      + '<strong>Random case: ' + escapeHtml(row.case_id || '') + '</strong>'
+      + '<span class="at-status">' + escapeHtml(row.status || '') + '</span></div>'
+      + '<table><thead><tr><th>Case</th><th>Tile</th><th>Status</th><th>Time</th><th>Error</th></tr></thead><tbody>'
+      + '<tr><td>' + escapeHtml(row.case_id || '') + '</td>'
+      + '<td>' + escapeHtml(row.tile_label || row.tile || '') + '</td>'
+      + '<td>' + pill(row.status, cls) + '</td>'
+      + '<td>' + (row.duration_ms ? (row.duration_ms / 1000).toFixed(1) + 's' : '\u2014') + '</td>'
+      + '<td>' + errs + '</td></tr></tbody></table>';
+    loadErrors();
+    document.getElementById('caseResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } finally {
+    caseRunning = false;
+    setCaseBusy(button, false);
+    summary.textContent = summaryText;
+  }
 }
 
 async function runCases(ids, label, generateCount, button) {
