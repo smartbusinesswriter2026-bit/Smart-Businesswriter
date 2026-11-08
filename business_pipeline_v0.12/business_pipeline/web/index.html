@@ -364,13 +364,6 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .wordtarget-field input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .wordtarget-field input[type=number]{-moz-appearance:textfield;appearance:textfield}
 .wordtarget-unit{font-size:13.6px;color:var(--text-2);font-weight:500}
-.wordpresets{display:inline-flex;flex-wrap:wrap;gap:5px}
-.wordpreset{border:1px solid var(--border);background:var(--surface);color:var(--text-2);font:inherit;font-size:13.4px;
-  font-weight:600;padding:6px 11px;border-radius:var(--r-pill);min-height:30px;cursor:pointer;
-  transition:border-color .14s ease,color .14s ease,background .14s ease}
-.wordpreset:hover{border-color:var(--navy-300);color:var(--navy-900);background:var(--sunken)}
-.wordpreset[aria-pressed="true"]{background:var(--green-100);border-color:#BFE3D2;color:var(--green-700)}
-.wordpreset:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px}
 .homectl-hint{margin:7px 0 0;font-size:13px;line-height:1.45;color:var(--text-3)}
 @media (max-width:620px){.composer-setup{gap:12px}.wordtarget-field input{width:64px}}
 /* The composer and the conversation under it are one column, and that column
@@ -1200,13 +1193,6 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
                 <input id="homelength" type="number" min="600" max="50000" step="100" inputmode="numeric" placeholder="2500">
                 <span class="wordtarget-unit">words</span>
               </span>
-              <div class="wordpresets">
-                <button type="button" class="wordpreset" data-homewords="1000">1,000</button>
-                <button type="button" class="wordpreset" data-homewords="1500">1,500</button>
-                <button type="button" class="wordpreset" data-homewords="2500">2,500</button>
-                <button type="button" class="wordpreset" data-homewords="4000">4,000</button>
-                <button type="button" class="wordpreset" data-homewords="5000">5,000</button>
-              </div>
             </div>
             <p class="homectl-hint">Body text only · the paper aims within ±10%</p>
           </div>
@@ -2902,13 +2888,6 @@ RENDERERS.home = function () {
                 '<input id="homelength" type="number" min="600" max="50000" step="100" inputmode="numeric" placeholder="2500">' +
                 '<span class="wordtarget-unit">words</span>' +
               "</span>" +
-              '<div class="wordpresets">' +
-                '<button type="button" class="wordpreset" data-homewords="1000">1,000</button>' +
-                '<button type="button" class="wordpreset" data-homewords="1500">1,500</button>' +
-                '<button type="button" class="wordpreset" data-homewords="2500">2,500</button>' +
-                '<button type="button" class="wordpreset" data-homewords="4000">4,000</button>' +
-                '<button type="button" class="wordpreset" data-homewords="5000">5,000</button>' +
-              "</div>" +
             "</div>" +
             '<p class="homectl-hint">Body text only · the paper aims within ±10%</p>' +
           "</div>" +
@@ -2985,20 +2964,6 @@ RENDERERS.home = function () {
       if (mode) { mode.value = btn.dataset.homemode; mode.dispatchEvent(new Event("change")); }
     };
   });
-  /* Preset chips set #homelength (the word target startChat reads). */
-  const homeLen = $("#homelength");
-  const syncHomeWords = () => {
-    const value = homeLen ? String(homeLen.value || "").trim() : "";
-    $$("[data-homewords]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.homewords === value)));
-  };
-  $$("[data-homewords]").forEach((btn) => {
-    btn.onclick = () => {
-      if (homeLen) { homeLen.value = btn.dataset.homewords; homeLen.dispatchEvent(new Event("input")); homeLen.focus(); }
-      syncHomeWords();
-    };
-  });
-  if (homeLen) homeLen.addEventListener("input", syncHomeWords);
-  syncHomeWords();
   const visSheet = $("#vissheet");
   if (visSheet) visSheet.onclick = visualSheet;
   const visSource = $("#vissource");
@@ -3251,15 +3216,6 @@ function renderChat() {
     if (wordBox) wordBox.onkeydown = (event) => {
       if (event.key === "Enter") { event.preventDefault(); setReportLength(); }
     };
-    const syncChatWords = () => {
-      const value = wordBox ? String(wordBox.value || "").trim() : "";
-      $$("[data-chatwords]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.chatwords === value)));
-    };
-    $$("[data-chatwords]").forEach((btn) => {
-      btn.onclick = () => { if (wordBox) { wordBox.value = btn.dataset.chatwords; wordBox.dispatchEvent(new Event("input")); } syncChatWords(); };
-    });
-    if (wordBox) wordBox.addEventListener("input", syncChatWords);
-    syncChatWords();
     bindProposalControls(c);
     return;
   }
@@ -3449,13 +3405,6 @@ function reportLengthRow(plan) {
     '<input id="chatwords" type="number" min="600" max="50000" step="100" inputmode="numeric" value="' + esc(String(target)) + '">' +
     '<span class="wordtarget-unit">words</span>' +
     "</span>" +
-    '<div class="wordpresets">' +
-    '<button type="button" class="wordpreset" data-chatwords="1000">1,000</button>' +
-    '<button type="button" class="wordpreset" data-chatwords="1500">1,500</button>' +
-    '<button type="button" class="wordpreset" data-chatwords="2500">2,500</button>' +
-    '<button type="button" class="wordpreset" data-chatwords="4000">4,000</button>' +
-    '<button type="button" class="wordpreset" data-chatwords="5000">5,000</button>' +
-    "</div>" +
     '<button class="btn primary" type="button" id="chatwordset">Set word count</button>' +
     "</div>" +
     '<p class="homectl-hint">A target inside ±10% is strived for, not guaranteed. The paper is ' +
