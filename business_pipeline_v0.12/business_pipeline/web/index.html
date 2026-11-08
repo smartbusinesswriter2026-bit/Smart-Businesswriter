@@ -557,6 +557,9 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 /* The best-value bundle takes the whole third row, laid out horizontally. */
 .pm-ladder-grid .is-best{grid-column:1 / -1;display:block;
                          border-color:#BFE3D1;background:linear-gradient(180deg,var(--green-100),#fff)}
+/* On a phone the best-value bundle sits beside the last rung instead of alone on a
+   third row with an empty cell beside it.  This rule follows the base rule so it wins. */
+@media(max-width:680px){.pm-ladder-grid .is-best{grid-column:auto}}
 .pm-best-grid{display:grid;grid-template-columns:minmax(190px,0.85fr) minmax(0,1.7fr) auto;
               gap:14px;align-items:center}
 @media(max-width:680px){.pm-best-grid{grid-template-columns:1fr;gap:10px}}
@@ -1199,6 +1202,14 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
               </span>
             </div>
             <p class="homectl-hint">Body text only · the paper aims within ±10%</p>
+          </div>
+          <div class="homectl" style="margin-top:8px">
+            <span class="homectl-cap">Tax</span>
+            <select id="homtax">
+              <option value="US">United States</option>
+              <option value="other">Other (rate in the brief)</option>
+            </select>
+            <p class="homectl-hint">US federal corporate rate; state tax excluded. Not tax advice.</p>
           </div>
         </div>
         <div class="actionrow">
@@ -3357,6 +3368,8 @@ async function startChat() {
   const lengthBox = $("#homelength");
   const lengthChoice = lengthBox ? String(lengthBox.value || "").trim() : "";
   if (lengthChoice) body.words = lengthChoice;
+  const taxBox = $("#homtax");
+  body.tax_jurisdiction = taxBox ? String(taxBox.value || "US") : "US";
   if (state.rubric) body.rubric = state.rubric;
   if (state.intakeFiles) {
     body.instruction_files = state.intakeFiles.instruction || [];
