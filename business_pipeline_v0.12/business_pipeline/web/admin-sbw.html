@@ -2530,7 +2530,8 @@ async function loadAutoresearch() {
       'Status: ' + (d.status_message || 'unknown') + '\n' +
       'Running: ' + d.running + ' | Stopped: ' + d.stopped + '\n' +
       'Last run: ' + (d.last_run || 'never');
-    document.getElementById('arMetric').textContent = d.current_metric !== null ? d.current_metric + '%' : '\u2014';
+    // The causes ledger is the source of the metric (it works when the loop is idle
+    // too); loadCauses() sets it at the end of this function.
     document.getElementById('arBest').textContent = d.best_metric !== null ? d.best_metric + '%' : '\u2014';
     document.getElementById('arExps').textContent = d.experiments_run || 0;
     document.getElementById('arKept').textContent = (d.experiments_kept || 0) + ' / ' + (d.experiments_reverted || 0);
