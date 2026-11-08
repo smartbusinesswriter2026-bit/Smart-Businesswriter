@@ -97,3 +97,38 @@ def summary(limit=100000):
         "fixed_pct": round(100.0 * fixed / len(ordered), 1) if ordered else 100.0,
     }
     return {"causes": ordered, "summary": totals}
+
+
+#: Artifacts that change the reader for every instance of the cause, so the class
+#: is fixed and the loop must not spend a model call on another instance of it.
+WHOLE_CLASS_ARTIFACTS = ("golden_case", "narrative_balance", "code")
+
+
+def fixed_causes(limit=100000):
+    """Causes with a durable artifact and no recurrence since that fix."""
+    return {row["cause"] for row in summary(limit)["causes"]
+            if row["status"] == "fixed"}
+
+
+def covered_causes(limit=100000):
+    """Fixed causes whose artifact applies to every instance of the class."""
+    out = set()
+    for row in summary(limit)["causes"]:
+        if row["status"] != "fixed":
+            continue
+        if any(artifact in WHOLE_CLASS_ARTIFACTS for artifact in row["artifacts"]):
+            out.add(row["cause"])
+    return out
+
+
+def attended_causes():
+    """Pipeline causes whose remedy is a human change (no automated artifact).
+
+    `pipeline.unknown` is excluded: an unclassified failure still deserves one
+    investigation, which is what the loop is for.  A cause already fixed is
+    skipped separately by `fixed_causes`.
+    """
+    return {key for key, meta in causes.REMEDIES.items()
+            if meta.get("scope") == causes.PIPELINE and not meta.get("artifact")
+            and key != "pipeline.unknown"}
+

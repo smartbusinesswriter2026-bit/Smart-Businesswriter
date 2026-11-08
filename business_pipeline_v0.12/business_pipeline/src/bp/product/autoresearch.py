@@ -155,17 +155,36 @@ def _pick_highest_impact_error(exclude=None):
     has already attempted, so one permanent failure cannot be retried forever.
     """
     exclude = exclude or set()
+    from . import cause_ledger, causes
+    fixed = cause_ledger.fixed_causes()
+    attended = cause_ledger.attended_causes()
+
+    def _cause_of(record):
+        return (record.get("cause")
+                or causes.classify_cause(record.get("error"), record.get("problem"))["cause"])
+
     errors = _ops_log.list_errors(limit=100)
     errors = _ops_log.merge_resolved(errors)
     open_all = [e for e in errors
                 if not e.get("resolved") and not e.get("attended")
                 and not e.get("invalid") and not e.get("dismissed")
                 and (e.get("error_id") not in exclude)]
+    # The loop fixes a **cause**, not an instance.  A transient or input class is
+    # not a defect; a cause already fixed by a durable artifact must not be
+    # re-solved (that is the credit burner); a cause whose remedy is a human
+    # change waits for the owner.  None of these should spend a model call.
+    skipped = [e for e in open_all
+               if not causes.is_defect(e.get("error"), e.get("problem"))
+               or _cause_of(e) in fixed or _cause_of(e) in attended]
     open_errors = [e for e in open_all
-                   if e.get("problem") or e.get("case_id")]
+                   if e not in skipped and (e.get("problem") or e.get("case_id"))]
     if not open_errors:
-        # Count how many open errors we refused to touch, so the status line
-        # explains why the loop is doing nothing instead of looping silently.
+        if skipped:
+            with _lock:
+                _state["status_message"] = (
+                    "%d error(s) need no repair: transient/input, already fixed by a "
+                    "durable artifact, or waiting for the owner" % len(skipped))
+            return None
         if open_all:
             with _lock:
                 _state["status_message"] = ("%d open error(s), none replayable - waiting for owner"

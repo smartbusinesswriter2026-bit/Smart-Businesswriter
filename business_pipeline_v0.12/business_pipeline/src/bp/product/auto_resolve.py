@@ -293,6 +293,15 @@ def _resolve_inner(error_id):
                 "reason": outcome.get("error") or "the stored tile case still fails"}
 
     cause_key = causes.classify_cause(record.get("error"), record.get("problem"))["cause"]
+    from . import cause_ledger as _ledger
+    if cause_key in _ledger.fixed_causes():
+        # The class already has a durable fix and no recurrence: another instance
+        # does not justify two model calls.  Mark it attended so the picker skips it.
+        _ops_log.mark_error_attended(
+            error_id, "cause %s is already fixed by a durable artifact; not retried" % cause_key)
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
+                "steps": [], "siblings_resolved": 0, "category": cause_key, "cause": cause_key,
+                "artifact": "", "reason": "cause %s already fixed; no model call spent" % cause_key}
     if cause_key in ("pipeline.journal_human", "pipeline.core_missing",
                      "pipeline.case_expectation", "pipeline.method_contract"):
         # The remedy is a human change (a refreshed expectation, a wiring fix, a

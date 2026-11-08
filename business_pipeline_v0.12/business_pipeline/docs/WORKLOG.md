@@ -1,3 +1,25 @@
+## 2026-11-08 - [product] Fix a cause once: the loop skips what it already fixed
+
+**Ask.** The loop kept re-fixing the same issue, burning credits.  It should fix once,
+learn, and not spend again on that class.
+
+**Did.**
+
+- **`cause_ledger.fixed_causes()` / `covered_causes()` / `attended_causes()`**: the loop can
+  ask which causes already carry a durable artifact and which need a human.
+- **`autoresearch._pick_highest_impact_error`** now skips an error when its cause is
+  transient or input (not a defect), already fixed with a durable artifact, or waiting for a
+  human remedy.  The status line explains how many were skipped instead of looping silently.
+- **`auto_resolve.resolve`** short-circuits a cause already fixed by an artifact and marks
+  the instance attended, so a direct call spends no model tokens either.
+- **`ops_log.log_error`** writes one open record per message: the same failure arriving
+  while it is still open is the same instance, not a new id for the loop to re-fix.
+- **`tests/test_causes.py`** gains the durable cases for the reader fixes (comma separator,
+  Debit/Credit marker, qualified account name).
+
+**Measured.** `cause_ledger` reports the per-cause status; the picker returns `None` with a
+"need no repair" status when only fixed, attended or input/transient causes remain.
+
 ## 2026-11-08 - [product] Read Debit/Credit trial balances; keep input errors out of the log
 
 **Ask.** Generated problems still failed: "the model could not read this as a journal" /

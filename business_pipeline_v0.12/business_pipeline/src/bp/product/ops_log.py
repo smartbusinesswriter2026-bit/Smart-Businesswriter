@@ -98,6 +98,15 @@ def log_error(lane, error, problem_text=None, gap_label=None, count=1, case_id=N
     cause = causes.classify_cause(error, problem_text)
     if not force and cause["scope"] != causes.PIPELINE:
         return False
+    # One open record per message.  The same failure arriving again while it is
+    # still open is the *same* instance, not a new one: writing a second id only
+    # gives the loop something to re-fix (and re-pay for) without new information.
+    if not force and str(error or "").strip():
+        target = str(error).strip()[:500]
+        for row in list_errors(limit=100000, status="open"):
+            if (str(row.get("error") or "").strip() == target
+                    and not row.get("attended") and not row.get("resolved")):
+                return False
     record = {
         "ts": _now_iso(),
         "error_id": hashlib.sha256((_now_iso() + str(error)).encode()).hexdigest()[:12],
