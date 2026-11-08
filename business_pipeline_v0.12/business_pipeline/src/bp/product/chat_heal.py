@@ -346,12 +346,16 @@ def _solve_with_fallback(problem):
                 _os.environ[name] = value
 
 
-def solve_problems(problems):
+def solve_problems(problems, log_failures=True):
     """Solve a list of problems through the pipeline.
 
     Every problem passes through the deterministic normalizers first (one-line
     account lists, duplicate lines, oversized input), so the frozen parser
     always sees input in the shape it accepts — not only when Resolve is used.
+
+    ``log_failures=False`` is for a **replay of a known failure** inside the
+    repair loop: the error is already in the log, so logging the same failure
+    again would grow the queue every time the loop tried to fix it.
 
     Returns (results: list[dict], error: str or None).
     Each result: {problem, status, answer, error, gaps, normalization}.
@@ -414,16 +418,19 @@ def solve_problems(problems):
                                 result["gaps"] = retry.get("working", {}).get("missing", []) or []
                         result["gaps"] = result["gaps"] or record.get("working", {}).get("missing", []) or []
                         # Log to error log so it appears in Self-Healing panel
-                        _ops_log.log_error("statements", result["error"], problem_text=problem,
-                                           gap_label=result["error"][:80])
+                        if log_failures:
+                            _ops_log.log_error("statements", result["error"], problem_text=problem,
+                                               gap_label=result["error"][:80])
             else:
                 result["status"] = "error"
                 result["error"] = "unexpected result type"
-                _ops_log.log_error("statements", "unexpected result type", problem_text=problem)
+                if log_failures:
+                    _ops_log.log_error("statements", "unexpected result type", problem_text=problem)
         except Exception as e:
             result["status"] = "error"
             result["error"] = str(e)[:200]
-            _ops_log.log_error("statements", str(e)[:200], problem_text=problem)
+            if log_failures:
+                _ops_log.log_error("statements", str(e)[:200], problem_text=problem)
         results.append(result)
     return results, None
 

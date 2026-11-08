@@ -9,7 +9,7 @@ Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch corpus/merge-v1, remote origin = smartbusinesswriter2026-bit/smart-businesswriter002; `main` is the deployment branch and carries the same tree; clean tree expected (hashes live in `git log`; do not hard-code them here)
 Build        : 1.130 (see docs/CHANGELOG.md)
-Tests        : 4357 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
+Tests        : 4358 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves Ã¢â‚¬â€ see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -325,6 +325,12 @@ in equity and Notes.  When the format asks for a workbook, the same record is wr
 papers and notes), so the tile offers both Word and Excel, as the other tiles do.  The
 statements service requires the server's core attachment, so a direct call outside the
 server returns `needs_input` with that reason.
+
+Each tile result also carries its own `explainer.docx`, and the Testing tab's result table
+has a **Download** column with **docx**, **xlsx** (when the tile produced one) and
+**explainer** links served by `GET /api/ops/papers/batch/{id}/file/{name}`.  The statements
+workbook is always built, so the Financial statements tile offers Excel even when the run's
+format is Word; the run saves it either way.
 
 The **repair loop runs on OpenCode Go**, not the platform.deepseek.com key:
 `auto_resolve._fix_models` returns `deepseek-v4.1-flash` -> `deepseek-v4-pro` (OpenCode Go

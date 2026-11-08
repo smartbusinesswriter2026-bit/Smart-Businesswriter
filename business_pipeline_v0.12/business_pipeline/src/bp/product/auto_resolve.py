@@ -67,7 +67,12 @@ def diagnose(error_text):
 
 
 def _replay_on(problem, model):
-    """Replay one problem with the statements reader pinned to `model`."""
+    """Replay one problem with the statements reader pinned to `model`.
+
+    The replay is **silent**: the failure it is replaying is already in the error
+    log, so a second record would grow the queue every time the repair loop
+    tried to fix it.  A pass still proves the fix.
+    """
     import os
     from . import chat_heal
     saved = (os.environ.get("BP_LLM_MODEL"),
@@ -77,41 +82,8 @@ def _replay_on(problem, model):
         os.environ["BP_LLM_MODEL"] = model
         os.environ["BP_LLM_MODEL_TIER2"] = model
         os.environ["BP_LLM_MODEL_TIER3"] = model
-        results, _err = chat_heal.solve_problems([problem])
+        results, _err = chat_heal.solve_problems([problem], log_failures=False)
         return results[0] if results else {}
-    finally:
-        for name, value in zip(("BP_LLM_MODEL", "BP_LLM_MODEL_TIER2", "BP_LLM_MODEL_TIER3"), saved):
-            if value is None:
-                os.environ.pop(name, None)
-            else:
-                os.environ[name] = value
-
-
-def _silent_solve(problem, model):
-    """Solve one problem on `model` without logging a new error.
-
-    The timeout retry uses this: a second timeout must not add a second error to the
-    queue, and a pass proves the fix without touching the log.
-    """
-    import os
-    try:
-        from . import statements as stmt_mod
-    except Exception:
-        return {"status": "error", "error": "statements module unavailable"}
-    saved = (os.environ.get("BP_LLM_MODEL"),
-             os.environ.get("BP_LLM_MODEL_TIER2"),
-             os.environ.get("BP_LLM_MODEL_TIER3"))
-    try:
-        os.environ["BP_LLM_MODEL"] = model
-        os.environ["BP_LLM_MODEL_TIER2"] = model
-        os.environ["BP_LLM_MODEL_TIER3"] = model
-        record = stmt_mod.solve(str(problem))
-        if isinstance(record, dict) and record.get("solved"):
-            return {"status": "ok", "error": ""}
-        error = (record.get("refusal") if isinstance(record, dict) else "") or "not solved"
-        return {"status": "error", "error": str(error)[:200]}
-    except Exception as exc:
-        return {"status": "error", "error": str(exc)[:200]}
     finally:
         for name, value in zip(("BP_LLM_MODEL", "BP_LLM_MODEL_TIER2", "BP_LLM_MODEL_TIER3"), saved):
             if value is None:
@@ -347,7 +319,7 @@ def resolve(error_id):
         problem = record.get("problem") or ""
         if problem:
             fix_model, _escalation = _fix_models()
-            retry = _silent_solve(problem, fix_model)
+            retry = _replay_on(problem, fix_model)
             if retry.get("status") == "ok":
                 try:
                     from . import regression_cases

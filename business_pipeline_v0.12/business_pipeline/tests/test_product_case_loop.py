@@ -331,6 +331,23 @@ class FixerClassificationTest(unittest.TestCase):
         # One of two is closed: the metric must move, not stay at zero.
         self.assertEqual(autoresearch._measure_metric(), 50.0)
 
+    def test_a_failed_replay_does_not_add_a_second_error(self):
+        from bp.product import ops_log
+        ops_log.log_error("statements",
+                          "the model response was not in the expected format",
+                          problem_text="Cash 1,000; Capital 1,000")
+        before = ops_log.list_errors(limit=50, status="all")
+        target = before[0]["error_id"]
+        with mock.patch("bp.product.statements.solve",
+                        return_value={"solved": False, "refusal": "still cannot read it"}):
+            result = auto_resolve.resolve(target)
+        self.assertFalse(result["resolved"])
+        after = ops_log.list_errors(limit=50, status="all")
+        # The replay of a known failure must not write a new record: otherwise the
+        # queue grows by one every time the repair loop tries to fix it.
+        self.assertEqual(len(after), len(before))
+        self.assertEqual([r["error_id"] for r in after], [r["error_id"] for r in before])
+
     def test_guess_rule_types_accounts_by_keyword(self):
         self.assertEqual(auto_resolve._guess_rule("Deferred grant")[1], "liability")
         self.assertEqual(auto_resolve._guess_rule("Trade receivable")[1], "asset")
