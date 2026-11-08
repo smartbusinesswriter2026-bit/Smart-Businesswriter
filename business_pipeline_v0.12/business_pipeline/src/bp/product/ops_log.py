@@ -84,8 +84,20 @@ def log_run(lane, kind, status, problem_text=None, error=None, duration_ms=None,
     return _append_jsonl(_runs_path(), record)
 
 
-def log_error(lane, error, problem_text=None, gap_label=None, count=1, case_id=None):
-    """Append one error record. Returns True when written."""
+def log_error(lane, error, problem_text=None, gap_label=None, count=1, case_id=None,
+              force=False):
+    """Append one error record. Returns True when written.
+
+    Only a **pipeline** cause is written.  A provider timeout and a problem whose
+    figures do not balance are not defects: they are retried or refused at the
+    boundary and kept out of the queue, so the panel stays a list of things the
+    pipeline can actually fix.  `force=True` records one anyway (a test that
+    exercises the fixer's handling of a legacy record).
+    """
+    from . import causes
+    cause = causes.classify_cause(error, problem_text)
+    if not force and cause["scope"] != causes.PIPELINE:
+        return False
     record = {
         "ts": _now_iso(),
         "error_id": hashlib.sha256((_now_iso() + str(error)).encode()).hexdigest()[:12],
@@ -93,6 +105,9 @@ def log_error(lane, error, problem_text=None, gap_label=None, count=1, case_id=N
         "error": str(error)[:500],
         "count": int(count),
         "severity": classify_severity(str(error)),
+        "cause": cause["cause"],
+        "scope": cause["scope"],
+        "remedy": cause["remedy"],
     }
     if problem_text:
         record["problem_hash"] = hashlib.sha256(str(problem_text).encode("utf-8")).hexdigest()[:16]
@@ -277,10 +292,14 @@ def get_error(error_id):
     return None
 
 
-def mark_error_verified(error_id, note=""):
+def mark_error_verified(error_id, note="", cause=None, artifact=None):
     """Mark an error resolved *because a replay passed*, recording the proof.
 
     This is the only path that sets `verified: true`; a plain resolve never does.
+    `artifact` names the durable change a **cause** fix wrote (a vocabulary rule,
+    a golden case, a reviewed code change).  `artifact=None` or "" means the
+    replay closed this *instance* only, and the ledger must not count the cause
+    as fixed.
     """
     record = {
         "ts": _now_iso(),
@@ -290,6 +309,10 @@ def mark_error_verified(error_id, note=""):
         "resolution_ts": _now_iso(),
         "note": str(note)[:200],
     }
+    if cause:
+        record["cause"] = str(cause)[:80]
+    if artifact:
+        record["artifact"] = str(artifact)[:40]
     _append_jsonl(_errors_path(), record)
     return True
 
@@ -322,15 +345,16 @@ def is_error_resolved(error_id):
     return False
 
 
-def mark_error_attended(error_id):
-    """Mark an error as attended (the owner is working on it).
+def mark_error_attended(error_id, reason=""):
+    """Mark an error as attended (the owner is working on it, or the loop gave up).
 
     The autoresearch loop only picks up errors left unattended, so an error the
     owner has opened in the Self-Healing panel is skipped until it resolves.
+    `reason` names the cause and the remedy the error still needs.
 
     Returns True if the error was found and marked.
     """
-    errors = list_errors(limit=10000)
+    errors = list_errors(limit=10000, status="all")
     for e in errors:
         if e.get("error_id") == error_id:
             record = {
@@ -339,12 +363,14 @@ def mark_error_attended(error_id):
                 "attended": True,
                 "attended_ts": _now_iso(),
             }
+            if reason:
+                record["reason"] = str(reason)[:200]
             _append_jsonl(_errors_path(), record)
             return True
     return False
 
 
-def mark_error_dismissed(error_id, reason=""):
+def mark_error_dismissed(error_id, reason="", cause=None, artifact=None):
     """Dismiss an error that cannot be verified (no replayable problem stored).
 
     Distinct from solved: it is labelled "dismissed (unverified)" and never
@@ -356,11 +382,15 @@ def mark_error_dismissed(error_id, reason=""):
         "dismissed": True,
         "reason": str(reason)[:200],
     }
+    if cause:
+        record["cause"] = str(cause)[:80]
+    if artifact:
+        record["artifact"] = str(artifact)[:40]
     _append_jsonl(_errors_path(), record)
     return True
 
 
-def mark_error_invalid(error_id, reason=""):
+def mark_error_invalid(error_id, reason="", cause=None, artifact=None):
     """Mark an error as invalid test input (not a pipeline defect).
 
     It leaves the open list, but it is never labelled solved: invalid input is
@@ -372,6 +402,10 @@ def mark_error_invalid(error_id, reason=""):
         "invalid": True,
         "reason": str(reason)[:200],
     }
+    if cause:
+        record["cause"] = str(cause)[:80]
+    if artifact:
+        record["artifact"] = str(artifact)[:40]
     _append_jsonl(_errors_path(), record)
     return True
 
@@ -380,15 +414,21 @@ def merge_resolved(errors):
     """Merge resolution records into error list.
 
     Returns errors with 'resolved', 'verified', 'attended' and 'invalid'
-    fields set from the append-only resolution/attendance/invalid records.
+    fields set from the append-only resolution/attendance/invalid records, plus
+    the `cause` and `artifact` of the close so the ledger can tell a durable fix
+    from an instance close.
     """
     resolved_ids = set()
     attended_ids = set()
     verified_ids = set()
     invalid_ids = set()
     dismissed_ids = set()
+    close_info = {}
     all_records = _read_jsonl(_errors_path(), limit=100000)
-    for r in all_records:
+    # `_read_jsonl` returns newest first; walk oldest first so the *latest* close
+    # record wins (an instance close with no artifact must not overwrite a durable
+    # fix recorded earlier in the same run).
+    for r in reversed(all_records):
         if r.get("resolved") and r.get("error_id"):
             resolved_ids.add(r["error_id"])
             if r.get("verified"):
@@ -399,6 +439,13 @@ def merge_resolved(errors):
             invalid_ids.add(r["error_id"])
         if r.get("dismissed") and r.get("error_id"):
             dismissed_ids.add(r["error_id"])
+        if (r.get("resolved") or r.get("invalid") or r.get("dismissed")) and r.get("error_id"):
+            if r.get("cause") or r.get("artifact"):
+                close_info[r["error_id"]] = {
+                    "close_cause": r.get("cause") or "",
+                    "artifact": r.get("artifact") or "",
+                    "closed_at": r.get("ts") or "",
+                }
     for e in errors:
         e["resolved"] = e.get("error_id") in resolved_ids
         e["attended"] = e.get("error_id") in attended_ids
@@ -406,6 +453,9 @@ def merge_resolved(errors):
         e["invalid"] = e.get("error_id") in invalid_ids
         e["dismissed"] = e.get("error_id") in dismissed_ids
         e["replayable"] = bool(e.get("problem"))
+        info = close_info.get(e.get("error_id"))
+        if info:
+            e.update(info)
     return errors
 
 

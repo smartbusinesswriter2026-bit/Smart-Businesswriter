@@ -604,12 +604,18 @@
             </div>
             <div id="arStatus" class="code" style="min-height:64px;margin:12px 0;">Status: idle</div>
             <div class="stat-grid">
-              <div class="stat accent"><div class="label">Errors closed %</div><div class="value" id="arMetric">—</div></div>
-              <div class="stat"><div class="label">Best closed %</div><div class="value" id="arBest">—</div></div>
-              <div class="stat"><div class="label">Experiments</div><div class="value" id="arExps">0</div></div>
+              <div class="stat accent"><div class="label">Causes fixed %</div><div class="value" id="arMetric">—</div></div>
+              <div class="stat"><div class="label">Best fixed %</div><div class="value" id="arBest">—</div></div>
+              <div class="stat"><div class="label">Fixes tried</div><div class="value" id="arExps">0</div></div>
               <div class="stat"><div class="label">Kept / reverted</div><div class="value" id="arKept" style="font-size:20px;">0 / 0</div></div>
             </div>
+            <p style="margin:12px 0 0;color:#667;font-size:13px;">A cause counts as fixed only when a durable change was written (a vocabulary rule, a golden case, a refreshed case expectation or a reviewed code change). A replay that passes once closes an instance, not the cause.</p>
           </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Cause ledger</h2><p>What broke, what was fixed, and what came back after the fix.</p></div>
+              <button class="btn" id="arCausesRefresh">Refresh</button></div>
+          <div class="card-body"><div id="arCauses"></div></div>
         </div>
         <div class="card">
           <div class="card-head"><div><h2>Experiment history</h2><p>What the loop tried, what it kept and why.</p></div></div>
@@ -2531,16 +2537,48 @@ async function loadAutoresearch() {
   const container = document.getElementById('arHistory');
   if (r2.status === 200 && Array.isArray(r2.data.experiments)) {
     if (!r2.data.experiments.length) { container.innerHTML = '<div class="empty">No experiments yet.</div>'; return; }
-    let h = '<table><thead><tr><th>Time</th><th>Outcome</th><th>Baseline</th><th>After</th><th>Error</th></tr></thead><tbody>';
+    let h = '<table><thead><tr><th>Time</th><th>Outcome</th><th>Cause</th><th>Durable fix</th><th>Fixed %</th><th>Error</th></tr></thead><tbody>';
     r2.data.experiments.forEach(e => {
       const cls = (e.outcome === 'kept' || e.outcome === 'applied') ? 'ok' : 'err';
-      h += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + pill(e.outcome||'?', cls) + '</td><td>' + (e.baseline_metric||'\u2014') + '%</td><td>' + (e.after_metric||'\u2014') + '%</td><td style="font-size:11px;">' + escapeHtml((e.error||'').slice(0,60)) + '</td></tr>';
+      h += '<tr><td>' + fmtTs(e.ts) + '</td><td>' + pill(e.outcome||'?', cls) + '</td>'
+        + '<td style="font-size:11px;">' + escapeHtml(e.cause || '\u2014') + '</td>'
+        + '<td style="font-size:11px;">' + escapeHtml(e.artifact || 'none (instance only)') + '</td>'
+        + '<td>' + (e.after_metric !== null && e.after_metric !== undefined ? e.after_metric : '\u2014') + '%</td>'
+        + '<td style="font-size:11px;">' + escapeHtml((e.error||'').slice(0,60)) + '</td></tr>';
     });
     h += '</tbody></table>';
     container.innerHTML = h;
   } else {
     container.innerHTML = '<div class="empty">No experiment history.</div>';
   }
+  loadCauses();
+}
+
+async function loadCauses() {
+  const container = document.getElementById('arCauses');
+  if (!container) return;
+  const r = await apiFetch('/api/ops/causes');
+  if (r.status !== 200) { container.innerHTML = '<div class="empty">Cause ledger unavailable.</div>'; return; }
+  const rows = r.data.causes || [];
+  const s = r.data.summary || {};
+  if (!rows.length) {
+    container.innerHTML = '<div class="empty">No pipeline causes logged yet.</div>';
+    return;
+  }
+  let h = '<div class="at-status" style="margin-bottom:8px;">' + (s.causes || 0) + ' cause(s): '
+    + (s.fixed || 0) + ' fixed, ' + (s.recurring || 0) + ' recurring, '
+    + (s.unfixed || 0) + ' unfixed, ' + (s.closed_instance_only || 0) + ' closed as an instance only.</div>';
+  h += '<table><thead><tr><th>Cause</th><th>Scope</th><th>Times seen</th><th>Durable fix</th><th>After the fix</th><th>Status</th></tr></thead><tbody>';
+  rows.forEach(e => {
+    const cls = e.status === 'fixed' ? 'ok' : ((e.status === 'recurring' || e.status === 'unfixed') ? 'err' : 'warn');
+    h += '<tr><td>' + escapeHtml(e.title || e.cause)
+      + '<div style="font-size:11px;color:#889;">' + escapeHtml(e.cause) + ' \u00b7 needs ' + escapeHtml(e.remedy) + '</div></td>'
+      + '<td>' + escapeHtml(e.scope || '') + '</td><td>' + (e.occurrences || 0) + '</td>'
+      + '<td style="font-size:11px;">' + escapeHtml((e.artifacts || []).join(', ') || '\u2014') + '</td>'
+      + '<td>' + (e.recurrences || 0) + ' recurrence(s)</td><td>' + pill(e.status || 'open', cls) + '</td></tr>';
+  });
+  h += '</tbody></table>';
+  container.innerHTML = h;
 }
 
 document.getElementById('arStart').addEventListener('click', async () => {
@@ -2556,6 +2594,7 @@ document.getElementById('arStop').addEventListener('click', async () => {
 });
 
 document.getElementById('arRefresh').addEventListener('click', loadAutoresearch);
+document.getElementById('arCausesRefresh').addEventListener('click', loadCauses);
 
 
 // Regenerate free-form
@@ -2579,6 +2618,7 @@ loadHealHistory();
 loadPaperTesting();
 loadCases();
 loadUploads();
+loadCauses();
 refreshOverview();
 </script>
 </body>

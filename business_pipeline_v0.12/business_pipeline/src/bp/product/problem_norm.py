@@ -86,6 +86,90 @@ def normalize_problem(text):
     return out, notes
 
 
+def normal_side(name):
+    """The normal balance a statement account carries: 'debit', 'credit', or None.
+
+    Ordered so a contra account wins over its family (`Accumulated Depreciation` is
+    a credit, `Depreciation` is a debit) and a payable wins over its expense word
+    (`Salaries Payable` is a credit, `Salaries Expense` a debit).  It returns None
+    for a label it does not know, so a caller never guesses a side.
+    """
+    low = " " + str(name or "").lower().strip() + " "
+    if any(k in low for k in ("accumulated depreciation", "allowance for",
+                              "provision for bad", "provision for doubtful")):
+        return "credit"
+    if any(k in low for k in ("payable", "unearned", "accrued", "loan", "mortgage",
+                              "bond", "capital", "stock", "retained earnings",
+                              "equity", "revenue", "sales", "income", "earnings",
+                              "gain", "fees earned", "commission")):
+        return "credit"
+    if any(k in low for k in ("cash", "bank", "receivable", "inventory", "equipment",
+                              "furniture", "fixture", "building", "land", "vehicle",
+                              "prepaid", "supplies", "patent", "goodwill",
+                              "investment", "expense", "cost of goods sold", "wages",
+                              "salaries", "rent", "insurance", "utilities",
+                              "advertising", "depreciation", "drawings", "dividends")):
+        return "debit"
+    return None
+
+
+#: `Cash $18,500` / `Cost of Goods Sold $22,500` / `Accounts Receivable 7,200`.
+_NARRATIVE_PAIR = re.compile(
+    r"((?:[A-Z][A-Za-z'\-]*)(?:\s+(?:(?:of|and|for|at|on|the|in)\s+)?[A-Z][A-Za-z'\-]*)*)"
+    r"\s*\$?\s*(\d[\d,]*(?:\.\d+)?)")
+
+
+def narrative_balance(problem):
+    """Debits minus credits of a narrative trial balance, or None if it is not one.
+
+    The deterministic reader only understands a tabular trial balance, so a
+    generated narrative ("Cash $18,500; Accounts Receivable $7,200; ... Prepare a
+    trial balance") walked past the imbalance guard and failed deep in the journal
+    builder, where it was logged as a pipeline defect.  This reads the
+    `Account $amount` pairs and types each one by its normal side.
+
+    Conservative by design: it applies only when the problem asks for a trial
+    balance, carries no adjustments, and every amount-bearing account label is
+    recognised.  Otherwise it returns None and the caller falls back to the reader.
+    """
+    from decimal import Decimal
+
+    text = str(problem or "")
+    low = text.lower()
+    if "trial balance" not in low:
+        return None
+    # Only a problem that *asks for an adjustment* is excluded: an accumulated
+    # depreciation balance is part of a trial balance, not an adjusting entry.  The
+    # broad ADJUSTMENT_CUES list matches "depreciation" and skipped the guard on
+    # exactly the narrative trial balances that needed it.
+    if any(cue in low for cue in ("adjusting entry", "adjusting entries", "adjustment",
+                                  "adjust the", "after adjustment")):
+        return None
+    pairs = _NARRATIVE_PAIR.findall(text)
+    if len(pairs) < 4:
+        return None
+    debits = credits = Decimal("0")
+    used = 0
+    for name, amount in pairs:
+        side = normal_side(name)
+        if side is None:
+            # A date or a heading matched the shape.  Skip it only when it carries
+            # no decimal thousands separator; otherwise the label is genuinely
+            # unknown and the check must not guess.
+            if "," not in amount:
+                continue
+            return None
+        used += 1
+        value = Decimal(amount.replace(",", ""))
+        if side == "debit":
+            debits += value
+        else:
+            credits += value
+    if used < 4:
+        return None
+    return debits - credits
+
+
 def trial_balance_imbalance(problem):
     """Debits minus credits of a problem read as a trial balance, or None if it is not one.
 
@@ -94,6 +178,10 @@ def trial_balance_imbalance(problem):
     The heal loop uses this to tell the two apart before it counts a result against the
     pipeline.  A narrative problem, or one the reader cannot read as a trial balance,
     returns None (it is not classified here).
+
+    A narrative problem that *does* declare a trial balance is read by
+    `narrative_balance`: the tabular reader sees no journal there, and returning 0
+    for "no lines" let an out-of-balance narrative through the guard.
     """
     from decimal import Decimal, InvalidOperation
     try:
@@ -104,29 +192,34 @@ def trial_balance_imbalance(problem):
     # reads it, and the *post-solve* refusal check catches an imbalance there.  Only a
     # pure trial balance is checked here.
     try:
-        if statements._needs_adjustments(problem):
-            return None
+        needs_adjustments = statements._needs_adjustments(problem)
     except Exception:
-        pass
-    try:
-        reading = statements.read_deterministic(problem)
-    except Exception:
-        return None
-    if not isinstance(reading, dict):
-        return None
-    debits = credits = Decimal("0")
-    for entry in reading.get("journal") or []:
-        for line in entry.get("lines") or []:
-            for side in ("debit", "credit"):
-                raw = line.get(side)
-                if not raw:
-                    continue
-                try:
-                    value = Decimal(str(raw).replace(",", ""))
-                except (InvalidOperation, ValueError):
-                    return None
-                if side == "debit":
-                    debits += value
-                else:
-                    credits += value
-    return debits - credits
+        needs_adjustments = False
+    if not needs_adjustments:
+        try:
+            reading = statements.read_deterministic(problem)
+        except Exception:
+            reading = None
+        debits = credits = Decimal("0")
+        lines = 0
+        if isinstance(reading, dict):
+            for entry in reading.get("journal") or []:
+                for line in entry.get("lines") or []:
+                    for side in ("debit", "credit"):
+                        raw = line.get(side)
+                        if not raw:
+                            continue
+                        try:
+                            value = Decimal(str(raw).replace(",", ""))
+                        except (InvalidOperation, ValueError):
+                            return None
+                        lines += 1
+                        if side == "debit":
+                            debits += value
+                        else:
+                            credits += value
+        if lines:
+            return debits - credits
+    # No tabular journal: a narrative trial balance is still a trial balance, so check
+    # its declared pairs rather than calling it balanced because no lines were read.
+    return narrative_balance(problem)

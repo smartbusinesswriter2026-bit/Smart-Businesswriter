@@ -1,6 +1,6 @@
 # Home Ã¢â‚¬â€ map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.130**, **4358 tests**, 2026-11-08. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.131**, **4373 tests**, 2026-11-08. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -144,6 +144,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`CONTINUATION_NOTE.md`](CONTINUATION_NOTE.md) | Hand-off note on the coverage findings and their work orders (WO-1Ã¢â‚¬Â¦) | Update when a work order in it is completed or superseded; do not rewrite past findings |
 | [`TAXONOMY_COVERAGE_EVALUATION.md`](TAXONOMY_COVERAGE_EVALUATION.md) | Evaluation of catalogue-vs-build coverage and the routing defects it measured | Historical measurement: describe as "at the time"; supersede, never rewrite |
 | [`DEBUG_MANUAL.md`](DEBUG_MANUAL.md) | Living debugging and improvement guide for the statements pipeline | Read before any debug, fix or improvement work on the financial statements tile |
+| [`CAUSE_LOOP.md`](CAUSE_LOOP.md) | Living contract for the repair loop: the three scopes, durable artifacts, recurrence ledger and intake guards | Read before changing the self-healing loop, error logging or the admin panel |
 | [`HOME_CHAT_ORCHESTRATION_MANUAL.md`](HOME_CHAT_ORCHESTRATION_MANUAL.md) | Living manual — how the chat orchestrates a paper | Read before adding a framework, computation, or model-assisted step |
 | [`MINIMAX_XLSX_FIX.md`](MINIMAX_XLSX_FIX.md) | Living note on the xlsx fix | Update when the xlsx export changes |
 | [`CASE_AUTHORING_BRIEF.md`](CASE_AUTHORING_BRIEF.md) | Living brief for authoring a stored tile case | Read before writing or changing a case in `qa/cases/` |

@@ -826,6 +826,11 @@ class H(BaseHTTPRequestHandler):
                                         "by_lane": by_lane})
             if _ops_url.path == "/api/ops/autoresearch/status":
                 return self._send(200, product_autoresearch.status())
+            if _ops_url.path == "/api/ops/causes":
+                # The learning view: per pipeline cause, what was fixed with a durable
+                # artifact, and what came back after the fix.
+                from .product import cause_ledger as _cause_ledger
+                return self._send(200, _cause_ledger.summary())
             if _ops_url.path == "/api/ops/autoresearch/experiments":
                 _qs = parse_qs(_ops_url.query)
                 _limit = int((_qs.get("limit") or ["50"])[0])

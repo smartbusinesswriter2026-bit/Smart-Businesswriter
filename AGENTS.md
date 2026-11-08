@@ -35,6 +35,12 @@ Before working on the business writer chat, read:
   on the financial statements tile. Contains the file map, the 5 silent-failure traps, how to add
   schedules/rules/adjustments, the self-healing loop mechanics, API endpoints for the approval UI,
   test commands, and the 20 binding hard rules. A debug model that skips this will drift.
+- `business_pipeline_v0.12/business_pipeline/docs/CAUSE_LOOP.md` — **what counts as a fix in the
+  repair loop.** Read before changing the self-healing loop, error logging or the admin panel. It
+  defines the three scopes (transient, input, pipeline), the remedy registry and durable artifacts,
+  the rule that a passing replay closes an instance and not a cause, the recurrence ledger, and the
+  intake guards (the narrative trial-balance check). Code: `src/bp/product/causes.py`,
+  `cause_ledger.py`, `problem_norm.narrative_balance`; tests: `tests/test_causes.py`.
 
 The chat is the macro conductor: it owns the decision, thesis, framework stack,
 computation blocks and paper plan. Subject modules provide frameworks and

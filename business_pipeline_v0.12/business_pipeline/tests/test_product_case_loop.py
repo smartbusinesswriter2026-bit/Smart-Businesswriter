@@ -320,16 +320,20 @@ class FixerClassificationTest(unittest.TestCase):
         # status line says why instead of the loop retrying forever.
         self.assertIsNone(autoresearch._pick_highest_impact_error(exclude={first, second}))
 
-    def test_the_closed_percentage_counts_a_closed_error(self):
+    def test_the_cause_metric_moves_only_on_a_durable_fix(self):
         from bp.product import ops_log
-        ops_log.log_error("statements", "first failure", problem_text="Problem one")
-        ops_log.log_error("statements", "second failure", problem_text="Problem two")
-        # Nothing closed yet.
-        self.assertEqual(autoresearch._measure_metric(), 0.0)
+        ops_log.log_error("statements", "the model response was not in the expected format",
+                          problem_text="Problem one")
         rows = ops_log.list_errors(limit=10, status="all")
-        ops_log.mark_error_dismissed(rows[0]["error_id"], "transient")
-        # One of two is closed: the metric must move, not stay at zero.
-        self.assertEqual(autoresearch._measure_metric(), 50.0)
+        self.assertEqual(autoresearch._measure_metric(), 0.0)
+        # A replay that passes once closes an instance; it is not a cause fix.
+        ops_log.mark_error_verified(rows[0]["error_id"], "replayed once",
+                                    cause="pipeline.parser_shape", artifact="")
+        self.assertEqual(autoresearch._measure_metric(), 0.0)
+        # A normalizer pinned as a golden case is a durable change.
+        ops_log.mark_error_verified(rows[0]["error_id"], "normalizer pinned",
+                                    cause="pipeline.parser_shape", artifact="golden_case")
+        self.assertEqual(autoresearch._measure_metric(), 100.0)
 
     def test_a_failed_replay_does_not_add_a_second_error(self):
         from bp.product import ops_log
@@ -376,7 +380,7 @@ class FixerClassificationTest(unittest.TestCase):
             "statements",
             "the accounts do not build: entries[0]: entry 'the trial balance as given' "
             "on 2026-12-31 does not balance: debits 10000, credits 8000",
-            problem_text="Cash 10,000\nCapital 8,000 Cr")
+            problem_text="Cash 10,000\nCapital 8,000 Cr", force=True)
         err = ops_log.list_errors(limit=5)[0]
         result = auto_resolve.resolve(err["error_id"])
         self.assertTrue(result["invalid"])
@@ -389,8 +393,10 @@ class FixerClassificationTest(unittest.TestCase):
         self.assertFalse(rec.get("resolved"))
 
     def test_a_timeout_is_retried_then_dismissed(self):
+        # force=True: a transient timeout is no longer written by the pipeline, so the
+        # test records a legacy row to prove the fixer still retries and dismisses it.
         ops_log.log_error("statements", "no answer within 120s",
-                          problem_text="A narrative that times out")
+                          problem_text="A narrative that times out", force=True)
         err = ops_log.list_errors(limit=5)[0]
         result = auto_resolve.resolve(err["error_id"])
         self.assertEqual(result["category"], "timeout")

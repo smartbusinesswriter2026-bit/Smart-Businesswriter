@@ -132,23 +132,16 @@ def _revert_last():
 # ── Metric ─────────────────────────────────────────────────────────────────
 
 def _measure_metric():
-    """Percentage of logged errors that are closed (resolved, invalid or dismissed).
+    """Percentage of pipeline **causes** fixed with a durable artifact.
 
-    The old metric ran four pytest suites every cycle.  That measured the test
-    suite, not the loop's own work, and it could not tell a fixed error from an
-    unrelated green test.  This one reads the error log the loop actually acts
-    on, so a verified fix moves it and a nothing-done cycle does not.
-
-    The denominator is every logged error, not the open list: counting only open
-    rows made a closed error vanish from both the numerator and the denominator,
-    so the panel read "0 % closed" however much the loop repaired.
+    The old metric ran four pytest suites every cycle; the next one counted closed
+    instances, so a dismissal or a one-off replay pass moved it.  Neither says the
+    pipeline learned anything.  This one counts a cause as fixed only when a
+    vocabulary rule, a golden case, a case expectation or a reviewed code change
+    was written (see `cause_ledger`), and it drops back when the class recurs.
     """
-    errors = _ops_log.merge_resolved(_ops_log.list_errors(limit=1000, status="all"))
-    if not errors:
-        return 100.0
-    closed = sum(1 for row in errors
-                 if row.get("resolved") or row.get("invalid") or row.get("dismissed"))
-    return round(100.0 * closed / len(errors), 2)
+    from . import cause_ledger
+    return cause_ledger.summary()["summary"]["fixed_pct"]
 
 
 # ── Problem generation ─────────────────────────────────────────────────────
@@ -214,6 +207,9 @@ def _run_experiment(error):
 
     result = auto_resolve.resolve(error.get("error_id", ""))
     exp["category"] = result.get("category") or ""
+    exp["cause"] = result.get("cause") or ""
+    exp["remedy"] = result.get("remedy") or ""
+    exp["artifact"] = result.get("artifact") or ""
     exp["model"] = result.get("model") or ""
     exp["steps"] = result.get("steps") or []
     exp["verified"] = bool(result.get("verified"))

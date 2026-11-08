@@ -17,6 +17,7 @@ durable because normalisation runs on every solve and every verified fix is
 pinned in `qa/regression/problem_norm_cases.jsonl`, replayed by the
 `regression` test suite.
 """
+from . import causes
 from . import ops_log as _ops_log
 from .problem_norm import normalize_problem
 
@@ -204,6 +205,43 @@ def _try_fix_unbalanced(problem):
     return None
 
 
+def _account_from_error(error_text):
+    """The account label named by a "could not find an account" refusal, or ''."""
+    import re
+    text = str(error_text or "")
+    match = re.search(
+        r"could not find an account\s*(?:named\s*)?['\"\u2018\u201c]([^'\"\u2019\u201d]+)['\"\u2019\u201d]",
+        text, re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    match = re.search(r"could not find an account\s+([A-Za-z][A-Za-z0-9 &'\-]{1,60})",
+                      text, re.IGNORECASE)
+    return match.group(1).strip(" .,:;") if match else ""
+
+
+def _try_fix_account(problem, label):
+    """Add a vocabulary rule for a named account and prove it by replay.
+
+    This is the durable fix for `pipeline.vocabulary`: the label was outside the
+    statement vocabulary, so the reader dropped it.  The rule is typed from the
+    label's own keywords, never from an invented figure, and it is removed again
+    if the replay does not pass.  Returns the label when the fix holds, or ''.
+    """
+    if not problem or not label:
+        return ""
+    rule = _guess_rule(label)
+    if rule is None:
+        return ""
+    from . import tier1_tables
+    tier1_tables.append_rule(rule)
+    model, _escalation = _fix_models()
+    result = _replay_on(problem, model)
+    if result.get("status") == "ok":
+        return label
+    tier1_tables.remove_rule(rule)
+    return ""
+
+
 def _siblings(record, limit=MAX_SIBLINGS):
     """Unresolved errors carrying the identical message but a different id."""
     target = (record.get("error") or "").strip()
@@ -222,12 +260,8 @@ def _siblings(record, limit=MAX_SIBLINGS):
     return out[:limit]
 
 
-def resolve(error_id):
-    """Attempt to resolve one logged error inside the pipeline.
-
-    Returns {resolved, verified, attempted, invalid, model, category,
-    steps, siblings_resolved, reason}.
-    """
+def _resolve_inner(error_id):
+    """The fix ladder itself.  `resolve` wraps it with the cause policy."""
     record = _ops_log.get_error(error_id)
     if record is None:
         return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
@@ -258,14 +292,30 @@ def resolve(error_id):
                 "siblings_resolved": 0,
                 "reason": outcome.get("error") or "the stored tile case still fails"}
 
+    cause_key = causes.classify_cause(record.get("error"), record.get("problem"))["cause"]
+    if cause_key in ("pipeline.journal_human", "pipeline.core_missing",
+                     "pipeline.case_expectation", "pipeline.method_contract"):
+        # The remedy is a human change (a refreshed expectation, a wiring fix, a
+        # decision about abnormal balances).  A replay cannot make it true, so do
+        # not spend two model calls proving the same failing case again.
+        remedy = causes.REMEDIES[cause_key]["remedy"]
+        steps = [{"strategy": "cause has no automated fix", "model": "none",
+                  "outcome": "waiting", "detail": remedy}]
+        _ops_log.log_resolution_attempt(error_id, cause_key, steps, "waiting for owner")
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
+                "steps": steps, "siblings_resolved": 0, "category": cause_key,
+                "artifact": "", "reason": "cause %s needs %s" % (cause_key, remedy)}
+
     if category == "unsupported_instruction":
         _ops_log.mark_error_invalid(
-            error_id, "the problem is not an accounting problem; not a pipeline defect")
+            error_id, "the problem is not an accounting problem; not a pipeline defect",
+            cause="input.not_accounting", artifact="")
         closed = 0
         for sibling in _siblings(record, limit=200):
             _ops_log.mark_error_invalid(
                 sibling.get("error_id"),
-                "same invalid-input class: the problem names no transaction and declares no figure")
+                "same invalid-input class: the problem names no transaction and declares no figure",
+                cause="input.not_accounting", artifact="")
             closed += 1
         return {"resolved": False, "verified": False, "attempted": False, "invalid": True,
                 "category": category, "steps": [], "siblings_resolved": 0,
@@ -292,28 +342,52 @@ def resolve(error_id):
                         "vocabulary (code)", deterministic_ok=True)
                     _ops_log.mark_error_verified(
                         error_id,
-                        "recognised the account %r and the trial balance now balances" % fixed)
+                        "recognised the account %r and the trial balance now balances" % fixed,
+                        cause="pipeline.vocabulary", artifact="tier1_rule")
                     steps = [{"strategy": "recognise a skipped account", "model": "vocabulary (code)",
                               "outcome": "solved", "detail": fixed}]
                     _ops_log.log_resolution_attempt(error_id, category, steps, "solved")
                     return {"resolved": True, "verified": True, "attempted": True,
                             "invalid": False, "category": category, "steps": steps,
                             "model": "vocabulary (code)", "siblings_resolved": 0,
+                            "artifact": "tier1_rule",
                             "reason": "recognised the account %r; the trial balance now balances" % fixed}
             except Exception:
                 pass
         # No recognisable skipped account: the figures are the student's and the tile
-        # correctly refuses rather than plugging.  Mark invalid and close it.
+        # correctly refuses rather than plugging.  Mark invalid and close it.  The
+        # narrative balance guard is the durable change that keeps this shape out of
+        # the queue, so it is named as the artifact.
         _ops_log.mark_error_invalid(
             error_id,
             "the trial balance does not balance; the figures are the student's and the tile "
-            "correctly refuses rather than plugging a difference")
+            "correctly refuses rather than plugging a difference",
+            cause="input.unbalanced", artifact="narrative_balance")
         return {"resolved": False, "verified": False, "attempted": False, "invalid": True,
                 "category": category, "steps": [], "siblings_resolved": 0,
+                "artifact": "narrative_balance",
                 "reason": "the trial balance does not balance — the input is wrong, not the pipeline"}
 
-    if category == "timeout":
-        # A provider timeout is transient: retry the stored problem once on the fix model
+    if category == "unreadable_layout":
+        # A named account label is outside the vocabulary.  Typing it from its own
+        # keywords and replaying is the durable fix; the rule survives the solve.
+        problem = record.get("problem") or ""
+        label = _account_from_error(record.get("error") or "")
+        fixed = _try_fix_account(problem, label)
+        if fixed:
+            steps = [{"strategy": "add a vocabulary rule", "model": "vocabulary (code)",
+                      "outcome": "solved", "detail": fixed}]
+            _ops_log.mark_error_verified(
+                error_id, "recognised the account %r and the problem now solves" % fixed,
+                cause="pipeline.vocabulary", artifact="tier1_rule")
+            _ops_log.log_resolution_attempt(error_id, category, steps, "solved")
+            return {"resolved": True, "verified": True, "attempted": True,
+                    "invalid": False, "category": category, "steps": steps,
+                    "model": "vocabulary (code)", "siblings_resolved": 0,
+                    "artifact": "tier1_rule",
+                    "reason": "recognised the account %r; the problem now solves" % fixed}
+
+    if category == "timeout":        # A provider timeout is transient: retry the stored problem once on the fix model
         # before giving up.  If the provider is back, the retry proves the fix; if it times
         # out again, dismiss it so it stops blocking the queue (a re-run reopens it).
         problem = record.get("problem") or ""
@@ -330,16 +404,19 @@ def resolve(error_id):
                 except Exception:
                     pass
                 _ops_log.mark_error_verified(
-                    error_id, "retried after a provider timeout and passed on %s" % fix_model)
+                    error_id, "retried after a provider timeout and passed on %s" % fix_model,
+                    cause="transient.provider", artifact="")
                 steps = [{"strategy": "retry after timeout", "model": fix_model,
                           "outcome": "solved"}]
                 _ops_log.log_resolution_attempt(error_id, category, steps, "solved")
                 return {"resolved": True, "verified": True, "attempted": True,
                         "invalid": False, "category": category, "steps": steps,
                         "model": fix_model, "siblings_resolved": 0,
+                        "artifact": "",
                         "reason": "retried after a provider timeout and passed on %s" % fix_model}
         _ops_log.mark_error_dismissed(
-            error_id, "the model reader timed out twice; re-run the problem to retry")
+            error_id, "the model reader timed out twice; re-run the problem to retry",
+            cause="transient.provider", artifact="")
         return {"resolved": False, "verified": False, "attempted": bool(problem),
                 "invalid": False, "category": category, "steps": [], "siblings_resolved": 0,
                 "reason": "the model reader timed out — transient, retry by re-running"}
@@ -367,8 +444,13 @@ def resolve(error_id):
         regression_cases.record_case(
             error_id, category, problem, normalized, notes, model,
             deterministic_ok=_deterministic_ok(normalized))
+        # A normalized replay that passes is a durable fix only when the normalizer
+        # actually changed the text (the recorded golden case pins that change).  A
+        # bare replay pass is an instance close; the ledger must not call it a fix.
+        artifact = "golden_case" if notes else ""
         _ops_log.mark_error_verified(
-            error_id, "pipeline replayed the problem on %s and it passed" % model)
+            error_id, "pipeline replayed the problem on %s and it passed" % model,
+            cause="pipeline.parser_shape", artifact=artifact)
 
         closed, sib_steps = 0, []
         for sibling in _siblings(record):
@@ -380,13 +462,14 @@ def resolve(error_id):
             if ok:
                 _ops_log.mark_error_verified(
                     sibling.get("error_id"),
-                    "same failure class verified by the class replay on %s" % model)
+                    "same failure class verified by the class replay on %s" % model,
+                    cause="pipeline.parser_shape", artifact=artifact)
                 closed += 1
         steps.extend(sib_steps)
         _ops_log.log_resolution_attempt(error_id, category, steps, "solved")
         return {"resolved": True, "verified": True, "attempted": True, "invalid": False,
                 "steps": steps, "model": model, "category": category,
-                "siblings_resolved": closed,
+                "siblings_resolved": closed, "artifact": artifact,
                 "reason": "replay passed on %s (%s)%s" % (
                     model, strategy,
                     "; %d sibling error(s) closed" % closed if closed else "")}
@@ -395,3 +478,48 @@ def resolve(error_id):
     return {"resolved": False, "verified": False, "attempted": True, "invalid": False,
             "steps": steps, "siblings_resolved": 0, "category": category,
             "reason": steps[-1]["detail"] if steps else "no remediation applied"}
+
+
+def resolve(error_id):
+    """Attempt to resolve one logged error and report its *cause* honestly.
+
+    Wraps the fix ladder with the cause policy: the result always carries
+    `cause`, `remedy`, `scope` and `artifact`.  A pipeline cause that was not
+    closed with a durable artifact is marked attended with the remedy it still
+    needs, so it waits for the owner instead of being retried forever and never
+    reads as "fixed" just because a replay passed once.
+    """
+    record = _ops_log.get_error(error_id)
+    if record is None:
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
+                "steps": [], "siblings_resolved": 0, "reason": "unknown error_id",
+                "cause": "pipeline.unknown", "remedy": "investigate",
+                "scope": causes.PIPELINE, "artifact": ""}
+    cause = causes.classify_cause(record.get("error"), record.get("problem"))
+    result = _resolve_inner(error_id)
+    result["cause"] = cause["cause"]
+    result["remedy"] = cause["remedy"]
+    result["scope"] = cause["scope"]
+    result.setdefault("artifact", "")
+    if not (result.get("resolved") or result.get("invalid") or result.get("dismissed")):
+        if cause["scope"] == causes.INPUT:
+            # A legacy input record (logged before the intake policy): it is not a
+            # pipeline defect, so it leaves the queue as invalid, never as "fixed".
+            _ops_log.mark_error_invalid(
+                error_id, "%s - not a pipeline defect" % cause["title"],
+                cause=cause["cause"], artifact=cause.get("artifact") or "")
+            result["invalid"] = True
+        elif cause["scope"] == causes.TRANSIENT:
+            _ops_log.mark_error_dismissed(
+                error_id, "transient: %s" % cause["title"],
+                cause=cause["cause"], artifact="")
+            result["dismissed"] = True
+        else:
+            # The ladder could not close it.  Name the remedy rather than leaving a
+            # bare "still failing": the owner should see what kind of change would
+            # fix it, and the loop must not retry it forever.
+            _ops_log.mark_error_attended(
+                error_id, "cause %s needs %s" % (cause["cause"], cause["remedy"]))
+            result["unfixed_cause"] = cause["cause"]
+            result["needed_remedy"] = cause["remedy"]
+    return result

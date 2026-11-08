@@ -1,0 +1,99 @@
+"""Cause ledger: what broke, what was actually fixed, and what came back.
+
+The admin panel used to report "errors closed %", which counted dismissals and
+one-off replay passes as fixes.  A cause is a class of failure; it is **fixed**
+only when a durable artifact was written (a vocabulary rule, a golden case, a
+refreshed case expectation, a reviewed code change) and **recurring** when the
+same class appears after that fix.  This module turns the append-only error log
+into that view without a second store to keep in sync.
+
+Nothing here guesses: a record whose cause cannot be classified is reported as
+`pipeline.unknown`, and an instance close with no artifact never counts as a fix.
+"""
+from . import causes, ops_log
+
+
+def _row_template(cause, meta):
+    return {
+        "cause": cause,
+        "title": meta.get("title", cause),
+        "scope": meta.get("scope", causes.PIPELINE),
+        "remedy": meta.get("remedy", "investigate"),
+        "required_artifact": meta.get("artifact", ""),
+        "occurrences": 0,
+        "instances_closed": 0,
+        "artifacts": [],
+        "first_seen": "",
+        "last_seen": "",
+        "fixed_at": "",
+        "recurrences": 0,
+        "status": "open",
+    }
+
+
+def summary(limit=100000):
+    """Return the per-cause ledger and its totals.
+
+    Every pipeline failure is counted once per logged record.  `fixed_at` is the
+    earliest close that carried an artifact; a later record of the same cause is
+    a recurrence, because the fix did not hold.
+    """
+    rows = ops_log.list_errors(limit=limit, status="all")
+    ledger = {}
+    for record in rows:
+        error_text = record.get("error") or ""
+        cause = record.get("cause")
+        if not cause:
+            cause = causes.classify_cause(error_text, record.get("problem"))["cause"]
+        meta = causes.REMEDIES.get(cause) or causes.REMEDIES["pipeline.unknown"]
+        if meta.get("scope") != causes.PIPELINE:
+            # Input and transient classes are refused before they reach the log;
+            # a legacy record of one is not a cause the loop can fix.
+            continue
+        entry = ledger.setdefault(cause, _row_template(cause, meta))
+        entry["occurrences"] += 1
+        ts = str(record.get("ts") or "")
+        if ts and (not entry["first_seen"] or ts < entry["first_seen"]):
+            entry["first_seen"] = ts
+        if ts and ts > entry["last_seen"]:
+            entry["last_seen"] = ts
+        if record.get("resolved") or record.get("invalid") or record.get("dismissed"):
+            entry["instances_closed"] += 1
+        artifact = record.get("artifact") or ""
+        closed_at = record.get("closed_at") or ""
+        if artifact:
+            if artifact not in entry["artifacts"]:
+                entry["artifacts"].append(artifact)
+            if closed_at and (not entry["fixed_at"] or closed_at < entry["fixed_at"]):
+                entry["fixed_at"] = closed_at
+
+    for entry in ledger.values():
+        if entry["fixed_at"]:
+            entry["recurrences"] = sum(
+                1 for r in rows
+                if (r.get("cause") or causes.classify_cause(
+                        r.get("error") or "", r.get("problem"))["cause"]) == entry["cause"]
+                and str(r.get("ts") or "") > entry["fixed_at"])
+            entry["status"] = "recurring" if entry["recurrences"] else "fixed"
+        elif entry["instances_closed"] >= entry["occurrences"]:
+            entry["status"] = "closed_instance"
+        else:
+            entry["status"] = "unfixed"
+
+    ordered = sorted(ledger.values(),
+                     key=lambda e: ({"recurring": 0, "unfixed": 1, "closed_instance": 2,
+                                     "fixed": 3}.get(e["status"], 4),
+                                    -e["occurrences"]))
+    fixed = sum(1 for e in ordered if e["status"] == "fixed")
+    recurring = sum(1 for e in ordered if e["status"] == "recurring")
+    unfixed = sum(1 for e in ordered if e["status"] == "unfixed")
+    totals = {
+        "causes": len(ordered),
+        "fixed": fixed,
+        "recurring": recurring,
+        "unfixed": unfixed,
+        "closed_instance_only": sum(1 for e in ordered if e["status"] == "closed_instance"),
+        # The only percentage that says the pipeline learned something.
+        "fixed_pct": round(100.0 * fixed / len(ordered), 1) if ordered else 100.0,
+    }
+    return {"causes": ordered, "summary": totals}
