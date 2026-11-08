@@ -12,14 +12,26 @@ never inferred.  The chat never writes a fact, a source or a number of its own.
 
 import dataclasses
 import datetime
+import html
+import io
 import json
 import os
 import re
+import subprocess
+import tempfile
 import time
+import zipfile
 from decimal import Decimal, InvalidOperation
 from concurrent.futures import ThreadPoolExecutor, wait
 
 from . import audit as audit_mod, capabilities, council, docx, framework_profiles, framework_registry, guard, instruction_reading, length as length_mod, matrix, paper, paper_contract, paper_families, plan_proposal, project_plan as project_plan_mod, prose, retrieval, rubric as rubric_reader, verify, writing
+from . import business_plan as plan_builder
+from . import business_plan_sections
+from . import business_plan_paper as plan_paper
+from . import business_plan_workbook
+from . import profile_writer
+from . import spreadsheets
+from . import declared as declared_reader
 
 FORMAT = "bp-chat/1"
 
@@ -754,8 +766,16 @@ def _now():
 
 
 def _clean(value, limit=2000):
-    text = re.sub(r"\s+", " ", str(value or "")).strip()
-    return text[:limit]
+    """Trim a brief without destroying its line structure.
+
+    A table row is a line.  Collapsing every newline into a space turned a
+    startup budget into one long sentence, so the structural readers (the plan
+    reader, a trial balance) could no longer see a table at all.  Spaces inside a
+    line are still collapsed; the line breaks stay.
+    """
+    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n")
+    lines = [line.strip() for line in text.split("\n")]
+    return "\n".join(line for line in lines if line)[:limit]
 
 
 def _fit(brief, framework="none"):
@@ -978,7 +998,10 @@ def accept_plan(state, framework=None, words=None, style=None):
     for key in (FRAMEWORKS[framework].get("inputs") if framework != "none" else []) or []:
         answers.setdefault(key, [])
     state["answers"] = answers
-    state["plan"] = _plan(state)
+    if not ((state.get("profile") or "") in (PROFILE_BUSINESS_PLAN, PROFILE_FEASIBILITY_STUDY,
+                                             PROFILE_MARKETING_PLAN, PROFILE_PROJECT_PROPOSAL,
+                                             PROFILE_PROJECT_PLAN) and state.get("plan")):
+        state["plan"] = _plan(state)
     state["stage"] = "plan"
     state["questions"] = []
     state["question_index"] = 0
@@ -987,11 +1010,354 @@ def accept_plan(state, framework=None, words=None, style=None):
 
 
 def run_plan(state, framework=None, words=None, style=None):
-    """Accept, confirm and research the plan in one action."""
+    """Accept, confirm, research and draft in one action."""
     state = accept_plan(state, framework=framework, words=words, style=style)
     state = confirm_plan(state)
-    state = research(state)
+    keys = [row.get("key") for row in (state.get("selection") or {}).get("selected") or []]
+    if "business_plan" not in keys:
+        state = research(state)
+    state = draft(state, accepted_ids=[item.get("id") for item in state.get("evidence") or []
+                                       if item.get("id")],
+                  implications=_silent_implications(state) if "business_plan" not in keys else "",
+                  style=(state.get("answers") or {}).get("style"))
+    state["paper"] = paper_view(state)
     return state
+
+
+#: Sentences that report a missing input rather than a finding.  They are not
+#: printed: the paper simply does not make the claim.
+GAP_LINE = re.compile(
+    r"(not stated|does not state|named as a gap|no retrieved evidence|not supplied|"
+    r"not available|no market data|no management claim|names no|is a gap|"
+    r"not computed|to be registered|to be attached|not provided|does not include|"
+    r"not include|not reported|no data)", re.I)
+
+
+def paper_view(state):
+    """Only the paper: sections and lines that can be printed, nothing else."""
+    draft = state.get("draft") or {}
+    sections = []
+    for heading, lines in draft.get("sections") or []:
+        if str(heading).strip().lower() in ("gaps", "gaps and limitations"):
+            continue
+        clean = []
+        for line in lines or []:
+            text = re.sub(r"\s+", " ", str(line or "")).strip()
+            if text and not GAP_LINE.search(text):
+                clean.append(text)
+        if clean:
+            sections.append([str(heading), clean])
+    computations = state.get("computations") or {}
+    record = (computations.get("business_plan") or {}).get("result") or {}
+    has_tables = any("|" in str(line) for _heading, lines in sections for line in lines)
+    return {
+        "title": draft.get("title") or "Paper",
+        "sections": sections,
+        "has_workbook": bool(record) or has_tables,
+        "style": draft.get("style") or "apa",
+        "words": sum(len(line.split()) for _heading, lines in sections for line in lines),
+    }
+
+
+def _silent_implications(state):
+    claims = [str(item.get("claim") or "").strip()
+              for item in state.get("evidence") or [] if item.get("claim")]
+    if claims:
+        return "The evidence indicates: " + " ".join(claims[:2])
+    return "The paper reports the figures and findings recorded in the case."
+
+
+PROFILE_FINANCE_SECTION = {
+    "marketing_plan": "Budget and Projections",
+    "feasibility_study": "Financial Feasibility",
+    "project_proposal": "Budget and Financial Plan",
+}
+
+
+def _profile_financials(brief):
+    """A plan record when the brief carries the tables the core can compute."""
+    try:
+        reading = declared_reader.read(brief)
+        if not declared_reader.is_business_plan(brief, reading):
+            return None
+        record = plan_builder.solve(reading, "")
+        return record if record.get("statements") else None
+    except Exception:
+        return None
+
+
+def _finance_lines(record):
+    sections = dict(plan_paper.sections(record))
+    lines = []
+    for heading in ("Financial summary", "Sales forecast", "Pro forma (Years 1-3)",
+                    "Break-even", "Returns", "Sensitivity"):
+        lines.extend(sections.get(heading) or [])
+    return lines[:80]
+
+
+def silent(state, framework=None, words=None, style=None):
+    """Run the whole pipeline and return only the paper view."""
+    state = accept_plan(state, framework=framework or state.get("framework") or "none",
+                        words=words, style=style)
+    state = confirm_plan(state)
+    keys = [row.get("key") for row in (state.get("selection") or {}).get("selected") or []]
+    if "business_plan" not in keys:
+        state = research(state)
+    state = draft(state, accepted_ids=[item.get("id") for item in state.get("evidence") or []
+                                       if item.get("id")],
+                  implications=_silent_implications(state) if "business_plan" not in keys else "",
+                  style=(state.get("answers") or {}).get("style"))
+    profile = state.get("profile") or ""
+    if profile in profile_writer.PROFILES:
+        expanded = profile_writer.write(state, state.get("brief"), profile)
+        if expanded:
+            state["draft"] = expanded
+        record = _profile_financials(state.get("brief") or "")
+        if record:
+            name = ((record.get("reading") or {}).get("fields") or {}).get("business.name")
+            if name and state.get("draft"):
+                state["draft"]["title"] = profile.replace("_", " ").title() + " — " + str(name)
+            state.setdefault("computations", {})["business_plan"] = {
+                "ok": True, "method": "business_plan", "inputs": {},
+                "result": record, "from": {}}
+            heading = PROFILE_FINANCE_SECTION.get(profile)
+            if heading:
+                lines = _finance_lines(record)
+                if lines:
+                    sections = [pair for pair in state["draft"].get("sections") or []
+                                if pair[0] != heading]
+                    order = list(profile_writer.PROFILES[profile]["sections"])
+                    position = order.index(heading) if heading in order else len(sections)
+                    sections.insert(min(position, len(sections)), [heading, lines])
+                    state["draft"]["sections"] = sections
+                    state["draft"]["outline"] = [{"heading": h, "level": 1, "lines": l}
+                                                 for h, l in sections]
+    state["paper"] = paper_view(state)
+    state["silent"] = True
+    return state
+
+
+def _paper_numbers(*values):
+    text = json.dumps(values, ensure_ascii=False, default=str)
+    return {token.replace(",", "") for token in re.findall(r"\d+(?:[.,]\d+)*", text)}
+
+
+def _valid_sections(sections, current, allowed):
+    if not isinstance(sections, list) or not sections:
+        return "the model returned no sections"
+    headings = [str(row[0]) for row in sections if isinstance(row, (list, tuple)) and row]
+    if headings != [str(row[0]) for row in current]:
+        return "the model changed the paper's sections"
+    for row in sections:
+        if not isinstance(row, (list, tuple)) or len(row) != 2 or not isinstance(row[1], list):
+            return "the model returned the wrong shape"
+        for line in row[1]:
+            text = str(line or "")
+            if re.search(r"https?://|doi:|www\.", text, re.I):
+                return "the model introduced a link"
+            if "wikipedia" in text.lower():
+                return "the model introduced a blocked source"
+            for token in re.findall(r"\d+(?:[.,]\d+)*", text):
+                if token.replace(",", "") not in allowed:
+                    return "the model introduced a number that is not in the paper"
+    return None
+
+
+def revise(state, instruction):
+    """Apply one change to the paper, or answer a question about it."""
+    text = str(instruction or "").strip()
+    if not text:
+        raise ChatError("Type the change.")
+    paper = state.get("paper") or paper_view(state)
+    if not paper.get("sections"):
+        raise ChatError("There is no paper to revise.")
+    if not prose.available():
+        return state, {"paper": paper,
+                       "message": "A revision needs the model; it is not configured on this server."}
+    if text.endswith("?"):
+        try:
+            answer = prose._call([
+                {"role": "system", "content": "Answer the question in at most two sentences using only "
+                                              "the supplied paper. Do not add a number, a source, a "
+                                              "citation or a fact that is not in the paper."},
+                {"role": "user", "content": json.dumps({"question": text, "paper": paper},
+                                                       ensure_ascii=False)}],
+                timeout=60, max_tokens=600)
+        except Exception:
+            answer = "The paper above contains the recorded figures and sections."
+        return state, {"paper": paper, "message": str(answer).strip()[:600]}
+    current = paper.get("sections") or []
+    allowed = _paper_numbers(current, state.get("computations") or {})
+    try:
+        raw = prose._call([
+            {"role": "system", "content": "You edit one finished paper. Return only JSON of the form "
+                                          "{\"sections\": [[\"Heading\", [\"paragraph\", \"...\"]], ...]}. "
+                                          "Keep every heading, in the same order. Do not add, remove or "
+                                          "rename a section. Use only the numbers, names and sources "
+                                          "already in the paper. Do not add a number, citation, link, "
+                                          "framework or fact. No gap sentences, no 'not stated', no "
+                                          "markdown."},
+            {"role": "user", "content": json.dumps({"instruction": text, "paper": paper},
+                                                   ensure_ascii=False)}],
+            timeout=120, max_tokens=8000)
+        data = prose._parse(raw)
+        sections = data.get("sections")
+        problem = _valid_sections(sections, current, allowed)
+        if problem:
+            raise ValueError(problem)
+        clean = [[str(row[0]), [str(line).strip() for line in row[1] if str(line).strip()]]
+                 for row in sections]
+        clean = [[heading, lines] for heading, lines in clean if lines]
+        state = dict(state)
+        history = list(state.get("paper_history") or [])
+        history.append(paper)
+        state["paper_history"] = history[-20:]
+        state["paper"] = dict(paper, sections=clean)
+        state["draft"] = dict(state.get("draft") or {}, sections=[list(row) for row in clean])
+        state["draft"]["outline"] = [{"heading": heading, "level": 1, "lines": lines}
+                                     for heading, lines in clean]
+        return state, {"paper": state["paper"], "message": ""}
+    except Exception:
+        return state, {"paper": paper,
+                       "message": "I can't make that change without inventing a figure or a source."}
+
+
+def undo(state):
+    """Step back one revision, when there is one."""
+    history = list(state.get("paper_history") or [])
+    if not history:
+        return state, {"paper": state.get("paper") or paper_view(state),
+                       "message": "There is nothing to undo."}
+    previous = history.pop()
+    state = dict(state)
+    state["paper_history"] = history
+    state["paper"] = previous
+    if state.get("draft"):
+        state["draft"] = dict(state["draft"], sections=[list(row) for row in previous.get("sections") or []])
+        state["draft"]["outline"] = [{"heading": heading, "level": 1, "lines": lines}
+                                     for heading, lines in previous.get("sections") or []]
+    return state, {"paper": previous, "message": ""}
+
+
+def paper_pdf(state):
+    """The paper as PDF, or None when Chrome is not installed."""
+    from . import renderers
+
+    chrome = renderers.chrome()
+    if not chrome:
+        return None
+    paper = state.get("paper") or paper_view(state)
+    body = []
+    for heading, lines in paper.get("sections") or []:
+        body.append("<h2>" + html.escape(str(heading)) + "</h2>")
+        for line in lines:
+            body.append("<p>" + html.escape(str(line)) + "</p>")
+    markup = ("<!doctype html><html><head><meta charset='utf-8'><title>" +
+              html.escape(str(paper.get("title") or "Paper")) + "</title><style>"
+              "body{font-family:Georgia,serif;color:#1a1e21;margin:20mm 18mm;font-size:11pt;line-height:1.5}"
+              "h1{font-size:20pt}h2{font-size:13pt;margin:7mm 0 2mm;page-break-after:avoid}"
+              "p{margin:0 0 2mm;break-inside:avoid}@page{size:A4;margin:18mm}</style></head><body>"
+              "<h1>" + html.escape(str(paper.get("title") or "Paper")) + "</h1>" +
+              "".join(body) + "</body></html>")
+    directory = tempfile.mkdtemp(prefix="bp-paper-pdf-")
+    page = os.path.join(directory, "paper.html")
+    target = os.path.join(directory, "paper.pdf")
+    profile = os.path.join(directory, "profile")
+    try:
+        with open(page, "w", encoding="utf-8", newline="\n") as stream:
+            stream.write(markup)
+        subprocess.run(
+            [chrome, "--headless=new", "--disable-gpu", "--hide-scrollbars",
+             "--no-first-run", "--no-default-browser-check", "--disable-extensions",
+             "--disable-background-networking", "--disable-sync", "--disable-dev-shm-usage",
+             "--user-data-dir=" + profile, "--no-pdf-header-footer",
+             "--print-to-pdf=" + target, "file:///" + page.replace("\\", "/")],
+            timeout=180, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if not os.path.exists(target):
+            return None
+        with open(target, "rb") as stream:
+            return stream.read()
+    except Exception:
+        return None
+
+
+def paper_docx(state):
+    paper = state.get("paper") or paper_view(state)
+    blocks = [{"heading": heading, "level": 1, "lines": lines}
+              for heading, lines in paper.get("sections") or []]
+    return docx.render_academic(paper.get("title") or "Paper", blocks,
+                                paper.get("style") or "apa")
+
+
+def paper_workbook(paper):
+    """A workbook from the paper's own table lines, or None when it has none."""
+    sheets = []
+    for heading, lines in paper.get("sections") or []:
+        rows = []
+        for line in lines:
+            text = str(line)
+            if "|" in text:
+                cells = [cell.strip() for cell in text.strip().strip("|").split("|")]
+                if cells:
+                    rows.append(cells)
+        if rows:
+            name = re.sub(r"[^A-Za-z0-9 ]+", " ", str(heading)).strip()[:28] or "Table"
+            sheets.append(business_plan_workbook._sheet(name, rows))
+    if not sheets:
+        return None
+    return spreadsheets.write_xlsx(sheets)
+
+
+def paper_bytes(state, fmt="bundle"):
+    """The paper as Word, Excel, or one ZIP holding the files of this paper alone."""
+    paper = state.get("paper") or paper_view(state)
+    slug = re.sub(r"[^a-z0-9]+", "-", str(paper.get("title") or "paper").lower()).strip("-") or "paper"
+    slug = slug[:70].rstrip("-") or "paper"
+    record = ((state.get("computations") or {}).get("business_plan") or {}).get("result") or {}
+    workbook = (business_plan_workbook.workbook(record, include_checks=False)
+                if record else paper_workbook(paper))
+    fmt = str(fmt or "bundle").lower()
+    if fmt in ("xlsx", "excel", "workbook"):
+        if not workbook:
+            raise ChatError("This paper has no workbook.")
+        return (workbook, slug + ".xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    word = paper_docx(state)
+    word_mime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    if fmt in ("docx", "word"):
+        return word, slug + ".docx", word_mime
+    pdf = paper_pdf(state)
+    if fmt == "pdf":
+        if not pdf:
+            raise ChatError("A PDF needs Chrome; none was found on this machine.")
+        return pdf, slug + ".pdf", "application/pdf"
+    if workbook or pdf:
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as bundle:
+            bundle.writestr(slug + ".docx", word)
+            if workbook:
+                bundle.writestr(slug + "-workbook.xlsx", workbook)
+            if pdf:
+                bundle.writestr(slug + ".pdf", pdf)
+        return buffer.getvalue(), slug + ".zip", "application/zip"
+    return word, slug + ".docx", word_mime
+
+
+def _detect_profile(brief):
+    """The plan a brief asks for, from its own words.  No chooser.
+
+    A business plan is not routed here: the generic conductor recognises its
+    tables and runs the plan service.  These three profiles have their own
+    `_start_plan` shape, so only their explicit names are detected.
+    """
+    text = str(brief or "").lower()
+    if any(cue in text for cue in ("marketing plan", "marketing strategy plan")):
+        return PROFILE_MARKETING_PLAN
+    if any(cue in text for cue in ("feasibility study", "feasibility analysis", "viability study")):
+        return PROFILE_FEASIBILITY_STUDY
+    if any(cue in text for cue in ("project proposal", "grant proposal", "funding proposal")):
+        return PROFILE_PROJECT_PROPOSAL
+    return None
 
 
 def start(brief, subject=None, framework=None, profile=None, level="shs", mode="strict",
@@ -1010,9 +1376,15 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     category_errors = instruction_reading.find_category_errors(brief)
     instruction_slots = instruction_reading.extract_slots(brief)
     instruction = instruction_reading.read_frameworks(brief)
+    try:
+        business_plan = declared_reader.is_business_plan(brief)
+    except Exception:
+        business_plan = False
     if category_errors:
         return _refusal_state(brief, category_errors[0], instruction_slots)
     attached = _read_rubric(rubric) if rubric is not None else None
+    if not (profile or framework):
+        profile = _detect_profile(brief)
     wanted = (profile or framework or "").strip().lower().replace(" ", "_")
     if wanted in (PROFILE_BUSINESS_PLAN, "business_plan", "businessplan", "plan"):
         return _with_rubric(_start_plan(brief, subject, level, mode, words=words), attached)
@@ -1028,7 +1400,11 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     if frameworks:
         if any(item not in FRAMEWORKS for item in frameworks):
             raise ChatError("Choose PESTEL, SWOT, PESTEL + SWOT, Five Forces, Value Chain, Ansoff, VRIO, or Break-even.")
+        framework = frameworks[0]
     else:
+        # No framework is inferred: a framework is used only when the instruction
+        # names one.  An unnamed brief runs without one and the paper follows the
+        # decision and the evidence instead of being forced into a lens.
         framework = (framework or "").strip().lower() or _infer_framework(brief)
         council_result, council_note = None, None
         if council.available():
@@ -1115,7 +1491,8 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
     for key in (FRAMEWORKS[framework].get("inputs") if framework is not None else []) or []:
         answers.setdefault(key, [])
     proposal = plan_proposal.build(brief, instruction, instruction_slots, proposal_archetype,
-                                   framework, framework_choices, answers)
+                                   framework, framework_choices, answers,
+                                   business_plan=business_plan)
     detected_label = ""
     if detected_id:
         try:
@@ -1134,7 +1511,7 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
              "frameworks": [framework] if framework else [],
              "brief": brief, "archetype": resolved_archetype, "paper_contract": None, "audit": None,
              "blocks": None, "evidence_ledger": None, "chart_specs": None, "production_check": None,
-             "created_at": _now(), "updated_at": _now(), "stage": "clarify",
+             "created_at": _now(), "updated_at": _now(), "stage": "plan" if not questions else "clarify",
              "answers": answers, "questions": questions, "question_index": 0,
              "category_errors": [dataclasses.asdict(error) for error in category_errors],
              "slots": [dataclasses.asdict(slot) for slot in instruction_slots],
@@ -1153,9 +1530,12 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         state["plan_figures"] = list(council_result["reading"].get("figures") or [])
         state["plan_models"] = [{"role": "council", "model": council.model_id()}]
     else:
-        selection = capabilities.resolve(brief, framework, answers)
+        selection = capabilities.resolve(brief, framework, answers, business_plan=business_plan)
     _fill_capability_inputs(selection)
     state["selection"] = selection
+    # A plan shown before the questions have been answered still needs its card.
+    if state.get("stage") == "plan" and not state.get("plan"):
+        state["plan"] = _plan(state)
     # Figures the brief already declares are offered as declared inputs; nothing
     # is run until the student asks the core to accept them.
     apply_figures(state)
@@ -1265,14 +1645,21 @@ def apply_figures(state):
     A verified reading carries each figure with the text it came from.  This
     turns those figures into the canonical value the frozen schema expects and
     offers them to the capability whose input they name.  Nothing is computed
-    here: the student still presses Validate and attach, and the core still
-    decides whether the figures are acceptable.  A figure that cannot be read is
-    refused and recorded with its reason, never guessed, and a figure no selected
-    computation needs is recorded as unused rather than dropped silently.
+    here: the plan runs each fully declared capability when it is confirmed, and
+    the core still decides whether the figures are acceptable.  A figure that
+    cannot be read is refused and recorded with its reason, never guessed, and a
+    figure no selected computation needs is recorded as unused rather than
+    dropped silently.
     """
     applied, filings = {}, []
-    figures = [figure for figure in state.get("plan_figures") or [] if isinstance(figure, dict)]
     selected = (state.get("selection") or {}).get("selected") or []
+    if [row.get("key") for row in selected] == ["business_plan"]:
+        # The plan reads the brief's own tables; its figures are not inputs to a
+        # capability, so they are not reported as unused here.
+        state["plan_figures_applied"] = {}
+        state["figure_filings"] = []
+        return {}
+    figures = [figure for figure in state.get("plan_figures") or [] if isinstance(figure, dict)]
     schemas = {row["key"]: _schema_for(row.get("method") or "") for row in selected}
     for figure in figures:
         name = str(figure.get("input") or "")
@@ -1799,9 +2186,35 @@ def _evidence_ledger_for(state):
             "gaps": list(state.get("gaps") or [])}
 
 
+def _auto_run_ready_capabilities(state):
+    """Run the computations the brief already declares; leave only true gaps.
+
+    The brief's figures were applied to the selection when the case started.  A
+    capability with every required input present is run here, so the student does
+    not re-type figures the case already states.  A capability that still misses
+    an input is left unrun and named; it never blocks the plan.
+    """
+    recorded = dict(state.get("computations") or {})
+    for row in list((state.get("selection") or {}).get("selected") or []):
+        key = str(row.get("key") or "")
+        if not key or key in recorded:
+            continue
+        values = {}
+        values.update((state.get("plan_figures_applied") or {}).get(key) or {})
+        values.update((state.get("dependency_inputs") or {}).get(key) or {})
+        try:
+            state = run_capability(state, key, values)
+            recorded = dict(state.get("computations") or {})
+        except ChatError:
+            # A missing figure is a named gap, not a reason to stop the paper.
+            continue
+    return state
+
+
 def confirm_plan(state):
     if state.get("stage") != "plan":
         raise ChatError("There is no plan waiting for confirmation.")
+    state = _auto_run_ready_capabilities(state)
     state["stage"] = "research_ready"
     state["plan_confirmed_at"] = _now()
     state["plan_record"] = _freeze_plan(state)
@@ -1897,6 +2310,10 @@ def _recompute_guard(state):
     problems = []
     recorded = state.get("computations") or {}
     for row in (state.get("selection") or {}).get("selected") or []:
+        if row.get("key") == "business_plan":
+            # The plan is a service that reads the brief's tables; it has no
+            # single frozen method to re-run here.
+            continue
         data = recorded.get(row["key"]) or {}
         if not data.get("ok"):
             continue
@@ -1943,7 +2360,16 @@ def run_capability(state, key, values):
     is stored with the core's own message so the paper can name the gap instead
     of reporting a figure.
     """
-    entry_row = capabilities.entry(key)
+    try:
+        entry_row = capabilities.entry(key)
+    except KeyError:
+        # A tile can exist without a catalogue entry: the tile's method is in the
+        # frozen core and its row is already in the selection.  Use that row rather
+        # than refusing the case.  (This was the "Unknown capability: posthoc" wall.)
+        entry_row = next((row for row in (state.get("selection") or {}).get("selected") or []
+                          if str(row.get("key") or "") == str(key)), None)
+        if entry_row is None:
+            raise
     if not capabilities.carries(state.get("selection"), entry_row["key"]):
         # Fail closed: a capability the paper does not carry is never run, so a
         # figure can never appear in a paper that did not plan for it.
@@ -1951,6 +2377,25 @@ def run_capability(state, key, values):
                         + ". Add it in the plan first.")
     if state.get("stage") not in ("plan", "research_ready", "evidence", "evidence_reviewed", "draft"):
         raise ChatError("Finish the questions before declaring the figures.")
+    if entry_row["key"] == "business_plan":
+        # The plan is a service, not one frozen method: it reads the brief's own tables
+        # and runs the core in the guide's order.  It needs no declared figures.
+        store = state.setdefault("computations", {})
+        try:
+            record = plan_builder.solve(declared_reader.read(state.get("brief") or ""),
+                                        state.get("objective") or "")
+        except Exception as error:
+            store["business_plan"] = {"ok": False, "method": "business_plan", "inputs": {},
+                                      "error": str(error)[:400]}
+            raise ChatError("The business plan could not be solved: " + str(error)[:200])
+        store["business_plan"] = {"ok": True, "method": "business_plan", "inputs": {},
+                                  "result": record, "from": {}}
+        if state.get("stage") != "clarify" and state.get("plan"):
+            # The card is rebuilt with the recorded result so it does not still say
+            # "needed" after the plan has actually run.
+            state["plan"] = _plan(state)
+        state["updated_at"] = _now()
+        return state
     values = values if isinstance(values, dict) else {}
     if isinstance(values.get("values"), dict):
         values = values["values"]
@@ -2328,7 +2773,7 @@ def _available_capabilities(framework, selected):
     chosen = {row["key"] for row in selected or []}
     rows = []
     for key, row in capabilities.ENTRIES.items():
-        if key in chosen or framework not in row["applies_to"]:
+        if key in chosen or (framework and framework != "none" and framework not in row["applies_to"]):
             continue
         rows.append({"key": key, "label": row["label"], "slot": list(row["slot"]),
                      "because": {"rule": "student:added", "quote": ""}})
@@ -2949,22 +3394,14 @@ def research(state):
             reason = ("Research timed out before this dimension returned evidence"
                       if batch.get("timed_out")
                       else "No retrieved source supplied an abstract sentence for this dimension")
-            # A gap is no longer the end of the section: the weak sources the
-            # retriever saw become a labelled background paragraph.  It is not
-            # evidence and it is not cited, but the dimension is not empty.
-            # If the batch carried no orientation (for example, a corpus page
-            # was accepted but its passage had no quotable sentence), ask the
-            # orientation layer directly for this one dimension.
+            # Weak vetted sources the retriever saw become a labelled background
+            # paragraph.  If there are none, the dimension is a named gap; no
+            # encyclopedia or user-generated page is fetched.
             orientation_items = batch.get("orientation") or []
-            if not orientation_items and not batch.get("timed_out"):
-                topic_text = state["answers"].get("decision") or state.get("brief") or ""
-                topic_key = retrieval.source_finder.topic_for_text(topic_text)
-                query = ((topic_key + " " + dimension["key"]) if topic_key
-                         else (dimension.get("query") or ""))
-                orientation_items = retrieval._orientation(query).get("results") or []
-            background.append(_background_entry(dimension, orientation_items, reason))
+            if orientation_items:
+                background.append(_background_entry(dimension, orientation_items, reason))
     if timed_out:
-        notes.append("Research stopped after %d seconds; incomplete dimensions carry background notes." % RESEARCH_DEADLINE)
+        notes.append("Research stopped after %d seconds; incomplete dimensions are named as gaps." % RESEARCH_DEADLINE)
     if notices:
         notes.extend(sorted(notices))
     if dropped:
@@ -3247,8 +3684,31 @@ def _break_even_lines(answers, result=None):
     return lines
 
 
-#: One deterministic formatter per capability: it reads the frozen result and
-#: prints it.  No capability branch, no formula and no default lives in `draft`.
+def _break_even_paper_lines(state, answers):
+    """The break-even section for the paper.
+
+    The draft used to read the raw answers and raise when the figures were not
+    there, which refused the whole paper for one planned computation.  It now reads
+    the stored core result when the computation was run, and otherwise names the gap
+    — the paper is still drafted, and no figure is reported.
+    """
+    data = (state.get("computations") or {}).get("breakeven") or {}
+    if data.get("ok"):
+        try:
+            return _break_even_lines(data.get("inputs") or {}, data.get("result"))
+        except ChatError:
+            pass
+    if data and not data.get("ok"):
+        return ["Break-even was planned, but the declared figures could not be run: "
+                + str(data.get("error") or "the engine refused them")[:200]
+                + " No figure is reported. Declare fixed costs, price per unit and variable cost per unit."]
+    try:
+        return _break_even_lines(answers)
+    except ChatError:
+        return ["Break-even was planned, but the case does not state it as unit figures. "
+                "It needs three declared figures — fixed costs, price per unit and variable cost "
+                "per unit — and the case gives at most a total cost and a ratio. No figure is "
+                "reported; declare the three figures to compute it."]
 #: A capability without a bespoke formatter falls back to `_generic_lines`, which
 #: quotes the recorded output and claims nothing beyond it.
 CAPABILITY_LINES = {"breakeven": lambda row, inputs, result: _break_even_lines(inputs, result),
@@ -5004,6 +5464,13 @@ def _block_lines(state, block):
         return ["This computation was refused: " + str(data.get("error")) + " No figure is reported."]
     result, inputs = data.get("result") or {}, data.get("inputs") or {}
     key = block["key"]
+    if key == "business_plan":
+        lines = []
+        for heading, rows in plan_paper.sections(result):
+            lines.append(heading + ":")
+            lines.extend(rows)
+            lines.append("")
+        return lines
     if key == "frommarket":
         return ["A declared target share of " + _pct_sign(inputs.get("target_share")) + " of a market of "
                 + _fmt_number(inputs.get("market_size")) + " at a price of " + _fmt_number(inputs.get("price"))
@@ -6460,8 +6927,30 @@ def _generic_change_section(state):
     ])])
 
 
+def _plan_implications(state):
+    """The plan's own findings, used as the draft's position when none is typed.
+
+    A business plan's implications are the record's findings: funding, Year 1
+    result, break-even and the checks that failed.  They are copied from the
+    deterministic sections, never written by a model.
+    """
+    block = (state.get("computations") or {}).get("business_plan") or {}
+    record = block.get("result") or {}
+    if not record:
+        return ""
+    sections = dict(business_plan_sections.sections(record))
+    lines = []
+    for heading in ("Executive Summary", "Risk Analysis and Mitigation"):
+        lines.extend(sections.get(heading) or [])
+    return " ".join(str(line).strip() for line in lines if str(line).strip())[:1200]
+
+
 def draft(state, accepted_ids=None, implications="", style=None):
     """Compose the paper, then attach the student's own citations (B-182) and the rubric audit."""
+    if not str(implications or "").strip():
+        keys = [row.get("key") for row in (state.get("selection") or {}).get("selected") or []]
+        if "business_plan" in keys:
+            implications = _plan_implications(state)
     state = _append_declared_sources(_draft_dispatch(state, accepted_ids, implications, style))
     state = _apply_rubric(state)
     try:
@@ -6553,8 +7042,56 @@ def _apply_rubric(state):
     return state
 
 
+def _draft_business_plan(state, accepted_ids=None, implications="", style=None):
+    """The plan's paper: the guide's eleven sections and the recorded tables.
+
+    The plan capability already read the brief and ran the core.  There is no
+    framework paper to compose on top of it, so the draft is the plan paper
+    itself — the same sections the tile renders.
+    """
+    block = (state.get("computations") or {}).get("business_plan") or {}
+    record = block.get("result") or {}
+    if not record:
+        raise ChatError("The business plan has not been solved.")
+    pairs = plan_paper.sections(record)
+    outline = [{"heading": heading, "level": 1, "lines": list(lines)}
+               for heading, lines in pairs]
+    fields = (record.get("reading") or {}).get("fields") or {}
+    name = fields.get("business.name") or "Business plan"
+    draft = {"title": "Business plan — " + str(name), "outline": outline,
+             "sections": [[heading, list(lines)] for heading, lines in pairs],
+             "implications": implications or _plan_implications(state),
+             "style": style or (state.get("answers") or {}).get("style") or "apa",
+             "accepted": [], "missing": [],
+             "words": sum(len(str(line).split()) for _heading, lines in pairs
+                          for line in lines)}
+    state["draft"] = draft
+    state["claim_problems"] = _claim_scan(outline)
+    draft["missing"] = list(state.get("claim_problems") or [])
+    state["chart_specs"] = []
+    state["blocks"] = _plan_blocks(state)
+    try:
+        state["evidence_ledger"] = _evidence_ledger_for(state)
+    except Exception:
+        state["evidence_ledger"] = None
+    try:
+        state["audit"] = audit_mod.audit(
+            state.get("paper_contract"), {"blocks": state["blocks"]},
+            state.get("evidence_ledger"), state.get("computations"), draft,
+            forbidden_terms=["PSE", "PSEi"])
+    except Exception as error:
+        state["audit"] = None
+        state["audit_error"] = str(error)
+    state["stage"] = "draft"
+    state["updated_at"] = _now()
+    return state
+
+
 def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
     """Compose the paper from accepted evidence.  It invents nothing."""
+    keys = [row.get("key") for row in (state.get("selection") or {}).get("selected") or []]
+    if keys == ["business_plan"]:
+        return _draft_business_plan(state, accepted_ids, implications, style)
     if (state.get("profile") or "") == PROFILE_BUSINESS_PLAN:
         return _draft_plan(state, accepted_ids, style)
     if (state.get("profile") or "") == PROFILE_FEASIBILITY_STUDY:
@@ -6697,10 +7234,12 @@ def _draft_dispatch(state, accepted_ids=None, implications="", style=None):
                                               [paper.paragraph(lines)]))
         if framework == "breakeven":
             sections.append(paper.section("Financial Feasibility", paper.H1))
-            sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
+            sections.append(paper.section("Break-even Analysis", paper.H2,
+                                          [paper.paragraph(_break_even_paper_lines(state, answers))]))
         if framework == "five_forces_breakeven":
             sections.append(paper.section("Financial Feasibility", paper.H1))
-            sections.append(paper.section("Break-even Analysis", paper.H2, [paper.paragraph(_break_even_lines(answers))]))
+            sections.append(paper.section("Break-even Analysis", paper.H2,
+                                          [paper.paragraph(_break_even_paper_lines(state, answers))]))
         # A profile-backed framework (leadership, culture, ethics) renders its
         # profile's blocks from the student's own answers.  A part with no answer
         # is a named gap, never filled.

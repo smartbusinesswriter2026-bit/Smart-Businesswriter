@@ -1,3 +1,32 @@
+## 2026-11-09 - [product] Capability fallback, stale cases refreshed, and the error database
+
+**Ask.** Close the remaining open errors, then create a database of mistakes and fixes so
+the growth loop starts with the learning.
+
+**Did.**
+
+- **Capability fallback**: `run_capability` uses the selection row when
+  `capabilities.entry(key)` raises, so a tile whose method is in the frozen core but has no
+  catalogue entry runs instead of refusing with "Unknown capability".  The twelve cases
+  (posthoc, paired, onesample, multicomp, logit, factorial, portfolioval, portfolioperf, scv,
+  salesvar, accounts, abc) now pass.
+- **Stale case expectations refreshed**: renamed/removed method outputs were reconciled in
+  the unemployment, equilibrium and elasticity cases (`participation_rate` ->
+  `labour_force_participation_rate`, `percentage_change_*` -> `pct_change_*`,
+  `price_elasticity_of_demand` -> `absolute_elasticity`, `revenue_N` -> `total_revenue_N`;
+  a removed key is dropped).  `expected_refreshed_at` marks the change.
+- **`_same_number`** accepts a display-rounded expectation (0.0713 for 0.0712986...).
+- **`src/bp/product/error_db.py`** and **`qa/errors/error_registry.jsonl`**: the mistake
+  database.  The registry is the reviewable source (symptom, trigger, fix, artifact, files,
+  tests, avoid); the SQLite cache at `state/error_db.sqlite3` adds the live error log, the
+  cause ledger and the golden cases.  `growth_brief(subject, tile, text)` is what the growth
+  loop reads before it scaffolds a capability.  Routes `/api/ops/error-db`,
+  `/api/ops/error-db/search`, `/api/ops/error-db/rebuild`; the Tools tab has the card.
+- **`docs/CAUSE_LOOP.md`** documents the database.
+
+**Measured.** Open errors 24 -> 0.  The database holds 12 lessons, 290 error records,
+4 causes (1 fixed) and 6 golden cases; search "comma" returns the separator lesson.
+
 ## 2026-11-09 - [product] Generate runs the fix chain; Resolve waits; the loop learns a cause
 
 **Ask.** In Errors & fixes, Generate should be responsive and carry the chain of fixes

@@ -831,6 +831,25 @@ class H(BaseHTTPRequestHandler):
                 # artifact, and what came back after the fix.
                 from .product import cause_ledger as _cause_ledger
                 return self._send(200, _cause_ledger.summary())
+            if _ops_url.path in ("/api/ops/error-db", "/api/ops/error-db/search",
+                                 "/api/ops/error-db/rebuild"):
+                from .product import error_db as _error_db
+                if _ops_url.path.endswith("/rebuild"):
+                    return self._send(200, _error_db.rebuild())
+                _qs = parse_qs(_ops_url.query)
+                _q = ((_qs.get("q") or [""])[0] or "").strip()
+                _limit = int((_qs.get("limit") or ["20"])[0])
+                if _ops_url.path.endswith("/search"):
+                    return self._send(200, {"query": _q,
+                                            "lessons": _error_db.search(_q, limit=_limit)})
+                return self._send(200, {
+                    "summary": _error_db.summary(),
+                    "brief": _error_db.growth_brief(
+                        subject=(_qs.get("subject") or [""])[0],
+                        tile=(_qs.get("tile") or [""])[0],
+                        text=_q, limit=min(_limit, 20)),
+                    "lessons": _error_db.search(_q, limit=_limit),
+                })
             if _ops_url.path == "/api/ops/autoresearch/experiments":
                 _qs = parse_qs(_ops_url.query)
                 _limit = int((_qs.get("limit") or ["50"])[0])
@@ -1052,6 +1071,9 @@ class H(BaseHTTPRequestHandler):
     def do_POST(self):
         self._started = time.monotonic()
         try:
+            if self.path.split("?")[0] == "/api/ops/error-db/rebuild":
+                from .product import error_db as _error_db
+                return self._send(200, _error_db.rebuild())
             if self.path.startswith(product_api.BILLING_ROUTE):
                 return self._send(*product_api.handle("POST", self.path, self._body()))
             if self.path.startswith(product_api.CASE_ROUTE):

@@ -590,6 +590,19 @@
               <div id="hallResults" class="code" style="min-height:80px;max-height:320px;overflow:auto;"></div>
             </div>
           </div>
+          <div class="card">
+            <div class="card-head"><div><h2>Error database</h2><p>Every mistake and the durable fix that closed it. The growth loop reads this before it scaffolds a capability.</p></div></div>
+            <div class="card-body">
+              <div class="row">
+                <label style="flex:1;">Search <input type="text" id="errorDbQuery" placeholder="e.g. comma separator, capability entry, timeout"></label>
+                <button class="btn primary" id="errorDbSearch">Search</button>
+                <button class="btn" id="errorDbRefresh">Rebuild</button>
+              </div>
+              <div id="errorDbSummary" class="at-status"></div>
+              <div id="errorDbResults" class="at-results"></div>
+              <div id="errorDbBrief" class="code" style="min-height:60px;max-height:240px;overflow:auto;margin-top:10px;"></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -750,6 +763,7 @@ document.querySelectorAll('#healTabs button').forEach(btn => {
     document.querySelectorAll('.hpanel').forEach(p => p.classList.remove('active'));
     const target = document.getElementById('hpanel-' + btn.dataset.hpanel);
     if (target) target.classList.add('active');
+    if (btn.dataset.hpanel === 'tools') loadErrorDb();
   });
 });
 
@@ -2580,6 +2594,41 @@ document.getElementById('hallDeepCheck').addEventListener('click', async () => {
   res.scrollTop = res.scrollHeight;
 });
 
+
+/* ── Error database (the growth loop's memory) ── */
+function renderErrorDbResults(rows) {
+  const host = document.getElementById('errorDbResults');
+  if (!host) return;
+  if (!rows.length) { host.innerHTML = '<div class="empty">No matching lesson.</div>'; return; }
+  const body = rows.map(row => '<tr><td>' + escapeHtml(row.id) + '</td><td>' + escapeHtml(row.cause || '')
+    + '</td><td>' + escapeHtml((row.symptom || '').slice(0, 140)) + '</td><td>'
+    + escapeHtml((row.fix || '').slice(0, 160)) + '</td><td>'
+    + escapeHtml((row.avoid || []).join('; ')) + '</td></tr>').join('');
+  host.innerHTML = '<table><thead><tr><th>Lesson</th><th>Cause</th><th>Symptom</th><th>Fix</th><th>Avoid</th></tr></thead><tbody>'
+    + body + '</tbody></table>';
+}
+
+async function loadErrorDb(query) {
+  const url = '/api/ops/error-db' + (query ? '?q=' + encodeURIComponent(query) : '');
+  const r = await apiFetch(url);
+  if (r.status !== 200 || !r.data) return;
+  const s = r.data.summary || {};
+  document.getElementById('errorDbSummary').textContent =
+    (s.lessons || 0) + ' lesson(s), ' + (s.errors || 0) + ' error record(s), '
+    + (s.fixed_causes || 0) + ' / ' + (s.causes || 0) + ' cause(s) fixed, '
+    + (s.golden_cases || 0) + ' golden case(s). ' + (s.db || '');
+  document.getElementById('errorDbBrief').textContent = r.data.brief || '';
+  renderErrorDbResults(r.data.lessons || []);
+}
+
+document.getElementById('errorDbSearch').addEventListener('click', () => {
+  loadErrorDb(document.getElementById('errorDbQuery').value.trim());
+});
+document.getElementById('errorDbRefresh').addEventListener('click', async () => {
+  const r = await apiFetch('/api/ops/error-db/rebuild', { method: 'POST' });
+  if (r.status === 200) toast('Error database rebuilt');
+  loadErrorDb(document.getElementById('errorDbQuery').value.trim());
+});
 
 /* ── Autoresearch ── */
 async function loadAutoresearch() {

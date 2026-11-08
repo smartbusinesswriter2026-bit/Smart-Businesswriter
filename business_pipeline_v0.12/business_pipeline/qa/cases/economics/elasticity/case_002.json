@@ -18,18 +18,13 @@
  "expected": {
   "status": "ok",
   "result": {
-   "percentage_change_quantity": -0.2222,
-   "percentage_change_price": 0.1818,
-   "price_elasticity_of_demand": 1.2222,
-   "revenue_1": 1000.0,
-   "revenue_2": 960.0,
    "revenue_change": -40.0,
-   "price_elasticity": "-1.222222222222222222222222222",
+   "price_elasticity": "-1.2222",
    "absolute_elasticity": "1.222222222222222222222222222",
-   "pct_change_quantity": "-0.2222222222222222222222222222",
-   "pct_change_price": "0.1818181818181818181818181818",
-   "total_revenue_1": "1000",
-   "total_revenue_2": "960",
+   "pct_change_quantity": -0.2222,
+   "pct_change_price": 0.1818,
+   "total_revenue_1": 1000.0,
+   "total_revenue_2": 960.0,
    "elastic": "1",
    "unit_elastic": "0"
   },
@@ -47,5 +42,7 @@
  },
  "created_at": "2026-11-08T05:46:54.394704+00:00",
  "origin": "uploaded",
- "source_file": "elasticity.json"
+ "source_file": "elasticity.json",
+ "_path": "D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\qa\\cases\\economics\\elasticity\\case_002.json",
+ "expected_refreshed_at": "2026-11-09"
 }

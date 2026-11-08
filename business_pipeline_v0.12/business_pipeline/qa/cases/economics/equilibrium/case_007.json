@@ -23,7 +23,6 @@
    "consumer_surplus": 33062.5,
    "producer_surplus": 11020.83,
    "total_surplus": 44083.33,
-   "consumer_minus_producer_surplus": 22041.67,
    "demand_choke_price": "160",
    "supply_floor_price": "6.666666666666666666666666667"
   },
@@ -41,5 +40,7 @@
  },
  "created_at": "2026-11-08T05:47:07.153491+00:00",
  "origin": "uploaded",
- "source_file": "equilibrium.json"
+ "source_file": "equilibrium.json",
+ "_path": "D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\qa\\cases\\economics\\equilibrium\\case_007.json",
+ "expected_refreshed_at": "2026-11-09"
 }

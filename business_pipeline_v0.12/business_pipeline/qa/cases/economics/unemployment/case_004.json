@@ -19,11 +19,10 @@
   "result": {
    "unemployed": 0.0,
    "unemployment_rate": 0.0,
-   "participation_rate": 0.6667,
    "employment_population_ratio": 0.6667,
    "labour_force": "3000",
    "employed": "3000",
-   "labour_force_participation_rate": "0.6666666666666666666666666667"
+   "labour_force_participation_rate": 0.6667
   },
   "contains": [
    "Unemployment and participation",
@@ -39,5 +38,7 @@
  },
  "created_at": "2026-11-08T05:55:11.205384+00:00",
  "origin": "uploaded",
- "source_file": "unemployment.json"
+ "source_file": "unemployment.json",
+ "_path": "D:\\SMART BUSINESSWRITER\\business_pipeline_v0.12\\business_pipeline\\qa\\cases\\economics\\unemployment\\case_004.json",
+ "expected_refreshed_at": "2026-11-09"
 }

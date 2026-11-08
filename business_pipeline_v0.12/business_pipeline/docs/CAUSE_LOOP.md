@@ -105,6 +105,26 @@ A durable fix is usually a gate, not a better repair:
 5. If the remedy is a code change, the loop may **propose** it (`/api/ops/findings/*/propose-code`)
    but never applies it: approval is a human action, and the change ships with a test.
 
+## The error database (the growth loop's memory)
+
+`src/bp/product/error_db.py` turns the learning into something the next loop can read:
+
+- **`qa/errors/error_registry.jsonl`** is the reviewable source.  One line per mistake:
+  `id`, `date`, `scope`, `cause`, `symptom`, `trigger`, `fix`, `artifact`, `files`,
+  `tests`, `avoid`, `subject`, `tile`.
+- **`state/error_db.sqlite3`** is a cache built from the registry plus the live error log,
+  the cause ledger and the golden regression cases.  `rebuild()` regenerates it; it is
+  never the source.
+- **`growth_brief(subject, tile, text)`** returns the lessons that match, with their
+  "avoid" lines and the causes still open.  The growth loop reads this before it
+  scaffolds a new capability, so a method it writes is checked against the mistakes the
+  pipeline already paid for.
+- `/api/ops/error-db` serves the summary and the brief; `/api/ops/error-db/search?q=`
+  searches; `/api/ops/error-db/rebuild` rebuilds.  The Tools tab has the same card.
+
+When a fix is learned, add its line to the registry in the same change that adds the
+test.  A lesson with no test is a claim, not a fix.
+
 ## What this does not do
 
 The loop does not edit code. `autoresearch` replays, writes vocabulary rules and
