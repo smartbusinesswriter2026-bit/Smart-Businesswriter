@@ -10644,25 +10644,34 @@ async function pmOpen() {
   $("#pm-plans").hidden = false;
   $("#pm-check").hidden = true;
   if (pm.plans) { pmRender(); return; }
+  let failure = "";
   try {
     const [plans, config, status] = await Promise.all([
       api("/api/billing/plans"), api("/api/billing/config"), api("/api/billing/status")
     ]);
-    pm.plans = plans;
-    pm.config = config;
+    // A static host answers an unknown path with the page itself, so `api` can hand
+    // back null instead of failing: a catalogue is only a catalogue when it has tiers.
+    pm.plans = plans && plans.tiers ? plans : null;
+    pm.config = config || null;
     pm.current = (status && status.current) || null;
   } catch (err) {
-    // No backend (static host): read the prices from the file the server carries.
+    failure = (err && err.message) ? err.message : String(err);
+  }
+  if (!pm.plans) {
+    // The prices the server carries, published beside the page: one catalogue, two hosts.
     try {
       const r = await fetch("/api/billing/plans.json");
-      if (r.ok) { pm.plans = await r.json(); }
-    } catch (e) { /* fall through */ }
-    if (!pm.plans) {
-      $("#pmgrid").innerHTML = '<p class="pm-note">The pricing API did not answer: ' + esc(err.message) + "</p>";
-      return;
-    }
-    pm.config = { configured: false, missing: [], note: "Pricing is shown from the published catalogue; checkout is not available on this host." };
-    pm.current = null;
+      if (r.ok) pm.plans = await r.json();
+    } catch (e) { /* fall through to the note below */ }
+  }
+  if (!pm.plans || !pm.plans.tiers) {
+    $("#pmgrid").innerHTML = '<p class="pm-note">The pricing catalogue could not be read'
+      + (failure ? ": " + esc(failure) : "") + ".</p>";
+    return;
+  }
+  if (!pm.config) {
+    pm.config = { configured: false, missing: [],
+                  note: "Prices are the published catalogue. Checkout is not available on this host." };
   }
   pmRender();
 }
