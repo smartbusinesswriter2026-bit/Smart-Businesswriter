@@ -444,11 +444,17 @@ Remove any gate and the growth loop stops being sound.
    then lost.
 2. **Scaffold generator.**  Emits skeleton files into `qa/scaffolds/<subject>/<tile>/`: a
    method stub, a capability entry, a preset and a test sketch, all marked `PROVISIONAL` and
-   none wired into the running system.
+   none wired into the running system.  Before it writes anything it calls
+   `error_db.growth_brief(subject, tile, instruction)` and puts that block at the top of the
+   scaffold, so the new method is checked against the mistakes already paid for.
 3. **A triage filter.**  The Validation panel gains `source=capability_gap`, so the backlog
    is "things users asked for that we cannot do yet" rather than a guess.
 4. **A scaffold button.**  "Generate scaffold" on a gap finding writes the skeletons for a
    human to fill in.
+5. **Read the error database.**  `qa/errors/error_registry.jsonl` is the memory; it holds a
+   lesson for every fix (symptom, trigger, fix, artifact, files, tests, avoid).  The growth
+   loop must read it before proposing a method, and add a lesson to it in the same change
+   that adds a test.
 
 The system captures the demand and scaffolds the shape; the human provides the substance.
 
