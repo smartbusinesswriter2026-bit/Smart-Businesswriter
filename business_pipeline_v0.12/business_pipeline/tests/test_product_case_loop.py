@@ -329,6 +329,17 @@ class FixerClassificationTest(unittest.TestCase):
         # status line says why instead of the loop retrying forever.
         self.assertIsNone(autoresearch._pick_highest_impact_error(exclude={first, second}))
 
+    def test_a_legacy_input_record_is_closed_by_the_janitor(self):
+        from bp.product import ops_log
+        ops_log.log_error(
+            "statements",
+            "the journal did not build: closing with abnormal balances needs a human decision",
+            problem_text="Close revenue to retained earnings", force=True)
+        self.assertEqual(autoresearch._close_non_defects(), 1)
+        self.assertEqual(ops_log.list_errors(limit=10), [])
+        merged = ops_log.merge_resolved(ops_log.list_errors(limit=100, status="all"))
+        self.assertTrue(merged[0].get("invalid"))
+
     def test_the_cause_metric_moves_only_on_a_durable_fix(self):
         from bp.product import ops_log
         ops_log.log_error("statements", "the model response was not in the expected format",

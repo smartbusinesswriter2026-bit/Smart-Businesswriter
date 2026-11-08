@@ -146,6 +146,33 @@ def _measure_metric():
 
 # ── Problem generation ─────────────────────────────────────────────────────
 
+def _close_non_defects():
+    """Close legacy input/transient records that the intake policy no longer writes.
+
+    A record logged before the policy (or with a cause that later moved scope) stays
+    in the open list forever because the picker correctly refuses to spend a model
+    call on it.  This janitor marks it invalid or dismissed once, so the admin list
+    is the pipeline's defects and nothing else.  Returns how many it closed.
+    """
+    from . import causes
+    closed = 0
+    rows = _ops_log.merge_resolved(_ops_log.list_errors(limit=1000, status="open"))
+    for record in rows:
+        if causes.is_defect(record.get("error"), record.get("problem")):
+            continue
+        cause = causes.classify_cause(record.get("error"), record.get("problem"))
+        if cause["scope"] == causes.TRANSIENT:
+            _ops_log.mark_error_dismissed(
+                record.get("error_id"), "transient: " + cause["title"],
+                cause=cause["cause"], artifact="")
+        else:
+            _ops_log.mark_error_invalid(
+                record.get("error_id"), "input: " + cause["title"],
+                cause=cause["cause"], artifact=cause.get("artifact") or "")
+        closed += 1
+    return closed
+
+
 def _pick_highest_impact_error(exclude=None):
     """Pick the most frequent/severe open error that is left unattended.
 
@@ -272,6 +299,9 @@ def _loop():
 
     while not _state["stopped"]:
         try:
+            # A legacy input/transient record is not a defect: close it once so the
+            # picker (and the admin list) holds only real pipeline causes.
+            _close_non_defects()
             # Check if all tests pass → stop
             metric = _measure_metric()
             with _lock:
