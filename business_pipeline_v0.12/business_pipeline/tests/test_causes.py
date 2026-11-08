@@ -341,5 +341,54 @@ class DebitCreditTrialBalanceTest(unittest.TestCase):
         self.assertEqual(debit, credit)
 
 
+class LearningFromErrorsTest(unittest.TestCase):
+    """A cause fixed once is not paid for twice.
+
+    The loop's job is to learn a **cause**, not to replay every instance.  This
+    pins the contract: after a durable fix, another open error of the same cause
+    is skipped by the picker and answered without a model call.
+    """
+
+    def setUp(self):
+        import tempfile
+        self.root = tempfile.mkdtemp(prefix="bp-learn-")
+        self.previous = os.environ.get("BP_OPS_LOG")
+        os.environ["BP_OPS_LOG"] = self.root
+
+    def tearDown(self):
+        if self.previous is None:
+            os.environ.pop("BP_OPS_LOG", None)
+        else:
+            os.environ["BP_OPS_LOG"] = self.previous
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_a_fixed_cause_is_skipped_and_not_replayed_again(self):
+        from bp.product import autoresearch
+        ops_log.log_error("statements", "the model response was not in the expected format",
+                          problem_text="Problem one")
+        ops_log.log_error("statements", "could not read this as a journal: bad shape",
+                          problem_text="Problem two")
+        rows = ops_log.list_errors(limit=10)
+        first = next(r["error_id"] for r in rows if "expected format" in r["error"])
+        second = next(r["error_id"] for r in rows if "could not read" in r["error"])
+
+        with mock.patch.object(auto_resolve, "_replay_on", return_value={"status": "ok"}), \
+                mock.patch.object(auto_resolve, "normalize_problem",
+                                  return_value=("normalized problem", ["split inline list"])):
+            fixed = auto_resolve.resolve(first)
+        self.assertTrue(fixed["resolved"])
+        self.assertEqual(fixed["cause"], "pipeline.parser_shape")
+        self.assertEqual(fixed["artifact"], "golden_case")
+
+        # The second error is the same cause and was already open: the picker must
+        # leave it alone, and a direct resolve must not spend a model call.
+        self.assertIsNone(autoresearch._pick_highest_impact_error())
+        with mock.patch.object(auto_resolve, "_replay_on",
+                               side_effect=AssertionError("must not replay a fixed cause")):
+            skipped = auto_resolve.resolve(second)
+        self.assertFalse(skipped["attempted"])
+        self.assertIn("already fixed", skipped["reason"])
+
+
 if __name__ == "__main__":
     unittest.main()

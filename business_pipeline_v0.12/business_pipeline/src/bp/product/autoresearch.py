@@ -370,9 +370,14 @@ def _loop():
                 # on the next cycle.
                 _ops_log.mark_error_attended(error.get("error_id"))
 
-            # Sleep between cycles
+            # Only pause when there is nothing left to fix.  Sleeping after every
+            # error made the panel say "sleeping" while the open count was still
+            # dropping on the next cycle; work that is ready runs back to back.
+            if _pick_highest_impact_error(exclude=attempted) is not None:
+                continue
             with _lock:
-                _state["status_message"] = "sleeping"
+                _state["status_message"] = ("idle - no unattended cause left; the stored case "
+                                            "suite replays in %ds" % interval)
             time.sleep(interval)
 
         except Exception as e:

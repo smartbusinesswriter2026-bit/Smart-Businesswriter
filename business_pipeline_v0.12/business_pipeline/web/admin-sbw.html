@@ -941,6 +941,10 @@ async function decideProposal(pid, action) {
 let currentError = null;
 let workflowProblems = [];
 let workflowResults = [];
+// True while a Generate run (generate -> solve -> propose -> apply -> resolve)
+// is in flight.  Resolve/Dismiss are refused during it so a half-finished run
+// cannot be overtaken by a manual close.
+let healBusy = false;
 
 async function loadErrors() {
   const lane = document.getElementById('errLane').value;
@@ -1146,13 +1150,17 @@ async function solveOneByOne(problems, logEl) {
 }
 
 async function genFromError(errorId, errorText, severity) {
+  if (healBusy) { toast('A Generate run is already in flight — wait for it to finish'); return; }
   // Auto-set problem count based on severity
   const sevCount = { light: 3, moderate: 5, severe: 10 }[severity] || 5;
   document.getElementById('healCount').value = sevCount;
   const count = sevCount;
   currentError = { id: errorId, text: errorText, severity: severity };
   const wfLog = document.getElementById('workflowLog');
+  healBusy = true;
+  document.querySelectorAll('#workflowActions .btn, #workflowLog ~ .row .btn').forEach(b => { b.disabled = true; });
   wfLog.textContent = '[' + (severity||'moderate').toUpperCase() + '] Generating ' + count + ' problems from error: ' + errorText.slice(0, 60) + '…]\n';
+  wfLog.textContent += '[This runs the whole chain: generate → solve → propose → apply → resolve]\n';
   document.getElementById('workflowActions').style.display = 'none';
 
   // Mark attended so the background Karpathy loop skips this error while we work it
@@ -1164,27 +1172,75 @@ async function genFromError(errorId, errorText, severity) {
     });
   }
 
-  const r = await apiFetch('/api/ops/chat/problems-from-error', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ error: errorText, count, difficulty: document.getElementById('healDifficulty').value || 'medium' })
-  });
-  if (r.status === 200) {
+  try {
+    const r = await apiFetch('/api/ops/chat/problems-from-error', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: errorText, count, difficulty: document.getElementById('healDifficulty').value || 'medium' })
+    });
+    if (r.status !== 200) {
+      wfLog.textContent += '[Error: ' + (r.data.error || 'failed') + ']\n';
+      return;
+    }
     workflowProblems = r.data.problems || [];
     wfLog.textContent += '[Generated ' + workflowProblems.length + ' problems]\n';
     workflowProblems.forEach((p, i) => wfLog.textContent += '  ' + (i+1) + '. ' + p + '\n');
 
-    await solveOneByOne(workflowProblems, wfLog);
-
+    // 2. Solve every problem through the pipeline.
+    workflowResults = await solveOneByOne(workflowProblems, wfLog) || [];
+    const failures = workflowResults.filter(x => x.status === 'error' || x.status === 'logged');
+    if (!failures.length) {
+      wfLog.textContent += '[No pipeline failure — nothing to fix]\n';
+    } else {
+      // 3. Ask for improvements on the failures.
+      wfLog.textContent += '[Proposing fixes for ' + failures.length + ' failure(s)…]\n';
+      const impR = await apiFetch('/api/ops/chat/improve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ failures: failures.map(f => ({ problem: f.problem, error: f.error })) })
+      });
+      if (impR.status === 200) {
+        const imps = impR.data.improvements || [];
+        wfLog.textContent += '[Improvements: ' + imps.length + ']\n';
+        imps.forEach((imp, i) => wfLog.textContent += '  ' + (i+1) + '. [' + (imp.type||'rule') + '] ' + (imp.suggestion||'').slice(0,120) + '\n');
+      }
+      // 4. Apply the first pending proposal, held out against the problems just solved.
+      const propR = await apiFetch('/api/cases/statements/proposals');
+      const proposals = (propR.status === 200) ? (propR.data.proposals || []) : [];
+      if (proposals.length) {
+        wfLog.textContent += '[Applying the pending fix…]\n';
+        const heldOut = workflowProblems.slice(0, 3);
+        const healR = await apiFetch('/api/cases/statements/heal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proposal: proposals[0], held_out: heldOut })
+        });
+        if (healR.status === 200 && healR.data.success) {
+          wfLog.textContent += '  Fix applied: ' + (healR.data.reason || 'ok') + '\n';
+        } else {
+          wfLog.textContent += '  Fix rejected: ' + (healR.data.reason || healR.data.error || 'unknown') + '\n';
+        }
+      } else {
+        wfLog.textContent += '[No pending proposal to apply; the failure stays in the queue]\n';
+      }
+      // 5. Re-check the source error: a pass closes it, a fail keeps it open with its cause.
+      if (currentError && currentError.id) {
+        wfLog.textContent += '[Re-checking the source error…]\n';
+        await resolveError(currentError.id, true);
+      }
+    }
     loadErrors();
+    loadHealHistory();
     wfLog.scrollTop = wfLog.scrollHeight;
     document.getElementById('workflowActions').style.display = 'flex';
-  } else {
-    wfLog.textContent += '[Error: ' + (r.data.error || 'failed') + ']\n';
+  } finally {
+    healBusy = false;
+    document.querySelectorAll('#workflowActions .btn, #workflowLog ~ .row .btn').forEach(b => { b.disabled = false; });
   }
 }
 
 async function dismissError(errorId) {
+  if (healBusy) { toast('Wait for the Generate run to finish first, then dismiss'); return; }
   const r = await apiFetch('/api/ops/errors/dismiss', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1198,8 +1254,9 @@ async function dismissError(errorId) {
   }
 }
 
-async function resolveError(errorId) {
-  toast('Pipeline is attempting a fix (flash, then pro)...');
+async function resolveError(errorId, silent) {
+  if (healBusy && !silent) { toast('Wait for the Generate run to finish first, then resolve'); return; }
+  if (!silent) toast('Pipeline is attempting a fix (flash, then pro)...');
   const wfLog = document.getElementById('workflowLog');
   wfLog.textContent += '\n[Resolve requested for ' + errorId + ']\n';
   const r = await apiFetch('/api/ops/errors/resolve', {
@@ -1233,6 +1290,7 @@ async function resolveError(errorId) {
 
 // Workflow actions
 document.getElementById('wfProposeFix').addEventListener('click', async () => {
+  if (healBusy) { toast('Wait for the Generate run to finish first'); return; }
   if (!workflowProblems.length) { toast('Generate problems first'); return; }
   const wfLog = document.getElementById('workflowLog');
   wfLog.textContent += '\n[Proposing fixes for ' + workflowProblems.length + ' problems…]\n';
@@ -1265,6 +1323,7 @@ document.getElementById('wfProposeFix').addEventListener('click', async () => {
 });
 
 document.getElementById('wfApplyFix').addEventListener('click', async () => {
+  if (healBusy) { toast('Wait for the Generate run to finish first'); return; }
   const heldOut = prompt('Enter held-out problem texts (one per line):');
   if (!heldOut) return;
   const texts = heldOut.split('\\n').map(t => t.trim()).filter(Boolean);
@@ -1312,6 +1371,7 @@ document.getElementById('wfRunTests').addEventListener('click', async () => {
 
 // Auto-fix: full loop
 document.getElementById('wfAutoFix').addEventListener('click', async () => {
+  if (healBusy) { toast('Wait for the Generate run to finish first'); return; }
   const wfLog = document.getElementById('workflowLog');
   wfLog.textContent += '\n═══ AUTO-FIX START ═══\n';
   // Step 1: Generate
@@ -2529,7 +2589,10 @@ async function loadAutoresearch() {
     document.getElementById('arStatus').textContent =
       'Status: ' + (d.status_message || 'unknown') + '\n' +
       'Running: ' + d.running + ' | Stopped: ' + d.stopped + '\n' +
-      'Last run: ' + (d.last_run || 'never');
+      'Last run: ' + (d.last_run || 'never') + '\n' +
+      'Note: the open count also falls while the loop is idle — input errors and ' +
+      'provider timeouts are closed as non-defects, and a cause already fixed is not retried. ' +
+      '"idle" means no unattended cause is left to fix.';
     // The causes ledger is the source of the metric (it works when the loop is idle
     // too); loadCauses() sets it at the end of this function.
     document.getElementById('arBest').textContent = d.best_metric !== null ? d.best_metric + '%' : '\u2014';

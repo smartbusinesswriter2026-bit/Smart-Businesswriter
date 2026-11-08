@@ -1,3 +1,29 @@
+## 2026-11-09 - [product] Generate runs the fix chain; Resolve waits; the loop learns a cause
+
+**Ask.** In Errors & fixes, Generate should be responsive and carry the chain of fixes
+automatically; Resolve/Ignore clicked during a Generate should say to wait; and the repair
+loop must not say "sleeping" while the open count drops.
+
+**Did.**
+
+- **Generate** now runs the whole chain in one click: generate -> solve one by one ->
+  propose improvements -> apply the pending proposal held out against the problems just
+  solved -> re-check the source error.  A `healBusy` flag disables the workflow buttons for
+  the duration and is cleared in `finally`.
+- **Resolve / Dismiss / Propose / Apply / Auto-fix** refuse while `healBusy`, with the
+  notification "Wait for the Generate run to finish first".
+- **`autoresearch`** no longer sleeps after every error: it continues immediately when
+  another unattended cause is waiting, and the pause is labelled "idle - no unattended cause
+  left; the stored case suite replays in Ns".  The Autoresearch panel explains that the open
+  count also falls while idle because input/transient records are closed as non-defects and a
+  fixed cause is not retried.
+- **Learning test**: `tests/test_causes.py` now proves that after a durable fix
+  (`golden_case`), another open error of the same cause is skipped by the picker and answered
+  without a replay (no model call).
+
+**Measured.** The picker returns `None` and `resolve` reports "already fixed" for the second
+instance of a fixed cause; `tests/test_causes.py` passes.
+
 ## 2026-11-08 - [product] Fix a cause once: the loop skips what it already fixed
 
 **Ask.** The loop kept re-fixing the same issue, burning credits.  It should fix once,
