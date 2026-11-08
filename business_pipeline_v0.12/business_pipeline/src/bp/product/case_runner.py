@@ -63,7 +63,14 @@ def _open_case_error(case_id, error_text):
 
 
 def _same_number(actual, expected):
-    """Numeric equality with a tolerance for Decimal trailing-digit noise."""
+    """Numeric equality with a tolerance for Decimal trailing-digit noise.
+
+    A stored expectation may be the **displayed** figure ("expected 0.0713" for
+    0.0712986...).  When the expected value is written with a fixed number of
+    decimals, the rounding of the actual to those decimals is accepted; otherwise
+    the comparison is exact to 1e-9.  This is the same rule the paper check uses,
+    so a case written from a rounded screen value does not fail forever.
+    """
     left, right = str(actual), str(expected)
     if left == right:
         return True
@@ -73,6 +80,12 @@ def _same_number(actual, expected):
         return False
     if a == b:
         return True
+    text = right.strip()
+    if "." in text and "e" not in text.lower():
+        decimals = len(text.split(".", 1)[1].rstrip("0")) or 1
+        tol = 0.5 * (10 ** -min(decimals, 6))
+        if abs(a - b) <= tol:
+            return True
     return abs(a - b) <= max(1e-9, abs(b) * 1e-9)
 
 

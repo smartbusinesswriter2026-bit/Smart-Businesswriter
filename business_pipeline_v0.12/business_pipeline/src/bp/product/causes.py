@@ -112,7 +112,7 @@ _RULES = (
     )),
     ("input.incomplete", (
         "does not state:", "declares none of the figures", "does not look like",
-        "declares no figure", "omits the figures",
+        "declares no figure", "omits the figures", "declare the ",
     )),
     ("input.unsupported_group", ("consolidated", "group accounts")),
     ("input.validation", (
