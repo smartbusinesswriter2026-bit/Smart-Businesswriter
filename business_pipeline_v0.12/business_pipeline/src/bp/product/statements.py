@@ -265,6 +265,11 @@ def classify(text):
     import re as _re
     if _re.search(r"\d[\d,]*(?:\.\d+)?\s*(?:Dr|Cr)\.?(?=\s|$|[;,.])", text, _re.I):
         return "trial_balance", "trial balance", "the instruction carries Dr/Cr markers"
+    # A trial balance is also commonly written with the marker in front of the account:
+    # "Debit Cash 12,500; Credit Capital 40,000".  Without this, the adjustment cue wins
+    # and the reader asks for an unadjusted trial balance that is already there.
+    if _re.search(r"\b(?:Dr|Cr|Debit|Credit)\.?\s+[A-Za-z][A-Za-z &.'\-]*\s+\d[\d,]*", text):
+        return "trial_balance", "trial balance", "the instruction marks each account debit or credit"
     for kind, patterns in CUES:
         for pattern in patterns:
             match = re.search(pattern, text, re.I)
@@ -292,9 +297,9 @@ def _norm_label(text):
 
 def _side(text):
     """A Dr/Cr marker anywhere in the row, or '' when the row carries none."""
-    if re.search(r"\bdr\.?\b", text, re.I):
+    if re.search(r"\b(?:dr|debit)\.?\b", text, re.I):
         return "D"
-    if re.search(r"\bcr\.?\b", text, re.I):
+    if re.search(r"\b(?:cr|credit)\.?\b", text, re.I):
         return "C"
     return ""
 
@@ -313,6 +318,20 @@ def place(label):
         if re.search(rule[0], normalised):
             hits.append({"rule": index, "type": rule[1], "section": rule[2], "line": rule[3],
                          "role": rule[4], "activity": rule[5], "contra": rule[6]})
+    if not hits:
+        # A qualifier can sit in front of a known account: "Kitchen Equipment" is
+        # equipment.  Only when the full label matched nothing, try the label with
+        # its leading qualifier removed, then its last word.
+        words = normalised.split()
+        for candidate in (" ".join(words[1:]), words[-1] if words else ""):
+            if len(candidate) < 4:
+                continue
+            for index, rule in enumerate(_rules):
+                if re.search(rule[0], candidate):
+                    hits.append({"rule": index, "type": rule[1], "section": rule[2], "line": rule[3],
+                                 "role": rule[4], "activity": rule[5], "contra": rule[6]})
+            if hits:
+                break
     return {"label": label, "normalised": normalised, "candidates": hits,
             "contested": len(hits) > 1, "placement": hits[0] if hits else None}
 
@@ -351,7 +370,12 @@ def _line_pieces(line):
     a decimal ("5.50") and a dot leader ("Cash ...... 5,000") carry no space after the period and
     are left intact.
     """
-    return [piece.strip() for piece in re.split(r"\.\s+", str(line or "")) if piece.strip()]
+    # Split on sentence/line separators and on a Dr/Cr marker that starts a new
+    # account, so a preamble ending in ": Debit Cash 12,500" does not swallow the
+    # first account into a sentence label.
+    return [piece.strip() for piece in
+            re.split(r";\s*|\.\s+|(?=\b(?:Debit|Credit|Dr|Cr)\.?\s+[A-Z])", str(line or ""))
+            if piece.strip()]
 
 
 def parse_rows(text):
@@ -378,6 +402,8 @@ def parse_rows(text):
             amount = last.group(0)
             label = re.sub(r"\b(dr|cr)\.?\b", " ", re.sub(r"\.{2,}", " ", line[:last.start()]), flags=re.I)
             label = re.sub(r"\b(dr|cr)\.?\b", " ", label, flags=re.I)
+            # A marker in front of the account ("Debit Cash 12,500") is a side, not a name.
+            label = re.sub(r"^\s*(?:debit|credit|dr|cr)\.?\s+", " ", label, flags=re.I)
             # strip tabs, dollar signs and other non-alphanumeric junk left by tabular input
             label = re.sub(r"[\t$]", " ", label)
             # strip parenthetical qualifiers (and anything after an opening paren) before matching

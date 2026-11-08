@@ -29,7 +29,9 @@ def split_inline_accounts(text):
     text = str(text or "").strip()
     if not text or "\n" in text:
         return text
-    parts = [p.strip() for p in re.split(r"[;,]", text) if p.strip()]
+    # Split on a semicolon, or on a comma that is not a thousands separator
+    # ("5,200" is one amount; "Cash 5,000, Capital 5,000" is two accounts).
+    parts = [p.strip() for p in re.split(r";\s*|,(?!\d)", text) if p.strip()]
     if len(parts) < 2 or not all(re.search(r"\d", p) for p in parts):
         return text
     parts[0] = re.sub(r"^(?:the following balances?|trial balance|balances?)[^:]*:\s*",

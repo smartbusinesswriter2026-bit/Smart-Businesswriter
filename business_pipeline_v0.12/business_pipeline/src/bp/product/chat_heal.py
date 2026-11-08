@@ -25,6 +25,7 @@ import os
 import re
 from pathlib import Path
 
+from . import causes as _causes
 from . import ops_log as _ops_log
 
 # ── Model helpers ──────────────────────────────────────────────────────────
@@ -461,10 +462,10 @@ def solve_problems(problems, log_failures=True):
                                 result["gaps"] = retry.get("working", {}).get("missing", []) or []
                         result["gaps"] = result["gaps"] or record.get("working", {}).get("missing", []) or []
                         # Log to error log so it appears in Self-Healing panel.
-                        # A transient provider failure is not a pipeline defect: it is
-                        # retried above and shown in the run log, so it is not written
-                        # to the error list (a burst of 18 timeouts is noise, not 18 bugs).
-                        if log_failures and not _looks_rate_limited(result["error"]):
+                        # Only a pipeline defect belongs there: a transient provider
+                        # failure and the figures the problem itself declares are
+                        # answered to the caller, per docs/CAUSE_LOOP.md.
+                        if log_failures and _causes.is_defect(result["error"], problem):
                             _ops_log.log_error("statements", result["error"], problem_text=problem,
                                                gap_label=result["error"][:80])
             else:
@@ -475,7 +476,7 @@ def solve_problems(problems, log_failures=True):
         except Exception as e:
             result["status"] = "error"
             result["error"] = str(e)[:200]
-            if log_failures and not _looks_rate_limited(result["error"]):
+            if log_failures and _causes.is_defect(result["error"], problem):
                 _ops_log.log_error("statements", str(e)[:200], problem_text=problem)
         results.append(result)
     return results, None

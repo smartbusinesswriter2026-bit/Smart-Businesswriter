@@ -1,3 +1,29 @@
+## 2026-11-08 - [product] Read Debit/Credit trial balances; keep input errors out of the log
+
+**Ask.** Generated problems still failed: "the model could not read this as a journal" /
+"declares none of the figures it needs".
+
+**Did.**
+
+- **`problem_norm.split_inline_accounts`** no longer splits a thousands separator: "Credit
+  Accounts Payable 5,200" stays one amount.  It split on every comma and turned 5,200 into 5
+  and 200, which made a balanced trial balance look unbalanced.
+- **`statements.classify`** treats "Debit Cash 12,500; Credit Capital 40,000" as a trial
+  balance (marker in front), not as an adjustment narrative.
+- **`statements.parse_rows` / `_line_pieces`** split on semicolons and on a marker that
+  starts a new account, and strip a leading Debit/Credit from the label; `_side` reads
+  "Debit"/"Credit" as D/C.
+- **`statements.place`** falls back to the label without its leading qualifier when the full
+  label matches nothing, so "Kitchen Equipment" places as equipment instead of being skipped
+  (the skipped row is what made Harvest Catering look unbalanced).
+- **`chat_heal.solve_problems`** logs a failure only when `causes.is_defect` says it is a
+  pipeline cause, per docs/CAUSE_LOOP.md.  Transient and input failures are answered to the
+  caller and stay out of the error list.
+
+**Measured.** The user's five problems now solve 4/5 (was 0/5).  The one failure is an
+`accounts`-tile narrative whose figures are not in the structured engagement the tile takes;
+that is an input problem, not a pipeline defect, and it is no longer written to the log.
+
 ## 2026-11-08 - [product] Problem generation: drop reasoning fragments, retry when too few
 
 **Ask.** Generate was stuck and returned the model's thinking as problems ("Need ensure...",
