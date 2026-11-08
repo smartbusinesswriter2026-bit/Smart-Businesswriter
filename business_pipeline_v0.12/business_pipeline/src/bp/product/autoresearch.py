@@ -138,8 +138,12 @@ def _measure_metric():
     suite, not the loop's own work, and it could not tell a fixed error from an
     unrelated green test.  This one reads the error log the loop actually acts
     on, so a verified fix moves it and a nothing-done cycle does not.
+
+    The denominator is every logged error, not the open list: counting only open
+    rows made a closed error vanish from both the numerator and the denominator,
+    so the panel read "0 % closed" however much the loop repaired.
     """
-    errors = _ops_log.merge_resolved(_ops_log.list_errors(limit=1000))
+    errors = _ops_log.merge_resolved(_ops_log.list_errors(limit=1000, status="all"))
     if not errors:
         return 100.0
     closed = sum(1 for row in errors

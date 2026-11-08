@@ -320,6 +320,17 @@ class FixerClassificationTest(unittest.TestCase):
         # status line says why instead of the loop retrying forever.
         self.assertIsNone(autoresearch._pick_highest_impact_error(exclude={first, second}))
 
+    def test_the_closed_percentage_counts_a_closed_error(self):
+        from bp.product import ops_log
+        ops_log.log_error("statements", "first failure", problem_text="Problem one")
+        ops_log.log_error("statements", "second failure", problem_text="Problem two")
+        # Nothing closed yet.
+        self.assertEqual(autoresearch._measure_metric(), 0.0)
+        rows = ops_log.list_errors(limit=10, status="all")
+        ops_log.mark_error_dismissed(rows[0]["error_id"], "transient")
+        # One of two is closed: the metric must move, not stay at zero.
+        self.assertEqual(autoresearch._measure_metric(), 50.0)
+
     def test_guess_rule_types_accounts_by_keyword(self):
         self.assertEqual(auto_resolve._guess_rule("Deferred grant")[1], "liability")
         self.assertEqual(auto_resolve._guess_rule("Trade receivable")[1], "asset")
