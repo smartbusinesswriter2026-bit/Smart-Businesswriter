@@ -263,6 +263,18 @@ def classify(text):
     # regardless of what the cue patterns say (account names like "Depreciation expense"
     # can match adjustment cues).
     import re as _re
+    # A journal entry posts a debit and a credit on the same line: "Dr Equipment 3,000
+    # Cr Capital 3,000".  A trial balance has one side per account.  The Dr/Cr rules
+    # below used to claim any text with markers, so a journal-entry list was read as a
+    # trial balance and its second posting to Capital was refused as "two sets of
+    # books".  Two paired lines, or one paired line in a journal cue, is a transactions
+    # problem and goes to the model reader.
+    journal_segments = [part for part in _re.split(r"[;\n]", text)
+                        if len(_re.findall(r"\b(?:Dr|Cr|Debit|Credit)\.?\b", part, _re.I)) >= 2]
+    if len(journal_segments) >= 2 or (
+            journal_segments
+            and _re.search(r"\bjournal\b|\bentries\b|\brecorded\b|\bposted\b", text, _re.I)):
+        return "transactions", "journal entries", "each line posts a debit and a credit"
     if _re.search(r"\d[\d,]*(?:\.\d+)?\s*(?:Dr|Cr)\.?(?=\s|$|[;,.])", text, _re.I):
         return "trial_balance", "trial balance", "the instruction carries Dr/Cr markers"
     # A trial balance is also commonly written with the marker in front of the account:
@@ -539,9 +551,10 @@ def column_lines(text):
             clause = clause.strip()
             if not clause:
                 continue
-            if _ADJUSTMENT_CUE.search(clause):
+            if _ADJUSTMENT_CUE.search(clause) or _NARRATIVE_VERB.search(clause):
                 # An adjustment sentence legitimately carries several figures (a payment and
-                # its months, a rate and a base); it is not a comparative column.
+                # its months, a rate and a base); it is not a comparative column.  A narrative
+                # verb is the same signal: one period's story, not two periods side by side.
                 continue
             without_dates = sper.strip_years(clause)
             matches = MONEY.findall(without_dates)
@@ -1027,6 +1040,11 @@ def derive_balancing_figure(reading, rows):
     never do.
     """
     places = int(reading.get("places") or 2)
+    # A journal (transactions) is not a trial balance: diagnosing its postings fed a
+    # second entry to Capital to the trial-balance check, which refused it as two sets
+    # of books.  The core builds the journal; a trial balance is still diagnosed here.
+    if reading.get("problem_type") == "transactions":
+        return reading
     before = _diagnose(rows, places)
     reading["diagnosis"] = before
     if before["balanced"] or reading.get("problem_type") != "incomplete_records":
@@ -2273,6 +2291,15 @@ _ADJUSTMENT_CUE = re.compile(
     r"\b(prepaid|prepayment|accru\w*|depreciat\w*|amorti[sz]\w*|bad debts?|allowance|"
     r"uncollectible|doubtful|unearned|deferred revenue|interest|tax|physical count|"
     r"inventory count|supplies (?:on hand|counted|remaining)|warranty|shrinkage)\b", re.I)
+
+#: A clause with a narrative verb states transactions or balances, not a comparative column.
+#: "During the year it earned $42,000, incurred $28,000" is one period's story, not two years.
+_NARRATIVE_VERB = re.compile(
+    r"\b(has|had|have|earned|incurred|collected|paid|bought|sold|recorded|received|"
+    r"purchased|provided|reported|remains?|includes?|amounts? to|during the year|"
+    r"invested|contributed|withdrew|deposited|transferred|used|consumed|issued|acquired|"
+    r"valued|charged|rendered|performed|completed|delivered|returned|borrowed|repaid)\b",
+    re.I)
 
 
 def _split_tb_and_adjustments(text):

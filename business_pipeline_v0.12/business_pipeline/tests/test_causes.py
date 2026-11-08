@@ -38,13 +38,16 @@ class CauseClassificationTest(unittest.TestCase):
             ("could not find an account 'Deferred grant'", "pipeline.vocabulary"),
             ("the paper does not contain 'declared inputs'", "pipeline.case_expectation"),
             ("the journal did not build: closing with abnormal balances needs a human decision",
-             "pipeline.journal_human"),
-            ("the statements tile is not attached to the frozen core", "pipeline.core_missing"),
+             "input.closing_balances"),
+            ("the statements tile is not attached to the frozen core", "input.environment"),
             ("case id must be 12 lowercase hex characters", "input.validation"),
             ("this mentions 'consolidated', so it reads as consolidated accounts",
              "input.unsupported_group"),
             ("the instruction does not state: household consumption", "input.incomplete"),
             ("breakeven_units is 100, expected 80", "pipeline.case_expectation"),
+            ("this puts two figures on one line ('During the year it earned $42,000'), "
+             "which is a comparative", "pipeline.parser_shape"),
+            ("The break-even inputs must be numbers.", "input.validation"),
         ]
         for message, expected in table:
             self.assertEqual(causes.classify_cause(message)["cause"], expected, message)
@@ -254,15 +257,27 @@ class FixerArtifactTest(unittest.TestCase):
         self.assertEqual(row["status"], "closed_instance")
 
     def test_an_unfixed_pipeline_cause_names_the_remedy_and_waits(self):
-        ops_log.log_error("statements", "the journal did not build: abnormal balances",
+        ops_log.log_error("statements", "the ledger did something unexpected",
                           problem_text="Cash 1,000\nCapital 900", force=True)
         error_id = ops_log.list_errors(limit=10, status="all")[0]["error_id"]
         with mock.patch.object(auto_resolve, "_replay_on",
                                return_value={"status": "error", "error": "still fails"}):
             result = auto_resolve.resolve(error_id)
         self.assertFalse(result["resolved"])
-        self.assertEqual(result["unfixed_cause"], "pipeline.journal_human")
-        self.assertEqual(result["needed_remedy"], "human_decision")
+        self.assertEqual(result["unfixed_cause"], "pipeline.unknown")
+        self.assertEqual(result["needed_remedy"], "investigate")
+
+    def test_closing_balances_are_an_input_gap_not_a_pipeline_defect(self):
+        ops_log.log_error(
+            "statements",
+            "the journal did not build: closing with abnormal balances needs a human decision",
+            problem_text="Close revenue to retained earnings", force=True)
+        error_id = ops_log.list_errors(limit=10, status="all")[0]["error_id"]
+        with mock.patch.object(auto_resolve, "_replay_on",
+                               return_value={"status": "error", "error": "still fails"}):
+            result = auto_resolve.resolve(error_id)
+        self.assertTrue(result["invalid"])
+        self.assertEqual(result["cause"], "input.closing_balances")
 
     def test_a_legacy_input_record_leaves_as_invalid_not_attended(self):
         ops_log.log_error(

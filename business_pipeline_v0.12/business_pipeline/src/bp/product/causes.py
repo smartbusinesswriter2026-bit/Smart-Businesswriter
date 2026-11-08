@@ -74,15 +74,15 @@ REMEDIES = {
         "artifact": "",
         "title": "A stored tile case expects a value the engine no longer produces",
     },
-    "pipeline.journal_human": {
-        "scope": PIPELINE, "remedy": "human_decision",
+    "input.closing_balances": {
+        "scope": INPUT, "remedy": "ask_for_balances",
         "artifact": "",
-        "title": "Closing entries leave abnormal balances; a human must decide",
+        "title": "Closing entries leave abnormal balances; the pre-closing balances are missing",
     },
-    "pipeline.core_missing": {
-        "scope": PIPELINE, "remedy": "wire_the_core",
+    "input.environment": {
+        "scope": INPUT, "remedy": "start_the_workbench",
         "artifact": "",
-        "title": "The statements tile is not attached to the frozen core",
+        "title": "The workbench was started without the frozen core",
     },
     "pipeline.method_contract": {
         "scope": PIPELINE, "remedy": "fix_the_method",
@@ -104,7 +104,7 @@ _RULES = (
         "timeout", "timed out", "could not reach", "failed to fetch", "no answer within",
         "rate limit", "429", "too many requests", "connection", "provider returned http",
     )),
-    ("pipeline.core_missing", ("not attached to the frozen core", "core is not attached")),
+    ("input.environment", ("not attached to the frozen core", "core is not attached")),
     ("input.unbalanced", ("does not balance", "do not balance", "accounts do not build")),
     ("input.not_accounting", (
         "names no transaction", "not an accounting problem",
@@ -119,19 +119,21 @@ _RULES = (
         "case id must be", "unknown deliverable", "unknown route", "not allowed",
         "is required", "must be one of", "unknown method", "unknown subject",
         "a request object is required", "no sourced price", "no price was stored",
-        "the symbol must be",
+        "the symbol must be", "must be numbers",
     )),
     ("pipeline.case_expectation", (
         "status error, expected", "status needs_input, expected", "expected ok",
         ", expected ", "the paper does not", "the workbook does not",
         "does not show any of the computed values", "declared inputs",
+        "the method returned key(s) the case does not expect",
     )),
     ("pipeline.vocabulary", ("could not find an account",)),
     ("pipeline.parser_shape", (
         "could not read this as a journal", "not in the expected format",
         "try restating as a trial balance", "appears twice", "appears more than once",
+        "puts two figures on one line",
     )),
-    ("pipeline.journal_human", ("journal did not build", "abnormal balances", "human decision")),
+    ("input.closing_balances", ("journal did not build", "abnormal balances", "human decision")),
     ("pipeline.method_contract", ("the method did not return",)),
 )
 

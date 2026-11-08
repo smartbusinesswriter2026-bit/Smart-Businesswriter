@@ -26,9 +26,21 @@ def _row_template(cause, meta):
         "first_seen": "",
         "last_seen": "",
         "fixed_at": "",
+        "fixes": 0,
         "recurrences": 0,
         "status": "open",
     }
+
+
+def _record_cause(record):
+    """The cause a record is counted under, from the current rules.
+
+    The `cause` stored at write time is a snapshot; cause rules change (a new
+    pattern moves a message to the right class), so the ledger classifies from
+    the message rather than trusting a stale key.
+    """
+    return causes.classify_cause(record.get("error") or "",
+                                 record.get("problem"))["cause"]
 
 
 def summary(limit=100000):
@@ -42,9 +54,7 @@ def summary(limit=100000):
     ledger = {}
     for record in rows:
         error_text = record.get("error") or ""
-        cause = record.get("cause")
-        if not cause:
-            cause = causes.classify_cause(error_text, record.get("problem"))["cause"]
+        cause = _record_cause(record)
         meta = causes.REMEDIES.get(cause) or causes.REMEDIES["pipeline.unknown"]
         if meta.get("scope") != causes.PIPELINE:
             # Input and transient classes are refused before they reach the log;
@@ -68,7 +78,8 @@ def summary(limit=100000):
                 entry["fixed_at"] = closed_at
 
     # A cause fix is recorded explicitly (the change lives in the repository), not
-    # inferred from an instance close.  Date the class from that record.
+    # inferred from an instance close.  The **latest** fix dates the class: a cause
+    # fixed, broken and fixed again is fixed now, while its history stays in the log.
     for fix in ops_log.list_cause_fixes():
         entry = ledger.get(fix.get("cause"))
         if entry is None:
@@ -77,15 +88,15 @@ def summary(limit=100000):
         ts = fix.get("ts") or ""
         if artifact and artifact not in entry["artifacts"]:
             entry["artifacts"].append(artifact)
-        if ts and (not entry["fixed_at"] or ts < entry["fixed_at"]):
+        entry["fixes"] = int(entry.get("fixes") or 0) + 1
+        if ts and (not entry["fixed_at"] or ts > entry["fixed_at"]):
             entry["fixed_at"] = ts
 
     for entry in ledger.values():
         if entry["fixed_at"]:
             entry["recurrences"] = sum(
                 1 for r in rows
-                if (r.get("cause") or causes.classify_cause(
-                        r.get("error") or "", r.get("problem"))["cause"]) == entry["cause"]
+                if _record_cause(r) == entry["cause"]
                 and str(r.get("ts") or "") > entry["fixed_at"])
             entry["status"] = "recurring" if entry["recurrences"] else "fixed"
         elif entry["instances_closed"] >= entry["occurrences"]:

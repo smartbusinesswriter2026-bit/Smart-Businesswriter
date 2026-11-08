@@ -141,9 +141,18 @@ class CaseLoopTest(unittest.TestCase):
         with open(case["_path"], "w", encoding="utf-8") as handle:
             json.dump(payload, handle)
 
-    def test_a_missing_expected_key_fails_on_the_extra_computed_key(self):
+    def test_an_extra_computed_key_does_not_fail_a_case(self):
+        # A case pins the keys it names; a new output is not a failure.
         case, payload = self._case_payload()
         del payload["expected"]["result"]["contribution_margin"]
+        self._write(case, payload)
+        outcome = case_runner.run_case(case["id"], log=False)
+        self.assertEqual(outcome["status"], "pass", outcome["error"])
+
+    def test_a_strict_case_still_rejects_an_extra_key(self):
+        case, payload = self._case_payload()
+        del payload["expected"]["result"]["contribution_margin"]
+        payload["expected"]["strict_result"] = True
         self._write(case, payload)
         outcome = case_runner.run_case(case["id"], log=False)
         self.assertEqual(outcome["status"], "fail")

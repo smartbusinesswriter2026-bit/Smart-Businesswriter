@@ -302,7 +302,7 @@ def _resolve_inner(error_id):
         return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
                 "steps": [], "siblings_resolved": 0, "category": cause_key, "cause": cause_key,
                 "artifact": "", "reason": "cause %s already fixed; no model call spent" % cause_key}
-    if cause_key in ("pipeline.journal_human", "pipeline.core_missing",
+    if cause_key in ("input.closing_balances", "input.environment",
                      "pipeline.case_expectation", "pipeline.method_contract"):
         # The remedy is a human change (a refreshed expectation, a wiring fix, a
         # decision about abnormal balances).  A replay cannot make it true, so do

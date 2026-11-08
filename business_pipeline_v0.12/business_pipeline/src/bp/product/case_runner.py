@@ -182,7 +182,11 @@ def _check(case, result):
             problems.append("the method did not return %s" % name)
         elif not _same_number(actual, value):
             problems.append("%s is %s, expected %s" % (name, actual, value))
-    if expected_result:
+    if expected_result and expected.get("strict_result"):
+        # A case pins the keys it names.  A new output key is a richer result, not a
+        # failure: requiring every case to list it made every old case fail whenever a
+        # method gained an output (12 such failures in one day).  A case that wants the
+        # exact key set opts in with "strict_result": true.
         extra = sorted(str(name) for name in computed
                        if not str(name).startswith("_") and name not in expected_result)
         if extra:
