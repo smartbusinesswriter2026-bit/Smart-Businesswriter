@@ -218,20 +218,56 @@ def generate_problems_from_error(error_text, count=5, difficulty="medium"):
     return problems, instruction, err
 
 
+def _looks_like_reasoning(text):
+    """Whether a candidate string is the model's thinking, not a problem.
+
+    A reasoning model can leak its planning into the JSON array: "Need ensure any
+    trial balance we write balances...", "Problem 1: Narrative with GST? Need
+    tax?...".  Those fragments are not problems, so they are dropped before they
+    reach the solver.
+    """
+    low = " " + str(text or "").strip().lower() + " "
+    cues = (
+        "need ", "we need", "i need", "we should", "let's ", "let me ",
+        "output only", "no markdown", "json", "this seems", "vary the format",
+        "ensure ", "must include", "each maybe", "generate problems about",
+        "problem 1:", "problem 2:", "problem 3:", "should include",
+        "use double quotes", "avoid ", "the instruction", "we can ", "could include",
+    )
+    return any(cue in low for cue in cues)
+
+
+def _looks_like_problem(text):
+    """A complete problem: long enough, declares a figure, and asks for something."""
+    value = str(text or "").strip()
+    if len(value) < 40:
+        return False
+    if not any(ch.isdigit() for ch in value):
+        return False
+    if _looks_like_reasoning(value):
+        return False
+    low = value.lower()
+    asks = ("?", "prepare", "compute", "calculate", "determine", "record", "post",
+            "journalize", "journalise", "show", "state", "explain", "reconcile",
+            "identify", "analyse", "analyze", "produce", "build", "find")
+    return any(word in low for word in asks)
+
+
 def _valid_problems(problems):
     """Drop a generated problem that cannot be answered as written.
 
     Two failure classes are fixtures, not pipeline defects: a trial balance whose
     two sides do not agree, and a problem that declares no figure at all (the
     reader then says "names no transaction and declares no figure").  Either is
-    dropped before it reaches the solver and the pass rate.
+    dropped before it reaches the solver and the pass rate.  A reasoning fragment
+    is dropped too: it is not a problem.
     """
     from .problem_norm import trial_balance_imbalance
     import re as _re
     kept = []
     for problem in problems or []:
         text = str(problem or "")
-        if not any(ch.isdigit() for ch in text):
+        if not _looks_like_problem(text):
             continue
         if not any(cue in text.lower() for cue in (
                 "debit", "credit", "balance", "journal", "trial balance", "revenue",
@@ -283,6 +319,9 @@ def generate_problems(instruction, count=5, difficulty="medium"):
         "analysis question or scenario. " + diff_note + " "
         "Vary the format: some as word problems, some as trial balances, some as journal entries, "
         "some as narrative instructions. "
+        "Each item in \"problems\" MUST be a complete, self-contained problem statement with its "
+        "figures written next to their labels; it must never be a note about how to generate "
+        "problems. "
         "A trial balance you write MUST balance: the total debits must equal the total credits. "
         "Check that before you return it. "
         "Return ONLY a JSON object: {\"problems\": [\"problem 1\", \"problem 2\", ...]}. "
@@ -291,18 +330,21 @@ def generate_problems(instruction, count=5, difficulty="medium"):
     user = json.dumps({"instruction": instruction, "count": count, "difficulty": difficulty}, ensure_ascii=False)
     raw = _call_model(models, system, user)
     problems = _valid_problems(_parse_problems(raw, count)) if raw else []
-    if problems:
+    if len(problems) >= min(2, max(1, count)):
         return problems[:count], None
-    # One strict retry: reasoning leaked out and no usable problems came back
+    # One strict retry: reasoning leaked out or too few usable problems came back
     raw2 = _call_model(
         models,
         "You generate test problems. Output ONLY compact JSON like "
-        '{"problems": ["...", "..."]}. No reasoning, no markdown, no commentary. '
+        '{"problems": ["...", "..."]}. Each item must be a complete problem statement with its '
+        "figures, never a note about how to generate problems. "
+        "No reasoning, no markdown, no commentary. "
         "Every trial balance must balance: total debits must equal total credits.",
         user)
-    if raw2 is None:
-        return [], "model call failed"
-    problems = _valid_problems(_parse_problems(raw2, count))
+    if raw2 is not None:
+        more = _valid_problems(_parse_problems(raw2, count))
+        if more:
+            problems = problems + [p for p in more if p not in problems]
     if problems:
         return problems[:count], None
     return [], "could not parse model response (or every generated trial balance was out of balance)"

@@ -1,3 +1,23 @@
+## 2026-11-08 - [product] Problem generation: drop reasoning fragments, retry when too few
+
+**Ask.** Generate was stuck and returned the model's thinking as problems ("Need ensure...",
+"Problem 1: Narrative with GST? Need tax?..."), so every item failed as "names no
+transaction".
+
+**Did.**
+
+- **`chat_heal._looks_like_reasoning` / `_looks_like_problem`**: a candidate must be a
+  complete problem (40+ chars, a figure, and an ask such as prepare/compute/determine, and
+  no planning cue such as "Need ", "Output only", "JSON", "Problem 1:", "Ensure ").
+  Reasoning that leaked into the JSON array is dropped.
+- **`generate_problems`** now retries when fewer than two valid problems survive, and merges
+  the retry's valid problems.  The prompt says each item must be a complete problem
+  statement, never a note about how to generate problems.
+- The existing balance and figure checks still drop invalid fixtures.
+
+**Measured.** A live 3-problem generation returned three real problems (no fragments) in 27s;
+the reasoning shapes from the report are dropped by the filter.
+
 ## 2026-11-08 - [product] Provider timeouts are transient, not error-list noise
 
 **Ask.** Many errors like "the model could not read this as a journal: could not reach the
