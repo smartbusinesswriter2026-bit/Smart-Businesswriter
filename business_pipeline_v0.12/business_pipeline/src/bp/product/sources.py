@@ -1457,6 +1457,10 @@ def _opengo_web(text, sites, limit):
 
 def _deepseek_web(text, sites, limit):
     """DeepSeek Search API ($0.75 per 1,000 successful searches)."""
+    # Disabled by default (cost protection). Set BP_ENABLE_DEEPSEEK=1 (and
+    # BP_DEEPSEEK_API_KEY) to re-enable.
+    if os.environ.get("BP_ENABLE_DEEPSEEK") != "1":
+        return [], {"provider": "deepseek", "skipped": "disabled (BP_ENABLE_DEEPSEEK != 1)"}
     key = os.environ.get("BP_DEEPSEEK_API_KEY")
     if not key:
         return [], {"provider": "deepseek", "skipped": "BP_DEEPSEEK_API_KEY is not set"}

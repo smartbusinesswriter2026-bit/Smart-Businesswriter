@@ -31,6 +31,8 @@ MAX_SIBLINGS = 5
 
 def _fix_models():
     import os
+    if os.environ.get("BP_ENABLE_DEEPSEEK") != "1":
+        return (None, None)
     return (os.environ.get("BP_FIX_MODEL", FIX_MODEL),
             os.environ.get("BP_FIX_ESCALATION_MODEL", ESCALATION_MODEL))
 
@@ -162,6 +164,12 @@ def resolve(error_id):
     strategy = "replay normalized problem" if notes else "replay original problem"
     steps = []
     fix_model, escalation_model = _fix_models()
+    if fix_model is None and escalation_model is None:
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
+                "category": category, "steps": [], "siblings_resolved": 0, "model": None,
+                "reason": "model-based fixing is disabled (BP_ENABLE_DEEPSEEK != 1); "
+                          "set BP_ENABLE_DEEPSEEK=1 to re-enable. Tile-case replay "
+                          "(token-free) is unaffected."}
 
     for model in (fix_model, escalation_model):
         first = _replay_on(problem, model)

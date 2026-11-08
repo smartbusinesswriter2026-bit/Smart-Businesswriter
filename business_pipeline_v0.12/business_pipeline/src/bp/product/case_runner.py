@@ -12,6 +12,7 @@ the failing paper beside it, so a failure can be opened and inspected.
 import json
 import math
 import os
+import random
 import re
 import time
 import uuid
@@ -312,6 +313,21 @@ def run_case(case_id, style="apa", length=1200, log=True):
             "tile": case.get("tile"), "tile_label": case.get("tile_label")}
 
 
+def run_random(subject=None, tile=None, style="apa", length=1200):
+    """Pick one stored case at random and replay it.
+
+    A pile of cases is only useful if the loop can draw from it without the caller
+    naming every id.  This is the one-at-a-time draw the owner asked for; it returns
+    the same shape as ``run_case`` so the page and the loop treat it identically.
+    """
+    cases = case_store.load_cases(subject=subject, tile=tile)
+    if not cases:
+        return {"case_id": None, "status": "missing", "problems": ["no stored cases"],
+                "error": "no stored cases", "bytes": b"", "xlsx": b""}
+    case = random.choice(cases)
+    return run_case(case.get("id"), style=style, length=length)
+
+
 def run_cases(case_ids, style="apa", length=1200, subject=None, generate_count=0):
     """Run the selected cases in one stored run; return the manifest.
 
@@ -364,39 +380,47 @@ def run_cases(case_ids, style="apa", length=1200, subject=None, generate_count=0
             manifest["failed"] += 1
         _write_manifest(run_dir, manifest)
     if int(generate_count or 0) > 0:
-        from . import chat_heal
-        count = min(10, max(1, int(generate_count)))
-        instruction = ("Generate %d realistic test problems for the %s shelf. "
-                       "Each problem must state its declared figures." % (count, subject or "selected"))
-        problems, error = chat_heal.generate_problems(instruction, count, difficulty="medium")
-        if error or not problems:
+        import os as _os
+        if _os.environ.get("BP_ENABLE_DEEPSEEK") != "1":
             manifest["results"].append({"case_id": "generated", "label": "Generated problems",
-                                        "status": "error", "error": error or "no problems generated",
-                                        "duration_ms": 0, "kind": "generated"})
+                                       "status": "error", "error": "problem generation disabled "
+                                       "(BP_ENABLE_DEEPSEEK != 1)", "duration_ms": 0, "kind": "generated"})
             manifest["failed"] += 1
             manifest["completed"] += 1
+            _write_manifest(run_dir, manifest)
         else:
-            results, solve_error = chat_heal.solve_problems(problems)
-            for index, row in enumerate(results):
-                ok = str(row.get("status") or "") not in ("error", "logged")
-                manifest["results"].append({
-                    "case_id": "generated/%d" % (index + 1),
-                    "label": "Generated problem %d" % (index + 1),
-                    "status": "pass" if ok else "fail",
-                    "error": "" if ok else str(row.get("error") or "")[:300],
-                    "duration_ms": 0, "kind": "generated",
-                })
-                manifest["completed"] += 1
-                if ok:
-                    manifest["passed"] += 1
-                else:
-                    manifest["failed"] += 1
-            if solve_error and not results:
+            count = min(10, max(1, int(generate_count)))
+            instruction = ("Generate %d realistic test problems for the %s shelf. "
+                           "Each problem must state its declared figures." % (count, subject or "selected"))
+            problems, error = chat_heal.generate_problems(instruction, count, difficulty="medium")
+            if error or not problems:
                 manifest["results"].append({"case_id": "generated", "label": "Generated problems",
-                                            "status": "error", "error": solve_error[:300],
+                                            "status": "error", "error": error or "no problems generated",
                                             "duration_ms": 0, "kind": "generated"})
                 manifest["failed"] += 1
                 manifest["completed"] += 1
+            else:
+                results, solve_error = chat_heal.solve_problems(problems)
+                for index, row in enumerate(results):
+                    ok = str(row.get("status") or "") not in ("error", "logged")
+                    manifest["results"].append({
+                        "case_id": "generated/%d" % (index + 1),
+                        "label": "Generated problem %d" % (index + 1),
+                        "status": "pass" if ok else "fail",
+                        "error": "" if ok else str(row.get("error") or "")[:300],
+                        "duration_ms": 0, "kind": "generated",
+                    })
+                    manifest["completed"] += 1
+                    if ok:
+                        manifest["passed"] += 1
+                    else:
+                        manifest["failed"] += 1
+                if solve_error and not results:
+                    manifest["results"].append({"case_id": "generated", "label": "Generated problems",
+                                                "status": "error", "error": solve_error[:300],
+                                                "duration_ms": 0, "kind": "generated"})
+                    manifest["failed"] += 1
+                    manifest["completed"] += 1
         _write_manifest(run_dir, manifest)
     if explainers:
         path = os.path.join(run_dir, "explainer.md")

@@ -82,7 +82,9 @@ def _statement_models(tier=None):
     models = llm.from_env(tier=t)
     if models is not None:
         return models
-    if os.environ.get("DEEPSEEK_API_KEY"):
+    # DeepSeek fallback disabled by default (cost protection). Set
+    # BP_ENABLE_DEEPSEEK=1 (and DEEPSEEK_API_KEY) to re-enable.
+    if os.environ.get("BP_ENABLE_DEEPSEEK") == "1" and os.environ.get("DEEPSEEK_API_KEY"):
         if t >= 2:
             try:
                 return llm.Models(llm.DeepSeekProvider("deepseek-reasoner"),
@@ -1145,6 +1147,20 @@ class H(BaseHTTPRequestHandler):
                         length=int(body.get("length") or 1200),
                         subject=body.get("subject"),
                         generate_count=generate_count))
+                except Exception as e:
+                    return self._send(422, {"error": str(e)[:300]})
+            if self.path == "/api/ops/cases/run-random":
+                body = self._body()
+                body = body if isinstance(body, dict) else {}
+                try:
+                    result = product_case_runner.run_random(
+                        subject=body.get("subject"),
+                        tile=body.get("tile"),
+                        style=(body.get("style") or "apa"),
+                        length=int(body.get("length") or 1200))
+                    for key in ("bytes", "xlsx", "explainer"):
+                        result.pop(key, None)
+                    return self._send(200, result)
                 except Exception as e:
                     return self._send(422, {"error": str(e)[:300]})
             if self.path == "/api/ops/papers/batch":

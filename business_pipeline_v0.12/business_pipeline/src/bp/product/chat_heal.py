@@ -92,7 +92,9 @@ def _call_model(models, system, user):
 
 def _call_fallback(system, user, task_label="chat_heal"):
     """Backup call on the fallback model (paid deepseek flash, OpenCode Go)."""
-    import time
+    import os
+    if os.environ.get("BP_ENABLE_DEEPSEEK") != "1":
+        return None
     from .. import llm
     fallback = os.environ.get("BP_LLM_FALLBACK_MODEL", FALLBACK_MODEL)
     if not fallback or fallback == os.environ.get("BP_LLM_MODEL"):
@@ -271,6 +273,8 @@ def _solve_with_fallback(problem):
     retry sends the model reader to the paid fallback on the same provider.
     """
     import os as _os
+    if _os.environ.get("BP_ENABLE_DEEPSEEK") != "1":
+        return None
     from .. import llm as _llm
     from . import statements as stmt_mod
     fallback = _os.environ.get("BP_LLM_FALLBACK_MODEL", FALLBACK_MODEL)

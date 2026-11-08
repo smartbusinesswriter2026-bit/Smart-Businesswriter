@@ -279,8 +279,11 @@ def deep_check(prose_text, evidence_items, decision=''):
     Returns (findings: list[dict], error: str or None).
     """
     from .. import llm
-    # Fall back to DeepSeek if key is available but provider not set
-    if not os.environ.get("BP_LLM_PROVIDER") and os.environ.get("DEEPSEEK_API_KEY"):
+    # Fall back to DeepSeek if key is available but provider not set (disabled by
+    # default; set BP_ENABLE_DEEPSEEK=1 to re-enable).
+    if (not os.environ.get("BP_LLM_PROVIDER")
+            and os.environ.get("BP_ENABLE_DEEPSEEK") == "1"
+            and os.environ.get("DEEPSEEK_API_KEY")):
         os.environ["BP_LLM_PROVIDER"] = "deepseek"
         os.environ.setdefault("BP_LLM_MODEL", "deepseek-chat")
     models = llm.from_env()
