@@ -33,3 +33,14 @@ Sources not saved:
 Publisher sites (Elsevier, Wiley, Taylor & Francis, etc.) often block
 automated downloads. The HTML landing page is saved when available so
 you can still open the article with your institution login.
+
+
+Copyright (c) 2026 [Roderick Henares / Smart Business Writer]
+
+All rights reserved.
+
+This software and its source code are proprietary and confidential.
+No permission is granted to use, copy, modify, merge, publish,
+distribute, sublicense, sell, or create derivative works from this
+software, in whole or in part, without prior written permission from
+the copyright holder.
