@@ -86,7 +86,7 @@ PLANS = {
     # The lower bundle rungs (owner instruction, 2026-11-08): one subscription buying the matching
     # Write Smarter tier and this product's tier together. The allowance is still the owner's to
     # set, so it stays undecided rather than estimated.
-    "bundle_starter": {"name": "Starter Bundle", "monthly": "20.00", "credits": None,
+    "bundle_starter": {"name": "Starter Bundle", "monthly": "19.99", "credits": None,
                        "highlights": [], "bundle": True, "unlimited": False, "color": "green",
                        "includes": ["Write Smarter - Basic", "Smart Business Writer - Starter"],
                        "write_smarter": {"tier": "Basic", "pools": [
@@ -99,7 +99,7 @@ PLANS = {
                            {"name": "Write Smarter", "features": ["Basic plan", "Source Finder included"]},
                            {"name": "Smart Business Writer", "features": ["Starter plan", "Every framework, shelf and calculator"]},
                        ]},
-    "bundle_pro": {"name": "Pro Bundle", "monthly": "39.00", "credits": None,
+    "bundle_pro": {"name": "Pro Bundle", "monthly": "38.99", "credits": None,
                    "highlights": [], "bundle": True, "unlimited": False, "color": "green",
                    "includes": ["Write Smarter - Standard", "Smart Business Writer - Pro"],
                    "write_smarter": {"tier": "Standard", "pools": [
@@ -112,7 +112,7 @@ PLANS = {
                        {"name": "Write Smarter", "features": ["Standard plan", "Source Finder included"]},
                        {"name": "Smart Business Writer", "features": ["Pro plan", "Every framework, shelf and calculator"]},
                    ]},
-    "bundle_studio": {"name": "Studio Bundle", "monthly": "65.00", "credits": None,
+    "bundle_studio": {"name": "Studio Bundle", "monthly": "64.99", "credits": None,
                       "highlights": [], "bundle": True, "unlimited": False, "color": "green",
                       "includes": ["Write Smarter - Pro", "Smart Business Writer - Studio"],
                       "write_smarter": {"tier": "Pro", "pools": [

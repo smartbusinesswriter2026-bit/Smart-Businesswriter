@@ -113,15 +113,15 @@ class CatalogueTest(BillingTestCase):
 
     def test_monthly_prices_are_the_owners_numbers(self):
         self.assertEqual([row["monthly"]["amount"] for row in billing.catalogue()["tiers"]],
-                         ["14.99", "29.99", "49.99", "20.00", "39.00", "65.00", "99.99"])
+                         ["14.99", "29.99", "49.99", "19.99", "38.99", "64.99", "99.99"])
 
     def test_annual_is_twelve_months_less_twenty_percent(self):
         self.assertEqual(billing.price("starter", "annual"), "143.90")
         self.assertEqual(billing.price("pro", "annual"), "287.90")
         self.assertEqual(billing.price("studio", "annual"), "479.90")
-        self.assertEqual(billing.price("bundle_starter", "annual"), "192.00")
-        self.assertEqual(billing.price("bundle_pro", "annual"), "374.40")
-        self.assertEqual(billing.price("bundle_studio", "annual"), "624.00")
+        self.assertEqual(billing.price("bundle_starter", "annual"), "191.90")
+        self.assertEqual(billing.price("bundle_pro", "annual"), "374.30")
+        self.assertEqual(billing.price("bundle_studio", "annual"), "623.90")
         self.assertEqual(billing.price("agency", "annual"), "959.90")
 
     def test_annual_is_cheaper_than_twelve_monthly_payments(self):

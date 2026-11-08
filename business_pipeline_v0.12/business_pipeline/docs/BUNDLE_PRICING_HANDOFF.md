@@ -95,9 +95,9 @@ that card.
 
 | Rung | Write Smarter | Smart Business Writer | Monthly | Annual |
 |---|---|---|---|---|
-| Starter Bundle | Basic | Starter | $20.00 | $192.00 |
-| Pro Bundle | Standard | Pro | $39.00 | $374.40 |
-| Studio Bundle | Pro | Studio | $65.00 | $624.00 |
+| Starter Bundle | Basic | Starter | $19.99 | $191.90 |
+| Pro Bundle | Standard | Pro | $38.99 | $374.30 |
+| Studio Bundle | Pro | Studio | $64.99 | $623.90 |
 | Business Bundle | unlimited | unlimited | $99.99 | $959.90 |
 
 Each rung is one subscription that buys the matching Write Smarter tier and this product's tier
@@ -212,7 +212,7 @@ an artefact is free whatever its format**, and a *second* format of the same art
 
 ### 4.2 Whether the lower rungs ship at launch — **DECIDED by the owner (2026-11-08)**
 
-The four rungs ship at `$20.00` / `$39.00` / `$65.00` / `$99.99` (see §2.3). The lower rungs carry
+The four rungs ship at `$19.99` / `$38.99` / `$64.99` / `$99.99` (see §2.3). The lower rungs carry
 limits the owner will set later; until then their allowance prints "to be confirmed" rather than an
 estimated number.
 
