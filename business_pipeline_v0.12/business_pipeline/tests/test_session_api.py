@@ -1,4 +1,4 @@
-import sys, json, threading, unittest, urllib.request
+import os, sys, json, threading, unittest, urllib.request
 sys.path.insert(0, "src")
 from http.server import ThreadingHTTPServer
 from bp.session import SessionManager, stage_states, STATES
@@ -246,6 +246,34 @@ class API(unittest.TestCase):
     def test_errors(self):
         self.assertEqual(self.call("/api/sessions", {"method": "npv"})[0], 400)
         self.assertEqual(self.call("/api/sessions/nope")[0], 404)
+    def test_the_published_tree_is_served_here_too(self):
+        """Cloudflare Pages serves the whole `web/` tree; so must this server.
+
+        The page falls back to `/subjects.json` when the API does not answer, and that
+        fallback is the deployed site's behaviour.  Serving the same tree at the same
+        URLs is what makes a link work at both addresses.
+        """
+        c, b = self.call("/subjects.json")
+        self.assertEqual(c, 200)
+        with open(os.path.join(server.WEB, "subjects.json"), "rb") as stream:
+            self.assertEqual(b, stream.read())
+        self.assertEqual(len(json.loads(b)["subjects"]), 11)
+
+    def test_a_baked_subject_page_is_served_here_too(self):
+        c, b = self.call("/subject-economics.json")
+        self.assertEqual(c, 200)
+        self.assertEqual(json.loads(b)["id"], "economics")
+
+    def test_a_file_cannot_escape_the_web_directory(self):
+        c, b = self.call("/..%2Fsrc%2Fbp%2Fbuild.py")
+        self.assertEqual(c, 404)
+        self.assertNotIn(b"VERSION", b)
+
+    def test_an_unknown_api_route_stays_json(self):
+        c, b = self.call("/api/not-a-route")
+        self.assertEqual(c, 404)
+        self.assertEqual(json.loads(b)["error"], "not found")
+
     def test_index_served(self):
         c, b = self.call("/"); self.assertEqual(c, 200); self.assertIn(b"Draft work plan", b); self.assertIn(b"Account mapping", b); self.assertIn(b"Download financial statements", b)
     def test_two_phase_account_mapping_checkpoint(self):

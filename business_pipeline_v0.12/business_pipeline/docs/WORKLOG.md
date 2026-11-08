@@ -1,3 +1,39 @@
+## 2026-11-08 - [deploy] The local server serves the site Cloudflare publishes
+
+**Ask.** Harmonise local access with the published Cloudflare site: one tree, one set of URLs.
+
+**Did.**
+
+- **The gap, named.** Cloudflare Pages publishes the whole `web/` directory, but the local
+  workbench answered only `/`, `/account.html`, `/admin-sbw.html`, `/pricing.html` and
+  `/assets/*`. The page's own fallback - `/subjects.json`, the baked subject snapshots the
+  published site reads when no API answers - was a 404 at `127.0.0.1:8000`, and every other
+  file the site carries was unreachable locally.
+- **One route, after the API.** `bp/server.py` serves any file that exists under `web/`,
+  matched after every `/api/` route, so a file can never shadow an API route. The name is
+  resolved and checked to stay inside `web/`, so a traversal attempt reads nothing else on
+  the machine; a missing file is the same JSON 404 an unknown path already gave.
+- **The content type comes from the kind.** HTML, JSON, JavaScript, CSS, text, XML, Markdown
+  and the three image kinds are declared; anything else is served as bytes, because a file the
+  browser cannot render is still the file the site has.
+
+**Did not move.** No API route, no page, no file under `web/` changed: the route only adds the
+files that were already published. Nothing about the frozen core or a computed number moved.
+
+**Verified.**
+
+- `/subjects.json` (13,588 bytes), `/subject-economics.json` (133,614) and `/preview.html`
+  (179,021) answer 200 with the right content type at the local port, byte-equal to the file.
+- An encoded traversal (`/..%2Fsrc%2Fbp%2Fbuild.py`) answers 404 and leaks nothing; an unknown
+  `/api/` route still answers `{"error": "not found"}`.
+- Four tests in `tests/test_session_api.py` pin all of it. Suite: 4341 tests, 0 failures,
+  2 skipped.
+
+**Note.** `web/` also carries `index.html.bak-tileclose`, `_snap_before.html` and
+`DESIGN_NOTES.md`. Cloudflare publishes them and the local server now serves them too, which is
+consistent but probably not wanted in public: moving them out of the published directory is the
+owner's call, not a side effect of this increment.
+
 ## 2026-11-08 - [product] Drag-and-drop uploads, explainers, and the growth-loop decision
 
 **Ask.** One upload facility for both testers, with drag-and-drop; Excel and explainer

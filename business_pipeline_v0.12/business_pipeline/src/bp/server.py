@@ -3,7 +3,7 @@ import base64, copy, json, os, re, sys, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from decimal import Decimal
 from .session import SessionManager
-from urllib.parse import urlparse, parse_qs, quote
+from urllib.parse import urlparse, parse_qs, quote, unquote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
 from . import finance_methods  # registers additional computation methods into methods.LIBRARY
@@ -733,6 +733,38 @@ class H(BaseHTTPRequestHandler):
             with open(target, "rb") as f: return self._send(200, f.read(), kind)
         except OSError:
             return self._send(404, {"error": "no such asset"})
+    #: The content type of each file kind the published site carries.  Anything else is
+    #: served as bytes: a file the browser cannot render is still the file the site has.
+    _PAGE_KINDS = {"html": "text/html; charset=utf-8", "json": "application/json",
+                   "js": "text/javascript; charset=utf-8", "css": "text/css; charset=utf-8",
+                   "txt": "text/plain; charset=utf-8", "xml": "application/xml",
+                   "md": "text/markdown; charset=utf-8", "png": "image/png",
+                   "svg": "image/svg+xml", "ico": "image/x-icon"}
+
+    def _page(self, name):
+        """Serve one file from `web/` - the directory Cloudflare Pages publishes.
+
+        The published site and this server carry the same tree at the same URLs, so a
+        link that works at the published address works here, and the page's own fallback
+        (`/subjects.json`, the baked subject snapshots) answers locally exactly as it
+        does there.  The name is resolved and checked to stay inside `web/`, so a
+        traversal attempt cannot read anything else on this machine; every `/api/` route
+        is matched before this one, so a file can never shadow an API route.
+        """
+        root = os.path.realpath(WEB)
+        target = os.path.realpath(os.path.join(root, name))
+        if target != root and not target.startswith(root + os.sep):
+            return self._send(404, {"error": "no such file"})
+        if not os.path.isfile(target):
+            return self._send(404, {"error": "no such file"})
+        kind = self._PAGE_KINDS.get(target.rsplit(".", 1)[-1].lower(),
+                                    "application/octet-stream")
+        try:
+            with open(target, "rb") as f:
+                return self._send(200, f.read(), kind)
+        except OSError:
+            return self._send(404, {"error": "no such file"})
+
     def do_GET(self):
         self._started = time.monotonic()
         try:
@@ -971,6 +1003,11 @@ class H(BaseHTTPRequestHandler):
             if self.path == "/api/methods": return self._send(200, methods.list_methods())
             m = re.fullmatch(r"/api/sessions/(\w+)", self.path)
             if m: return self._send(200, M.get(m[1]).to_dict())
+            # The published site's own files.  Cloudflare Pages serves the whole `web/`
+            # directory, so this server serves it too: one tree, one set of URLs.
+            page = unquote(urlparse(self.path).path).lstrip("/")
+            if page and not page.startswith("api/"):
+                return self._page(page)
             self._send(404, {"error": "not found"})
         except KeyError as e: self._send(404, {"error": "unknown session" if "registry" not in str(e) else str(e).strip("'\"")})
     def do_POST(self):
