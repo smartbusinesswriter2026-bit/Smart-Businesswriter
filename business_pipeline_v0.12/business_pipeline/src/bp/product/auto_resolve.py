@@ -52,6 +52,11 @@ def diagnose(error_text):
         return "unreadable_layout"
     if "could not read this as a journal" in low:
         return "reader_parse"
+    if "does not balance" in low or "do not balance" in low:
+        return "unbalanced_input"
+    if ("no answer within" in low or "failed to fetch" in low or "timed out" in low
+            or "timeout" in low):
+        return "timeout"
     if "names no transaction" in low or "does not read as an accounting problem" in low:
         return "unsupported_instruction"
     return "unknown"
@@ -155,6 +160,28 @@ def resolve(error_id):
                 "category": category, "steps": [], "siblings_resolved": 0,
                 "siblings_invalid": closed,
                 "reason": "invalid test input: the problem names no transaction and declares no figure"}
+
+    if category == "unbalanced_input":
+        # A trial balance that does not balance is the student's figures, not a pipeline
+        # defect: the tile refuses and diagnoses it rather than plugging.  No model replay
+        # can reconcile two figures without inventing one, so this is marked invalid and
+        # closed instead of left open forever.
+        _ops_log.mark_error_invalid(
+            error_id,
+            "the trial balance does not balance; the figures are the student's and the tile "
+            "correctly refuses rather than plugging a difference")
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": True,
+                "category": category, "steps": [], "siblings_resolved": 0,
+                "reason": "the trial balance does not balance — the input is wrong, not the pipeline"}
+
+    if category == "timeout":
+        # A model timeout is transient, not a defect in the problem.  Dismiss it with the
+        # reason so it stops blocking the queue; a re-run reopens it if it happens again.
+        _ops_log.mark_error_dismissed(
+            error_id, "the model reader timed out; re-run the problem to retry")
+        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
+                "category": category, "steps": [], "siblings_resolved": 0,
+                "reason": "the model reader timed out — transient, retry by re-running"}
 
     problem = record.get("problem") or ""
     if not problem:

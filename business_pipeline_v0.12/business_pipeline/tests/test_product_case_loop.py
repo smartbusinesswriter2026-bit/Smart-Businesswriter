@@ -248,5 +248,58 @@ class CaseLoopTest(unittest.TestCase):
         self.assertEqual(manifest.get("explainer"), "explainer.md")
 
 
+class FixerClassificationTest(unittest.TestCase):
+    """The fixer classifies and closes the two failure classes it cannot replay."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp(prefix="bp-fixer-")
+        self.previous_ops_log = os.environ.get("BP_OPS_LOG")
+        os.environ["BP_OPS_LOG"] = os.path.join(self.root, "ops_log")
+
+    def tearDown(self):
+        if self.previous_ops_log is None:
+            os.environ.pop("BP_OPS_LOG", None)
+        else:
+            os.environ["BP_OPS_LOG"] = self.previous_ops_log
+        shutil.rmtree(self.root, ignore_errors=True)
+
+    def test_diagnose_recognises_unbalanced_and_timeout(self):
+        self.assertEqual(
+            auto_resolve.diagnose("the trial balance does not balance: debits 1, credits 2"),
+            "unbalanced_input")
+        self.assertEqual(auto_resolve.diagnose("no answer within 120s"), "timeout")
+        self.assertEqual(auto_resolve.diagnose("Failed to fetch"), "timeout")
+
+    def test_an_unbalanced_problem_is_closed_as_invalid_not_left_open(self):
+        ops_log.log_error(
+            "statements",
+            "the accounts do not build: entries[0]: entry 'the trial balance as given' "
+            "on 2026-12-31 does not balance: debits 10000, credits 8000",
+            problem_text="Cash 10,000\nCapital 8,000 Cr")
+        err = ops_log.list_errors(limit=5)[0]
+        result = auto_resolve.resolve(err["error_id"])
+        self.assertTrue(result["invalid"])
+        self.assertEqual(result["category"], "unbalanced_input")
+        self.assertFalse(result["attempted"])
+        # It leaves the open list, and it is never labelled solved.
+        self.assertEqual([e["error_id"] for e in ops_log.list_errors(limit=10)], [])
+        merged = ops_log.merge_resolved(ops_log.list_errors(limit=100, status="all"))
+        rec = next(m for m in merged if m.get("error_id") == err["error_id"])
+        self.assertTrue(rec.get("invalid"))
+        self.assertFalse(rec.get("resolved"))
+
+    def test_a_timeout_is_dismissed_as_transient(self):
+        ops_log.log_error("statements", "no answer within 120s",
+                          problem_text="A narrative that times out")
+        err = ops_log.list_errors(limit=5)[0]
+        result = auto_resolve.resolve(err["error_id"])
+        self.assertEqual(result["category"], "timeout")
+        self.assertFalse(result["attempted"])
+        self.assertEqual([e["error_id"] for e in ops_log.list_errors(limit=10)], [])
+        merged = ops_log.merge_resolved(ops_log.list_errors(limit=100, status="all"))
+        rec = next(m for m in merged if m.get("error_id") == err["error_id"])
+        self.assertTrue(rec.get("dismissed"))
+
+
 if __name__ == "__main__":
     unittest.main()

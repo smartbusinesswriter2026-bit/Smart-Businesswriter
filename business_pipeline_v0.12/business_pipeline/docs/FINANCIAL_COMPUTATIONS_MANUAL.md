@@ -69,7 +69,7 @@ came from the model. It now comes from the deterministic layer, and the model's 
 | **Integrated case solver (Tip 5 Type 7 / Tip 6)** | **built, wired, tested — nine-stage state machine** | **`src/bp/case_solver.py`** |
 | **Guards G1–G22 (Tip 7)** | **built, wired into every record** | **`src/bp/guards.py`** |
 
-**Build:** 1.127 (see `docs/CHANGELOG.md`) · **Branch:** `corpus/merge-v1`
+**Build:** 1.128 (see `docs/CHANGELOG.md`) · **Branch:** `corpus/merge-v1`
 **Repo:** `D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline`
 
 ### What the engine can actually do — measured
@@ -534,6 +534,7 @@ correction and case-solver contracts (27 tests).
 - **Integrated case solver:** `src/bp/case_solver.py` (Tip 5 Type 7 / Tip 6 state machine)
 - **Guards runner:** `src/bp/guards.py` (Tip 7, G1–G22)
 - **Live credentials loader:** `src/bp/server.py` (`_load_opencode_env`, maps `Backend/.env` names to `BP_*`)
+- **Self-healing fixer:** `src/bp/product/auto_resolve.py` (`diagnose` classifies a failure; `resolve` replays, or marks `unbalanced_input` invalid and `timeout` dismissed so neither sits open forever)
 - **Reader layer:** `src/bp/statement_period.py` (one period model), `src/bp/statement_chart.py` (one chart), `src/bp/statement_detect.py` (deterministic transactions), `src/bp/statement_extract.py` (the model boundary and the grounding rule), `src/bp/statement_plan.py` (the plan layer)
 - **Tile wiring:** `src/bp/product/statements.py` (`_solve_financial_computations`, `_solve_eps`, `_solve_income_statement`, `_solve_balance_sheet_analysis`, `_solve_given_balances`)
 - **Measurements:** `qa/manual/reader-seams-probe.py`, `qa/manual/ashgrove-remeasure.py`, `qa/manual/statements-case-study.md`

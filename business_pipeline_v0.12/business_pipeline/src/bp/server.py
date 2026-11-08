@@ -82,8 +82,14 @@ def _statement_models(tier=None):
     models = llm.from_env(tier=t)
     if models is not None:
         # Override the output budget: the extract contract can be long for a
-        # multi-transaction case, and the default 1500 tokens truncates it.
+        # multi-transaction case, and the default 1500 tokens truncates it.  Bound
+        # the wall clock too: the browser aborts a solve at 120 s, and two 60 s
+        # model attempts hit that limit exactly, so a slow case reads as a dead
+        # server instead of a refusal.  Forty seconds per attempt leaves room for
+        # the retry and the response.
         models.config.max_output_tokens = 4096
+        for provider in (models.builder, models.reviewer):
+            provider.timeout = 40
         return models
     # DeepSeek fallback disabled by default (cost protection). Set
     # BP_ENABLE_DEEPSEEK=1 (and DEEPSEEK_API_KEY) to re-enable.
