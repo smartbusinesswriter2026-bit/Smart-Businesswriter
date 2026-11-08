@@ -315,7 +315,8 @@ def _looks_rate_limited(text):
     low = str(text).lower()
     return ("429" in low or "rate limit" in low or "too many requests" in low
             or "provider returned http" in low or "could not reach the provider" in low
-            or "unexpected response shape" in low)
+            or "timeout" in low or "timed out" in low or "failed to fetch" in low
+            or "connection" in low or "unexpected response shape" in low)
 
 
 def _solve_with_fallback(problem):
@@ -417,8 +418,11 @@ def solve_problems(problems, log_failures=True):
                                 result["answer"] = "Solved"
                                 result["gaps"] = retry.get("working", {}).get("missing", []) or []
                         result["gaps"] = result["gaps"] or record.get("working", {}).get("missing", []) or []
-                        # Log to error log so it appears in Self-Healing panel
-                        if log_failures:
+                        # Log to error log so it appears in Self-Healing panel.
+                        # A transient provider failure is not a pipeline defect: it is
+                        # retried above and shown in the run log, so it is not written
+                        # to the error list (a burst of 18 timeouts is noise, not 18 bugs).
+                        if log_failures and not _looks_rate_limited(result["error"]):
                             _ops_log.log_error("statements", result["error"], problem_text=problem,
                                                gap_label=result["error"][:80])
             else:
@@ -429,7 +433,7 @@ def solve_problems(problems, log_failures=True):
         except Exception as e:
             result["status"] = "error"
             result["error"] = str(e)[:200]
-            if log_failures:
+            if log_failures and not _looks_rate_limited(result["error"]):
                 _ops_log.log_error("statements", str(e)[:200], problem_text=problem)
         results.append(result)
     return results, None

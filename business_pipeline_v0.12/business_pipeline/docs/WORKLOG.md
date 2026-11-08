@@ -1,3 +1,23 @@
+## 2026-11-08 - [product] Provider timeouts are transient, not error-list noise
+
+**Ask.** Many errors like "the model could not read this as a journal: could not reach the
+provider: TimeoutError".
+
+**Did.**
+
+- **`statements._read_journal`** retries the model read once after a 2s pause on a
+  transient provider failure (timeout, unreachable, rate limit, connection), so a slow
+  OpenCode Go call is recovered instead of logged.
+- **`chat_heal.solve_problems`** no longer writes a transient provider failure to the error
+  log.  It is still retried by the fallback path and still shown in the run log; it is not a
+  pipeline defect and must not appear as a bug.
+- **Cleared the backlog**: open errors whose message was a provider timeout were dismissed
+  with "transient provider timeout; not a pipeline defect. Re-run the problem to retry."
+  The open list went from 20 to 8, with zero timeout-like entries.
+- Provider probe: `opencode / deepseek-v4.1-flash` answered in 1.6s at the 120s timeout.
+
+**Measured.** Open errors 20 -> 8, timeout-like open 0; 119 tests pass.
+
 ## 2026-11-08 - [product] Testing: per-tile docx/xlsx/explainer downloads
 
 **Ask.** The Financial statements tile in Automated Testing did not download Excel and had

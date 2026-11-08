@@ -3787,6 +3787,28 @@ def _solve_case(text, currency=None, framework=None, ratios=None, statements=Non
     return record
 
 
+def _read_journal(text, period):
+    """Read the journal through the injected extractor, retrying once on a transient error.
+
+    A provider timeout is infrastructure, not a pipeline defect.  One retry after a
+    short pause turns most transient timeouts into a solved problem instead of an
+    error record.
+    """
+    try:
+        return _core("extract")(text, period)
+    except StatementError:
+        raise
+    except Exception as error:
+        low = str(error).lower()
+        if not any(key in low for key in ("timeout", "timed out", "could not reach",
+                                          "failed to fetch", "connection", "rate limit",
+                                          "429", "provider returned http")):
+            raise
+        import time as _time
+        _time.sleep(2)
+        return _core("extract")(text, period)
+
+
 def _solve_narrative(text, currency=None, framework=None, ratios=None, statements=None, tier1_gaps=None):
     """A narrative (not a trial balance) solved through the plan layer.
 
@@ -3802,7 +3824,7 @@ def _solve_narrative(text, currency=None, framework=None, ratios=None, statement
     framework = framework_of(text, framework)
     period = period_of(text)[0]
     try:
-        extracted = _core("extract")(text, period)
+        extracted = _read_journal(text, period)
     except StatementError:
         raise
     except Exception as error:
