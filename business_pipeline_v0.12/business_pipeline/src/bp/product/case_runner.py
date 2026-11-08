@@ -390,47 +390,39 @@ def run_cases(case_ids, style="apa", length=1200, subject=None, generate_count=0
             manifest["failed"] += 1
         _write_manifest(run_dir, manifest)
     if int(generate_count or 0) > 0:
-        import os as _os
-        if _os.environ.get("BP_ENABLE_DEEPSEEK") != "1":
+        from . import chat_heal
+        count = min(10, max(1, int(generate_count)))
+        instruction = ("Generate %d realistic test problems for the %s shelf. "
+                       "Each problem must state its declared figures." % (count, subject or "selected"))
+        problems, error = chat_heal.generate_problems(instruction, count, difficulty="medium")
+        if error or not problems:
             manifest["results"].append({"case_id": "generated", "label": "Generated problems",
-                                       "status": "error", "error": "problem generation disabled "
-                                       "(BP_ENABLE_DEEPSEEK != 1)", "duration_ms": 0, "kind": "generated"})
+                                        "status": "error", "error": error or "no problems generated",
+                                        "duration_ms": 0, "kind": "generated"})
             manifest["failed"] += 1
             manifest["completed"] += 1
-            _write_manifest(run_dir, manifest)
         else:
-            count = min(10, max(1, int(generate_count)))
-            instruction = ("Generate %d realistic test problems for the %s shelf. "
-                           "Each problem must state its declared figures." % (count, subject or "selected"))
-            problems, error = chat_heal.generate_problems(instruction, count, difficulty="medium")
-            if error or not problems:
+            results, solve_error = chat_heal.solve_problems(problems)
+            for index, row in enumerate(results):
+                ok = str(row.get("status") or "") not in ("error", "logged")
+                manifest["results"].append({
+                    "case_id": "generated/%d" % (index + 1),
+                    "label": "Generated problem %d" % (index + 1),
+                    "status": "pass" if ok else "fail",
+                    "error": "" if ok else str(row.get("error") or "")[:300],
+                    "duration_ms": 0, "kind": "generated",
+                })
+                manifest["completed"] += 1
+                if ok:
+                    manifest["passed"] += 1
+                else:
+                    manifest["failed"] += 1
+            if solve_error and not results:
                 manifest["results"].append({"case_id": "generated", "label": "Generated problems",
-                                            "status": "error", "error": error or "no problems generated",
+                                            "status": "error", "error": solve_error[:300],
                                             "duration_ms": 0, "kind": "generated"})
                 manifest["failed"] += 1
                 manifest["completed"] += 1
-            else:
-                results, solve_error = chat_heal.solve_problems(problems)
-                for index, row in enumerate(results):
-                    ok = str(row.get("status") or "") not in ("error", "logged")
-                    manifest["results"].append({
-                        "case_id": "generated/%d" % (index + 1),
-                        "label": "Generated problem %d" % (index + 1),
-                        "status": "pass" if ok else "fail",
-                        "error": "" if ok else str(row.get("error") or "")[:300],
-                        "duration_ms": 0, "kind": "generated",
-                    })
-                    manifest["completed"] += 1
-                    if ok:
-                        manifest["passed"] += 1
-                    else:
-                        manifest["failed"] += 1
-                if solve_error and not results:
-                    manifest["results"].append({"case_id": "generated", "label": "Generated problems",
-                                                "status": "error", "error": solve_error[:300],
-                                                "duration_ms": 0, "kind": "generated"})
-                    manifest["failed"] += 1
-                    manifest["completed"] += 1
         _write_manifest(run_dir, manifest)
     if explainers:
         path = os.path.join(run_dir, "explainer.md")

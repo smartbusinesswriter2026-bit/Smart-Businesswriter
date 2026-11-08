@@ -680,7 +680,14 @@ PRESETS["accounts"]["inputs"]["spec"] = copy.deepcopy(accounts.EXAMPLE_SPEC)
 
 # The automated-testing previews read the same published presets as the calculator,
 # so a tile's instruction is the tile's own example, not a second copy of it.
-product_paper_batch.configure(_plan_method, methods.describe, PRESETS)
+# The statements tile is a service: it is attached here so the Testing tab can run it
+# through the same statements pipeline the student uses, on a deterministic sample.
+def _statements_preview_run(brief):
+    return product_statements.solve(brief)
+
+
+product_paper_batch.configure(_plan_method, methods.describe, PRESETS,
+                              statements=_statements_preview_run)
 
 def _template_payload(template_id):
     """A template description plus the completion profile, when it has one."""

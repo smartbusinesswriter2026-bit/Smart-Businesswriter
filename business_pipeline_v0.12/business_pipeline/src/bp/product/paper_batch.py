@@ -47,6 +47,7 @@ FORMAT = "bp-paper-preview/1"
 PRESETS = {}
 _DESCRIBE = None
 _RUN = None
+_STATEMENTS = None
 
 _STORE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..",
                       "state", "paper_previews")
@@ -65,11 +66,12 @@ STOP = set(
 )
 
 
-def configure(run, describe=None, presets=None):
-    """Attach the frozen method runner and the published presets."""
-    global _RUN, _DESCRIBE, PRESETS
+def configure(run, describe=None, presets=None, statements=None):
+    """Attach the frozen method runner, the published presets and the statements service."""
+    global _RUN, _DESCRIBE, PRESETS, _STATEMENTS
     _RUN = run
     _DESCRIBE = describe
+    _STATEMENTS = statements
     if presets is not None:
         PRESETS = presets
     if conductor.METHOD_RUN is None and run is not None:
@@ -92,18 +94,22 @@ def _human(name):
 
 def _tile_row(tool):
     preset = _preset_for(tool)
+    service = tool.get("service") or ""
     supported = bool(tool.get("method")) and tool.get("method") in methods.LIBRARY
+    if service == "statements":
+        supported = True
     raw_group = tool.get("group") or "General"
     return {
         "key": tool.get("key") or tool.get("preset") or tool.get("method"),
         "label": tool.get("label") or tool.get("key") or "",
         "method": tool.get("method") or "",
+        "service": service,
         "preset": tool.get("preset") or "",
         "what": tool.get("what") or "",
         "group": _human(raw_group),
         "group_key": raw_group,
         "supported": supported,
-        "has_defaults": bool(supported and preset and (preset.get("inputs") or {})),
+        "has_defaults": bool(supported and (service == "statements" or (preset and (preset.get("inputs") or {})))),
         "objective": (preset or {}).get("objective") or (tool.get("what") or tool.get("label") or ""),
         "defaults": (preset or {}).get("inputs") or {},
     }
@@ -130,6 +136,19 @@ def sections(refresh=False):
             for tool in detail.get("tools") or []:
                 row = _tile_row(tool)
                 groups.setdefault(row["group_key"], []).append(row)
+            if sid == "accounting":
+                # The statements tile is a service, not a frozen preset, so it is
+                # not in SUBJECT_DEFS tools.  It is added here so the Testing tab
+                # (and the shared upload store) can exercise it like any other tile.
+                groups.setdefault("Bookkeeping", []).append({
+                    "key": "statements", "label": "Financial statements", "method": "",
+                    "service": "statements", "preset": "",
+                    "what": "Read the trial balance and prepare the journal, the statements and the notes.",
+                    "group": "Bookkeeping", "group_key": "Bookkeeping",
+                    "supported": True, "has_defaults": True,
+                    "objective": "Read the trial balance and prepare the statements.",
+                    "defaults": {},
+                })
             out.append({
                 "id": sid,
                 "label": label,
@@ -540,6 +559,74 @@ def _tile_delivery(tile, inputs, recorded):
     return {"report": _result_sentence(tile, inputs, recorded), "appendix": appendix}
 
 
+STATEMENTS_BRIEF = (
+    "The following trial balance was extracted at 31 December 2026.\n"
+    "Cash 7,000\nTrade receivables 3,000\nInventory 1,500\nEquipment 10,000\n"
+    "Accumulated depreciation 2,000\nTrade payables 2,500\nCapital 13,000\n"
+    "Sales 9,000\nPurchases 4,000\nRent 1,000"
+)
+
+
+def _statements_preview(subject, tile, group, format="docx"):
+    """The Financial statements tile in the Testing tab.
+
+    The statements service is attached by the server (it reaches the frozen core
+    and the model reader).  The preview uses a deterministic sample trial balance,
+    so it needs no model and no API spend: the journal, trial balance and
+    statements are built from the figures in the brief.
+    """
+    if _STATEMENTS is None:
+        return {"tile_key": tile.get("key") or "statements",
+                "label": tile.get("label") or "Financial statements",
+                "group": group.get("label") or "",
+                "status": "needs_input",
+                "error": "the statements service is not attached; start through the server",
+                "duration_ms": 0}
+    import time as _time
+    started = _time.perf_counter()
+    record = _STATEMENTS(STATEMENTS_BRIEF)
+    shown = record.get("statements") or {}
+    paper_sections = []
+    docx_sections = []
+    for key, heading in (("income_statement", "Income statement"),
+                         ("balance_sheet", "Balance sheet"),
+                         ("equity", "Statement of changes in equity"),
+                         ("notes", "Notes"),):
+        text = str(shown.get(key) or "").strip()
+        if text:
+            lines = [line for line in text.splitlines() if line.strip()]
+            paper_sections.append(paper.section(heading, paper.H1, lines))
+            docx_sections.append((heading, lines))
+    if not docx_sections:
+        lines = ["The statements service returned no statement for this brief."]
+        paper_sections.append(paper.section("Statements", paper.H1, lines))
+        docx_sections.append(("Statements", lines))
+    from . import docx
+    title = "%s: the statements for the sample trial balance" % (tile.get("label") or "Financial statements")
+    data = docx.render_bytes(title, docx_sections)
+    return {
+        "tile_key": tile.get("key") or "statements",
+        "label": tile.get("label") or "Financial statements",
+        "group": group.get("label") or "",
+        "status": "ok",
+        "objective": "Read the trial balance and prepare the statements.",
+        "brief": STATEMENTS_BRIEF,
+        "filename": _safe_name("%s - %s" % (subject["label"], tile.get("label") or "statements")) + ".docx",
+        "bytes": data,
+        "xlsx_filename": "",
+        "xlsx": None,
+        "sections": paper_sections,
+        "title": title,
+        "sources": 0,
+        "background": 0,
+        "gaps": 0,
+        "evidence_errors": [],
+        "computation": {},
+        "inputs": {},
+        "duration_ms": int((_time.perf_counter() - started) * 1000),
+    }
+
+
 def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpus", format="docx",
                  inputs=None, instruction=None):
     """Generate one tile's paper and, when asked, its workbook.
@@ -554,6 +641,8 @@ def generate_one(subject_id, tile_key, style="apa", length=1200, evidence="corpu
     a plain preview wants.
     """
     subject, group, tile = _find_tile(subject_id, tile_key)
+    if tile.get("service") == "statements":
+        return _statements_preview(subject, tile, group, format)
     started = time.perf_counter()
     # A case carries its own figures.  The published preset is only the fallback for a
     # preview with no inputs, so a tile without defaults can still replay a stored case:

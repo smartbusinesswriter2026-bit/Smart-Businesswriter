@@ -72,6 +72,8 @@ def seed(subject=None, tile=None, overwrite=False, limit=None):
             for row in group.get("tiles") or []:
                 if not row.get("has_defaults"):
                     continue
+                if row.get("service") == "statements" or not row.get("method"):
+                    continue
                 if tile and row.get("key") != tile:
                     continue
                 path = _case_path(section["id"], row["key"])

@@ -1,3 +1,27 @@
+## 2026-11-08 - [product] Financial statements in Testing; the repair runs on OpenCode Go
+
+**Ask.** Add Financial statements to the Testing tab, and use OpenCode Go in the repair.
+
+**Did.**
+
+- **Testing tab** now lists the Financial statements service tile.  `paper_batch.sections()`
+  appends it to Accounting / Bookkeeping with `service: statements`, `supported: true` and
+  `has_defaults: true`.  `generate_one` special-cases the service and calls the statements
+  pipeline the server injects through `configure(..., statements=...)`, using a deterministic
+  sample trial balance so the preview needs no model and no API spend.  The paper carries the
+  income statement, balance sheet, equity statement and notes.  `case_store.seed` skips the
+  service tile, so no bogus case is seeded.
+- **Repair provider**: removed the `BP_ENABLE_DEEPSEEK` gate from `auto_resolve._fix_models`,
+  `chat_heal._call_fallback` and `chat_heal._solve_with_fallback`.  The fix ladder is
+  `deepseek-v4.1-flash` -> `deepseek-v4-pro` on the OpenCode Go provider (`opencode`, the
+  owner's OpenCode Go key); `BP_ENABLE_DEEPSEEK` now only gates the platform.deepseek.com
+  calls (statements LLM fallback, hallucination deep-check, DeepSeek search).
+- **`docs/HANDOFF.md`** gains section 8.10 recording both.
+
+**Measured.** The statements tile appears in `/api/ops/papers/tiles` (Bookkeeping), a batch
+run writes `Accounting - Financial statements.docx` with the four statements, and the repair
+config resolves to provider `opencode`, fix models `deepseek-v4.1-flash`/`deepseek-v4-pro`.
+
 ## 2026-11-08 - [product] Tile paper is the computation record; preview and download are one document
 
 **Ask.** The tile preview still printed the framework outline — awkward sections, a "no named

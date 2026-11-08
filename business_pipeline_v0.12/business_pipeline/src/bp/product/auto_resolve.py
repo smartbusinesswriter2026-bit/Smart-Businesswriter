@@ -31,8 +31,10 @@ MAX_SIBLINGS = 5
 
 def _fix_models():
     import os
-    if os.environ.get("BP_ENABLE_DEEPSEEK") != "1":
-        return (None, None)
+    # The repair runs on OpenCode Go: the same provider/key the app already uses.
+    # The model ids are the OpenCode Go catalogue; override with BP_FIX_MODEL /
+    # BP_FIX_ESCALATION_MODEL.  This is not the platform.deepseek.com key and is
+    # not gated by BP_ENABLE_DEEPSEEK.
     return (os.environ.get("BP_FIX_MODEL", FIX_MODEL),
             os.environ.get("BP_FIX_ESCALATION_MODEL", ESCALATION_MODEL))
 
@@ -164,12 +166,6 @@ def resolve(error_id):
     strategy = "replay normalized problem" if notes else "replay original problem"
     steps = []
     fix_model, escalation_model = _fix_models()
-    if fix_model is None and escalation_model is None:
-        return {"resolved": False, "verified": False, "attempted": False, "invalid": False,
-                "category": category, "steps": [], "siblings_resolved": 0, "model": None,
-                "reason": "model-based fixing is disabled (BP_ENABLE_DEEPSEEK != 1); "
-                          "set BP_ENABLE_DEEPSEEK=1 to re-enable. Tile-case replay "
-                          "(token-free) is unaffected."}
 
     for model in (fix_model, escalation_model):
         first = _replay_on(problem, model)

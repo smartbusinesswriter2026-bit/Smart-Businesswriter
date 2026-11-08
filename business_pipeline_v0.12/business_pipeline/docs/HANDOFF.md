@@ -308,6 +308,27 @@ files — `Declared inputs` becomes `What you declared`, and `References` / `Bib
 `Works Cited` are not required, because the paper deliberately omits them.  Case files are
 migrated to the new phrases as they are re-seeded.
 
+### 8.10 Financial statements in the Testing tab, and the repair provider
+
+The **Financial statements** tile is a service, not a frozen preset, so it is not in
+`SUBJECT_DEFS["tools"]`.  `paper_batch.sections()` adds it to the Accounting / Bookkeeping
+group explicitly, with `service: "statements"`, `supported: true` and `has_defaults: true`.
+The Testing tab therefore lists it and runs it like any other tile.
+
+`paper_batch.generate_one` special-cases a `service == "statements"` tile: it calls the
+statements service the server injects through `configure(..., statements=...)`, using a
+deterministic sample trial balance (`STATEMENTS_BRIEF`) so the preview needs no model and
+no API spend.  The paper carries the Income statement, Balance sheet, Statement of changes
+in equity and Notes.  The statements service requires the server's core attachment, so a
+direct call outside the server returns `needs_input` with that reason.
+
+The **repair loop runs on OpenCode Go**, not the platform.deepseek.com key:
+`auto_resolve._fix_models` returns `deepseek-v4.1-flash` -> `deepseek-v4-pro` (OpenCode Go
+catalogue), `chat_heal`'s fallback is the same OpenCode Go model, and the provider is
+`opencode` with the owner's OpenCode Go key.  The `BP_ENABLE_DEEPSEEK` switch only gates
+the platform.deepseek.com calls (statements LLM fallback, hallucination deep-check, the
+DeepSeek search API); it does not gate the repair.
+
 
 ## 9. Intended future work (not yet built)
 
