@@ -281,6 +281,20 @@
   .dropzone.busy { opacity: .6; cursor: progress; }
   .dropzone-title { font-size: 13.5px; font-weight: 600; color: var(--ink); }
   .dropzone-hint { font-size: 12px; margin-top: 4px; }
+  /* Searchable combobox (Uploads tab) */
+  .combo { position: relative; display: inline-block; min-width: 200px; }
+  .combo input[type="text"] { width: 100%; }
+  .combo-list {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 40;
+    max-height: 260px; overflow: auto; margin: 0; padding: 4px 0; list-style: none;
+    background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+    box-shadow: var(--shadow); display: none;
+  }
+  .combo-list.open { display: block; }
+  .combo-list li { padding: 7px 12px; font-size: 12.5px; cursor: pointer; color: var(--ink); }
+  .combo-list li:hover, .combo-list li.active { background: var(--accent-soft); color: var(--accent-dark); }
+  .combo-list li.empty { color: var(--muted); cursor: default; }
+  .combo-list li.empty:hover { background: transparent; }
   #errorsTable, #runsTable, #findingsTable, #proposalsTable, #arHistory,
   #healHistory, #caseResults, #caseSubjects { overflow-x: auto; }
   #errorsTable table { min-width: 720px; }
@@ -530,7 +544,13 @@
             <div class="card-body">
               <div class="row">
                 <label>Subject <select id="uploadSubject"><option value="">— select subject —</option></select></label>
-                <label>Tile <select id="uploadTile"><option value="">— select tile —</option></select></label>
+                <label>Tile
+                  <span class="combo" id="comboTile">
+                    <input type="text" id="uploadTileInput" placeholder="Type to find a tile…" autocomplete="off" aria-label="Tile">
+                    <input type="hidden" id="uploadTile" value="">
+                    <ul class="combo-list" id="uploadTileList" role="listbox"></ul>
+                  </span>
+                </label>
                 <button class="btn primary" id="uploadFilesBtn">Upload files</button>
                 <input type="file" id="uploadFiles" multiple style="display:none">
               </div>
@@ -542,6 +562,8 @@
               <div id="uploadResults" class="at-results"></div>
               <h3 style="margin-top:18px;font-size:14px;">Accepted files</h3>
               <div id="uploadList" class="at-results"></div>
+              <h3 style="margin-top:18px;font-size:14px;">Coverage — cases per tile</h3>
+              <div id="uploadCoverage" class="at-results"></div>
             </div>
           </div>
           <div class="card">
@@ -1791,12 +1813,15 @@ async function loadCases() {
 }
 
 /* ── Uploads: one store both testers read ── */
+let tileCatalogue = null;
+
 async function loadUploads() {
   const r = await apiFetch('/api/ops/papers/tiles');
   if (r.status !== 200 || !r.data) return;
+  tileCatalogue = r.data.subjects || [];
   const select = document.getElementById('uploadSubject');
   if (select && select.options.length <= 1) {
-    (r.data.subjects || []).forEach(subject => {
+    tileCatalogue.forEach(subject => {
       const option = document.createElement('option');
       option.value = subject.id;
       option.textContent = subject.label;
@@ -1804,14 +1829,66 @@ async function loadUploads() {
     });
   }
   renderUploadList();
+  renderUploadCoverage();
+}
+
+/* Cases held per subject/tile, from the case store the page already loaded. */
+function caseCounts() {
+  const counts = {};
+  caseCache.forEach(c => {
+    const key = (c.subject || '') + '/' + (c.tile || '');
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  return counts;
+}
+
+/* The counter under the upload box: how many cases each tile holds, and which have none.
+   With no subject chosen it summarises each subject; with one chosen it lists its tiles. */
+function renderUploadCoverage() {
+  const host = document.getElementById('uploadCoverage');
+  if (!host || !tileCatalogue) return;
+  const counts = caseCounts();
+  const picked = (document.getElementById('uploadSubject') || {}).value || '';
+  const subjects = picked ? tileCatalogue.filter(s => s.id === picked) : tileCatalogue;
+  const total = key => counts[key] || 0;
+  let rows = '';
+  let tilesAll = 0, tilesWith = 0, casesAll = 0;
+  subjects.forEach(subject => {
+    const tiles = [];
+    (subject.groups || []).forEach(group => (group.tiles || []).forEach(t => tiles.push(t)));
+    const withCases = tiles.filter(t => total(subject.id + '/' + t.key) > 0);
+    const subjectCases = tiles.reduce((n, t) => n + total(subject.id + '/' + t.key), 0);
+    tilesAll += tiles.length; tilesWith += withCases.length; casesAll += subjectCases;
+    if (!picked) {
+      rows += '<tr' + (subjectCases ? '' : ' style="opacity:.55"') + '><td>' + escapeHtml(subject.label)
+        + '</td><td>' + withCases.length + ' / ' + tiles.length + ' tiles</td>'
+        + '<td>' + subjectCases + ' cases</td><td>' + (subjectCases ? '' : 'none') + '</td></tr>';
+      return;
+    }
+    tiles.forEach(t => {
+      const n = total(subject.id + '/' + t.key);
+      rows += '<tr' + (n ? '' : ' style="opacity:.55"') + '><td>' + escapeHtml(t.label || t.key)
+        + '</td><td>' + escapeHtml(t.key) + '</td><td>' + n + '</td><td>'
+        + (n ? '' : 'none') + '</td></tr>';
+    });
+  });
+  const head = picked
+    ? '<tr><th>Tile</th><th>Key</th><th>Cases</th><th>Status</th></tr>'
+    : '<tr><th>Subject</th><th>Tiles with cases</th><th>Cases</th><th>Status</th></tr>';
+  host.innerHTML = '<div class="row" style="justify-content:space-between;margin-bottom:6px;">'
+    + '<strong>' + tilesWith + ' of ' + tilesAll + ' tiles have cases</strong>'
+    + '<span class="at-status">' + casesAll + ' case(s) in this view</span></div>'
+    + '<table><thead>' + head + '</thead><tbody>' + (rows || '<tr><td colspan="4">No tiles.</td></tr>')
+    + '</tbody></table>';
 }
 
 function renderUploadList() {
   const host = document.getElementById('uploadList');
-  if (!host) return;
+  if (!host) { return; }
   const uploaded = caseCache.filter(c => c.origin === 'uploaded');
   if (!uploaded.length) {
     host.innerHTML = '<div class="empty">No uploaded files yet. Choose a subject and tile, then upload.</div>';
+    renderUploadCoverage();
     return;
   }
   const rows = uploaded.map(c => '<tr><td>' + escapeHtml(c.source_file || c.id) + '</td>'
@@ -1821,26 +1898,96 @@ function renderUploadList() {
     + '<td>' + escapeHtml((c.created_at || '').slice(0, 10)) + '</td></tr>').join('');
   host.innerHTML = '<table><thead><tr><th>File</th><th>Subject</th><th>Tile</th><th>Case</th><th>Added</th></tr></thead><tbody>'
     + rows + '</tbody></table>';
+  renderUploadCoverage();
 }
 
 document.getElementById('uploadSubject').addEventListener('change', async () => {
   const sid = document.getElementById('uploadSubject').value;
-  const tileSelect = document.getElementById('uploadTile');
-  tileSelect.innerHTML = '<option value="">— select tile —</option>';
+  const tileList = document.getElementById('uploadTileList');
+  const tileInput = document.getElementById('uploadTileInput');
+  const tileHidden = document.getElementById('uploadTile');
+  if (tileList) tileList.innerHTML = '';
+  if (tileInput) tileInput.value = '';
+  if (tileHidden) tileHidden.value = '';
+  renderUploadCoverage();
   if (!sid) return;
   const r = await apiFetch('/api/ops/papers/tiles');
   if (r.status !== 200 || !r.data) return;
   const subject = (r.data.subjects || []).find(s => s.id === sid);
+  const tiles = [];
   ((subject && subject.groups) || []).forEach(group => {
     (group.tiles || []).forEach(tile => {
       if (!tile.has_defaults) return;
-      const option = document.createElement('option');
-      option.value = tile.key;
-      option.textContent = tile.label;
-      tileSelect.appendChild(option);
+      tiles.push(tile);
     });
   });
+  if (tileList) {
+    tileList.innerHTML = tiles.map(t =>
+      '<li data-value="' + escapeHtml(t.key) + '">' + escapeHtml(t.label) + '</li>').join('');
+  }
+  renderUploadCoverage();
 });
+
+/* Searchable tile picker for the Uploads tab. The subject stays a plain dropdown;
+   the tile list can be long, so typing filters it. */
+(function wireTileCombo() {
+  const input = document.getElementById('uploadTileInput');
+  const list = document.getElementById('uploadTileList');
+  const hidden = document.getElementById('uploadTile');
+  if (!input || !list || !hidden) return;
+  let activeIndex = -1;
+  function items() { return Array.from(list.querySelectorAll('li[data-value]')); }
+  function visibleItems() { return items().filter(li => li.style.display !== 'none'); }
+  function open() { list.classList.add('open'); }
+  function close() { list.classList.remove('open'); activeIndex = -1; items().forEach(li => li.classList.remove('active')); }
+  function filter() {
+    const q = (input.value || '').trim().toLowerCase();
+    let any = false;
+    items().forEach(li => {
+      const match = !q || (li.textContent || '').toLowerCase().indexOf(q) !== -1
+        || (li.getAttribute('data-value') || '').toLowerCase().indexOf(q) !== -1;
+      li.style.display = match ? '' : 'none';
+      if (match) any = true;
+    });
+    if (!any) {
+      if (!list.querySelector('li.empty')) {
+        const empty = document.createElement('li');
+        empty.className = 'empty';
+        empty.textContent = 'No matching tile';
+        list.appendChild(empty);
+      }
+    } else {
+      const empty = list.querySelector('li.empty');
+      if (empty) empty.remove();
+    }
+  }
+  function select(li) {
+    if (!li || li.classList.contains('empty')) return;
+    hidden.value = li.getAttribute('data-value') || '';
+    input.value = li.textContent || '';
+    close();
+    hidden.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  input.addEventListener('focus', () => { filter(); open(); });
+  input.addEventListener('input', () => { filter(); open(); activeIndex = -1; });
+  input.addEventListener('keydown', (e) => {
+    const vis = visibleItems();
+    if (e.key === 'ArrowDown') { e.preventDefault(); open(); activeIndex = Math.min(vis.length - 1, activeIndex + 1); vis.forEach((li, i) => li.classList.toggle('active', i === activeIndex)); if (vis[activeIndex]) vis[activeIndex].scrollIntoView({ block: 'nearest' }); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); activeIndex = Math.max(0, activeIndex - 1); vis.forEach((li, i) => li.classList.toggle('active', i === activeIndex)); if (vis[activeIndex]) vis[activeIndex].scrollIntoView({ block: 'nearest' }); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (activeIndex >= 0 && vis[activeIndex]) select(vis[activeIndex]); else if (vis.length === 1) select(vis[0]); }
+    else if (e.key === 'Escape') { close(); }
+  });
+  list.addEventListener('mousedown', (e) => {
+    const li = e.target.closest('li[data-value]');
+    if (li) { e.preventDefault(); select(li); }
+  });
+  document.addEventListener('click', (e) => {
+    if (!input.contains(e.target) && !list.contains(e.target)) close();
+  });
+  // When the tile list is rebuilt (subject change), reset the input.
+  const observer = new MutationObserver(() => { input.value = ''; hidden.value = ''; filter(); });
+  observer.observe(list, { childList: true });
+})();
 
 document.getElementById('uploadFilesBtn').addEventListener('click', () => {
   const subject = document.getElementById('uploadSubject').value;
