@@ -35,7 +35,7 @@ automated downloads. The HTML landing page is saved when available so
 you can still open the article with your institution login.
 
 
-Copyright (c) 2026 [Your Name / Company Name]
+Copyright (c) 2026 [Roderick Henares / Smart Business Writer]
 
 All rights reserved.
 
