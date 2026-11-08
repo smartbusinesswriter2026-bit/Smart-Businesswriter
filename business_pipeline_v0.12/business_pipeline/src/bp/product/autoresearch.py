@@ -149,18 +149,21 @@ def _measure_metric():
 
 # ── Problem generation ─────────────────────────────────────────────────────
 
-def _pick_highest_impact_error():
+def _pick_highest_impact_error(exclude=None):
     """Pick the most frequent/severe open error that is left unattended.
 
     The owner's rule: the Karpathy loop only works on errors nobody is
     handling. Errors opened in the Self-Healing panel are marked attended and
-    are skipped until resolved.
+    are skipped until resolved.  `exclude` is the set of error ids this session
+    has already attempted, so one permanent failure cannot be retried forever.
     """
+    exclude = exclude or set()
     errors = _ops_log.list_errors(limit=100)
     errors = _ops_log.merge_resolved(errors)
     open_all = [e for e in errors
                 if not e.get("resolved") and not e.get("attended")
-                and not e.get("invalid") and not e.get("dismissed")]
+                and not e.get("invalid") and not e.get("dismissed")
+                and (e.get("error_id") not in exclude)]
     open_errors = [e for e in open_all
                    if e.get("problem") or e.get("case_id")]
     if not open_errors:
@@ -172,10 +175,6 @@ def _pick_highest_impact_error():
                                            % len(open_all))
             return None
         return None
-    # Sort by severity (severe first) then by count
-    severity_rank = {"severe": 0, "moderate": 1, "light": 2}
-    open_errors.sort(key=lambda e: (severity_rank.get(e.get("severity", "moderate"), 1), -e.get("count", 1)))
-    return open_errors[0]
     # Sort by severity (severe first) then by count
     severity_rank = {"severe": 0, "moderate": 1, "light": 2}
     open_errors.sort(key=lambda e: (severity_rank.get(e.get("severity", "moderate"), 1), -e.get("count", 1)))
@@ -240,13 +239,17 @@ def _run_case_suite():
 def _loop():
     """Main autoresearch loop. Runs in background thread."""
     global _state
-    interval = int(os.environ.get("BP_AUTORESEARCH_INTERVAL", "3600"))
+    # Work through the queue: 30 s between cycles, not an hour.  The owner's queue of
+    # open errors should drain in minutes, not days.
+    interval = int(os.environ.get("BP_AUTORESEARCH_INTERVAL", "30"))
     max_exp = int(os.environ.get("BP_AUTORESEARCH_MAX_EXP", "3"))
 
     with _lock:
         _state["running"] = True
         _state["stopped"] = False
         _state["status_message"] = "running"
+
+    attempted = set()  # error ids this session has tried, so a permanent failure is not retried forever
 
     while not _state["stopped"]:
         try:
@@ -258,9 +261,17 @@ def _loop():
                     _state["best_metric"] = metric
                 _state["last_run"] = datetime.now(timezone.utc).isoformat()
 
-            # Check for open errors
-            error = _pick_highest_impact_error()
+            # Check for open errors, skipping the ones already tried this session
+            error = _pick_highest_impact_error(exclude=attempted)
             if error is None:
+                if attempted:
+                    # Every open error has been tried once this session.  Clear the set
+                    # so a new arrival is picked up, and sleep before a retry pass.
+                    attempted.clear()
+                    with _lock:
+                        _state["status_message"] = "all open errors attempted — waiting"
+                    time.sleep(interval)
+                    continue
                 # No unattended error: re-run the stored case suite, which is
                 # the loop's own regression pass.  A failure becomes an open
                 # tile-case error for the next cycle; a clean pass stops the
@@ -285,6 +296,7 @@ def _loop():
             with _lock:
                 _state["status_message"] = "running experiments"
 
+            exp = None
             for i in range(max_exp):
                 if _state["stopped"]:
                     break
@@ -301,6 +313,13 @@ def _loop():
                 if exp.get("outcome") in ("kept", "applied", "no_replayable_problem",
                                           "still_failing", "reverted", "rejected"):
                     break
+
+            attempted.add(error.get("error_id"))
+            if exp is not None and exp.get("outcome") == "still_failing":
+                # The loop tried and could not fix it: mark it attended so it stops
+                # blocking the queue and waits for the owner rather than being retried
+                # on the next cycle.
+                _ops_log.mark_error_attended(error.get("error_id"))
 
             # Sleep between cycles
             with _lock:

@@ -304,6 +304,22 @@ class FixerClassificationTest(unittest.TestCase):
         self.assertEqual(ops_log.classify_severity("ERROR 500 internal server"), "severe")
         self.assertEqual(ops_log.classify_severity("crash in module"), "severe")
 
+    def test_the_loop_skips_an_error_it_already_tried(self):
+        from bp.product import ops_log
+        ops_log.log_error("statements", "first failure", problem_text="Problem one")
+        ops_log.log_error("statements", "second failure", problem_text="Problem two")
+        rows = ops_log.list_errors(limit=10)
+        first = rows[0]["error_id"]
+        second = rows[1]["error_id"]
+        # Both are replayable, so one of them is picked.
+        self.assertIn(autoresearch._pick_highest_impact_error()["error_id"], (first, second))
+        # Excluding the error just attempted leaves the other one.
+        picked = autoresearch._pick_highest_impact_error(exclude={first})
+        self.assertEqual(picked["error_id"], second)
+        # Excluding both means the queue has been worked: nothing is picked, and the
+        # status line says why instead of the loop retrying forever.
+        self.assertIsNone(autoresearch._pick_highest_impact_error(exclude={first, second}))
+
     def test_guess_rule_types_accounts_by_keyword(self):
         self.assertEqual(auto_resolve._guess_rule("Deferred grant")[1], "liability")
         self.assertEqual(auto_resolve._guess_rule("Trade receivable")[1], "asset")
