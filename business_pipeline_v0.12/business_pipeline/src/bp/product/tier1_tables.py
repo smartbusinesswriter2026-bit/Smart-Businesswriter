@@ -117,6 +117,31 @@ def append_rule(rule_tuple):
     _load()  # reload to convert types
 
 
+def remove_rule(rule_tuple):
+    """Remove a rule added by `append_rule` when a self-heal guess proved wrong.
+
+    A failed guess must not leave a rule behind that changes a later reading.
+    Returns True when the rule was present and removed.
+    """
+    rules, schemas = _load()
+    if rules is None:
+        return False
+    try:
+        index = list(rules).index(rule_tuple)
+    except ValueError:
+        return False
+    rules = list(rules)
+    rules.pop(index)
+    if schemas is None:
+        schemas = _seed_schemas() or {}
+    _save(rules, schemas)
+    global _rules_cache, _schemas_cache
+    _rules_cache = [tuple(r) for r in rules]
+    _schemas_cache = None
+    _load()
+    return True
+
+
 def append_schema(kind, schema_dict):
     """Append a new schema to SCHEMAS (self-healing loop)."""
     rules, schemas = _load()

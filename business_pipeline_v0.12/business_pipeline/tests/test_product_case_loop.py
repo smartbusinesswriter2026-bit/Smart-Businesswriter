@@ -256,12 +256,24 @@ class FixerClassificationTest(unittest.TestCase):
         self.root = tempfile.mkdtemp(prefix="bp-fixer-")
         self.previous_ops_log = os.environ.get("BP_OPS_LOG")
         os.environ["BP_OPS_LOG"] = os.path.join(self.root, "ops_log")
+        # The tier-1 store path is captured at import; patch the module's own path so the
+        # test never writes into the real statement library.
+        from bp.product import tier1_tables
+        self._previous_store = tier1_tables._STORE_DIR
+        self._previous_path = tier1_tables._TABLES_PATH
+        tier1_tables._STORE_DIR = os.path.join(self.root, "library")
+        tier1_tables._TABLES_PATH = os.path.join(tier1_tables._STORE_DIR, "tier1_tables.json")
+        tier1_tables.reload()
 
     def tearDown(self):
+        from bp.product import tier1_tables
         if self.previous_ops_log is None:
             os.environ.pop("BP_OPS_LOG", None)
         else:
             os.environ["BP_OPS_LOG"] = self.previous_ops_log
+        tier1_tables._STORE_DIR = self._previous_store
+        tier1_tables._TABLES_PATH = self._previous_path
+        tier1_tables.reload()
         shutil.rmtree(self.root, ignore_errors=True)
 
     def test_diagnose_recognises_unbalanced_and_timeout(self):
@@ -271,7 +283,30 @@ class FixerClassificationTest(unittest.TestCase):
         self.assertEqual(auto_resolve.diagnose("no answer within 120s"), "timeout")
         self.assertEqual(auto_resolve.diagnose("Failed to fetch"), "timeout")
 
-    def test_an_unbalanced_problem_is_closed_as_invalid_not_left_open(self):
+    def test_guess_rule_types_accounts_by_keyword(self):
+        self.assertEqual(auto_resolve._guess_rule("Deferred grant")[1], "liability")
+        self.assertEqual(auto_resolve._guess_rule("Trade receivable")[1], "asset")
+        self.assertEqual(auto_resolve._guess_rule("Bank loan")[1], "liability")
+        self.assertEqual(auto_resolve._guess_rule("Share capital")[1], "equity")
+        self.assertEqual(auto_resolve._guess_rule("Sales revenue")[1], "income")
+        self.assertIsNone(auto_resolve._guess_rule("Zzz qqq"))
+
+    def test_a_skipped_account_is_recognised_and_balances_the_trial_balance(self):
+        """An unknown account dropped by the parser is added back by its keywords."""
+        from bp.product import statements
+        problem = ("The following trial balance was extracted at 31 December 2026.\n"
+                   "Cash 10,000\n"
+                   "Capital 8,000 Cr\n"
+                   "Deferred grant 2,000 Cr")
+        # Before the rule, the reader drops the unknown account and the sides disagree.
+        reading = statements.read_deterministic(problem)
+        self.assertNotEqual(auto_resolve._journal_imbalance(reading), 0)
+        fixed = auto_resolve._try_fix_unbalanced(problem)
+        self.assertEqual(fixed, "Deferred grant")
+        after = statements.read_deterministic(problem)
+        self.assertEqual(auto_resolve._journal_imbalance(after), 0)
+
+    def test_an_unbalanced_problem_with_no_skipped_account_is_closed_as_invalid(self):
         ops_log.log_error(
             "statements",
             "the accounts do not build: entries[0]: entry 'the trial balance as given' "
@@ -281,7 +316,6 @@ class FixerClassificationTest(unittest.TestCase):
         result = auto_resolve.resolve(err["error_id"])
         self.assertTrue(result["invalid"])
         self.assertEqual(result["category"], "unbalanced_input")
-        self.assertFalse(result["attempted"])
         # It leaves the open list, and it is never labelled solved.
         self.assertEqual([e["error_id"] for e in ops_log.list_errors(limit=10)], [])
         merged = ops_log.merge_resolved(ops_log.list_errors(limit=100, status="all"))

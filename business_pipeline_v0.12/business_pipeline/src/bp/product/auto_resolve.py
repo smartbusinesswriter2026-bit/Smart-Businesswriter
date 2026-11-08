@@ -93,6 +93,108 @@ def _deterministic_ok(normalized):
         return False
 
 
+def _journal_imbalance(reading):
+    """Debits minus credits of the reading's journal, as a Decimal."""
+    from decimal import Decimal
+    debits = credits = Decimal("0")
+    for entry in reading.get("journal") or []:
+        for line in entry.get("lines") or []:
+            if line.get("debit"):
+                debits += Decimal(str(line["debit"]))
+            if line.get("credit"):
+                credits += Decimal(str(line["credit"]))
+    return debits - credits
+
+
+def _guess_rule(label):
+    """A placement rule for one account label, guessed from its own keywords.
+
+    This is the self-heal half for an unbalanced trial balance: an account the vocabulary
+    does not recognise is dropped, so the two sides disagree by exactly that account's
+    amount.  Recognising the label by its keywords adds the line back without inventing a
+    figure — the amount is the student's own.  Returns a rule tuple or None.
+    """
+    import re
+    low = re.sub(r"\s+", " ", str(label or "").strip().lower())
+    if not low:
+        return None
+    pattern = r"^" + re.escape(low) + r"$"
+    if re.search(r"\b(loan|borrowing|mortgage|note payable|debenture)\b", low):
+        return (pattern, "liability", "non_current", "Borrowings", "", "financing", False)
+    if re.search(r"\b(payable|creditor|accrual|accrued)\b", low):
+        return (pattern, "liability", "current", "Trade payables", "", "operating", False)
+    if re.search(r"\b(unearned|deferred)\b", low):
+        return (pattern, "liability", "current", "Accruals", "", "operating", False)
+    if re.search(r"\b(receivable|debtor)\b", low):
+        return (pattern, "asset", "current", "Trade receivables", "", "operating", False)
+    if re.search(r"\b(equipment|vehicle|machine|building|land|furniture|plant|fixture)\b", low):
+        return (pattern, "asset", "non_current", "Property, plant and equipment", "", "investing", False)
+    if re.search(r"\b(cash|bank)\b", low):
+        return (pattern, "asset", "current", "Cash", "cash", "operating", False)
+    if re.search(r"\b(inventory|stock)\b", low):
+        return (pattern, "asset", "current", "Inventory", "", "operating", False)
+    if re.search(r"\b(capital|equity|owner)\b", low):
+        return (pattern, "equity", "", "Capital", "capital", "financing", False)
+    if re.search(r"\b(retained|reserve)\b", low):
+        return (pattern, "equity", "", "Retained earnings", "retained_earnings", "", False)
+    if re.search(r"\b(revenue|sales|income|turnover|fee)\b", low):
+        return (pattern, "income", "", "Revenue", "", "operating", False)
+    if re.search(r"\b(expense|cost|wages|salary|salaries|rent|utility|utilities|insurance|advertising)\b", low):
+        return (pattern, "expense", "", "Operating expenses", "", "operating", False)
+    return None
+
+
+def _try_fix_unbalanced(problem):
+    """Try to balance the trial balance by recognising a skipped account line.
+
+    Reads the problem, finds the imbalance, and looks for a line the parser could not place
+    whose amount equals the imbalance.  If the label can be typed from its keywords, the rule
+    is added, the problem is re-read, and the fix is accepted only if the two sides now
+    agree.  A wrong guess is removed again.  Returns the label that was added, or None.
+    """
+    import re
+    from decimal import Decimal, InvalidOperation
+    from . import statements as stmt_mod
+
+    def read(text):
+        try:
+            return stmt_mod.read_deterministic(text)
+        except Exception:
+            return None
+
+    reading = read(problem)
+    if reading is None:
+        return None
+    diff = _journal_imbalance(reading)
+    if diff == 0:
+        return None
+    for miss in reading.get("missing") or []:
+        raw = str(miss.get("what") or "")
+        numbers = re.findall(r"-?\d[\d,]*(?:\.\d+)?", raw)
+        if not numbers:
+            continue
+        try:
+            amount = Decimal(numbers[-1].replace(",", ""))
+        except (InvalidOperation, ValueError):
+            continue
+        if abs(diff) != amount:
+            continue
+        label = re.sub(r"[\d,$]", " ", raw).strip(" .,:-|()[]=")
+        label = re.sub(r"\b(cr|dr)\.?\b", "", label, flags=re.I)
+        label = re.sub(r"\s+", " ", label).strip()
+        rule = _guess_rule(label)
+        if rule is None:
+            continue
+        from . import tier1_tables
+        tier1_tables.append_rule(rule)
+        retry = read(problem)
+        if retry is not None and _journal_imbalance(retry) == 0:
+            return label
+        # The guess did not balance the reading: take the rule out again.
+        tier1_tables.remove_rule(rule)
+    return None
+
+
 def _siblings(record, limit=MAX_SIBLINGS):
     """Unresolved errors carrying the identical message but a different id."""
     target = (record.get("error") or "").strip()
@@ -162,10 +264,37 @@ def resolve(error_id):
                 "reason": "invalid test input: the problem names no transaction and declares no figure"}
 
     if category == "unbalanced_input":
-        # A trial balance that does not balance is the student's figures, not a pipeline
-        # defect: the tile refuses and diagnoses it rather than plugging.  No model replay
-        # can reconcile two figures without inventing one, so this is marked invalid and
-        # closed instead of left open forever.
+        # First try the deterministic self-heal: an account the vocabulary does not
+        # recognise is dropped, so the two sides disagree by exactly that account's
+        # amount.  Recognising the label by its keywords adds the line back without
+        # inventing a figure.  Only if that fails is the input genuinely wrong.
+        problem = record.get("problem") or ""
+        fixed = _try_fix_unbalanced(problem) if problem else None
+        if fixed:
+            # Re-solve with the new rule in place and verify it balances end to end.
+            try:
+                from . import statements as stmt_mod
+                result = stmt_mod.solve(problem)
+                if isinstance(result, dict) and result.get("solved"):
+                    from . import regression_cases
+                    normalized, notes = normalize_problem(problem)
+                    regression_cases.record_case(
+                        error_id, "unbalanced_input", problem, normalized, notes,
+                        "vocabulary (code)", deterministic_ok=True)
+                    _ops_log.mark_error_verified(
+                        error_id,
+                        "recognised the account %r and the trial balance now balances" % fixed)
+                    steps = [{"strategy": "recognise a skipped account", "model": "vocabulary (code)",
+                              "outcome": "solved", "detail": fixed}]
+                    _ops_log.log_resolution_attempt(error_id, category, steps, "solved")
+                    return {"resolved": True, "verified": True, "attempted": True,
+                            "invalid": False, "category": category, "steps": steps,
+                            "model": "vocabulary (code)", "siblings_resolved": 0,
+                            "reason": "recognised the account %r; the trial balance now balances" % fixed}
+            except Exception:
+                pass
+        # No recognisable skipped account: the figures are the student's and the tile
+        # correctly refuses rather than plugging.  Mark invalid and close it.
         _ops_log.mark_error_invalid(
             error_id,
             "the trial balance does not balance; the figures are the student's and the tile "
