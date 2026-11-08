@@ -556,8 +556,8 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 .pm-ladder{margin-top:16px}
 .pm-ladder-head{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
 .pm-ladder-title{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-900)}
-.pm-ladder-sub{font-size:13px;color:var(--navy-700);opacity:.8}
-.pm-sec{margin:18px 0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--navy-800);opacity:.75}
+.pm-ladder-sub{font-size:13px;color:var(--green-900)}
+.pm-sec{margin:18px 0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--green-900)}
 .pm-ladder-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 @media(max-width:680px){.pm-ladder-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.pm-ladder-grid{grid-template-columns:1fr}}
@@ -10732,7 +10732,7 @@ function pmRenderBundles(bundles, annual) {
     '<div class="pm-ladder">' +
       '<div class="pm-ladder-head">' +
         '<span class="pm-ladder-title">Bundle both products</span>' +
-        '<span class="pm-ladder-sub">One subscription for Smart Business Writer <em>and</em> Write Smarter &middot; www.write-smarter.com. Allowances follow the plan.</span>' +
+        '<span class="pm-ladder-sub">www.smart-businesswriter.com and www.write-smarter.com</span>' +
       "</div>" +
       '<div class="pm-ladder-grid">' + bundles.map((bundle) => pmBundleCard(bundle, annual)).join("") + "</div>" +
       (note ? '<p class="pm-ws-note">' + esc(note) + "</p>" : "") +
