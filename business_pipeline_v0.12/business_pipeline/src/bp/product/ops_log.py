@@ -209,6 +209,12 @@ def list_errors(limit=50, lane=None, status="open"):
         return True
     rows = _read_jsonl(_errors_path(), limit=None, filter_fn=filt)
     rows = merge_resolved(rows)
+    # Severity is a derived classification, not a stored fact: recompute it from the error
+    # text so a rule change applies to records logged before it (an input error is light,
+    # even when it was written as "severe" under the old rules).
+    for row in rows:
+        if row.get("error"):
+            row["severity"] = classify_severity(row.get("error", ""))
     wanted = str(status or "open").strip().lower()
     if wanted != "all":
         if wanted == "open":

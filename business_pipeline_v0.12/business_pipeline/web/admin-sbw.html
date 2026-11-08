@@ -962,7 +962,7 @@ function renderErrorsTable(errors, container) {
     const verified = e.verified ? true : false;
     const invalid = e.invalid ? true : false;
     const dismissed = e.dismissed ? true : false;
-    const sevPill = dismissed ? pill('dismissed (unverified)', 'warn') : (invalid ? pill('invalid input', 'info')
+    const sevPill = dismissed ? pill('dismissed (unverified)', 'warn') : (invalid ? pill('closed (input error)', 'info')
       : (resolved ? (verified ? pill('verified solved', 'ok') : pill('resolved (unverified)', 'warn'))
       : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'))));
     const statusPill = sevPill;
@@ -1205,8 +1205,8 @@ async function resolveError(errorId) {
       + (s.detail ? ' (' + s.detail + ')' : '') + '\n';
   });
   if (r.status === 200 && d.invalid) {
-    wfLog.textContent += '[Marked invalid input - not a pipeline defect]\n';
-    toast('Invalid test input - recorded as invalid, not solved');
+    wfLog.textContent += '[Closed as an input error — ' + (d.reason || 'not a pipeline defect') + ']\n';
+    toast('Closed: ' + (d.reason || 'input error, not a pipeline defect'));
     loadErrors();
   } else if (r.status === 200 && d.resolved) {
     wfLog.textContent += '[Resolved and verified on ' + (d.model || 'pipeline') + (d.siblings_resolved ? '; ' + d.siblings_resolved + ' sibling error(s) closed' : '') + ']\n';
