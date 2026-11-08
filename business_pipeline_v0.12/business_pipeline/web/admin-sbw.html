@@ -2567,6 +2567,8 @@ async function loadCauses() {
     container.innerHTML = '<div class="empty">No pipeline causes logged yet.</div>';
     return;
   }
+  const metric = document.getElementById('arMetric');
+  if (metric) metric.textContent = (s.fixed_pct !== undefined ? s.fixed_pct : 0) + '%';
   let h = '<div class="at-status" style="margin-bottom:8px;">' + (s.causes || 0) + ' cause(s): '
     + (s.fixed || 0) + ' fixed, ' + (s.recurring || 0) + ' recurring, '
     + (s.unfixed || 0) + ' unfixed, ' + (s.closed_instance_only || 0) + ' closed as an instance only.</div>';
