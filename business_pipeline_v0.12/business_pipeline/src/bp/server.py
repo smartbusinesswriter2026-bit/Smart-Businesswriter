@@ -81,6 +81,9 @@ def _statement_models(tier=None):
     t = tier if tier is not None else _statement_model_tier
     models = llm.from_env(tier=t)
     if models is not None:
+        # Override the output budget: the extract contract can be long for a
+        # multi-transaction case, and the default 1500 tokens truncates it.
+        models.config.max_output_tokens = 4096
         return models
     # DeepSeek fallback disabled by default (cost protection). Set
     # BP_ENABLE_DEEPSEEK=1 (and DEEPSEEK_API_KEY) to re-enable.

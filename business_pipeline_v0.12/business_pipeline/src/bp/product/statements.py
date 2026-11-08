@@ -1868,7 +1868,7 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
             # Deterministic problems never reach this path (solved by code above); small narratives
             # that slipped past the deterministic reader are retried on the cheap model (tier 1).
             complex_problem = _is_complex_problem(text)
-            for attempt in range(4):
+            for attempt in range(2):
                 try:
                     if complex_problem:
                         # Escalate model tier: 1 (standard) -> 2 (retry) -> 3 (escalation) -> 3 (debate)
@@ -1896,7 +1896,7 @@ def solve(instruction, currency=None, framework=None, ratios=None, reader=None, 
                     break
                 except StatementError as error:
                     last_error = error
-                    if attempt == 3:
+                    if attempt == 1:
                         raise
                     continue
         if used is None:
