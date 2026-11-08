@@ -604,6 +604,18 @@ def _statements_preview(subject, tile, group, format="docx"):
     from . import docx
     title = "%s: the statements for the sample trial balance" % (tile.get("label") or "Financial statements")
     data = docx.render_bytes(title, docx_sections)
+    xlsx = None
+    if str(format or "docx").lower() in ("xlsx", "both", "excel"):
+        appendix = (record.get("core") or {}).get("appendix") or {}
+        try:
+            xlsx = spreadsheets.to_xlsx({
+                "id": "statements-preview",
+                "title": title,
+                "delivery": {"appendix": {"accounts": appendix}},
+            })
+        except Exception:
+            xlsx = None
+    base = _safe_name("%s - %s" % (subject["label"], tile.get("label") or "statements"))
     return {
         "tile_key": tile.get("key") or "statements",
         "label": tile.get("label") or "Financial statements",
@@ -611,10 +623,10 @@ def _statements_preview(subject, tile, group, format="docx"):
         "status": "ok",
         "objective": "Read the trial balance and prepare the statements.",
         "brief": STATEMENTS_BRIEF,
-        "filename": _safe_name("%s - %s" % (subject["label"], tile.get("label") or "statements")) + ".docx",
+        "filename": base + ".docx",
         "bytes": data,
-        "xlsx_filename": "",
-        "xlsx": None,
+        "xlsx_filename": base + ".xlsx",
+        "xlsx": xlsx,
         "sections": paper_sections,
         "title": title,
         "sources": 0,
@@ -906,49 +918,53 @@ def _zip_bytes(run_id):
         archive.writestr("manifest.json", json.dumps(manifest, ensure_ascii=False, indent=1))
         archive.writestr("index.html", _index_html(manifest))
         archive.writestr("instructions.md", _instructions_md(manifest))
-        archive.writestr("explainer.md", _explainer_md(manifest))
+        archive.writestr("explainer.docx", _explainer_docx(manifest))
     return buffer.getvalue()
 
 
-def _explainer_md(manifest):
-    """The tile, its instruction, its declared figures, its result and its evidence."""
-    lines = ["# %s - tile explainer" % (manifest.get("label") or "Tile previews"),
-             "", "Generated %s." % (manifest.get("created_at") or ""),
-             "Output format: %s." % (manifest.get("output") or "docx"), ""]
+def _explainer_docx(manifest):
+    """The tile, its instruction, its figures, its result and its evidence, as a Word file."""
+    from . import docx
+    title = "%s - tile explainer" % (manifest.get("label") or "Tile previews")
+    sections = []
+    lead = ["Generated %s." % (manifest.get("created_at") or ""),
+            "Output format: %s." % (manifest.get("output") or "docx")]
+    sections.append(("About this run", lead))
     for row in manifest.get("results") or []:
-        lines.append("## %s" % (row.get("label") or row.get("tile_key") or ""))
+        heading = str(row.get("label") or row.get("tile_key") or "")
+        lines = []
         if row.get("group"):
-            lines.append("")
             lines.append("Subsection: %s" % row["group"])
         if row.get("objective"):
-            lines.append("")
             lines.append("Objective: %s" % row["objective"])
         if row.get("brief"):
-            lines.append("")
+            if lines:
+                lines.append("")
             lines.append("Instruction:")
-            lines.append("")
-            lines.append("> %s" % row["brief"])
+            lines.append(str(row["brief"]))
         inputs = row.get("inputs") or {}
         if inputs:
-            lines.append("")
+            if lines:
+                lines.append("")
             lines.append("Declared inputs:")
-            for name, value in inputs.items():
-                lines.append("- %s: %s" % (str(name).replace("_", " "), value))
+            lines.extend("- %s: %s" % (str(name).replace("_", " "), value)
+                         for name, value in inputs.items())
         computed = row.get("computation") or {}
         if computed:
-            lines.append("")
+            if lines:
+                lines.append("")
             lines.append("Computed result:")
-            for name, value in computed.items():
-                lines.append("- %s: %s" % (str(name).replace("_", " "), value))
-        lines.append("")
+            lines.extend("- %s: %s" % (str(name).replace("_", " "), value)
+                         for name, value in computed.items())
+        if lines:
+            lines.append("")
         lines.append("Evidence: %s cited source(s), %s background page(s), %s named gap(s)."
                      % (row.get("sources") or 0, row.get("background") or 0, row.get("gaps") or 0))
-        lines.append("")
         lines.append("Generation: %s%s" % (
             row.get("status") or "unknown",
             (" - " + str(row.get("error") or "")) if row.get("error") else ""))
-        lines.append("")
-    return "\n".join(lines)
+        sections.append((heading or "Tile", lines))
+    return docx.render_bytes(title, sections)
 
 
 def _instructions_md(manifest):
@@ -1016,7 +1032,7 @@ def download(run_id, fmt="zip"):
         with open(path, "rb") as handle:
             return handle.read(), "%s - tile previews.docx" % label
     if fmt == "explainer":
-        return _explainer_md(manifest).encode("utf-8"), "%s - explainer.md" % label
+        return _explainer_docx(manifest), "%s - explainer.docx" % label
     return _zip_bytes(run_id), "%s - tile previews.zip" % label
 
 

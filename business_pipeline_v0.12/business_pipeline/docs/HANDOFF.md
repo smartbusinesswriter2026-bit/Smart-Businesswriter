@@ -267,13 +267,14 @@ outside the zone is cancelled so the browser does not navigate away from the con
 
 ### 8.8 The explainer
 
-Every paper-preview run writes `explainer.md` into the run folder and into the ZIP.  It
+Every paper-preview run writes `explainer.docx` into the run folder, into the ZIP, and behind
+`?format=explainer` (served as Word).  It
 carries, per tile: the objective, the prefilled instruction, the declared inputs, the
 computed result, the evidence counts (cited sources, background pages, named gaps) and the
 generation status — labelled **Generation**, never "test passed", because the pass/fail
 authority is the case runner.
 
-Every case run writes one `<case>_explainer.md` per result plus a run-level `explainer.md`.
+Every case run writes one `<case>_explainer.docx` per result plus a run-level `explainer.docx`.
 The per-case file has a **Check** section: the status, the problems (or the sentence that
 the computation, the invariants, the paper and the workbook all agree), and the evidence
 counts.  The whole run saves its paper, workbook and explainers for a pass as well as a
@@ -319,8 +320,11 @@ The Testing tab therefore lists it and runs it like any other tile.
 statements service the server injects through `configure(..., statements=...)`, using a
 deterministic sample trial balance (`STATEMENTS_BRIEF`) so the preview needs no model and
 no API spend.  The paper carries the Income statement, Balance sheet, Statement of changes
-in equity and Notes.  The statements service requires the server's core attachment, so a
-direct call outside the server returns `needs_input` with that reason.
+in equity and Notes.  When the format asks for a workbook, the same record is written through
+`spreadsheets.to_xlsx` from the statements appendix (the case sheet, statements, working
+papers and notes), so the tile offers both Word and Excel, as the other tiles do.  The
+statements service requires the server's core attachment, so a direct call outside the
+server returns `needs_input` with that reason.
 
 The **repair loop runs on OpenCode Go**, not the platform.deepseek.com key:
 `auto_resolve._fix_models` returns `deepseek-v4.1-flash` -> `deepseek-v4-pro` (OpenCode Go

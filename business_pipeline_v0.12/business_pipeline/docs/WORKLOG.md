@@ -1,3 +1,25 @@
+## 2026-11-08 - [product] Statements get an Excel workbook; explainers are Word
+
+**Ask.** Include Excel when applicable (financial statements), and make the explainer a docx,
+not a markdown file.
+
+**Did.**
+
+- **Statements workbook**: the Financial statements preview now builds the statements
+  workbook from the record's statements appendix through `spreadsheets.to_xlsx`, so the tile
+  writes `Accounting - Financial statements.xlsx` beside the docx.  `xlsx` and `both` formats
+  work like every other tile.
+- **Explainer as Word**: `paper_batch._explainer_docx` renders the tile explainer with the
+  product's Word writer; the ZIP entry, the download at `?format=explainer` and the case
+  explainers are all `.docx` now.  `case_runner` writes `<case>_explainer.docx` and a
+  run-level `explainer.docx`, and the server serves the explainer as Word.
+- **Tests** updated to the docx explainer.
+- **`docs/HANDOFF.md`** sections 8.8 and 8.10 updated.
+
+**Measured.** A batch for statements + break-even writes docx and xlsx for both tiles, the
+ZIP carries `explainer.docx`, `?format=explainer` returns Word (PK), and a case run writes
+`finance_tvm_001_explainer.docx` plus `explainer.docx`.
+
 ## 2026-11-08 - [product] Financial statements in Testing; the repair runs on OpenCode Go
 
 **Ask.** Add Financial statements to the Testing tab, and use OpenCode Go in the repair.

@@ -897,8 +897,7 @@ class H(BaseHTTPRequestHandler):
                 except KeyError as e:
                     return self._send(404, {"error": str(e)})
                 _ctype = ("application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                          if _fmt == "docx" else
-                          "text/markdown; charset=utf-8" if _fmt == "explainer" else "application/zip")
+                          if _fmt in ("docx", "explainer") else "application/zip")
                 return self._send(200, _data, _ctype, filename=_name)
             _paper_run = __import__("re").fullmatch(
                 r"/api/ops/papers/batch/([0-9a-f]{8,})", _ops_url.path)

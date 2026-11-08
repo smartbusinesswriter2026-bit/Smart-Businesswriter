@@ -241,11 +241,12 @@ class CaseLoopTest(unittest.TestCase):
         cases = self._seed()
         case = next(c for c in cases if c["tile"] == "breakeven")
         outcome = case_runner.run_case(case["id"], log=False)
-        self.assertIn("## Check", outcome["explainer"])
-        self.assertIn("Status: pass", outcome["explainer"])
+        sections = dict(outcome["explainer"])
+        self.assertIn("Check", sections)
+        self.assertTrue(any("Status: pass" in line for line in sections["Check"]))
         manifest = case_runner.run_cases([case["id"]])
-        self.assertTrue(manifest["results"][0]["explainer_file"].endswith(".md"))
-        self.assertEqual(manifest.get("explainer"), "explainer.md")
+        self.assertTrue(manifest["results"][0]["explainer_file"].endswith(".docx"))
+        self.assertEqual(manifest.get("explainer"), "explainer.docx")
 
 
 class FixerClassificationTest(unittest.TestCase):
