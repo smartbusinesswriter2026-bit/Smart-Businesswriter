@@ -67,6 +67,19 @@ def summary(limit=100000):
             if closed_at and (not entry["fixed_at"] or closed_at < entry["fixed_at"]):
                 entry["fixed_at"] = closed_at
 
+    # A cause fix is recorded explicitly (the change lives in the repository), not
+    # inferred from an instance close.  Date the class from that record.
+    for fix in ops_log.list_cause_fixes():
+        entry = ledger.get(fix.get("cause"))
+        if entry is None:
+            continue
+        artifact = fix.get("artifact") or ""
+        ts = fix.get("ts") or ""
+        if artifact and artifact not in entry["artifacts"]:
+            entry["artifacts"].append(artifact)
+        if ts and (not entry["fixed_at"] or ts < entry["fixed_at"]):
+            entry["fixed_at"] = ts
+
     for entry in ledger.values():
         if entry["fixed_at"]:
             entry["recurrences"] = sum(

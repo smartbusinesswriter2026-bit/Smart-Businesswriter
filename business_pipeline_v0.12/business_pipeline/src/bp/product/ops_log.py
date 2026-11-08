@@ -345,6 +345,30 @@ def log_resolution_attempt(error_id, category, steps, outcome):
     return _append_jsonl(_errors_path(), record)
 
 
+def log_cause_fix(cause, artifact, note=""):
+    """Record that a *cause* was fixed by a durable change.
+
+    A cause fix is not an instance close: the change (a paper heading the cases
+    now accept, a checked-in case expectation, a reviewed code fix) lives in the
+    repository, and this record lets the ledger date it.  A later error of the
+    same cause is then a recurrence, not a fresh mystery.
+    """
+    if not cause or not artifact:
+        return False
+    record = {
+        "ts": _now_iso(),
+        "cause": str(cause)[:80],
+        "artifact": str(artifact)[:40],
+        "note": str(note)[:300],
+    }
+    return _append_jsonl(_log_dir() / "cause_fixes.jsonl", record)
+
+
+def list_cause_fixes():
+    """Cause-fix records, newest first."""
+    return _read_jsonl(_log_dir() / "cause_fixes.jsonl", limit=1000)
+
+
 def is_error_resolved(error_id):
     """Check if an error has been marked resolved."""
     errors = list_errors(limit=10000)

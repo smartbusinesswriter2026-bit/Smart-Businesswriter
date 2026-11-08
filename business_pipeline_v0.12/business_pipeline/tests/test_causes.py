@@ -143,6 +143,33 @@ class CauseLedgerTest(unittest.TestCase):
         ops_log.log_error("statements", error, problem_text=problem, force=True)
         return ops_log.list_errors(limit=10, status="all")[0]["error_id"]
 
+    def test_a_recorded_cause_fix_dates_the_class_and_a_later_error_is_a_recurrence(self):
+        from bp.product import cause_ledger
+        ops_log.log_error("tile-case", "the paper does not contain 'Declared inputs'",
+                          problem_text="Problem one", case_id="accounting/abc/001")
+        row = next(r for r in cause_ledger.summary()["causes"]
+                   if r["cause"] == "pipeline.case_expectation")
+        self.assertEqual(row["status"], "unfixed")
+        self.assertTrue(ops_log.log_cause_fix(
+            "pipeline.case_expectation", "case_expectation", "the paper heading changed"))
+        row = next(r for r in cause_ledger.summary()["causes"]
+                   if r["cause"] == "pipeline.case_expectation")
+        self.assertEqual(row["status"], "fixed")
+        self.assertIn("case_expectation", row["artifacts"])
+
+        # Close the first instance before the recurrence: one open record per message
+        # is deliberate, so a repeat while it is open is the same instance.
+        first = ops_log.list_errors(limit=10, status="all")[0]
+        ops_log.mark_error_verified(first["error_id"], "instance closed",
+                                    cause="pipeline.case_expectation",
+                                    artifact="case_expectation")
+        ops_log.log_error("tile-case", "the paper does not contain 'Declared inputs'",
+                          problem_text="Problem two", case_id="accounting/abc/002")
+        row = next(r for r in cause_ledger.summary()["causes"]
+                   if r["cause"] == "pipeline.case_expectation")
+        self.assertEqual(row["status"], "recurring")
+        self.assertEqual(row["recurrences"], 1)
+
     def test_an_instance_close_is_not_a_fixed_cause(self):
         error_id = self._log("the model response was not in the expected format")
         ops_log.mark_error_verified(error_id, "replayed once", cause="pipeline.parser_shape",

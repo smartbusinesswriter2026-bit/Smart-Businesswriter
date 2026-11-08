@@ -57,6 +57,26 @@ pipeline cause:
 something. It drops when a class comes back. The admin Autoresearch panel shows the
 table and `/api/ops/causes` serves it.
 
+## Recording a cause fix
+
+A fix lives in the repository (a paper heading, a refreshed case expectation, a
+vocabulary rule, a reviewed code change). Record it once, with the artifact named:
+
+```python
+ops_log.log_cause_fix("pipeline.case_expectation", "case_expectation",
+                      "the paper carries 'What you declared'; the checker maps the old "
+                      "phrase and never demands a reference list")
+```
+
+The ledger dates the class from that record. Every occurrence **before** it is
+history; every occurrence **after** it is a recurrence. This is how a class leaves
+`closed_instance` and becomes `fixed` without pretending an instance close was a fix.
+
+Worked example (2026-11-08): 61 stored cases were replayed; 52 passed, 9 referenced a
+case that no longer exists (closed as invalid), 0 failed. The paper's headings and the
+checker's phrase map were already in the code, so the fix was recorded and the class
+moved from `closed_instance` (76 occurrences) to `fixed` with 0 recurrences.
+
 ## Intake guards: stop the class before it is solved
 
 A durable fix is usually a gate, not a better repair:
