@@ -1613,6 +1613,37 @@
    "tier": "T2",
    "version": "1.0.0"
   },
+  "escalated_series": {
+   "inputs": {
+    "escalate_after": {
+     "desc": "periods at the starting amount before the first step, default 12",
+     "required": false,
+     "type": "decimal"
+    },
+    "every": {
+     "desc": "periods between steps, default 12",
+     "required": false,
+     "type": "decimal"
+    },
+    "periods": {
+     "desc": "how many periods to produce",
+     "required": true,
+     "type": "decimal"
+    },
+    "rate": {
+     "desc": "the step per escalation, e.g. 0.04",
+     "required": false,
+     "type": "decimal"
+    },
+    "start": {
+     "desc": "the amount in the first period",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "ev_ebitda": {
    "inputs": {
     "ebitda": {
@@ -2351,6 +2382,17 @@
      "desc": "one row per task: id (or name), time, and optional predecessors as a comma-separated list of task ids",
      "required": true,
      "type": "rows"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "line_totals": {
+   "inputs": {
+    "lines": {
+     "desc": "one record per line: a label, an amount and a category",
+     "required": true,
+     "type": "records"
     }
    },
    "tier": "T1",
@@ -3866,7 +3908,7 @@
      "type": "decimal"
     },
     "revenue": {
-     "desc": "declared revenue for each period, one to ten periods",
+     "desc": "declared revenue for each period, one to thirty-six periods",
      "required": true,
      "type": "value_list"
     },
@@ -4432,6 +4474,27 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "revenue_from_traffic": {
+   "inputs": {
+    "average_ticket": {
+     "desc": "average revenue per transaction",
+     "required": true,
+     "type": "decimal"
+    },
+    "daily_transactions": {
+     "desc": "transactions per trading day, one per period",
+     "required": true,
+     "type": "decimal_list"
+    },
+    "days_open": {
+     "desc": "trading days in each period",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "rfm_scoring": {
    "inputs": {
     "customers": {
@@ -4699,6 +4762,22 @@
      "desc": "time",
      "required": true,
      "type": "string"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "simple_payback": {
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flow per period, starting at period 1",
+     "required": true,
+     "type": "decimal_list"
+    },
+    "initial": {
+     "desc": "the investment to recover",
+     "required": true,
+     "type": "decimal"
     }
    },
    "tier": "T1",

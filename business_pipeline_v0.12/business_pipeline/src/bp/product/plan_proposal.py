@@ -51,9 +51,36 @@ def _framework_options(choices, reading):
     return options
 
 
+def _business_plan_brief(brief):
+    """A business plan states its own tables: the plan service computes them, not a lone block."""
+    try:
+        from . import declared
+        return declared.is_business_plan(brief)
+    except Exception:
+        # A reader failure must not turn a plan brief into a framework paper.
+        return False
+
+
+def _business_plan_computation():
+    row = capabilities.ENTRIES.get("business_plan")
+    if not row:
+        return []
+    return [{
+        "key": "business_plan",
+        "label": row.get("label") or "Business plan financials",
+        "why": ("the brief declares a startup budget, its funding and a revenue driver; "
+                "the plan computes them in the guide's order"),
+        "needs": row.get("slot") or [],
+        "licenses": row.get("licenses") or "",
+    }]
+
+
 def _computations(brief, framework, limit=3):
     rows = []
     for key, row in capabilities.ENTRIES.items():
+        if _business_plan_brief(brief) and key in ("breakeven", "startup_capital", "cash_runway"):
+            # The business plan's financial plan supersedes a single break-even block.
+            continue
         for cue in row.get("any_of") or []:
             try:
                 if re.search(cue, brief, re.I):
@@ -78,14 +105,24 @@ def _decision_from_brief(brief):
     if match:
         text = match.group(1).strip()
     else:
-        text = re.split(r"(?<=[.?!])\s+", text, maxsplit=1)[0]
+        text = re.split(r"(?<=[.?!])\s+|\n", text, maxsplit=1)[0]
+    text = text.split("\n", 1)[0].strip()
     # The objective sentence often continues with a handling instruction
     # ("Treat ...", "Use ...", "Do not ...").  That is not the decision.
     text = re.split(r"\b(?:Treat|Use|Do not|Ensure|Label|Analy[sz]e|Output)\b", text, maxsplit=1)[0].strip()
     return text[:300].rstrip(" .?!")
 
 
-def _claims(decision, framework):
+def _claims(decision, framework, business_plan=False):
+    if business_plan:
+        return [
+            {"text": "The plan will show whether the declared funding covers the startup cost "
+                     "and whether cash survives the first year.", "status": "proposed",
+             "support": "the case's own tables"},
+            {"text": "Every figure comes from the case's tables; a figure the case does not state "
+                     "is named as a gap, not filled.", "status": "proposed",
+             "support": "the plan reader and the frozen core"},
+        ]
     text = "The paper will assess: " + _decision_from_brief(decision or "the instruction") + "."
     conditional = {
         "five_forces": "If rivalry and entry barriers are high, the paper can argue that entry is unattractive.",
@@ -104,18 +141,31 @@ def _claims(decision, framework):
     ]
 
 
-def _structure(archetype):
+def _structure(archetype, brief=""):
+    if _business_plan_brief(brief):
+        # The uploaded generation guide's Part 13 skeleton is the structure of a
+        # business plan, so the paper follows the template the owner supplied.
+        from . import plan_schema
+        return list(plan_schema.SECTIONS)
     row = paper_families.archetype(archetype or "analytical_report") or {}
     return list(row.get("required_sections") or [])
 
 
-def build(brief, reading, slots, archetype, framework, choices, answers=None):
+def build(brief, reading, slots, archetype, framework, choices, answers=None,
+          business_plan=None):
     """Build the proposal dict stored on the chat state."""
     answers = answers or {}
     decision = _decision_from_brief(answers.get("decision") or brief)
     selected = list(reading.selected)
+    if business_plan is None:
+        business_plan = _business_plan_brief(brief)
+    if business_plan:
+        # A plan is a template with its own sections, not a framework paper.  The
+        # candidate never sees a framework question it does not need.
+        framework = "none"
     framework = framework or (selected[0] if selected else None)
-    computations = _computations(brief, framework)
+    computations = (_business_plan_computation() if business_plan
+                    else _computations(brief, framework))
     evidence = []
     if framework and framework != "none":
         from . import chat as chat_module
@@ -131,12 +181,12 @@ def build(brief, reading, slots, archetype, framework, choices, answers=None):
         "period": answers.get("period") or "10",
     }
     gaps = []
-    if not selected and not framework:
-        gaps.append("No framework was named; choose one, or choose No framework.")
-    if not computations:
+    if not business_plan and not computations:
         gaps.append("No computation cue was found; the paper may be framework-only.")
     return {
         "format": FORMAT,
+        "paper": "business_plan" if business_plan else "paper",
+        "framework_required": False,
         "reading": {
             "decision": decision,
             "intent": "paper",
@@ -147,9 +197,9 @@ def build(brief, reading, slots, archetype, framework, choices, answers=None):
         "framework_options": _framework_options(choices, reading),
         "selected_framework": framework,
         "computations": computations,
-        "claims": _claims(decision, framework),
+        "claims": _claims(decision, framework, business_plan),
         "evidence_needs": evidence,
-        "structure": _structure(archetype),
+        "structure": _structure(archetype, brief),
         "gaps": gaps,
         "scope": scope,
         "guard": {

@@ -10,13 +10,12 @@ remains the fallback.
 import copy
 import datetime
 import json
-import os
 import re
-import urllib.error
-import urllib.request
+from . import providers
 
-ENDPOINT = os.environ.get("BP_PROSE_URL") or "https://opencode.ai/inference/go/openai/v1/chat/completions"
-DEFAULT_MODEL = "beam-free"
+#: Kept for callers that read them; the live endpoint is resolved per call.
+ENDPOINT = providers.OPENCODE_URL
+DEFAULT_MODEL = providers.DEFAULT_MODEL_OPENCODE
 META = ("(your analysis)", "not supplied yet", "further research is needed")
 CITATION = re.compile(r"\([^()]{1,140}?,\s*(?:n\.d\.|no date|\d{4}[a-z]?)\)")
 NUMBER = re.compile(r"\d+(?:\.\d+)?%?")
@@ -28,7 +27,13 @@ class ProseError(ValueError):
 
 
 def available():
-    return bool(os.environ.get("BP_OPENGO_API_KEY"))
+    """True when any gateway is configured: env, or a registered callable."""
+    return providers.available()
+
+
+def describe():
+    """What would write right now, and why not when nothing would."""
+    return providers.describe()
 
 
 #: A suggested question may not carry a number, a source or a link: it is a prompt
@@ -96,29 +101,15 @@ def suggest_questions(framework, unit_label, unit_value, brief, blocks, limit=5,
 
 
 def model_id():
-    return os.environ.get("BP_PROSE_MODEL") or os.environ.get("BP_LLM_MODEL", DEFAULT_MODEL)
+    return providers.model_id()
 
 
 def _call(messages, timeout=60, max_tokens=4000):
-    key = os.environ.get("BP_OPENGO_API_KEY")
-    if not key:
-        raise ProseError("Model-assisted prose is not configured: no OpenCode Go key.")
-    payload = {"model": model_id(), "messages": messages, "temperature": 0.2, "max_tokens": max_tokens}
-    request = urllib.request.Request(
-        ENDPOINT, data=json.dumps(payload).encode("utf-8"),
-        headers={"Authorization": "Bearer " + key, "Content-Type": "application/json",
-                 "User-Agent": "smart-business-writer/1.0", "x-opencode-session": "bp-prose"})
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            data = json.loads(response.read().decode("utf-8"))
-    except urllib.error.HTTPError as error:
-        raise ProseError("The prose model answered HTTP %s." % error.code)
-    except Exception as error:
-        raise ProseError("The prose model could not be reached: " + str(error)[:160])
-    try:
-        return data["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError):
-        raise ProseError("The prose model returned an unreadable response.")
+        return providers.complete(messages, timeout=timeout, max_tokens=max_tokens,
+                                  temperature=0.2)
+    except providers.GatewayError as error:
+        raise ProseError(str(error))
 
 
 def _payload(state, draft):

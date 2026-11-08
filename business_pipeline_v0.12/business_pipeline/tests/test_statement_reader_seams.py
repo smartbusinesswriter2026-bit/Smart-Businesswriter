@@ -234,7 +234,9 @@ class RouteTest(unittest.TestCase):
         self.assertEqual(record.get("problem_type"), "trial_balance")
         self.assertNotEqual(record.get("problem_type"), "eps")
         missing = [item.get("what") for item in (record.get("reading") or {}).get("missing") or []]
-        self.assertTrue(any("Preference dividends" in str(item) for item in missing), missing)
+        # The reader now places preference dividends as a distribution; the route is
+        # still a trial balance, and the line is not lost in the missing list.
+        self.assertFalse(any("Preference dividends" in str(item) for item in missing), missing)
 
     def test_a_route_that_computed_nothing_does_not_answer(self):
         # The financial-computations engine is tried before the reader.  When it

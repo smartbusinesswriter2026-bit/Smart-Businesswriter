@@ -431,27 +431,28 @@ class CorpusAdapterTest(unittest.TestCase):
         self.assertEqual(by_title["A clinical trial of a cancer therapy"]["used"], 0)
         self.assertEqual(by_title["A clinical trial of a cancer therapy"]["source"], "OpenAlex")
 
-    def test_background_reading_never_becomes_evidence(self):
-        background = {"title": "Porter's five forces", "url": "https://en.wikipedia.org/wiki/Porter",
-                      "abstract": "An encyclopedia overview.", "database": "orientation web",
-                      "citable": False}
+    def test_wikipedia_and_similar_sources_are_never_returned_or_logged(self):
+        wiki = {"title": "Porter's five forces", "url": "https://en.wikipedia.org/wiki/Porter",
+                "abstract": "An encyclopedia overview.", "database": "vetted web",
+                "citable": False}
+        logged = {}
 
         def fake_search(query, databases=None, limit=20, year_from=None):
             return {"results": [], "errors": [], "skipped": [], "databases": [], "timings": {}}
 
         with mock.patch.object(sources, "search_academic", side_effect=fake_search), \
                 mock.patch.object(retrieval, "_web",
-                                  return_value={"results": [], "cached": False}), \
-                mock.patch.object(retrieval, "_orientation",
-                                  return_value={"results": [background], "notice": None}), \
-                mock.patch.object(retrieval, "_log_learning"):
+                                  return_value={"results": [wiki], "cached": False}), \
+                mock.patch.object(retrieval, "_log_learning",
+                                  side_effect=lambda **kwargs: logged.update(kwargs)):
             r = retrieval.retrieve(
                 key="rivalry", cues="five forces rivalry",
                 queries=["five forces rivalry"], context=["industry"], geography="Global")
         self.assertEqual(r["items"], [])
-        self.assertEqual([item["title"] for item in r["orientation"]],
-                         ["Porter's five forces"])
+        self.assertEqual(r["orientation"], [])
         self.assertEqual(r["source_plan"], "none")
+        self.assertFalse(any("wikipedia" in str(row).lower()
+                             for row in logged.get("sources") or []))
 
 
 class TopicSiteTest(unittest.TestCase):

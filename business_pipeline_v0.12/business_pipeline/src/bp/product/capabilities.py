@@ -90,6 +90,12 @@ ENTRIES = dict([
          ("Financial Feasibility", "Break-even Analysis"),
          needs_any=[r"\bprice\b", r"per unit", r"\bvariable\b", r"unit cost", r"\bcosts?\b", r"\bunits?\b"],
          priority=20, integration="Framework and Financial Feasibility", domain="breakeven"),
+    _row("business_plan", "business_plan", "Business plan financials", "plan",
+         [r"start[\s-]?up (?:cost|budget)", r"sources and uses", r"funding source",
+          r"three[- ]year (?:pro forma|projection)", r"business plan"],
+         ("Business Plan", "Financial Plan"),
+         needs_any=[r"startup", r"funding", r"revenue", r"loan"],
+         priority=40, integration="Financial Plan", domain="business_plan"),
     _row("npv", "npv", "Net present value", "appraisal",
          [r"net present value", r"\bnpv\b"],
          ("Financial Feasibility", "Net Present Value"),
@@ -629,16 +635,34 @@ def _hash(payload):
     return "sha256:" + hashlib.sha256(raw).hexdigest()[:16]
 
 
-def resolve(brief, framework, answers=None):
+def resolve(brief, framework, answers=None, business_plan=False):
     """Decide which capabilities, if any, this paper carries.
 
     `selected` is empty when the brief does not ask a question a computation
     answers — the paper then uses its framework only.  `question` is set when a
     cue matched but the quantities the method needs are absent; the conductor
     asks that one question instead of guessing.
+
+    A business plan is one service, not three unrelated blocks: when the brief is
+    structurally a plan (the caller reads that from its tables), the plan's own
+    financial block is the only capability selected.  The startup, working-capital
+    and break-even questions are already answered inside it.
     """
     framework = str(framework or "").strip().lower()
     text = _normalise(brief)
+    if business_plan and ENTRIES.get("business_plan"):
+        row = ENTRIES["business_plan"]
+        match = _first_match(row, text)
+        quote = _sentence_with(text, match) if match else text[:300]
+        selected = [_selected(row, "the brief declares a startup budget, its funding and "
+                                   "a revenue driver", quote)]
+        payload = {"format": FORMAT, "catalogue_version": CATALOGUE_VERSION, "framework": framework,
+                   "selected": [{k: item[k] for k in ("key", "method", "slot")} for item in selected],
+                   "question": None}
+        return {"format": FORMAT, "catalogue_version": CATALOGUE_VERSION,
+                "frameworks": [framework] if framework else [], "selected": selected,
+                "not_included": [], "question": None, "question_quote": "",
+                "hash": _hash(payload)}
     selected, not_included, ambiguous = [], [], []
     carried = _EMBEDDED.get(framework)
     for entry_row in ENTRIES.values():
@@ -650,7 +674,7 @@ def resolve(brief, framework, answers=None):
             not_included.append(_not_included(entry_row, "the " + framework + " paper already "
                                                                "carries this analysis"))
             continue
-        if framework and framework not in entry_row["applies_to"]:
+        if framework and framework != "none" and framework not in entry_row["applies_to"]:
             not_included.append(_not_included(entry_row, "it does not fit a " + framework + " paper"))
             continue
         if not _needs_match(entry_row, text):
@@ -749,7 +773,7 @@ def set_enabled(selection, framework, key, enabled, reason=""):
     if enabled:
         # a capability may only be added where it fits the paper; a drop is always
         # allowed, because excluding something is the student's decision, recorded.
-        if framework and framework not in entry_row["applies_to"]:
+        if framework and framework != "none" and framework not in entry_row["applies_to"]:
             raise ValueError(entry_row["label"] + " does not fit a " + framework + " paper.")
         if any(row["key"] == key for row in selected):
             return selection

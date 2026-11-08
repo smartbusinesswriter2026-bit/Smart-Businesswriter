@@ -1,7 +1,7 @@
 """The test package.
 
 Two product layers make live HTTPS calls: the background-reading layer
-(Wikipedia) and the model lanes (analysis drafting, gap questions).  A unit test
+and the model lanes (analysis drafting, gap questions).  A unit test
 must not depend on the network or wait on it, so both are disabled before any
 test module imports the code that reads them.  `conftest.py` repeats the settings
 for pytest, which may import a test file without importing this package first.
@@ -20,8 +20,9 @@ os.environ.setdefault("BP_LEARNING_LOG", "0")
 #: any test module imports the code that reads them; a test that wants a model
 #: attaches its own stub.
 MODEL_VARS = ("BP_LLM_PROVIDER", "BP_LLM_MODEL", "BP_LLM_MODEL_TIER2", "BP_LLM_MODEL_TIER3",
-              "BP_LLM_REVIEWER_MODEL", "BP_LLM_BASE_URL", "BP_OPENGO_API_KEY",
-              "BP_PROSE_URL", "BP_PROSE_MODEL",
+              "BP_LLM_REVIEWER_MODEL", "BP_LLM_BASE_URL", "BP_LLM_URL", "BP_LLM_KEY",
+              "BP_OPENGO_API_KEY", "OPENCODE_API_KEY",
+              "BP_PROSE_URL", "BP_PROSE_MODEL", "BP_OLLAMA_URL", "BP_OLLAMA_HOST",
               "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "DEEPSEEK_API_KEY")
 # Set, not popped: `bp.server` maps `Backend/.env` onto these names for any key that
 # is *absent*, so an empty value is what keeps them unset when that module is imported.

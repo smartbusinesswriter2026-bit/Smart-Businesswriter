@@ -3644,6 +3644,63 @@
    "unsupported_use": "Supplying or estimating the enterprise value; discovering claims the owner did not declare (pensions, leases, options, contingent liabilities); choosing a control premium, liquidity discount or tax rate; stating a market price.",
    "version": "1.0.0"
   },
+  "escalated_series": {
+   "assumptions": [
+    "The step applies at the declared boundary, not continuously."
+   ],
+   "category": "planning",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "The step applies at the declared boundary, not continuously; the first escalate_after periods stay at the starting amount.",
+     "impact": "A mid-period or continuous step changes each period's value and the total.",
+     "question": "Escalation timing"
+    }
+   ],
+   "inputs": {
+    "escalate_after": {
+     "desc": "periods at the starting amount before the first step, default 12",
+     "required": false,
+     "type": "decimal"
+    },
+    "every": {
+     "desc": "periods between steps, default 12",
+     "required": false,
+     "type": "decimal"
+    },
+    "periods": {
+     "desc": "how many periods to produce",
+     "required": true,
+     "type": "decimal"
+    },
+    "rate": {
+     "desc": "the step per escalation, e.g. 0.04",
+     "required": false,
+     "type": "decimal"
+    },
+    "start": {
+     "desc": "the amount in the first period",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "intended_use": "A declared amount repeated over periods and stepped by a declared rate at a declared period.",
+   "limitations": [
+    "A rate is a declared figure, not a forecast."
+   ],
+   "method_id": "escalated_series",
+   "planned_checks": [
+    "first_value_equals_start",
+    "last_value_follows_the_declared_steps",
+    "total_is_the_sum_of_the_values",
+    "a_zero_rate_repeats_the_start"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Choosing the rate; irregular steps; a step that depends on performance.",
+   "version": "1.0.0"
+  },
   "ev_ebitda": {
    "assumptions": [
     "The declared inputs are the values used; nothing is defaulted or inferred."
@@ -5259,6 +5316,42 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "Proving an optimal assignment; mixed-model lines; parallel stations; task times that vary; ergonomics, learning or fatigue; rebalancing during a shift.",
+   "version": "1.0.0"
+  },
+  "line_totals": {
+   "assumptions": [
+    "Every line is stated once; a line is not also a total of other lines."
+   ],
+   "category": "planning",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "Every line is stated once and a line is not also a total of other lines.",
+     "impact": "A subtotal included as a line would double-count it.",
+     "question": "Line treatment"
+    }
+   ],
+   "inputs": {
+    "lines": {
+     "desc": "one record per line: a label, an amount and a category",
+     "required": true,
+     "type": "records"
+    }
+   },
+   "intended_use": "The total of declared cost or funding lines and the total of each declared category.",
+   "limitations": [
+    "The total is the arithmetic of the declared lines."
+   ],
+   "method_id": "line_totals",
+   "planned_checks": [
+    "total_is_the_sum_of_the_line_amounts",
+    "categories_foot_to_the_total",
+    "the_line_count_is_reported"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Choosing the lines or the categories; tax treatment of a line; a line that depends on another.",
    "version": "1.0.0"
   },
   "loan_amortization": {
@@ -8693,7 +8786,7 @@
      "type": "decimal"
     },
     "revenue": {
-     "desc": "declared revenue for each period, one to ten periods",
+     "desc": "declared revenue for each period, one to thirty-six periods",
      "required": true,
      "type": "value_list"
     },
@@ -9846,6 +9939,52 @@
    "unsupported_use": "Forecasting the gain; timing within the period; tax and depreciation; a discounted decision (use NPV or IRR); comparing projects of different scale without the appraisal tools.",
    "version": "1.0.0"
   },
+  "revenue_from_traffic": {
+   "assumptions": [
+    "Every trading day has the declared transactions and ticket."
+   ],
+   "category": "planning",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "Every trading day has the declared transactions and the declared average ticket.",
+     "impact": "A day-of-week or seasonal pattern changes each period's revenue.",
+     "question": "Traffic and ticket"
+    }
+   ],
+   "inputs": {
+    "average_ticket": {
+     "desc": "average revenue per transaction",
+     "required": true,
+     "type": "decimal"
+    },
+    "daily_transactions": {
+     "desc": "transactions per trading day, one per period",
+     "required": true,
+     "type": "decimal_list"
+    },
+    "days_open": {
+     "desc": "trading days in each period",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "intended_use": "Revenue per period from days open, an average ticket and declared daily transactions.",
+   "limitations": [
+    "A declared ramp is a plan, not a forecast."
+   ],
+   "method_id": "revenue_from_traffic",
+   "planned_checks": [
+    "each_period_is_days_times_ticket_times_transactions",
+    "total_is_the_sum_of_the_periods",
+    "a_zero_ticket_gives_zero_revenue"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Choosing the ticket or the traffic; seasonality inside a period; a ticket that changes with volume.",
+   "version": "1.0.0"
+  },
   "rfm_scoring": {
    "assumptions": [
     "Every customer's recency, frequency and monetary value covers the same period and the same definition of a purchase.",
@@ -10503,6 +10642,48 @@
    "status": "implemented_tested",
    "tier": "T1",
    "unsupported_use": "It computes only the figure its description states, from the inputs it declares; a different question needs a different method.",
+   "version": "1.0.0"
+  },
+  "simple_payback": {
+   "assumptions": [
+    "Cash flows occur at period ends and the recovery period's flow is spread evenly."
+   ],
+   "category": "capital budgeting",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "Cash flows occur at period ends and the recovery period's flow is spread evenly.",
+     "impact": "Within-period timing shifts the payback by less than one period.",
+     "question": "Recovery timing"
+    }
+   ],
+   "inputs": {
+    "cashflows": {
+     "desc": "cash flow per period, starting at period 1",
+     "required": true,
+     "type": "decimal_list"
+    },
+    "initial": {
+     "desc": "the investment to recover",
+     "required": true,
+     "type": "decimal"
+    }
+   },
+   "intended_use": "How many periods the declared cash flows need to recover a declared investment, interpolated within the recovery period.",
+   "limitations": [
+    "Ignores every cash flow after the payback point.",
+    "Within-period interpolation is a convention, not a data fact."
+   ],
+   "method_id": "simple_payback",
+   "planned_checks": [
+    "the_payback_matches_the_cumulative_flows",
+    "recovery_happens_inside_the_reported_period",
+    "a_zero_return_is_refused"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Choosing the cash flows; discounting; outlays the flows never recover.",
    "version": "1.0.0"
   },
   "social_engagement": {

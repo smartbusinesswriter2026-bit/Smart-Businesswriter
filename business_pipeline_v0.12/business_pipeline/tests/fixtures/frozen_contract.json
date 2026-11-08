@@ -1212,6 +1212,26 @@
         "shares_outstanding"
       ]
     },
+    "escalated_series": {
+      "tier": "T1",
+      "metric": "total",
+      "unit": "currency",
+      "test_names": [
+        "first_value_equals_start",
+        "last_value_follows_the_declared_steps",
+        "total_is_the_sum_of_the_values",
+        "a_zero_rate_repeats_the_start"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "planning",
+      "inputs": [
+        "escalate_after",
+        "every",
+        "periods",
+        "rate",
+        "start"
+      ]
+    },
     "ev_ebitda": {
       "tier": "T1",
       "metric": "ev_ebitda",
@@ -1736,6 +1756,21 @@
         "cycle_time",
         "rule",
         "tasks"
+      ]
+    },
+    "line_totals": {
+      "tier": "T1",
+      "metric": "total",
+      "unit": "currency",
+      "test_names": [
+        "total_is_the_sum_of_the_line_amounts",
+        "categories_foot_to_the_total",
+        "the_line_count_is_reported"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "planning",
+      "inputs": [
+        "lines"
       ]
     },
     "loan_amortization": {
@@ -3217,6 +3252,23 @@
         "years"
       ]
     },
+    "revenue_from_traffic": {
+      "tier": "T1",
+      "metric": "total_revenue",
+      "unit": "currency",
+      "test_names": [
+        "each_period_is_days_times_ticket_times_transactions",
+        "total_is_the_sum_of_the_periods",
+        "a_zero_ticket_gives_zero_revenue"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "planning",
+      "inputs": [
+        "average_ticket",
+        "daily_transactions",
+        "days_open"
+      ]
+    },
     "rfm_scoring": {
       "tier": "T1",
       "metric": "mean_rfm_score",
@@ -3437,6 +3489,22 @@
         "principal",
         "rate",
         "time"
+      ]
+    },
+    "simple_payback": {
+      "tier": "T1",
+      "metric": "payback_periods",
+      "unit": "periods",
+      "test_names": [
+        "the_payback_matches_the_cumulative_flows",
+        "recovery_happens_inside_the_reported_period",
+        "a_zero_return_is_refused"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "capital budgeting",
+      "inputs": [
+        "cashflows",
+        "initial"
       ]
     },
     "social_engagement": {

@@ -33,6 +33,21 @@ TIMEOUT = 12
 USER_AGENT = "SmartBusinessWriter/1.0 (mailto:%s)" % (
     os.environ.get("BP_CROSSREF_MAILTO") or os.environ.get("BP_OPENALEX_EMAIL") or "research@example.com")
 
+#: Sources the product never retrieves, displays, cites or logs, whatever a
+#: provider returns.  An encyclopedia or user-generated page is not evidence and
+#: is not background either; the paper names the gap instead.
+BLOCKED_DOMAINS = (
+    "wikipedia.org", "wikimedia.org", "wikiwand.com", "dbpedia.org",
+    "fandom.com", "baike.baidu.com", "about.com", "answers.com",
+    "ehow.com", "quora.com", "reddit.com", "slideshare.net",
+)
+
+
+def blocked_source(url="", title=""):
+    """True when a source is one this product refuses to use at all."""
+    text = (str(url or "") + " " + str(title or "")).lower()
+    return any(domain in text for domain in BLOCKED_DOMAINS)
+
 #: Academic databases that carry business, management, economics, finance and
 #: marketing research.  Medical and engineering indexes are deliberately absent:
 #: they were the bulk of the general researcher and add noise here.
@@ -1520,6 +1535,8 @@ def search_web(query, region="Global", limit=10, category=None, fast=False, site
     cached = _cache_get(key)
     if cached is not None:
         cached["cached"] = True
+        cached["results"] = [item for item in cached.get("results") or []
+                             if not blocked_source(item.get("url"), item.get("title"))]
         return cached
     attempts, results = [], []
     seen = set()
@@ -1534,6 +1551,8 @@ def search_web(query, region="Global", limit=10, category=None, fast=False, site
         found, attempt = provider(text, filter_sites, limit)
         attempts.append(attempt)
         for item in found:
+            if blocked_source(item.get("url"), item.get("title")):
+                continue
             if item["url"] not in seen:
                 seen.add(item["url"])
                 results.append(item)

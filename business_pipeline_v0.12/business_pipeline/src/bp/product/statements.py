@@ -940,6 +940,12 @@ def compile_spec(reading):
         raise StatementError("the reading carries no period, so the core cannot close the accounts")
     chart = [{k: v for k, v in account.items() if k not in ("quote", "synthesised")}
              for account in reading.get("chart") or []]
+    for account in chart:
+        # A line may be written "Data: Cash 10,000".  The prefix names the section,
+        # not the account; the core reads the account name, so strip it here.
+        name = str(account.get("name") or "")
+        if ":" in name:
+            account["name"] = name.split(":", 1)[1].strip() or name
     entries = []
     for entry in reading.get("journal") or []:
         clean = {k: v for k, v in entry.items() if k != "quote"}
@@ -1047,7 +1053,7 @@ def derive_balancing_figure(reading, rows):
         return reading
     before = _diagnose(rows, places)
     reading["diagnosis"] = before
-    if before["balanced"] or reading.get("problem_type") != "incomplete_records":
+    if before["balanced"] or reading.get("problem_type") not in ("incomplete_records", "owner_equity"):
         return reading
     if any(account["line"] == "Capital" for account in reading.get("chart") or []):
         return reading
@@ -2890,7 +2896,7 @@ def _solve_owner_equity(text, currency=None, framework=None, ratios=None, statem
     for row in rows:
         side, amount = _resolve(row)
         value = Decimal(str(amount).replace(",", ""))
-        label = row["label"]
+        label = re.sub(r"^(?:data|given|information)\s*:\s*", "", str(row["label"]), flags=re.I)
         kind, line_name = is_mod._classify_account(label)
         if kind in ("current_asset", "non_current_asset"):
             assets.append((label, value, False))

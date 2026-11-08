@@ -15,11 +15,9 @@ is dropped and counted, never returned as if it were evidence.
 """
 
 import datetime
-import html
 import json
 import os
 import re
-import threading
 import time
 import urllib.error
 import urllib.parse
@@ -40,6 +38,11 @@ SCORE_FLOOR = 3
 
 def clean(value, limit=400):
     return re.sub(r"\s+", " ", str(value or "")).strip()[:limit]
+
+
+def _blocked(item):
+    """A source this product refuses to use at all (encyclopedias, UGC)."""
+    return source_finder.blocked_source(item.get("url"), item.get("title"))
 
 
 def first_sentence(source, sentences=1, limit=700):
@@ -515,61 +518,6 @@ def cue_words_of(cues):
     return {word for word in clean(words, 400).split() if word}
 
 
-#: Background reading.  Wikipedia is free, fast and broad enough to orient most
-#: business topics; it is never cited.
-WIKIPEDIA_API = "https://en.wikipedia.org/w/api.php"
-ORIENTATION_USER_AGENT = "SmartBusinessWriter/1.0 (background reading)"
-ORIENTATION_ENABLED = os.environ.get("BP_ORIENTATION", "1") != "0"
-#: Wikipedia rate-limits a burst from one IP.  The dimensions run in parallel,
-#: so the orientation calls are serialised; six short searches are cheap, six
-#: 429s leave half the paper without its background note.
-_ORIENTATION_LOCK = threading.Lock()
-
-
-def _orientation(query, limit=3):
-    """A few encyclopedia pages about the topic, or an empty list.
-
-    This is the fast web layer: it runs only when the corpus missed, it never
-    blocks a paper run, and nothing it returns is evidence.  The pipeline uses
-    it to know what the topic looks like; the renderer is never given it.
-    """
-    if not query or not ORIENTATION_ENABLED:
-        return {"results": [], "notice": None}
-    params = {"action": "query", "list": "search", "srsearch": query,
-              "srlimit": str(max(1, int(limit))), "format": "json", "utf8": "1",
-              "srprop": "snippet"}
-    last_notice = None
-    with _ORIENTATION_LOCK:
-        for attempt in range(2):
-            request = urllib.request.Request(
-                WIKIPEDIA_API + "?" + urllib.parse.urlencode(params),
-                headers={"User-Agent": ORIENTATION_USER_AGENT})
-            try:
-                with urllib.request.urlopen(request, timeout=4) as response:
-                    payload = json.loads(response.read().decode("utf-8"))
-            except Exception as error:
-                last_notice = "Background reading unavailable: %s" % str(error)[:120]
-                payload = {}
-            results = []
-            for row in (payload.get("query") or {}).get("search") or []:
-                title = clean(row.get("title"), 200)
-                if not title:
-                    continue
-                results.append({
-                    "title": title,
-                    "url": "https://en.wikipedia.org/wiki/" + urllib.parse.quote(title.replace(" ", "_")),
-                    "abstract": html.unescape(re.sub(r"<[^>]+>", "", row.get("snippet") or "")),
-                    "database": "orientation web",
-                    "citable": False,
-                    "credibility": 0,
-                })
-            if results:
-                return {"results": results, "notice": None}
-            if attempt == 0:
-                time.sleep(0.25)
-    return {"results": [], "notice": last_notice}
-
-
 def _accepted_any(found, cue_words, context_set, geography, gate, exclude):
     """True when at least one candidate clears the relevance gate."""
     seen = set()
@@ -605,8 +553,8 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
        dimension, nothing else is called: a corpus page is citable evidence,
        and a journal-API call would only duplicate it (D-09 / B-168).
     2. **The web**, only when the corpus missed.  Vetted pages may be cited;
-       general pages (Wikipedia, explainers) are background reading and are
-       never cited.
+       weak vetted pages are background reading and are never cited.  An
+       encyclopedia or user-generated page is refused outright.
     3. **The journal APIs**, last and slow, only when neither the corpus nor
        the vetted web supplied a citable source.
 
@@ -645,6 +593,7 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
             corpus = {}
         corpus_found.extend(corpus.get("results") or [])
     layers["corpus"] = len(corpus_found)
+    corpus_found = [item for item in corpus_found if not _blocked(item)]
     corpus_answer = _accepted_any(corpus_found, cue_words, context_set, geography, gate, exclude)
 
     if corpus_answer:
@@ -656,6 +605,7 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
         if queries:
             web = _web(queries[0], geography, web_limit, category, sites, providers, topic=topic)
             web_items = [_web_item(item) for item in web.get("results") or []]
+            web_items = [item for item in web_items if not _blocked(item)]
             web_cached = bool(web.get("cached"))
             if web.get("notice"):
                 notices.append(web["notice"])
@@ -670,7 +620,10 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
             if label:
                 extra = _web(label + " evidence", geography, web_limit, category,
                              sites, providers, topic=topic)
-                web_items.extend(_web_item(item) for item in extra.get("results") or [])
+                for item in extra.get("results") or []:
+                    candidate = _web_item(item)
+                    if not _blocked(candidate):
+                        web_items.append(candidate)
                 layers["web"] = len(web_items)
                 web_answer = _accepted_any(web_items, cue_words, context_set,
                                            geography, gate, exclude)
@@ -693,6 +646,7 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
                 academic_cached = academic_cached or bool(academic.get("cached"))
                 if index == 0:
                     timings = dict(academic.get("timings") or {})
+            api_items = [item for item in api_items if not _blocked(item)]
             layers["api"] = len(api_items)
             found = web_items + api_items
             source_plan = "api" if api_items else "none"
@@ -734,29 +688,9 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
         if item.get("database") == "Proprietary corpus":
             doc_id = item.get("doc_id")
             corpus_doc_counts[doc_id] = corpus_doc_counts.get(doc_id, 0) + 1
-    # Background reading: the fast web answer to "what is this about?".
-    # It never enters the evidence list and never reaches a reference.  It runs
-    # when the corpus did not answer, and also when a corpus answer was capped
-    # away, so a dimension with no final item still has a labelled paragraph.
-    if queries and (source_plan != "corpus" or not items):
-        orientation_query = queries[0]
-        topic_key = source_finder.topic_for_text(topic) if topic else ""
-        if topic_key:
-            if str(key) in ("political", "economic", "social", "technological",
-                            "environmental", "legal"):
-                orientation_query = str(key) + " " + topic_key
-            elif str(key) == "evidence":
-                orientation_query = topic_key + " business"
-            else:
-                orientation_query = topic_key + " " + str(key)
-        general = _orientation(orientation_query)
-        for item in general.get("results") or []:
-            item_key = item.get("url") or _key(item)
-            if item_key and item_key not in orientation_seen:
-                orientation_seen.add(item_key)
-                orientation.append(item)
-        if general.get("notice"):
-            notices.append(general["notice"])
+    # Background reading is only ever a weakly relevant *vetted* item already in
+    # `found`.  There is no encyclopedia call: Wikipedia and similar sources are
+    # blocked at the source finder and again when each layer is assembled.
     # Learning hook: every source this retrieval saw is recorded, not only the
     # accepted ones.  The candidates the gate refused are exactly the works the
     # corpus does not hold, so they are the demand the enrichment worker fills.

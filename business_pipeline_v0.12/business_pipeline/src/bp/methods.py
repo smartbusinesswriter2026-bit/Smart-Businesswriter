@@ -3806,9 +3806,21 @@ def loan_impl(inp):
     r = rate / ppy
     pmt = P / n if r == 0 else P * r / (1 - (1 + r) ** -n)
     total = pmt * n
+    schedule = {}
+    balance = P
+    for index in range(1, n + 1):
+        interest_i = balance * r
+        principal_i = pmt - interest_i
+        if index == n:
+            principal_i = balance
+            interest_i = pmt - principal_i
+        balance -= principal_i
+        schedule["interest_%d" % index] = interest_i
+        schedule["principal_%d" % index] = principal_i
+        schedule["closing_balance_%d" % index] = balance if index < n else D(0)
     return {"payment": pmt, "total_paid": total, "total_interest": total - P, "principal": P,
             "periodic_rate": r, "effective_annual_rate": (1 + r) ** ppy - 1, "n_payments": D(n),
-            "first_interest": P * r, "first_principal": pmt - P * r}
+            "first_interest": P * r, "first_principal": pmt - P * r, **schedule}
 
 def _loan_ref(inp):
     P = float(D(str(inp["principal"]))); rate = float(D(str(inp["annual_rate"])))
@@ -14485,8 +14497,8 @@ def _proforma_loan_schedule(principal, rate, years):
 def proforma_statements_impl(inp):
     revenue = [D(str(x)) for x in inp["revenue"]]
     periods = len(revenue)
-    if periods < 1 or periods > 10:
-        raise DataError("revenue must cover between one and ten periods")
+    if periods < 1 or periods > 36:
+        raise DataError("revenue must cover between one and thirty-six periods")
     margin = D(str(inp.get("gross_margin_rate", "0")))
     opex = [D(str(x)) for x in inp["operating_costs"]]
     dep = [D(str(x)) for x in inp["depreciation"]]
@@ -15178,7 +15190,325 @@ def _pp_template(out, P, th):
             ", with " + tok("total_flow") + " of external flow. The return chains the declared period returns.")
 
 
+
+# ---------- plan building blocks: escalation, traffic revenue, line totals, payback ----------
+
+def escalated_series_impl(inp):
+    """A declared amount repeated over periods, stepped by a declared rate.
+
+    The step is structural, not case-specific: `escalate_after` periods pass at the
+    first value, then the value is multiplied by (1 + rate) every `every` periods.
+    Rent once a year and a wage step once a year are the same rule with different
+    numbers.
+    """
+    start = D(str(inp.get("start")))
+    rate = D(str(inp.get("rate", "0")))
+    periods = int(D(str(inp.get("periods"))))
+    after = int(D(str(inp.get("escalate_after", "12"))))
+    every = int(D(str(inp.get("every", "12"))))
+    if periods < 1:
+        raise DataError("periods must be at least 1")
+    if rate <= -1:
+        raise DataError("the escalation rate must be greater than -100%")
+    if after < 0 or every < 1:
+        raise DataError("escalate_after must be at least 0 and every at least 1")
+    values = []
+    for t in range(1, periods + 1):
+        steps = 0 if t <= after else 1 + (t - after - 1) // every
+        values.append(start * (1 + rate) ** steps)
+    out = {"percentage_change_per_step": rate, "periods": D(periods), "total": sum(values)}
+    for index, value in enumerate(values, 1):
+        out["value_%d" % index] = value
+    return out
+
+def _escalated_profile(inp):
+    try:
+        start = D(str(inp.get("start")))
+        rate = D(str(inp.get("rate", "0")))
+        periods = int(D(str(inp.get("periods"))))
+        after = int(D(str(inp.get("escalate_after", "12"))))
+        every = int(D(str(inp.get("every", "12"))))
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["escalated-series inputs are malformed: start, periods and an optional rate are required"]
+    errs = []
+    if periods < 1: errs.append("periods must be at least 1")
+    if rate <= -1: errs.append("the rate must be greater than -100%")
+    if after < 0 or every < 1: errs.append("the first step must be at or after period 1")
+    if start < 0: errs.append("the starting amount cannot be negative")
+    return errs
+
+def _escalated_tests(inp, impl):
+    out = impl(inp)
+    start = D(str(inp.get("start")))
+    rate = D(str(inp.get("rate", "0")))
+    periods = int(D(str(inp.get("periods"))))
+    after = int(D(str(inp.get("escalate_after", "12"))))
+    every = int(D(str(inp.get("every", "12"))))
+    steps = 0 if periods <= after else 1 + (periods - after - 1) // every
+    expected = start * (1 + rate) ** steps
+    return [
+        ("first_value_equals_start", out["value_1"] == start, "the first period is the declared amount"),
+        ("last_value_follows_the_declared_steps", out["value_%d" % periods] == expected,
+         "the final period applies the stated number of steps"),
+        ("total_is_the_sum_of_the_values",
+         out["total"] == sum(out["value_%d" % i] for i in range(1, periods + 1)), "the total foots"),
+        ("a_zero_rate_repeats_the_start", (rate != 0) or all(out["value_%d" % i] == start
+                                                              for i in range(1, periods + 1)),
+         "no rate means no step"),
+    ]
+
+def _escalated_typing(metric):
+    if metric in ("periods",): return ("count", 0)
+    if metric == "percentage_change_per_step": return ("rate", 4)
+    return ("currency", 2)
+
+def _escalated_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared amount starts at " + tok("value_1") + " and changes by " +
+            tok("percentage_change_per_step") + " per step for " + tok("periods") +
+            " periods, giving a total of " + tok("total") + ".")
+
+
+def revenue_from_traffic_impl(inp):
+    """Revenue per period from days open, an average ticket and daily transactions."""
+    days = D(str(inp.get("days_open")))
+    ticket = D(str(inp.get("average_ticket")))
+    rows = inp.get("daily_transactions") or []
+    if not isinstance(rows, list) or not rows:
+        raise DataError("declare at least one period of daily transactions")
+    values = []
+    for index, raw in enumerate(rows, 1):
+        try:
+            transactions = D(str(raw))
+        except (InvalidOperation, ValueError):
+            raise DataError("daily transactions for period %d must be a number" % index)
+        if transactions < 0:
+            raise DataError("daily transactions cannot be negative")
+        values.append(days * ticket * transactions)
+    out = {"days_open": days, "average_ticket": ticket, "n_periods": D(len(values)),
+           "total_revenue": sum(values)}
+    for index, value in enumerate(values, 1):
+        out["revenue_%d" % index] = value
+    return out
+
+def _traffic_profile(inp):
+    try:
+        D(str(inp.get("days_open")))
+        D(str(inp.get("average_ticket")))
+        rows = inp.get("daily_transactions") or []
+        if not isinstance(rows, list) or not rows:
+            return ["declare at least one period of daily transactions"]
+        for raw in rows:
+            if D(str(raw)) < 0:
+                return ["daily transactions cannot be negative"]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["traffic-revenue inputs are malformed: days open, average ticket and daily transactions are required"]
+    return []
+
+def _traffic_tests(inp, impl):
+    out = impl(inp)
+    days = D(str(inp.get("days_open")))
+    ticket = D(str(inp.get("average_ticket")))
+    rows = [D(str(v)) for v in inp["daily_transactions"]]
+    return [
+        ("each_period_is_days_times_ticket_times_transactions",
+         all(out["revenue_%d" % i] == days * ticket * rows[i - 1] for i in range(1, len(rows) + 1)),
+         "revenue is the declared product for every period"),
+        ("total_is_the_sum_of_the_periods",
+         out["total_revenue"] == sum(out["revenue_%d" % i] for i in range(1, len(rows) + 1)),
+         "the total foots"),
+        ("a_zero_ticket_gives_zero_revenue",
+         (ticket != 0) or out["total_revenue"] == 0, "no ticket means no revenue"),
+    ]
+
+def _traffic_typing(metric):
+    if metric in ("days_open", "average_ticket"): return ("number", 2)
+    if metric == "n_periods": return ("count", 0)
+    return ("currency", 2)
+
+def _traffic_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("At " + tok("days_open") + " days open and an average ticket of " + tok("average_ticket") +
+            ", the declared daily transactions give total revenue of " + tok("total_revenue") + ".")
+
+
+def line_totals_impl(inp):
+    """The total of declared lines and the total of each declared category."""
+    rows = inp.get("lines") or []
+    if not isinstance(rows, list) or not rows:
+        raise DataError("declare at least one line")
+    total = D(0)
+    categories = {}
+    for index, row in enumerate(rows, 1):
+        if not isinstance(row, dict):
+            raise DataError("line %d must be a record with a label and an amount" % index)
+        try:
+            amount = D(str(row.get("amount")))
+        except (InvalidOperation, ValueError):
+            raise DataError("line %d must carry a numeric amount" % index)
+        category = str(row.get("category") or "other").strip().lower().replace(" ", "_") or "other"
+        total += amount
+        categories[category] = categories.get(category, D(0)) + amount
+    out = {"total": total, "n_lines": D(len(rows))}
+    for category, value in categories.items():
+        out["category_" + category] = value
+    return out
+
+def _lines_profile(inp):
+    rows = inp.get("lines")
+    if not isinstance(rows, list) or not rows:
+        return ["declare at least one line"]
+    for index, row in enumerate(rows, 1):
+        if not isinstance(row, dict):
+            return ["line %d must be a record with a label and an amount" % index]
+        try:
+            D(str(row.get("amount")))
+        except (InvalidOperation, ValueError):
+            return ["line %d must carry a numeric amount" % index]
+    return []
+
+def _lines_tests(inp, impl):
+    out = impl(inp)
+    rows = inp["lines"]
+    return [
+        ("total_is_the_sum_of_the_line_amounts",
+         out["total"] == sum(D(str(row["amount"])) for row in rows), "the total foots"),
+        ("categories_foot_to_the_total",
+         sum(value for key, value in out.items() if key.startswith("category_")) == out["total"],
+         "every line is in exactly one category"),
+        ("the_line_count_is_reported", out["n_lines"] == D(len(rows)), "the count is the declared lines"),
+    ]
+
+def _lines_typing(metric):
+    if metric == "n_lines": return ("count", 0)
+    return ("currency", 2)
+
+def _lines_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared lines total " + tok("total") + " across " + tok("n_lines") + " lines, "
+            "and the categories foot to the same total.")
+
+
+def simple_payback_impl(inp):
+    """How many periods the declared cash flows need to recover a declared investment."""
+    initial = D(str(inp.get("initial")))
+    rows = inp.get("cashflows") or []
+    if initial <= 0:
+        raise DataError("the initial investment must be positive")
+    if not isinstance(rows, list) or not rows:
+        raise DataError("declare at least one period of cash flow")
+    prev, cum = D(0), D(0)
+    for index, raw in enumerate(rows, 1):
+        flow = D(str(raw))
+        prev, cum = cum, cum + flow
+        if cum >= initial and prev < initial:
+            return {"payback_periods": D(index - 1) + (initial - prev) / flow,
+                    "recovered_in_period": D(index), "n_periods": D(len(rows))}
+    raise DataError("the declared cash flows do not recover the investment within " + str(len(rows)) + " periods")
+
+def _payback_profile(inp):
+    try:
+        initial = D(str(inp.get("initial")))
+        rows = inp.get("cashflows") or []
+        if initial <= 0:
+            return ["the initial investment must be positive"]
+        if not isinstance(rows, list) or not rows:
+            return ["declare at least one period of cash flow"]
+        cum = D(0)
+        for raw in rows:
+            cum += D(str(raw))
+        if cum < initial:
+            return ["the declared cash flows never recover the investment within the horizon"]
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["simple-payback inputs are malformed: an initial investment and cash flows are required"]
+    return []
+
+def _payback_tests(inp, impl):
+    out = impl(inp)
+    initial = D(str(inp["initial"]))
+    rows = [D(str(v)) for v in inp["cashflows"]]
+    cum, check = D(0), None
+    for index, flow in enumerate(rows, 1):
+        prev, cum = cum, cum + flow
+        if cum >= initial and prev < initial:
+            check = D(index - 1) + (initial - prev) / flow
+            break
+    return [
+        ("the_payback_matches_the_cumulative_flows", check is not None and out["payback_periods"] == check,
+         "the payback is the interpolated recovery point"),
+        ("recovery_happens_inside_the_reported_period",
+         out["recovered_in_period"] >= 1 and out["recovered_in_period"] <= len(rows),
+         "the recovery period is inside the horizon"),
+        ("the_payback_is_not_negative", out["payback_periods"] >= 0, "recovery cannot predate period 1"),
+    ]
+
+def _payback_typing(metric):
+    if metric in ("recovered_in_period", "n_periods"): return ("count", 0)
+    return ("periods", 2)
+
+def _payback_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared cash flows recover the investment after " + tok("payback_periods") +
+            " periods, during period " + tok("recovered_in_period") + ".")
+
+
 LIBRARY = {
+    "escalated_series": Method("escalated_series", "T1", escalated_series_impl, _escalated_tests,
+                  _escalated_profile, "total", "currency", None,
+                  ("first_value_equals_start", "last_value_follows_the_declared_steps",
+                   "total_is_the_sum_of_the_values", "a_zero_rate_repeats_the_start"),
+                  category="planning",
+                  intended_use="A declared amount repeated over periods and stepped by a declared rate at a declared period.",
+                  unsupported_use="Choosing the rate; irregular steps; a step that depends on performance.",
+                  input_schema={"start": {"type": "decimal", "desc": "the amount in the first period"},
+                                "rate": {"type": "decimal", "required": False, "desc": "the step per escalation, e.g. 0.04"},
+                                "periods": {"type": "decimal", "desc": "how many periods to produce"},
+                                "escalate_after": {"type": "decimal", "required": False, "desc": "periods at the starting amount before the first step, default 12"},
+                                "every": {"type": "decimal", "required": False, "desc": "periods between steps, default 12"}},
+                  defaults=({"question": "Escalation timing", "default_chosen": "The step applies at the declared boundary, not continuously; the first escalate_after periods stay at the starting amount.", "impact": "A mid-period or continuous step changes each period's value and the total."},),
+                  assumptions=("The step applies at the declared boundary, not continuously.",),
+                  limitations=("A rate is a declared figure, not a forecast.",),
+                  default_period="annual", typing=_escalated_typing, template=_escalated_template),
+    "revenue_from_traffic": Method("revenue_from_traffic", "T1", revenue_from_traffic_impl, _traffic_tests,
+                  _traffic_profile, "total_revenue", "currency", None,
+                  ("each_period_is_days_times_ticket_times_transactions", "total_is_the_sum_of_the_periods",
+                   "a_zero_ticket_gives_zero_revenue"),
+                  category="planning",
+                  intended_use="Revenue per period from days open, an average ticket and declared daily transactions.",
+                  unsupported_use="Choosing the ticket or the traffic; seasonality inside a period; a ticket that changes with volume.",
+                  input_schema={"days_open": {"type": "decimal", "desc": "trading days in each period"},
+                                "average_ticket": {"type": "decimal", "desc": "average revenue per transaction"},
+                                "daily_transactions": {"type": "decimal_list", "min_items": 1, "desc": "transactions per trading day, one per period"}},
+                  defaults=({"question": "Traffic and ticket", "default_chosen": "Every trading day has the declared transactions and the declared average ticket.", "impact": "A day-of-week or seasonal pattern changes each period's revenue."},),
+                  assumptions=("Every trading day has the declared transactions and ticket.",),
+                  limitations=("A declared ramp is a plan, not a forecast.",),
+                  default_period="monthly", typing=_traffic_typing, template=_traffic_template),
+    "line_totals": Method("line_totals", "T1", line_totals_impl, _lines_tests, _lines_profile,
+                  "total", "currency", None,
+                  ("total_is_the_sum_of_the_line_amounts", "categories_foot_to_the_total", "the_line_count_is_reported"),
+                  category="planning",
+                  intended_use="The total of declared cost or funding lines and the total of each declared category.",
+                  unsupported_use="Choosing the lines or the categories; tax treatment of a line; a line that depends on another.",
+                  input_schema={"lines": {"type": "records", "min_items": 1,
+                                          "fields": {"label": "text", "amount": "decimal", "category": "text"},
+                                          "desc": "one record per line: a label, an amount and a category"}},
+                  defaults=({"question": "Line treatment", "default_chosen": "Every line is stated once and a line is not also a total of other lines.", "impact": "A subtotal included as a line would double-count it."},),
+                  assumptions=("Every line is stated once; a line is not also a total of other lines.",),
+                  limitations=("The total is the arithmetic of the declared lines.",),
+                  default_period="annual", typing=_lines_typing, template=_lines_template),
+    "simple_payback": Method("simple_payback", "T1", simple_payback_impl, _payback_tests, _payback_profile,
+                  "payback_periods", "periods", None,
+                  ("the_payback_matches_the_cumulative_flows", "recovery_happens_inside_the_reported_period",
+                   "a_zero_return_is_refused"),
+                  category="capital budgeting",
+                  intended_use="How many periods the declared cash flows need to recover a declared investment, interpolated within the recovery period.",
+                  unsupported_use="Choosing the cash flows; discounting; outlays the flows never recover.",
+                  input_schema={"initial": {"type": "decimal", "desc": "the investment to recover"},
+                                "cashflows": {"type": "decimal_list", "min_items": 1, "desc": "cash flow per period, starting at period 1"}},
+                  defaults=({"question": "Recovery timing", "default_chosen": "Cash flows occur at period ends and the recovery period's flow is spread evenly.", "impact": "Within-period timing shifts the payback by less than one period."},),
+                  assumptions=("Cash flows occur at period ends and the recovery period's flow is spread evenly.",),
+                  limitations=("Ignores every cash flow after the payback point.", "Within-period interpolation is a convention, not a data fact."),
+                  default_period="annual", typing=_payback_typing, template=_payback_template),
     "npv": Method("npv", "T1", npv, npv_tests, npv_profile, "npv", "currency", lambda v: v > 0,
                   ("second_implementation_agrees", "boundary_zero_rate_equals_sum", "t0_cash_flow_shifts_npv_one_for_one"),
                   category="capital budgeting", intended_use="Value a stream of cash flows at a user-supplied discount rate.",
@@ -17556,7 +17886,7 @@ LIBRARY = {
                   category="business planning",
                   intended_use="Projected income statement, cash flow and balance sheet from declared revenue, margin, costs, depreciation, interest and principal (or a declared opening loan), tax and working-capital days, with the balance check.",
                   unsupported_use="Forecasting demand; deriving revenue; tax rules; dividends; new borrowing; deferred tax; asset disposals; monthly periods; multi-product statements.",
-                  input_schema={"revenue": {"type": "value_list", "min_items": 1, "desc": "declared revenue for each period, one to ten periods"},
+                  input_schema={"revenue": {"type": "value_list", "min_items": 1, "desc": "declared revenue for each period, one to thirty-six periods"},
                                 "gross_margin_rate": {"type": "decimal", "desc": "gross margin as a fraction of revenue, e.g. 0.40"},
                                 "operating_costs": {"type": "value_list", "min_items": 1, "desc": "fixed operating costs each period, excluding depreciation and interest"},
                                 "depreciation": {"type": "value_list", "min_items": 1, "desc": "depreciation each period"},

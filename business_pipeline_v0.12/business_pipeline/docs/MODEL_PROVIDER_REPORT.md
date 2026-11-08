@@ -66,3 +66,34 @@ No model id is defaulted; you choose it. Without these variables the Assistant p
 
 ## Owner decisions
 B-036 resolved: DeepSeek for computation. B-038 resolved: personal data may be sent only with the user's explicit acknowledgment, and the owner accepts the provider's retention and training terms. B-039 partial: the budget is still the placeholder and a real held-out evaluation is pending; the scaffold above is the starting point.
+
+## The product's optional writing lanes are provider-agnostic (2026-11-08)
+
+The product layer does not import `bp.llm` (the boundary test forbids it), so
+`src/bp/product/providers.py` carries its own small, standard-library gateway for the
+optional lanes: prose, the section writer, gap questions, the council and OCR. Two wire
+formats are implemented — OpenAI-compatible `chat/completions` and Anthropic `messages` —
+and a callable can be registered at runtime (`providers.register(fn)`) for a test, an
+embedder or a local model. Nothing is configured by default: with no gateway the writing
+lanes return their deterministic text and no socket is opened.
+
+| Variable | Meaning |
+|---|---|
+| `BP_LLM_PROVIDER` | `openai`, `openai-compatible`, `deepseek`, `opencode`, `anthropic` or `ollama` |
+| `BP_LLM_MODEL` | the model id; required except on OpenCode Go, which keeps `beam-free` |
+| `BP_LLM_KEY` | one key for whichever provider is chosen, instead of the provider's own variable |
+| `BP_LLM_BASE_URL` | the endpoint; a base, a `/v1` root or a full `chat/completions` URL all work |
+| `BP_OPENGO_API_KEY` | legacy OpenCode Go key; still auto-detected when no provider is named |
+| `BP_PROSE_URL`, `BP_PROSE_MODEL` | legacy prose overrides; still honoured |
+| `BP_OLLAMA_URL`, `BP_OLLAMA_HOST` | a local Ollama server; no key required |
+
+Provider keys are read from the environment only. `providers.describe()` shows the
+provider, model and URL and never the key; a missing key or an unknown provider is
+reported by `providers.explain()` rather than guessed.
+
+The business-plan section writer (`src/bp/product/business_plan_writer.py`) gives each of
+the guide's Part 6 sections to whichever gateway is configured, then enforces the brief:
+every number must already appear in the plan record, no link or citation the record does
+not carry, no template text, and the section's word bounds. A section that fails keeps its
+deterministic text; the paper says which sections were written and which were not.
+

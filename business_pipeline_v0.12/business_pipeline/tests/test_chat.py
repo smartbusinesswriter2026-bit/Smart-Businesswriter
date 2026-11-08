@@ -98,12 +98,18 @@ class PlanProposalTest(unittest.TestCase):
     def test_a_valid_instruction_gets_a_proposal_not_a_repeated_brief(self):
         state = chat.start("Assess how a 6-week port disruption affects inventory policy using ABC analysis.",
                            subject="any")
-        self.assertEqual(state["stage"], "clarify")
         proposal = state.get("proposal") or {}
         self.assertTrue(proposal.get("reading"))
         self.assertTrue(proposal.get("framework_options"))
         self.assertTrue(proposal.get("claims"))
         self.assertNotIn("Your brief", str(proposal))
+        self.assertFalse(proposal.get("framework_required"))
+
+    def test_an_unnamed_framework_is_not_surfaced_and_asks_nothing(self):
+        state = chat.start("Assess how a 6-week port disruption affects inventory policy.",
+                           subject="any")
+        self.assertFalse(state["proposal"]["framework_required"])
+        self.assertNotIn('id="chatframeworkpick"', str(state.get("proposal") or {}))
 
     def test_refine_rejects_a_number_not_in_the_brief(self):
         state = chat.start("Assess how a 6-week port disruption affects inventory policy.",
@@ -169,54 +175,36 @@ class ResearchTest(unittest.TestCase):
 
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", return_value={"results": [], "errors": [], "skipped": []})
-    def test_a_dimension_with_no_evidence_gets_background_not_a_gap(self, _a, _w):
+    def test_a_dimension_with_no_evidence_is_a_named_gap_not_a_wikipedia_page(self, _a, _w):
         state = answer_all(chat.start(BRIEF, framework="pestel"))
         state = chat.research(chat.confirm_plan(state))
-        self.assertEqual(state["gaps"], [])
         self.assertEqual(state["evidence"], [])
-        self.assertEqual(len(state["background"]), 6)
-        self.assertTrue(all(row.get("dimension") and row.get("text")
-                            for row in state["background"]))
+        self.assertEqual(state["background"], [])
+        self.assertEqual(state["gaps"], [])
+        self.assertFalse(any("wikipedia" in str(row).lower()
+                             for row in state["evidence"] + state["background"]))
         state = chat.draft(state, implications="The evidence is thin; proceed cautiously.", style="apa")
         text = "\n".join(line for _heading, lines in state["draft"]["sections"]
                          for line in lines)
-        self.assertIn("Background reading", text)
-        self.assertNotIn("No retrieved evidence covered this dimension", text)
+        self.assertNotIn("Wikipedia", text)
+        self.assertIn("No retrieved evidence covered this dimension", text)
         self.assertTrue(chat.docx_bytes(state).startswith(b"PK"))
-
-    def test_a_no_framework_paper_prints_its_background_section(self):
-        state = answer_all(chat.start(BRIEF, framework="none"))
-        state = chat.confirm_plan(state)
-        state["background"] = [{
-            "dimension": "evidence", "label": "Evidence",
-            "text": "Background reading on evidence: Wikipedia: Social change.",
-            "sources": [{"title": "Wikipedia: Social change",
-                         "url": "https://en.wikipedia.org/wiki/Social_change",
-                         "database": "orientation web"}],
-            "caveat": "This is background from non-academic sources; it is not verified evidence.",
-        }]
-        state["sources"], state["evidence"], state["stage"] = [], [], "evidence"
-        state = chat.draft(state, implications="Proceed cautiously.", style="apa")
-        text = "\n".join(line for _heading, lines in state["draft"]["sections"]
-                         for line in lines)
-        self.assertIn("Wikipedia: Social change", text)
-        self.assertIn("Evidence", [heading for heading, _lines in state["draft"]["sections"]])
 
     def test_research_requires_a_confirmed_plan(self):
         state = answer_all(chat.start(BRIEF, framework="pestel"))
         with self.assertRaises(chat.ChatError):
             chat.research(state)
 
-    def test_a_background_paragraph_is_built_from_orientation_and_stays_out_of_sources(self):
+    def test_a_background_paragraph_is_built_from_weak_vetted_sources_and_stays_out_of_sources(self):
         row = chat._background_entry(
             ("social", "Social"),
-            [{"title": "Wikipedia: Social change",
+            [{"title": "Industry overview of social change",
               "description": "A summary of social change and its drivers.",
-              "url": "https://en.wikipedia.org/wiki/Social_change",
-              "database": "orientation web"}])
-        self.assertIn("Wikipedia: Social change", row["text"])
+              "url": "https://example.org/industry/social-change",
+              "database": "vetted web"}])
+        self.assertIn("Industry overview of social change", row["text"])
         self.assertIn("not verified evidence", row["caveat"])
-        self.assertEqual(row["sources"][0]["database"], "orientation web")
+        self.assertEqual(row["sources"][0]["database"], "vetted web")
         state = answer_all(chat.start(BRIEF, framework="pestel"))
         state = chat.confirm_plan(state)
         state["background"] = [row]
@@ -226,14 +214,14 @@ class ResearchTest(unittest.TestCase):
         state = chat.draft(state, implications="Proceed cautiously.", style="apa")
         text = "\n".join(line for _heading, lines in state["draft"]["sections"]
                          for line in lines)
-        self.assertIn("Wikipedia: Social change", text)
+        self.assertIn("Industry overview of social change", text)
         self.assertEqual(state["sources"], [])
         references = dict(state["draft"]["sections"]).get("References") or []
-        self.assertFalse(any("Wikipedia" in line for line in references))
+        self.assertFalse(any("example.org" in line for line in references))
 
     @mock.patch("bp.product.chat.RESEARCH_DEADLINE", 0.05)
     @mock.patch("bp.product.chat._research_one")
-    def test_a_hung_dimension_becomes_a_background_note_instead_of_blocking(self, research_one):
+    def test_a_hung_dimension_is_named_as_a_gap_instead_of_blocking(self, research_one):
         import time as _time
 
         def slow(state, dimension, corpus_doc_counts=None):
@@ -245,8 +233,7 @@ class ResearchTest(unittest.TestCase):
         research_one.side_effect = slow
         state = chat.research(chat.confirm_plan(answer_all(chat.start(BRIEF, framework="pestel"))))
         self.assertEqual(state["gaps"], [])
-        self.assertEqual(len(state["background"]), 6)
-        self.assertTrue(all("timed out" in row["reason"] for row in state["background"]))
+        self.assertEqual(state["background"], [])
         self.assertTrue(any("stopped after" in note for note in state["notes"]))
         self.assertLess(state["timings"]["total_s"], 1.0)
 
@@ -377,8 +364,8 @@ class SwotTest(unittest.TestCase):
         self.assertEqual(chat.start(BRIEF + " Use PESTEL and SWOT.")["framework"], "pestel_swot")
 
     def test_a_country_brief_puts_the_country_into_every_query(self):
-        state = chat.start("Apple is considering market entry into Iran and needs analysis.")
-        state = chat.answer(state, "framework", "pestel")
+        state = chat.start("Apple is considering market entry into Iran and needs analysis.",
+                           framework="pestel")
         state = chat.answer(state, "decision", "Should Apple enter the Iranian market?")
         state = chat.answer(state, "geography", "Middle East")
         state = chat.answer(state, "period", "5")

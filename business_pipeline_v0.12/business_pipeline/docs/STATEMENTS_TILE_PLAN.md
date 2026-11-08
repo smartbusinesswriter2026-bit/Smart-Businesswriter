@@ -140,7 +140,8 @@ The verifier is the veto. Nothing reaches the record unless it passes.
 - The **examiner** is called only to break a tie between two passing readings.
 - **Same-model disclosure**: if both seats resolve to the same model id, the record says so — a
   second opinion from one model is not one.
-- **Gate**: on whenever `prose.available()` (that is, `BP_OPENGO_API_KEY` is set). No separate flag.
+- **Gate**: on whenever a model gateway is configured (`prose.available()`, resolved by
+  `product/providers.py`). No separate flag. `BP_OPENGO_API_KEY` is one way; any provider below works.
 - Provider failure falls back to the deterministic parser and records why; the instruction is never
   lost. Cost note in the module docstring: one advocate call per contested item plus an examiner
   only on a tie, `max_tokens` 8,000 (the paper council's 2,000 truncates a statement reading — T12).
@@ -336,9 +337,13 @@ exposing its shape.
 
 | Variable | Value | Seat |
 |---|---|---|
-| `BP_OPENGO_API_KEY` | OpenCode Go key | the credential; `prose.available()` |
+| `BP_OPENGO_API_KEY` | OpenCode Go key | the credential; `prose.available()` (one provider among several) |
 | `BP_PROSE_MODEL` | `kimi-k3` | primary reading (no training, zero retention) |
 | `BP_COUNCIL_MODEL` | `deepseek-v4-pro` | dissent seat |
+
+The lane is provider-agnostic: `BP_LLM_PROVIDER` / `BP_LLM_MODEL` / `BP_LLM_KEY` /
+`BP_LLM_BASE_URL` select OpenAI, DeepSeek, Anthropic, Ollama or any OpenAI-compatible gateway;
+the OpenCode Go names above remain the default this plan was measured on.
 
 Endpoint: `https://opencode.ai/inference/go/openai/v1/chat/completions` — Go's OpenAI-compatible path;
 no OpenAI key is read anywhere in this pipeline. Confirm the ids with

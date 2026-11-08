@@ -26,8 +26,8 @@ os.environ.setdefault("BP_STATEMENT_LIBRARY_ORIGIN", "test")
 # asserts on the log sets BP_OPS_LOG itself.
 os.environ.setdefault("BP_OPS_LOG", os.path.join(tempfile.gettempdir(), "bp_test_ops_log"))
 
-# Background reading (Wikipedia) is a live web call.  A unit test must not
-# depend on the network or wait on it, so the orientation layer is off.
+# Background reading is no longer part of the pipeline; the flag stays off so
+# an inherited environment cannot turn a live call on.
 os.environ.setdefault("BP_ORIENTATION", "0")
 # The learning log writes to the live corpus service.  A test exercise is not a
 # student's search, so the fixtures never reach the real corpus history.
@@ -36,8 +36,9 @@ os.environ.setdefault("BP_LEARNING_LOG", "0")
 # The model lanes are live HTTPS calls (see `tests/__init__.py`).  pytest may import
 # a test file without importing the package first, so the keys are cleared here too.
 for _name in ("BP_LLM_PROVIDER", "BP_LLM_MODEL", "BP_LLM_MODEL_TIER2", "BP_LLM_MODEL_TIER3",
-              "BP_LLM_REVIEWER_MODEL", "BP_LLM_BASE_URL", "BP_OPENGO_API_KEY",
-              "BP_PROSE_URL", "BP_PROSE_MODEL",
+              "BP_LLM_REVIEWER_MODEL", "BP_LLM_BASE_URL", "BP_LLM_URL", "BP_LLM_KEY",
+              "BP_OPENGO_API_KEY", "OPENCODE_API_KEY",
+              "BP_PROSE_URL", "BP_PROSE_MODEL", "BP_OLLAMA_URL", "BP_OLLAMA_HOST",
               "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "DEEPSEEK_API_KEY"):
     os.environ[_name] = ""
 

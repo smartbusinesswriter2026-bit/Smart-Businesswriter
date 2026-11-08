@@ -557,8 +557,10 @@ class ServedUiContractTest(unittest.TestCase):
         self.assertIn("/refine", self.html)
         self.assertIn("Original instruction", self.html)
         self.assertIn('id="chatrunplan"', self.html)
-        self.assertIn('id="chatframeworkpick"', self.html)
+        self.assertNotIn('id="chatframeworkpick"', self.html)
+        self.assertNotIn("chatframeworkpick", self.html)
         self.assertIn("Run the Plan", self.html)
+        self.assertIn("This is a business plan", self.html)
         self.assertNotIn("Status: ' + esc((p.reading", self.html)
 
     def test_the_removed_panels_have_not_come_back(self):
@@ -769,8 +771,11 @@ class CalculatorGuardTest(unittest.TestCase):
                               if not name.startswith("_") and callable(getattr(finance_methods, name, None))}
         # Statement-registered helpers are not subject compute tools.
         finance_methods_ids = finance_methods_ids | {"eps", "working_capital_cycle", "tax_reconciliation"}
+        # Plan-registered helpers are run by the business-plan engine, not as standalone
+        # calculators: escalation, traffic revenue, line totals and simple payback.
+        plan_helpers = {"escalated_series", "revenue_from_traffic", "line_totals", "simple_payback"}
         frozen_methods = {method["method_id"] for method in methods.list_methods()
-                          if method["method_id"] not in finance_methods_ids}
+                          if method["method_id"] not in finance_methods_ids | plan_helpers}
         self.assertEqual(frozen_methods - launched, set(),
                          "a frozen method is missing from the Calculator and subject pages")
 

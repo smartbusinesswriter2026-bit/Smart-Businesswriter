@@ -1455,6 +1455,20 @@ a.pfguidepill .pfpdf{font-size:10.6px;letter-spacing:.08em;background:#C0392B;co
         <div id="statementsout"></div>
       </div>
     </section>
+    <!-- The business-plan financials tile: one case in, the plan's financial tables out. -->
+    <section class="panel" id="panel-businessplan" hidden aria-labelledby="businessplan-title">
+      <div class="card">
+        <h2 id="businessplan-title" style="margin:0 0 6px">Business plan financials</h2>
+        <label class="field" for="bpinput">Paste the business-plan case — its startup, funding, revenue and cost tables</label>
+        <textarea id="bpinput" rows="10" spellcheck="false" placeholder="Paste the case exactly as it was set: the tables and figures are read from it."></textarea>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="bpgo" type="button">Solve it</button>
+          <button class="btn" id="bpclear" type="button">Clear</button>
+        </div>
+        <label class="check" style="margin-top:8px"><input type="checkbox" id="bpprose"> Write the narrative sections with the configured model</label>
+        <div id="bpout"></div>
+      </div>
+    </section>
     <section class="panel" id="panel-economics" hidden aria-labelledby="economics-title">
       <div class="card">
         <h2 id="economics-title" style="margin:0 0 10px">Economics</h2>
@@ -1699,7 +1713,7 @@ const state = {
 /* "chat" is not a panel any more: the chat renders on the Home page. The router
    sends both #/chat and #/home there, so an old link still lands in the right
    place instead of a blank screen. */
-const PANELS = ["home", "plan", "subjects", "subject", "portfolio", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status", "statements", "economics"];
+const PANELS = ["home", "plan", "subjects", "subject", "portfolio", "calculator", "check", "new", "results", "cases", "case", "data", "refs", "deliver", "accounts", "status", "statements", "businessplan", "economics"];
 /* The panels a subject hands off to. A tool or worksheet opened from a subject
    page lands here, and that subject keeps its place in the rail while the work
    runs, so the highlight does not vanish the moment a subsection is opened. */
@@ -1834,6 +1848,14 @@ function route() {
       window.openStatementsTile();
     } else {
       window.addEventListener("load", function () { window.openStatementsTile(); });
+    }
+    return;
+  }
+  if (head === "business-plan") {
+    if (typeof window.openBusinessPlanTile === "function") {
+      window.openBusinessPlanTile();
+    } else {
+      window.addEventListener("load", function () { window.openBusinessPlanTile(); });
     }
     return;
   }
@@ -3001,6 +3023,72 @@ RENDERERS.home = function () {
 /* ---------- the deterministic conductor, rendered on the Home page ---------- */
 /* There is no Chat panel any more: the composer is the Home box (`#objective`)
    and every stage of the conversation renders into `#chatout` below it. */
+function renderSilent(c) {
+  const out = $("#chatout");
+  if (!out) return;
+  const box = $("#objective");
+  if (box) box.placeholder = "Ask for a change...";
+  const paper = c.paper || {};
+  const thread = (c.thread || []).map((message) =>
+    '<p' + (message.role === "user" ? "" : ' class="muted"') + ">" + esc(message.text) + "</p>").join("");
+  const sections = (paper.sections || []).map((section) => {
+    const heading = section[0] || "";
+    const lines = section[1] || [];
+    return "<h3>" + esc(heading) + "</h3>" + lines.map((line) => {
+      const text = String(line);
+      const table = text.indexOf("|") >= 0;
+      return "<p" + (table ? ' class="mono"' : "") + ">" + esc(text) + "</p>";
+    }).join("");
+  }).join("");
+  out.innerHTML = '<div style="display:grid;grid-template-columns:minmax(240px,0.7fr) minmax(0,1.5fr);gap:18px;align-items:start">' +
+    '<div class="card"><h3>Chat</h3><div id="silentthread">' + thread + "</div>" +
+      (c.working ? '<p class="muted">Working…</p>' : "") + "</div>" +
+    '<div class="card" style="max-height:76vh;overflow:auto">' +
+      '<div class="row"><strong>' + esc(paper.title || "Paper") + '</strong><span class="grow"></span>' +
+        '<button class="btn sm" type="button" id="silentundo">Undo</button>' +
+        '<button class="btn sm" type="button" id="silentnew">New</button>' +
+        '<button class="btn sm" type="button" id="silentdownload">Download</button></div>' +
+      '<div style="font-family:Georgia,serif;line-height:1.6;margin-top:10px">' + sections + "</div></div></div>";
+  const undo = $("#silentundo");
+  if (undo) undo.onclick = () => undoSilentPaper();
+  const fresh = $("#silentnew");
+  if (fresh) fresh.onclick = () => resetChat();
+  const download = $("#silentdownload");
+  if (download) download.onclick = () => downloadSilentPaper("bundle");
+}
+
+async function downloadSilentPaper(format) {
+  try {
+    const body = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/paper",
+      { format: format });
+    const binary = atob(body.data), bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+    const url = URL.createObjectURL(new Blob([bytes], { type: body.mime }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = body.filename || "paper." + format;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } catch (error) {
+    toast(error.message || String(error));
+  }
+}
+
+async function undoSilentPaper() {
+  if (!state.chat || !state.chat.paper) return;
+  try {
+    const result = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/undo", {});
+    if (result.paper) state.chat.paper = result.paper;
+    if (result.message) {
+      state.chat.thread = state.chat.thread || [];
+      state.chat.thread.push({ role: "assistant", text: result.message });
+    }
+    renderChat();
+  } catch (error) {
+    toast(error.message || String(error));
+  }
+}
+
 function renderChat() {
   const out = $("#chatout"); if (!out) return;
   const card = $("#chatcard");
@@ -3010,6 +3098,10 @@ function renderChat() {
     /* The Home page is the composer and nothing else until there is a brief to
        answer. No explainer, no framework picker: the box, Attach files, the arrow. */
     out.innerHTML = "";
+    return;
+  }
+  if (c.paper) {
+    renderSilent(c);
     return;
   }
   const readDecision = (c.proposal && c.proposal.reading && c.proposal.reading.decision) || c.brief;
@@ -3101,35 +3193,47 @@ function renderChat() {
   }
   if (c.stage === "plan" || c.stage === "research_ready") {
     const plan = c.plan;
+    const isPlan = ((c.proposal || {}).paper === "business_plan");
     html += proposalHtml(c);
-    html += '<div class="card"><h3>Plan details</h3>' +
-      '<p><strong>' + esc(plan.framework) + ".</strong> " + esc(plan.why) + "</p>" +
-      (c.archetype ? '<p class="muted">Paper type: ' + esc(c.archetype.replace(/_/g, " ")) + "</p>" : "") +
-      (c.subject_detected ? '<p class="muted">Read as: ' + esc(c.subject_detected.label) + ' (detected from your brief)</p>' : "") +
-      '<p><strong>What it misses.</strong> ' + esc(plan.misses) + "</p>" +
-      '<p class="muted">Decision: ' + esc(plan.decision) + " · Region: " + esc(plan.geography) +
-        " · Period: " + esc(plan.period) + " · Citation style: " + esc(plan.style) + "</p>" +
-      '<div class="tablewrap"><table><caption>The source dimensions and their plan</caption><thead><tr>' +
-      "<th>Dimension</th><th>Query</th><th>Preferred sources</th></tr></thead><tbody>" +
-      plan.dimensions.map((dimension) => "<tr><td>" + esc(dimension.label) + "</td><td>" +
-        esc(dimension.query) + "</td><td>" + esc(dimension.source_note) + "</td></tr>").join("") +
-      "</tbody></table></div>" +
-      (plan.internal ? '<p class="muted">Strengths and weaknesses are supplied by you; the source finder retrieves only the external evidence.</p>' : "") +
-      (plan.framework_id === "pestel_swot" ? '<p class="muted">The six PESTEL dimensions are researched; opportunities and threats are mapped from the accepted evidence by keyword.</p>' : "") +
-      '<p class="muted">' + esc(plan.output) + "</p>" +
-      reportLengthRow(plan) +
-      capabilityPanel(c, plan) +
-      figurePanel(plan) +
-      blockGraphHtml(c) +
-      evidenceLedgerHtml(c) +
-      (Array.isArray(c.chart_specs) && c.chart_specs.length
-        ? '<h4 class="levelhead" style="margin-top:10px">Charts this paper carries</h4><ul class="guidesteps">' +
-          c.chart_specs.map((spec) => "<li>" + esc(spec.title || spec.kind || "Chart") + " (" + esc(spec.kind || "chart") + ")</li>").join("") +
-          "</ul>"
-        : "");
-    if (c.stage === "plan") {
-      html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatconfirm">Confirm plan</button></div>';
+    html += '<div class="card"><h3>Plan details</h3>';
+    if (isPlan || plan.framework_id === "none") {
+      html += (isPlan
+        ? '<p><strong>Business plan.</strong> The paper follows the guide’s sections. The financial plan is computed from the case’s own tables; no framework is imposed.</p>'
+        : '<p><strong>No framework.</strong> The paper follows your decision and the evidence; nothing is forced into a lens.</p>') +
+        '<p class="muted">Decision: ' + esc(plan.decision) + " · Region: " + esc(plan.geography) +
+          " · Period: " + esc(plan.period) + " · Citation style: " + esc(plan.style) + "</p>" +
+        reportLengthRow(plan) +
+        capabilityPanel(c, plan) +
+        figurePanel(plan) +
+        blockGraphHtml(c) +
+        evidenceLedgerHtml(c);
     } else {
+      html += '<p><strong>' + esc(plan.framework) + ".</strong> " + esc(plan.why) + "</p>" +
+        (c.archetype ? '<p class="muted">Paper type: ' + esc(c.archetype.replace(/_/g, " ")) + "</p>" : "") +
+        (c.subject_detected ? '<p class="muted">Read as: ' + esc(c.subject_detected.label) + ' (detected from your brief)</p>' : "") +
+        '<p><strong>What it misses.</strong> ' + esc(plan.misses) + "</p>" +
+        '<p class="muted">Decision: ' + esc(plan.decision) + " · Region: " + esc(plan.geography) +
+          " · Period: " + esc(plan.period) + " · Citation style: " + esc(plan.style) + "</p>" +
+        '<div class="tablewrap"><table><caption>The source dimensions and their plan</caption><thead><tr>' +
+        "<th>Dimension</th><th>Query</th><th>Preferred sources</th></tr></thead><tbody>" +
+        plan.dimensions.map((dimension) => "<tr><td>" + esc(dimension.label) + "</td><td>" +
+          esc(dimension.query) + "</td><td>" + esc(dimension.source_note) + "</td></tr>").join("") +
+        "</tbody></table></div>" +
+        (plan.internal ? '<p class="muted">Strengths and weaknesses are supplied by you; the source finder retrieves only the external evidence.</p>' : "") +
+        (plan.framework_id === "pestel_swot" ? '<p class="muted">The six PESTEL dimensions are researched; opportunities and threats are mapped from the accepted evidence by keyword.</p>' : "") +
+        '<p class="muted">' + esc(plan.output) + "</p>" +
+        reportLengthRow(plan) +
+        capabilityPanel(c, plan) +
+        figurePanel(plan) +
+        blockGraphHtml(c) +
+        evidenceLedgerHtml(c);
+    }
+    if (Array.isArray(c.chart_specs) && c.chart_specs.length) {
+      html += '<h4 class="levelhead" style="margin-top:10px">Charts this paper carries</h4><ul class="guidesteps">' +
+        c.chart_specs.map((spec) => "<li>" + esc(spec.title || spec.kind || "Chart") + " (" + esc(spec.kind || "chart") + ")</li>").join("") +
+        "</ul>";
+    }
+    if (c.stage !== "plan") {
       html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="chatresearch">Find the evidence</button></div>';
     }
     html += "</div>";
@@ -3196,7 +3300,9 @@ function renderChat() {
           (diag.source_plan ? " · answered by " + esc(diag.source_plan) : "") + "</div></details>";
       }
     });
-    const orientation = c.orientation_sources || [];
+    const orientation = (c.orientation_sources || []).filter((item) =>
+      !/wikipedia|wikimedia|wikiwand|dbpedia|fandom|baike|about\.com|answers\.com|ehow|quora|reddit|slideshare/i
+        .test(String((item && item.url) || "") + " " + String((item && item.title) || "")));
     if (orientation.length) {
       html += '<h4 class="levelhead">Background reading (not cited)</h4>' +
         '<p class="muted">These pages only orient the search. They are not evidence and never appear in the references.</p>';
@@ -3284,9 +3390,10 @@ async function startChat() {
   const box = $("#objective");
   const brief = (box ? box.value : "").trim();
   if (!brief) { toast("Describe the case first."); if (box) box.focus(); return; }
+  if (state.chat && state.chat.paper) { return reviseChat(brief); }
   const out = $("#chatout");
-  if (out) out.innerHTML = loading("Starting the analysis");
-  const body = { brief: brief, subject: "any" };
+  if (out) out.innerHTML = loading("Working");
+  const body = { brief: brief, subject: "any", silent: true };
   const lengthBox = $("#homelength");
   const lengthChoice = lengthBox ? String(lengthBox.value || "").trim() : "";
   if (lengthChoice) body.words = lengthChoice;
@@ -3297,7 +3404,10 @@ async function startChat() {
     body.data_files = state.intakeFiles.data || [];
   }
   try {
-    state.chat = await post("/api/cases/chat", body);
+    const response = await post("/api/cases/chat", body);
+    state.chat = response.paper
+      ? { id: response.id, paper: response.paper, thread: [{ role: "user", text: brief }] }
+      : response;
     /* The conversation now carries the brief, so the composer starts empty: a
        stray arrow press would otherwise restart over the same brief. */
     if (box) box.value = "";
@@ -3305,6 +3415,26 @@ async function startChat() {
   } catch (error) {
     if (out) out.innerHTML = errorBanner(error);
   }
+}
+
+async function reviseChat(text) {
+  const box = $("#objective");
+  if (!state.chat || !state.chat.paper) return;
+  state.chat.thread = state.chat.thread || [];
+  state.chat.thread.push({ role: "user", text: text });
+  state.chat.working = true;
+  if (box) box.value = "";
+  renderChat();
+  try {
+    const result = await post("/api/cases/chat/" + encodeURIComponent(state.chat.id) + "/revise",
+      { text: text });
+    if (result.paper) state.chat.paper = result.paper;
+    if (result.message) state.chat.thread.push({ role: "assistant", text: result.message });
+  } catch (error) {
+    state.chat.thread.push({ role: "assistant", text: error.message || String(error) });
+  }
+  state.chat.working = false;
+  renderChat();
 }
 
 /* ---- capabilities: what the paper carries, and the figures for it ---- */
@@ -3369,23 +3499,20 @@ function proposalHtml(c) {
     ? '<h4 class="levelhead">Your files</h4><p class="muted">' + esc(fileBits.join(" · ")) +
       ". Instructions are followed; source and data files are kept with the plan; data files are read as tables.</p>"
     : "";
-  const selected = p.selected_framework || ((p.framework_options || []).find((row) => row.suggested) || {}).id || "none";
-  const frameworkSelect = '<select id="chatframeworkpick">' + (p.framework_options || []).map((row) =>
-    '<option value="' + esc(row.id) + '"' + (row.id === selected ? " selected" : "") + ">" + esc(row.label) + "</option>").join("") + "</select>";
+  const isPlan = p.paper === "business_plan";
   return '<div class="card" style="margin-bottom:12px">' +
     '<h3 style="margin-top:0">Proposed plan</h3>' +
     '<p class="sub">How I read your instruction: <strong>' + esc((p.reading || {}).decision || c.brief) + "</strong></p>" +
-    '<h4 class="levelhead">Frameworks</h4><div class="row" style="flex-wrap:wrap">' + frameworks + "</div>" +
+    (isPlan ? '<p class="muted" style="margin:4px 0 0">This is a business plan: it follows its own sections.</p>' : "") +
     '<h4 class="levelhead">Computations</h4>' + computations +
     '<h4 class="levelhead">Proposed argument</h4><ul class="guidesteps">' + claims + "</ul>" +
-    '<h4 class="levelhead">Evidence needed</h4><div class="row" style="flex-wrap:wrap">' + evidence + "</div>" +
+    (isPlan ? "" : '<h4 class="levelhead">Evidence needed</h4><div class="row" style="flex-wrap:wrap">' + evidence + "</div>") +
     (structure ? '<h4 class="levelhead">Structure</h4><div class="row" style="flex-wrap:wrap">' + structure + "</div>" : "") +
     fileRow +
     (gaps ? '<h4 class="levelhead">Gaps</h4><ul class="guidesteps">' + gaps + "</ul>" : "") +
-    '<div class="row" style="margin-top:10px;align-items:center;gap:8px">' +
-      '<label class="field" for="chatframeworkpick" style="margin:0">Framework</label>' + frameworkSelect +
+    (c.stage === "plan" ? '<div class="row" style="margin-top:10px;align-items:center;gap:8px">' +
       '<button class="btn primary" type="button" id="chatrunplan">Run the Plan</button>' +
-    "</div>" +
+    "</div>" : "") +
     '<div class="row" style="margin-top:10px;align-items:flex-start;gap:8px">' +
       '<input id="chatrefinetext" type="text" style="flex:1;min-width:220px" placeholder="Add a clarification or edit within the instruction">' +
       '<button class="btn" type="button" id="chatrefinego">Refine plan</button>' +
@@ -3393,13 +3520,14 @@ function proposalHtml(c) {
 }
 
 function bindProposalControls(c) {
-  const run = $("#chatrunplan"), pick = $("#chatframeworkpick");
-  if (run && pick) {
+  const run = $("#chatrunplan");
+  if (run) {
     run.onclick = async () => {
       run.disabled = true;
       try {
+        const framework = (c.proposal || {}).selected_framework || "none";
         state.chat = await post("/api/cases/chat/" + encodeURIComponent(c.id) + "/run-plan",
-          { framework: pick.value });
+          { framework: framework });
         RENDERERS.home();
       } catch (error) {
         run.disabled = false;
@@ -3508,7 +3636,8 @@ function capabilityPanel(c, plan) {
       html += '<p class="muted" style="margin:6px 0 0">From the brief: ' + fromBrief.map((name) =>
         esc(String(name).replace(/_/g, " ")) + " " + esc(String(cap.figures[name])) +
         (quotes[name] ? ' ("' + esc(quotes[name]) + '")' : "")).join("; ") +
-        ". Check it, then validate and attach.</p>";
+        (recorded.ok ? ". Taken from the brief and run by the core."
+                     : ". Check it, then validate and attach.") + "</p>";
     }
     const needs = cap.needs_from || [];
     const ready = needs.filter((row) => row.selected && row.recorded);
@@ -3525,16 +3654,16 @@ function capabilityPanel(c, plan) {
         .join(" ") + "</p>";
     }
     const groups = cap.one_of || [];
-    if (groups.length) {
+    if (groups.length && !recorded.ok) {
       html += '<p class="muted" style="margin:6px 0 0">Declare ' +
         groups.map((group) => group.map((name) => esc(String(name).replace(/_/g, " "))).join(" + "))
           .join(", or ") + ".</p>";
-    } else if (cap.min_inputs) {
+    } else if (cap.min_inputs && !recorded.ok) {
       html += '<p class="muted" style="margin:6px 0 0">Declare at least ' + esc(String(cap.min_inputs)) +
         " of the figures below.</p>";
     }
     const fields = Object.keys(cap.inputs || {});
-    if (fields.length) {
+    if (fields.length && !recorded.ok) {
       html += '<div class="grid2" style="margin-top:8px">' + fields.map((name) => {
         const spec = cap.inputs[name] || {};
         const declared = (recorded.inputs || {})[name];
@@ -5050,6 +5179,17 @@ function statementsCard(tile) {
   "</a>";
 }
 
+function businessPlanCard(tile) {
+  return '<a class="capcard" href="#/business-plan" data-businessplan-open="1">' +
+    '<span class="caphead"><span class="capicon" style="color:' + toneOf(state.subjectId) + '">' +
+      iconSvg("worksheet") + "</span>" +
+      "<strong>" + esc(tile.label) + "</strong></span>" +
+    '<span class="capdesc">' + esc(tile.what) + "</span>" +
+    '<span class="capfoot"><span class="capfoot-row"><span>One instruction</span>' +
+      '<span class="capgo">Open &rarr;</span></span></span>' +
+  "</a>";
+}
+
 /* An economics service tile is one card that opens the solver page.  The whole
    card is the link, exactly like the statements tile. */
 function economicsServiceCard(tile) {
@@ -5108,6 +5248,8 @@ function subjectTiles(s) {
        #/financial-statements, so the tile has a name a student can copy or bookmark. */
     if (tile.service === "statements") {
       html += '<div class="capgrid">' + statementsCard(tile) + "</div>";
+    } else if (tile.service === "businessplan") {
+      html += '<div class="capgrid">' + businessPlanCard(tile) + "</div>";
     } else if (tile.service) {
       html += '<div class="capgrid">' + economicsServiceCard(tile) + "</div>";
     }
@@ -11764,6 +11906,167 @@ if (new URLSearchParams(location.search).get("pricing")) {
     });
   }
   window.openEconomicsTile = open;
+})();
+</script>
+<script id="business-plan-tile">
+(function () {
+  var bound = false;
+  function out() { return document.getElementById("bpout"); }
+  function field() { return document.getElementById("bpinput"); }
+  function bind() {
+    if (bound) { return; }
+    bound = true;
+    var go = document.getElementById("bpgo");
+    if (go) { go.onclick = function () { solve(go); }; }
+    var clear = document.getElementById("bpclear");
+    if (clear) { clear.onclick = function () { var f = field(); if (f) { f.value = ""; f.focus(); } var h = out(); if (h) { h.innerHTML = ""; } }; }
+  }
+  function open() {
+    bind();
+    show("businessplan");
+    var f = field();
+    if (f && !f.value) { f.focus(); }
+  }
+  function money(v) { return (v === null || v === undefined || v === "") ? "n/a" : String(v); }
+  function proseOn() { var box = document.getElementById("bpprose"); return !!(box && box.checked); }
+  function table(title, rows) {
+    if (!rows.length) { return ""; }
+    return "<h3>" + esc(title) + "</h3><div class='tablewrap'><table><tbody>" +
+      rows.map(function (r) { return "<tr><th>" + esc(r[0]) + "</th><td>" + esc(r[1]) + "</td></tr>"; }).join("") +
+      "</tbody></table></div>";
+  }
+  function solve(button) {
+    var text = (field() || {}).value || "";
+    var host = out();
+    if (!host) { return; }
+    if (!text.trim()) { toast("Paste the case first."); return; }
+    host.innerHTML = loading("Reading the case and solving the plan");
+    button.disabled = true;
+    fetch("/api/cases/business-plan", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({instruction: text, prose: proseOn()})})
+      .then(function (answer) { return answer.json().then(function (body) { return {status: answer.status, body: body}; }); })
+      .then(function (r) {
+        button.disabled = false;
+        if (r.status !== 200) {
+          host.innerHTML = banner("blocked", "The plan was not solved", "<p>" + esc((r.body && r.body.error) || r.status) + "</p>");
+          return;
+        }
+        render(host, r.body, text);
+      })
+      .catch(function (error) { button.disabled = false; host.innerHTML = banner("blocked", "The server did not answer", "<p>" + esc(String(error)) + "</p>"); });
+  }
+  function render(host, d, text) {
+    var startup = d.startup || {}, sources = d.sources || {}, revenue = d.revenue || {}, be = d.break_even || {}, st = d.statements || {};
+    var html = "<h3>Summary</h3><p>Startup " + esc(money(startup.total)) + "; funding " + esc(money(sources.total)) +
+      "; Year 1 revenue " + esc(money(revenue.total_revenue)) + "; Year 1 net income " + esc(money(st.net_income_1)) + ".</p>";
+    html += "<h3>Checks</h3><ul>" + (d.gates || []).map(function (g) {
+      return "<li><strong>" + esc(g.code) + " " + (g.ok ? "PASS" : "FAIL") + "</strong> &mdash; " + esc(g.detail || "") + "</li>";
+    }).join("") + "</ul>";
+    var cats = [];
+    Object.keys(startup).sort().forEach(function (k) {
+      if (k.indexOf("category_") === 0) { cats.push([k.replace("category_", "").replace(/_/g, " "), money(startup[k])]); }
+    });
+    cats.push(["Total", money(startup.total)]);
+    html += table("Startup budget", cats);
+    if (revenue.total_revenue) {
+      var rows = [];
+      for (var i = 1; i <= 12; i += 1) {
+        if (revenue["revenue_" + i] === undefined) { break; }
+        rows.push(["Month " + i, money(revenue["revenue_" + i])]);
+      }
+      rows.push(["Year 1 total", money(revenue.total_revenue)]);
+      html += table("Sales forecast", rows);
+    }
+    if (st.revenue_1) {
+      var pairs = [["Revenue", "revenue"], ["Net income", "net_income"], ["Closing cash", "closing_cash"]];
+      html += table("Pro forma (Years 1-3)", pairs.map(function (pair) {
+        return [pair[0], [1, 2, 3].map(function (y) { return money(st[pair[1] + "_" + y]); }).join(" | ")];
+      }));
+    }
+    if (d.monthly && d.monthly.revenue_1) {
+      var rows = [];
+      for (var j = 1; j <= 12; j += 1) {
+        rows.push(["Month " + j, money(d.monthly["revenue_" + j]), money(d.monthly["net_income_" + j]),
+                   money(d.monthly["closing_cash_" + j])]);
+      }
+      html += "<h3>Year 1 monthly</h3><div class='tablewrap'><table><thead><tr><th>Month</th><th>Revenue</th><th>Net income</th><th>Closing cash</th></tr></thead><tbody>" +
+        rows.map(function (r) { return "<tr><td>" + esc(r[0]) + "</td><td>" + esc(r[1]) + "</td><td>" + esc(r[2]) + "</td><td>" + esc(r[3]) + "</td></tr>"; }).join("") +
+        "</tbody></table></div>";
+    }
+    html += table("Break-even", [["Units a month", money(be.breakeven_units)], ["Revenue", money(be.breakeven_revenue)]]);
+    var sens = d.sensitivity || {};
+    if (sens.price_volume) {
+      var srows = [];
+      for (var r = 1; r <= 3; r += 1) {
+        srows.push(["Price row " + r, [1, 2, 3].map(function (c) { return money(sens.price_volume["profit_" + r + "_" + c]); }).join(" | ")]);
+      }
+      html += table("Sensitivity (profit)", srows);
+    }
+    if (d.market) {
+      html += table("Market sizing", Object.keys(d.market).filter(function (k) { return k.indexOf("_") !== 0; })
+        .map(function (k) { return [k.replace(/_/g, " "), money(d.market[k])]; }));
+    }
+    if (d.ratios) {
+      html += table("Ratios (Year 1)", Object.keys(d.ratios).filter(function (k) { return k.indexOf("_") !== 0 && k !== "n_computed"; })
+        .map(function (k) { return [k.replace(/_/g, " "), money(d.ratios[k])]; }));
+    }
+    if (d.payback) { html += table("Returns", [["Payback (periods)", money(d.payback.payback_periods)]]); }
+    if ((d.gaps || []).length) {
+      html += "<h3>Gaps</h3><ul>" + d.gaps.map(function (g) { return "<li>" + esc(g) + "</li>"; }).join("") + "</ul>";
+    }
+    var unplaced = (d.reading && d.reading.unplaced) || [];
+    if (unplaced.length) {
+      html += "<h3>Labels not placed</h3><ul>" + unplaced.map(function (u) {
+        return "<li>" + esc(u.label) + ": " + esc(u.value) + "</li>";
+      }).join("") + "</ul>";
+    }
+    if (d.narrative) {
+      var wrote = (d.narrative.written || []).length, kept = (d.narrative.fallback || []).length;
+      html += "<p class='muted'>Narrative: " + (wrote ? esc(wrote + " section(s) written by " + (d.narrative.model || "the model")) : "the deterministic text stands") +
+        (kept ? "; " + esc(kept) + " kept the deterministic text" : "") +
+        (d.narrative.reason ? " &mdash; " + esc(d.narrative.reason) : "") + ".</p>";
+    }
+    html += '<div class="row" style="margin-top:14px">' +
+      '<button class="btn dl" id="bpword">Download the financial plan (Word)</button>' +
+      '<button class="btn dl" id="bpbook">Download the workbook (Excel)</button>' +
+      '<button class="btn dl" id="bppdf">Download the plan (PDF)</button></div>';
+    host.innerHTML = html;
+    function saveFile(endpoint, key, fallback, buttonId) {
+      var button = document.getElementById(buttonId);
+      if (button) { button.disabled = true; }
+      fetch(endpoint, {method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({instruction: text, prose: proseOn()})})
+        .then(function (answer) { return answer.json(); })
+        .then(function (body) {
+          if (button) { button.disabled = false; }
+          if (!body[key]) { toast((body && body.error) || "The file could not be produced."); return; }
+          var bin = atob(body[key].data), bytes = new Uint8Array(bin.length);
+          for (var k = 0; k < bin.length; k += 1) { bytes[k] = bin.charCodeAt(k); }
+          var url = URL.createObjectURL(new Blob([bytes], {type: body[key].mime}));
+          var link = document.createElement("a");
+          link.href = url;
+          link.download = downloadName("Business plan", body[key].filename || fallback, "Accounting");
+          document.body.appendChild(link); link.click(); link.remove();
+          setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        })
+        .catch(function () { if (button) { button.disabled = false; } toast("The file could not be produced."); });
+    }
+    var word = document.getElementById("bpword");
+    if (word) { word.onclick = function () { saveFile("/api/cases/business-plan/document", "document", "business-plan-financials.docx", "bpword"); }; }
+    var book = document.getElementById("bpbook");
+    if (book) { book.onclick = function () { saveFile("/api/cases/business-plan/workbook", "workbook", "business-plan.xlsx", "bpbook"); }; }
+    var pdf = document.getElementById("bppdf");
+    if (pdf) { pdf.onclick = function () { saveFile("/api/cases/business-plan/pdf", "pdf", "business-plan.pdf", "bppdf"); }; }
+  }
+  document.addEventListener("click", function (event) {
+    var trigger = event.target && event.target.closest && event.target.closest("[data-businessplan-open]");
+    if (!trigger) { return; }
+    event.preventDefault();
+    if (location.hash !== "#/business-plan") { location.hash = "#/business-plan"; }
+    else { open(); }
+  });
+  window.openBusinessPlanTile = open;
+  bind();
 })();
 </script></body>
 

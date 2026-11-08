@@ -21,6 +21,14 @@ still decide what enters the paper. A paywalled source is marked
 `access: "paywalled"` and ranked below a free one; its snippet is orientation,
 never quoted as if the full text had been read.
 
+**Never, at any layer.** Wikipedia and the same class of source — Wikimedia,
+Wikiwand, DBpedia, Fandom, Baidu Baike, About.com, Answers.com, eHow, Quora,
+Reddit, SlideShare — are not retrieved, displayed, cited, or written to the
+learning log. `sources.BLOCKED_DOMAINS` and `sources.blocked_source()` enforce
+this at the provider boundary and again as each retrieval layer is assembled.
+There is no background-reading call to an encyclopedia: a dimension with no
+vetted source is a named gap, not a Wikipedia summary.
+
 Each site carries:
 
 | Field | Meaning |

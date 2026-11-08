@@ -2677,6 +2677,10 @@ ACCOUNTING_TILES = [
              "statements, with the full working behind one toggle.",
      "need": "The question as it was set, or the trial balance. One instruction, no fields to fill.",
      "note": "The tile does the bookkeeping and shows its working; it never asks you to balance anything."},
+    {"key": "businessplan", "label": "Business plan financials", "service": "businessplan",
+     "what": "Paste a business-plan case and get its financial plan: the startup budget, the funding, "
+             "the sales forecast, the loan, the pro forma, break-even, returns and the checks.",
+     "need": "The case with its startup, funding, revenue and cost tables."},
     {"key": "Bookkeeping", "label": "Bookkeeping",
      "what": "Prepare the management accounts from a declared engagement, or check a trial balance "
              "against your own journal.",

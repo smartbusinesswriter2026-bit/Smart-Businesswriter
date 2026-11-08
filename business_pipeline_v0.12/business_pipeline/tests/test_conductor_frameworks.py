@@ -192,7 +192,7 @@ class Drafts(unittest.TestCase):
         self.assertIn("Every financial figure is the frozen method's result", text)
         self.assertNotIn("No financial figure is computed", text)
 
-    def test_a_missing_dimension_gets_background_not_a_gap(self):
+    def test_a_missing_dimension_is_named_without_a_wikipedia_background(self):
         with mock.patch("bp.product.sources.search_academic", return_value={"results": [], "errors": [], "skipped": []}), \
              mock.patch("bp.product.sources.search_web", side_effect=web):
             state = chat.start(BRIEF, framework="ansoff")
@@ -201,9 +201,10 @@ class Drafts(unittest.TestCase):
             state = chat.research(state)
         state = chat.draft(state, implications="No option is supported yet.")
         self.assertEqual(state["gaps"], [])
-        self.assertTrue(state["background"])
-        self.assertIn("Background reading", body(state))
-        self.assertNotIn("No evidence was retrieved for", body(state))
+        self.assertEqual(state["background"], [])
+        self.assertNotIn("Background reading", body(state))
+        self.assertNotIn("wikipedia", body(state).lower())
+        self.assertIn("No retrieved evidence covered this dimension", body(state))
 
 
 class AttachedComputation(unittest.TestCase):

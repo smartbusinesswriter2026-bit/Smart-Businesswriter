@@ -42,7 +42,8 @@ replays it and fails if any number differs.
 5. **No silent substitution.** The case names the method it is for; it must not be a
    different tile's problem wearing that label.
 6. **A refusal is a valid case.** Some of the ten must be inputs the engine must refuse
-   (missing required figure, impossible value). Those carry `expected.status: "blocked"`.
+   (missing required figure, impossible value). Those carry `expected.status: "error"`
+   and no result.
 7. **Do not modify the product.** Add files under `qa/cases/accounting/` only. Never edit
    `src/`, `web/`, `tests/` or an existing case.
 
@@ -132,8 +133,8 @@ print(json.dumps({k: str(v) for k, v in result.items() if not str(k).startswith(
 ```
 
 Paste that printed dict into `expected.result` unchanged. If the method refuses
-(validation error), the case is either an input mistake to fix, or a **blocked** case:
-then set `expected` to `{"status": "blocked"}` and keep no result.
+(validation error), the case is either an input mistake to fix, or a **refusal** case:
+then set `expected` to `{"status": "error"}` and keep no result.
 
 A case is replayed from **its own** `inputs`, so a tile with no published preset — every
 accounting tile — still replays. The preset is only the fallback for a preview with no
@@ -176,8 +177,8 @@ accounts the mapping cannot place, which the product reports rather than posts.
 
 For `tbcheck`, the ten roles are: perfect match; a transposition; one account missing from
 the submitted TB; an extra account; a wrong side; an obvious typo; a large difference; a
-compensating pair; an unreadable line (blocked); a TB that balances but disagrees with the
-journal line by line.
+compensating pair; an unreadable line (`status: "error"`); a TB that balances but disagrees
+with the journal line by line.
 
 ---
 

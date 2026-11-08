@@ -99,6 +99,12 @@ from . import drafting
 from . import mapsheet
 from . import explain
 from . import problem_reader
+from . import business_plan as plan_builder
+from . import business_plan_paper as plan_paper
+from . import business_plan_pdf as plan_pdf
+from . import business_plan_workbook as plan_workbook
+from . import business_plan_writer as plan_writer
+from . import declared as declared_reader
 from . import sources as source_finder
 from . import subjects as subject_index
 from . import versions as version_store
@@ -126,6 +132,7 @@ def attach_methods(run, describe=None):
     chat_conductor.set_method_compute(run, describe)
     visual_store.set_method_compute(run)
     economics_service.set_runner(run, describe)
+    plan_builder.set_runner(run)
 
 
 def attach_models(factory):
@@ -446,6 +453,14 @@ def billing(verb, route, body):
     return 404, {"error": "unknown route %s" % route}
 
 
+def _wants_prose(body):
+    """Whether the caller asked the writer to draft the narrative sections."""
+    value = (body or {}).get("prose") if isinstance(body, dict) else False
+    if isinstance(value, str):
+        return value.strip().lower() in ("1", "true", "yes", "on")
+    return bool(value)
+
+
 def handle(method, path, body=None):
     """Dispatch one request. Returns `(status_code, payload)`."""
     verb = (method or "").upper()
@@ -460,6 +475,69 @@ def handle(method, path, body=None):
     # -- the statements tile (B-204): a product service on the case route ------------
     if segments and segments[0] == STATEMENTS_SEGMENT:
         return statements.handle(verb, segments[1:], body)
+
+    # -- a business plan read into the guide's schema and solved by the core -----------
+    if segments == ["business-plan"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on a business plan" % verb}
+        body = body if isinstance(body, dict) else {}
+        instruction = body.get("instruction") or body.get("brief") or ""
+        if not str(instruction).strip():
+            return 422, {"error": "paste the business-plan case: its tables and figures are read from the text"}
+        reading = declared_reader.read(instruction)
+        try:
+            record = plan_builder.solve(reading, body.get("objective") or "")
+        except Exception as error:
+            return 422, {"error": "the plan could not be solved: " + str(error)[:300]}
+        if _wants_prose(body):
+            record["narrative"] = plan_writer.write(record)
+        return 200, record
+
+    if segments == ["business-plan", "document"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on a business-plan paper" % verb}
+        body = body if isinstance(body, dict) else {}
+        instruction = body.get("instruction") or body.get("brief") or ""
+        if not str(instruction).strip():
+            return 422, {"error": "paste the business-plan case first"}
+        record = plan_builder.solve(declared_reader.read(instruction), body.get("objective") or "")
+        narrative = plan_writer.write(record) if _wants_prose(body) else None
+        data = plan_paper.document(record, narrative)
+        return 200, {"document": {
+            "data": base64.b64encode(data).decode("ascii"),
+            "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "filename": "business-plan-financials.docx"}}
+
+    if segments == ["business-plan", "workbook"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on a business-plan workbook" % verb}
+        body = body if isinstance(body, dict) else {}
+        instruction = body.get("instruction") or body.get("brief") or ""
+        if not str(instruction).strip():
+            return 422, {"error": "paste the business-plan case first"}
+        record = plan_builder.solve(declared_reader.read(instruction), body.get("objective") or "")
+        data = plan_workbook.workbook(record)
+        return 200, {"workbook": {
+            "data": base64.b64encode(data).decode("ascii"),
+            "mime": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "filename": "business-plan.xlsx"}}
+
+    if segments == ["business-plan", "pdf"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on a business-plan PDF" % verb}
+        body = body if isinstance(body, dict) else {}
+        instruction = body.get("instruction") or body.get("brief") or ""
+        if not str(instruction).strip():
+            return 422, {"error": "paste the business-plan case first"}
+        record = plan_builder.solve(declared_reader.read(instruction), body.get("objective") or "")
+        narrative = plan_writer.write(record) if _wants_prose(body) else None
+        data = plan_pdf.pdf(record, narrative)
+        if data is None:
+            return 503, {"error": "a PDF needs Chrome; none was found on this machine"}
+        return 200, {"pdf": {
+            "data": base64.b64encode(data).decode("ascii"),
+            "mime": "application/pdf",
+            "filename": "business-plan.pdf"}}
 
     # -- the economics service tiles: macro, micro and managerial ------------------
     if segments and segments[0] == "economics":
@@ -844,6 +922,11 @@ def handle(method, path, body=None):
                     state["proposal"]["attachments"] = {
                         key: len(value) for key, value in attached.items()
                     }
+                if body.get("silent"):
+                    state = chat_conductor.silent(state, framework=body.get("framework"),
+                                                  words=body.get("words"))
+                    state = chat_store.save(state)
+                    return 201, {"id": state.get("id"), "paper": state.get("paper")}
                 state = chat_store.save(state)
             except chat_conductor.ChatError as error:
                 return _error(error)
@@ -888,6 +971,19 @@ def handle(method, path, body=None):
             elif action == "run-plan":
                 state = chat_conductor.run_plan(state, data.get("framework"),
                                                 data.get("words"), data.get("style"))
+            elif action == "revise":
+                state, payload = chat_conductor.revise(state, data.get("text") or "")
+                state = chat_store.save(state)
+                return 200, payload
+            elif action == "undo":
+                state, payload = chat_conductor.undo(state)
+                state = chat_store.save(state)
+                return 200, payload
+            elif action == "paper":
+                fmt = str(data.get("format") or "docx").lower()
+                data_bytes, filename, mime = chat_conductor.paper_bytes(state, fmt)
+                return 200, {"filename": filename, "mime": mime,
+                             "data": base64.b64encode(data_bytes).decode("ascii")}
             elif action == "inputs":
                 state = chat_conductor.set_inputs(state, data.get("values") or data.get("inputs") or {})
             elif action == "project":

@@ -744,6 +744,55 @@ Implemented styles: APA 7, Harvard, Chicago author-date, MLA 9, Vancouver, IEEE,
 - `tests/test_product_subjects.py` — proposal/refusal UI.
 - Stress prompts: the five valid instructions in the owner’s test set are accepted; cross-domain nonsense is refused.
 
+### 21.9 A declared brief is not a worksheet
+
+Two rules keep the conductor from turning an automation into data entry.
+
+**A business plan is a service, not a framework paper.** `declared.is_business_plan`
+reads the brief structurally (a startup table, a funding line and a revenue driver, with a
+strong cue fallback for a flattened paste). When it is true, `chat.start` does not ask a
+framework question, `plan_proposal` sets `paper: "business_plan"` and
+`framework_required: false`, and `capabilities.resolve(..., business_plan=True)` selects
+only `business_plan`. The proposal shows the guide's sections and no framework chooser; the
+capability reads the brief's own tables, so startup capital, the working-capital cycle and
+break-even are not proposed as separate blocks the student must feed by hand.
+
+**No framework is inferred, and no clarification card is shown for a brief that already
+carries its data.** A framework is used only when the instruction names one; every other
+brief runs as `none`. A plan or a no-framework brief starts at `stage: "plan"` with an empty
+question list, so the Home card has one action — **Run the Plan** — and no "Before I plan"
+form. The framework selector is gone from the proposal; a framework named in the brief is
+carried internally and never offered as a choice.
+
+### 21.10 The silent Home run
+
+Home is now one call and one paper. `POST /api/cases/chat` with `silent: true` runs
+the whole chain — read, confirm, compute, retrieve only if needed, draft — and returns
+only `{id, paper}`. The client never renders the proposal, plan card, capability panel,
+evidence review, blocks, ledger or checks; it shows **Working…**, then the paper in a
+right-hand pane with Word and, when the paper carries a financial plan, Excel.
+
+The paper view filters missing-input sentences. A section with nothing printable is
+omitted; a computed finding (negative cash, a failed check, break-even above the plan)
+stays. Export is not blocked by a missing input: the paper simply does not claim it.
+A change typed into the same box goes to `POST /api/cases/chat/{id}/revise`; the model
+may rewrite but every number and source is checked, and a change that would invent one
+gets one short line with the paper unchanged. A question gets one short answer.
+
+**Wikipedia is never a source or background.** No orientation call fetches an
+encyclopedia, and `sources.BLOCKED_DOMAINS` refuses Wikipedia and the same class of source
+at the provider boundary and in every retrieval layer. A dimension with no vetted source is
+a named gap, not a Wikipedia summary.
+
+**A figure the brief states is already declared.** `chat._clean` preserves line breaks and
+column spacing — a table row is a line, and collapsing it made every structural reader blind.
+`chat.apply_figures` maps the reading's figures to the capability inputs, and
+`chat.confirm_plan` runs every selected capability whose required figures are complete
+before the plan is frozen. A capability that still misses an input is left unrun and named;
+it never blocks the plan. The capability card hides its fields and its button once the core
+has recorded the result, so "Validate and attach" remains only for a figure the case genuinely
+does not state.
+
 ---
 
 ## 22. Final instruction to any model
