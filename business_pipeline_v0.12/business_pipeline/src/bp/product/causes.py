@@ -123,8 +123,8 @@ _RULES = (
     )),
     ("pipeline.case_expectation", (
         "status error, expected", "status needs_input, expected", "expected ok",
-        "the paper does not", "the workbook does not", "does not show any of the computed values",
-        "declared inputs", "break-even point",
+        ", expected ", "the paper does not", "the workbook does not",
+        "does not show any of the computed values", "declared inputs",
     )),
     ("pipeline.vocabulary", ("could not find an account",)),
     ("pipeline.parser_shape", (

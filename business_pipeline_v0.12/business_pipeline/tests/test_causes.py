@@ -44,6 +44,7 @@ class CauseClassificationTest(unittest.TestCase):
             ("this mentions 'consolidated', so it reads as consolidated accounts",
              "input.unsupported_group"),
             ("the instruction does not state: household consumption", "input.incomplete"),
+            ("breakeven_units is 100, expected 80", "pipeline.case_expectation"),
         ]
         for message, expected in table:
             self.assertEqual(causes.classify_cause(message)["cause"], expected, message)
@@ -251,6 +252,51 @@ class FixerArtifactTest(unittest.TestCase):
         rec = next(r for r in merged if r["error_id"] == error_id)
         self.assertTrue(rec.get("invalid"))
         self.assertFalse(rec.get("attended"))
+
+
+class DebitCreditTrialBalanceTest(unittest.TestCase):
+    """A trial balance written with the marker in front is read, not refused.
+
+    These are the durable cases for the 2026-11-08 fixes: the comma splitter
+    turned 5,200 into 5 and 200, the reader did not treat "Debit Cash 12,500" as
+    a trial balance, and "Kitchen Equipment" was outside the vocabulary.
+    """
+
+    TB = ("BrightByte IT Services has the following trial balance as at 31 July: "
+          "Debit Cash 12,500; Debit Accounts Receivable 8,300; Debit Inventory 6,700; "
+          "Debit Equipment 20,000; Debit Wages Expense 4,200; Debit Rent Expense 1,800; "
+          "Debit Utilities Expense 650; Debit Advertising Expense 350; "
+          "Debit Depreciation Expense 500; Credit Accounts Payable 5,200; "
+          "Credit Capital 40,000; Credit Revenue 9,300; Credit Accumulated Depreciation 500.")
+
+    def test_a_thousands_separator_is_not_an_account_separator(self):
+        from bp.product.problem_norm import normalize_problem
+        normalized, _notes = normalize_problem(self.TB)
+        self.assertIn("5,200", normalized)
+        self.assertNotIn("Credit Accounts Payable 5\n", normalized)
+        self.assertEqual(trial_balance_imbalance(normalized), 0)
+
+    def test_the_marker_in_front_reads_as_a_trial_balance(self):
+        from bp.product import statements
+        kind, _cue, _sentence = statements.classify(self.TB)
+        self.assertEqual(kind, "trial_balance")
+
+    def test_a_qualified_asset_name_places_by_its_known_word(self):
+        from bp.product import statements
+        placement = statements.place("Kitchen Equipment")["placement"]
+        self.assertIsNotNone(placement)
+        self.assertEqual(placement["line"], "Property, plant and equipment")
+
+    def test_the_reader_builds_the_debit_credit_trial_balance(self):
+        from bp.product import statements
+        from bp.product.problem_norm import normalize_problem
+        normalized, _notes = normalize_problem(self.TB)
+        reading = statements.read_deterministic(normalized)
+        rows = reading.get("_rows") or []
+        self.assertEqual(len(rows), 13)
+        debit = sum(float(str(r["written"]).replace(",", "")) for r in rows if r.get("side") == "D")
+        credit = sum(float(str(r["written"]).replace(",", "")) for r in rows if r.get("side") == "C")
+        self.assertEqual(debit, credit)
 
 
 if __name__ == "__main__":
