@@ -10652,8 +10652,17 @@ async function pmOpen() {
     pm.config = config;
     pm.current = (status && status.current) || null;
   } catch (err) {
-    $("#pmgrid").innerHTML = '<p class="pm-note">The pricing API did not answer: ' + esc(err.message) + "</p>";
-    return;
+    // No backend (static host): read the prices from the file the server carries.
+    try {
+      const r = await fetch("/api/billing/plans.json");
+      if (r.ok) { pm.plans = await r.json(); }
+    } catch (e) { /* fall through */ }
+    if (!pm.plans) {
+      $("#pmgrid").innerHTML = '<p class="pm-note">The pricing API did not answer: ' + esc(err.message) + "</p>";
+      return;
+    }
+    pm.config = { configured: false, missing: [], note: "Pricing is shown from the published catalogue; checkout is not available on this host." };
+    pm.current = null;
   }
   pmRender();
 }

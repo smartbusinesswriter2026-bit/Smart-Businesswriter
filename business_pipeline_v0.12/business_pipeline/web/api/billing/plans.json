@@ -1,0 +1,394 @@
+{
+  "currency": "USD",
+  "tiers": [
+    {
+      "tier": "starter",
+      "name": "Starter",
+      "currency": "USD",
+      "monthly": {
+        "amount": "14.99",
+        "cycle": "monthly"
+      },
+      "annual": {
+        "amount": "143.90",
+        "cycle": "annual",
+        "months": 12
+      },
+      "annual_saving": {
+        "amount": "35.98",
+        "currency": "USD",
+        "percent": "20"
+      },
+      "credits": null,
+      "credits_label": "Credit allowance: to be confirmed",
+      "unlimited": false,
+      "bundle": false,
+      "color": "navy",
+      "includes": [],
+      "write_smarter": {
+        "tier": null,
+        "pools": []
+      },
+      "sbw_tier": null,
+      "pools_note": null,
+      "products": [],
+      "highlights": []
+    },
+    {
+      "tier": "pro",
+      "name": "Pro",
+      "currency": "USD",
+      "monthly": {
+        "amount": "29.99",
+        "cycle": "monthly"
+      },
+      "annual": {
+        "amount": "287.90",
+        "cycle": "annual",
+        "months": 12
+      },
+      "annual_saving": {
+        "amount": "71.98",
+        "currency": "USD",
+        "percent": "20"
+      },
+      "credits": null,
+      "credits_label": "Credit allowance: to be confirmed",
+      "unlimited": false,
+      "bundle": false,
+      "color": "indigo",
+      "includes": [],
+      "write_smarter": {
+        "tier": null,
+        "pools": []
+      },
+      "sbw_tier": null,
+      "pools_note": null,
+      "products": [],
+      "highlights": []
+    },
+    {
+      "tier": "studio",
+      "name": "Studio",
+      "currency": "USD",
+      "monthly": {
+        "amount": "49.99",
+        "cycle": "monthly"
+      },
+      "annual": {
+        "amount": "479.90",
+        "cycle": "annual",
+        "months": 12
+      },
+      "annual_saving": {
+        "amount": "119.98",
+        "currency": "USD",
+        "percent": "20"
+      },
+      "credits": null,
+      "credits_label": "Credit allowance: to be confirmed",
+      "unlimited": false,
+      "bundle": false,
+      "color": "teal",
+      "includes": [],
+      "write_smarter": {
+        "tier": null,
+        "pools": []
+      },
+      "sbw_tier": null,
+      "pools_note": null,
+      "products": [],
+      "highlights": []
+    },
+    {
+      "tier": "bundle_starter",
+      "name": "Starter Bundle",
+      "currency": "USD",
+      "monthly": {
+        "amount": "19.99",
+        "cycle": "monthly"
+      },
+      "annual": {
+        "amount": "191.90",
+        "cycle": "annual",
+        "months": 12
+      },
+      "annual_saving": {
+        "amount": "47.98",
+        "currency": "USD",
+        "percent": "20"
+      },
+      "credits": null,
+      "credits_label": "Credit allowance: to be confirmed",
+      "unlimited": false,
+      "bundle": true,
+      "color": "green",
+      "includes": [
+        "Write Smarter - Basic",
+        "Smart Business Writer - Starter"
+      ],
+      "write_smarter": {
+        "tier": "Basic",
+        "pools": [
+          {
+            "label": "Text-Gen pool",
+            "value": "25,000 words"
+          },
+          {
+            "label": "Humanizer & AI-Detector",
+            "value": "5,000 words"
+          },
+          {
+            "label": "Video",
+            "value": "30 min"
+          },
+          {
+            "label": "Source Finder",
+            "value": "Unlimited"
+          }
+        ]
+      },
+      "sbw_tier": "Starter",
+      "pools_note": "Pools reset each billing cycle. Humanizer use draws from the Humanizer & AI-Detector pool - 1 word rewritten = 1 credit, and AI-detection scans cost 1 credit per word.",
+      "products": [
+        {
+          "name": "Write Smarter",
+          "features": [
+            "Basic plan",
+            "Source Finder included"
+          ]
+        },
+        {
+          "name": "Smart Business Writer",
+          "features": [
+            "Starter plan",
+            "Every framework, shelf and calculator"
+          ]
+        }
+      ],
+      "highlights": []
+    },
+    {
+      "tier": "bundle_pro",
+      "name": "Pro Bundle",
+      "currency": "USD",
+      "monthly": {
+        "amount": "38.99",
+        "cycle": "monthly"
+      },
+      "annual": {
+        "amount": "374.30",
+        "cycle": "annual",
+        "months": 12
+      },
+      "annual_saving": {
+        "amount": "93.58",
+        "currency": "USD",
+        "percent": "20"
+      },
+      "credits": null,
+      "credits_label": "Credit allowance: to be confirmed",
+      "unlimited": false,
+      "bundle": true,
+      "color": "green",
+      "includes": [
+        "Write Smarter - Standard",
+        "Smart Business Writer - Pro"
+      ],
+      "write_smarter": {
+        "tier": "Standard",
+        "pools": [
+          {
+            "label": "Text-Gen pool",
+            "value": "50,000 words"
+          },
+          {
+            "label": "Humanizer & AI-Detector",
+            "value": "12,000 words"
+          },
+          {
+            "label": "Video",
+            "value": "2 hrs"
+          },
+          {
+            "label": "Source Finder",
+            "value": "Unlimited"
+          }
+        ]
+      },
+      "sbw_tier": "Pro",
+      "pools_note": "Pools reset each billing cycle. Humanizer use draws from the Humanizer & AI-Detector pool - 1 word rewritten = 1 credit, and AI-detection scans cost 1 credit per word.",
+      "products": [
+        {
+          "name": "Write Smarter",
+          "features": [
+            "Standard plan",
+            "Source Finder included"
+          ]
+        },
+        {
+          "name": "Smart Business Writer",
+          "features": [
+            "Pro plan",
+            "Every framework, shelf and calculator"
+          ]
+        }
+      ],
+      "highlights": []
+    },
+    {
+      "tier": "bundle_studio",
+      "name": "Studio Bundle",
+      "currency": "USD",
+      "monthly": {
+        "amount": "64.99",
+        "cycle": "monthly"
+      },
+      "annual": {
+        "amount": "623.90",
+        "cycle": "annual",
+        "months": 12
+      },
+      "annual_saving": {
+        "amount": "155.98",
+        "currency": "USD",
+        "percent": "20"
+      },
+      "credits": null,
+      "credits_label": "Credit allowance: to be confirmed",
+      "unlimited": false,
+      "bundle": true,
+      "color": "green",
+      "includes": [
+        "Write Smarter - Pro",
+        "Smart Business Writer - Studio"
+      ],
+      "write_smarter": {
+        "tier": "Pro",
+        "pools": [
+          {
+            "label": "Text-Gen pool",
+            "value": "100,000 words"
+          },
+          {
+            "label": "Humanizer & AI-Detector",
+            "value": "30,000 words"
+          },
+          {
+            "label": "Video",
+            "value": "6 hrs"
+          },
+          {
+            "label": "Source Finder",
+            "value": "Unlimited"
+          }
+        ]
+      },
+      "sbw_tier": "Studio",
+      "pools_note": "Pools reset each billing cycle. Humanizer use draws from the Humanizer & AI-Detector pool - 1 word rewritten = 1 credit, and AI-detection scans cost 1 credit per word.",
+      "products": [
+        {
+          "name": "Write Smarter",
+          "features": [
+            "Pro plan",
+            "Source Finder included"
+          ]
+        },
+        {
+          "name": "Smart Business Writer",
+          "features": [
+            "Studio plan",
+            "Every framework, shelf and calculator"
+          ]
+        }
+      ],
+      "highlights": []
+    },
+    {
+      "tier": "agency",
+      "name": "Business Bundle",
+      "currency": "USD",
+      "monthly": {
+        "amount": "99.99",
+        "cycle": "monthly"
+      },
+      "annual": {
+        "amount": "959.90",
+        "cycle": "annual",
+        "months": 12
+      },
+      "annual_saving": {
+        "amount": "239.98",
+        "currency": "USD",
+        "percent": "20"
+      },
+      "credits": null,
+      "credits_label": "Unlimited",
+      "unlimited": true,
+      "bundle": true,
+      "color": "green",
+      "includes": [
+        "Write Smarter - unlimited",
+        "Smart Business Writer - unlimited"
+      ],
+      "write_smarter": {
+        "tier": "Unlimited",
+        "pools": [
+          {
+            "label": "Text-Gen pool",
+            "value": "Unlimited"
+          },
+          {
+            "label": "Humanizer & AI-Detector",
+            "value": "Unlimited"
+          },
+          {
+            "label": "Video",
+            "value": "Unlimited"
+          },
+          {
+            "label": "Source Finder",
+            "value": "Unlimited"
+          }
+        ]
+      },
+      "sbw_tier": "Unlimited",
+      "pools_note": "Pools reset each billing cycle. Humanizer use draws from the Humanizer & AI-Detector pool - 1 word rewritten = 1 credit, and AI-detection scans cost 1 credit per word.",
+      "products": [
+        {
+          "name": "Write Smarter",
+          "features": [
+            "Unlimited Text-Gen",
+            "Unlimited Research Assistant",
+            "Unlimited Humanizer & AI-Detector",
+            "Unlimited Video",
+            "Unlimited use of Source Finder"
+          ]
+        },
+        {
+          "name": "Smart Business Writer",
+          "features": [
+            "Unlimited exports",
+            "Every framework, shelf and calculator"
+          ]
+        }
+      ],
+      "highlights": []
+    }
+  ],
+  "card_tiers": [
+    "starter",
+    "pro",
+    "studio"
+  ],
+  "bundle_tiers": [
+    "bundle_starter",
+    "bundle_pro",
+    "bundle_studio",
+    "agency"
+  ],
+  "bundle_tier": "agency",
+  "annual_discount_percent": "20",
+  "credits_set": false,
+  "notice": "Prices are the owner's configuration. The annual price is 12 months less the declared discount. Credit allowances are not set yet; they are returned as null rather than estimated. The Business Bundle grants no limit on either product, and says so rather than quoting an allowance."
+}
