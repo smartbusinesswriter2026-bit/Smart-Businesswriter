@@ -118,7 +118,10 @@ date, and the cash balance you declare.
 5. Either type each price in the **Declared prices** row, or click **Fetch prices (Alpha Vantage)**
    (it tries Alpha Vantage, then Massive, then QVeris — still check each price). You can also paste
    `SYMBOL,PRICE` rows into **Paste or import prices** and click **Import prices**.
-6. Click **Create the snapshot**. A banner confirms *Snapshot created*; the page re-renders with the
+6. *(Optional)* Under **Evidence (optional)**, click **Capture** on a holding to save a screenshot of
+   its quote page, or choose a file and click **Attach evidence**. The file is hashed and timestamped
+   when the snapshot is created. See **Evidence: proving the price on the date** below.
+7. Click **Create the snapshot**. A banner confirms *Snapshot created*; the page re-renders with the
    valuation.
 
 **You should see** (live example, 2026-11-02, USD 0 cash):
@@ -226,6 +229,30 @@ reported.
 
 ---
 
+## Evidence: proving the price on the date
+
+The snapshot already proves **where each number came from**: every price keeps its date, its provider
+and a response hash. Evidence is the extra proof that *you* looked the price up on that date, which is
+what a professor often asks for. It is **optional**: a snapshot without evidence is recorded as a
+named gap, never blocked.
+
+**Two ways to attach it, on the Prices and snapshot tab:**
+
+1. **Open quote page ↗** — next to each holding, opens the stock's page in a new tab. Screenshot it
+   yourself, then choose the file under **Evidence (optional)** and click **Attach evidence**.
+2. **Capture** — next to each holding, the app opens the quote page in a hidden browser and saves the
+   screenshot for you (PNG, up to 2 MB). If the browser is not installed or the page cannot be read,
+   the app says so plainly and you attach your own screenshot instead; nothing is estimated and the
+   snapshot is not blocked.
+
+When the snapshot is created, each attached file is stored with a **SHA-256** and a **capture time**.
+The report then prints a **Price evidence** table (file, hash, captured at, size), and embeds the
+image where it can. Swapping the file later changes its hash, so the report and the stored file no
+longer match: that mismatch is the evidence that the record was altered.
+
+What evidence does **not** do: it does not make a price "official", it does not prove a trade, and it
+is not a recommendation. It is a dated record you can defend.
+
 ## How to read a gap (never a zero)
 
 | What you see | What it means | What to do |
@@ -241,6 +268,8 @@ reported.
 
 - Each price carries a **date and a source**; each retrieval carries a **response hash**.
 - The snapshot is **dated and immutable**, and the DOCX report reproduces the stored valuation.
+- Any attached **evidence** file has a **SHA-256 and a capture time**, printed in the report's
+  *Price evidence* table; a changed file no longer matches its hash.
 - The **checks** (6 for valuation, 6 for performance) are published, pass/fail, in the report.
 - The **decision journal** records what you did and why, in the week you did it.
 - Every **gap** you report is the gap the app showed, not a rounded-over blank.
@@ -255,6 +284,8 @@ reported.
 | **Open in the Business Calculator** is missing | the prefill is not ready — read the gap card above the inputs |
 | Wrong weights on the hero | the snapshot was taken before a holding change; take a new snapshot on a new date |
 | Report will not export | a snapshot is required first; the button is disabled until one exists |
+| **Capture** says automatic screenshots are not available | the optional browser is not installed on this machine; use **Open quote page ↗** and **Attach evidence** instead (the snapshot is not blocked) |
+| Evidence will not attach | the file must be PNG, JPEG or PDF and 2 MB or smaller; evidence can only be added before the snapshot for that date |
 
 ## What the lab cannot do
 
@@ -272,4 +303,5 @@ The watch list is one list for the whole machine, not one per book.
 - **Flow** — money you added to or withdrew from the fund; treated as occurring at period start.
 - **TWR** — time-weighted return: the chained product of period returns, printed as a ratio.
 - **Named gap** — a value the app will not invent, printed with the reason it is missing.
+- **Evidence** — an optional screenshot or PDF of the quote page, stored with a hash and capture time.
 - **Prefill** — the exact calculator inputs built from your recorded series; it never runs the method.

@@ -640,11 +640,111 @@ def remove_journal(portfolio_id, date):
     return True
 
 
+def _safe_evidence_name(name):
+    name = str(name or "").strip()
+    base = os.path.basename(name.replace("\\", "/"))
+    if not base or base in (".", ".."):
+        raise ValueError("the evidence file needs a name")
+    cleaned = "".join(ch if ch.isalnum() or ch in "._-" else "_" for ch in base)
+    if not cleaned or cleaned in (".", ".."):
+        raise ValueError("the evidence file name is not usable")
+    if len(cleaned) > 120:
+        cleaned = cleaned[:120]
+    return cleaned
+
+
+def save_evidence(portfolio_id, date, filename, mime, raw):
+    _portfolio(portfolio_id)
+    day = _date(date)
+    if _path(portfolio_id, "snapshots", day + ".json").exists():
+        raise PortfolioError("the snapshot for %s is already saved; evidence cannot be added after" % day)
+    mime = str(mime or "").strip().lower()
+    allowed = {"image/png", "image/jpeg", "application/pdf"}
+    if mime not in allowed:
+        raise ValueError("evidence must be a PNG, JPEG or PDF")
+    if not isinstance(raw, (bytes, bytearray)):
+        raise ValueError("evidence content must be bytes")
+    raw = bytes(raw)
+    if not raw:
+        raise ValueError("the evidence file is empty")
+    if len(raw) > 2 * 1024 * 1024:
+        raise ValueError("the evidence file must be 2 MB or smaller")
+    safe = _safe_evidence_name(filename)
+    ext = os.path.splitext(safe)[1].lower()
+    if mime == "image/png" and ext != ".png":
+        safe = safe + ".png"
+    if mime == "image/jpeg" and ext not in (".jpg", ".jpeg"):
+        safe = safe + ".jpg"
+    if mime == "application/pdf" and ext != ".pdf":
+        safe = safe + ".pdf"
+    evidence_dir = _path(portfolio_id, "evidence", day)
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    target = (evidence_dir / safe).resolve()
+    try:
+        target.relative_to(_root(portfolio_id))
+    except ValueError:
+        raise ValueError("the evidence path resolves outside the portfolio directory")
+    if target.exists():
+        stem = target.stem
+        suffix = target.suffix
+        i = 2
+        while (evidence_dir / ("%s-%d%s" % (stem, i, suffix))).exists():
+            i += 1
+        target = evidence_dir / ("%s-%d%s" % (stem, i, suffix))
+        safe = target.name
+    target.write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    metadata = {
+        "filename": safe,
+        "mime": mime,
+        "size_bytes": len(raw),
+        "sha256": digest,
+        "captured_at": _now(),
+        "relative_path": "evidence/%s/%s" % (day, safe),
+    }
+    return metadata
+
+
 def save_snapshot(portfolio_id, snapshot):
     _portfolio(portfolio_id)
     day = _date(snapshot.get("date"))
     path = _path(portfolio_id, "snapshots", day + ".json")
     if path.exists(): raise PortfolioError("a snapshot for %s already exists" % day)
+    evidence = snapshot.get("evidence")
+    if evidence is not None:
+        if not isinstance(evidence, list):
+            raise ValueError("evidence must be a list")
+        cleaned = []
+        for item in evidence:
+            if not isinstance(item, dict):
+                raise ValueError("each evidence item must be an object")
+            fname = _safe_evidence_name(item.get("filename"))
+            sha = str(item.get("sha256") or "").strip().lower()
+            if not sha or len(sha) != 64:
+                raise ValueError("each evidence item needs a sha256")
+            full = _path(portfolio_id, "evidence", day, fname)
+            if not full.exists():
+                raise ValueError("evidence file %s was not uploaded" % fname)
+            actual = hashlib.sha256(full.read_bytes()).hexdigest()
+            if actual != sha:
+                raise ValueError("evidence file %s was changed after capture" % fname)
+            captured_at = str(item.get("captured_at") or "").strip()
+            mime = str(item.get("mime") or "").strip().lower()
+            size = item.get("size_bytes")
+            try:
+                size = int(size) if size is not None else full.stat().st_size
+            except (TypeError, ValueError):
+                size = full.stat().st_size
+            cleaned.append({
+                "filename": fname,
+                "mime": mime,
+                "size_bytes": size,
+                "sha256": sha,
+                "captured_at": captured_at or _now(),
+                "relative_path": "evidence/%s/%s" % (day, fname),
+            })
+        snapshot = dict(snapshot)
+        snapshot["evidence"] = cleaned
     document = {**snapshot, "format": FORMAT, "id": portfolio_id, "date": day, "created_at": _now()}
     document["document_hash"] = _hash(document)
     _write(path, document)

@@ -31,9 +31,6 @@
   --ops-tint:#E8EDF7;
   --r-sm:6px; --r-md:10px; --r-lg:14px; --r-pill:999px;
   --sh-1:0 1px 2px rgba(2,40,76,.06); --sh-2:0 6px 20px rgba(2,40,76,.08); --sh-3:0 18px 48px rgba(2,40,76,.14);
-  /* Global UI scale: 90% is the new 100%. One value drives the page zoom and
-     the viewport-height compensation for full-height chrome (the rail). */
-  --ui-zoom:.9;
   --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   --doc:"Times New Roman",Times,serif;
   --rail-w:45px; --rail-w-open:272px; --rail-gap:10px;
@@ -61,7 +58,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:var(--font);font-size:16.8px;line-height:1.5;color:var(--text);background:var(--canvas);
-     -webkit-font-smoothing:antialiased;zoom:var(--ui-zoom)}
+     -webkit-font-smoothing:antialiased}
 a{color:var(--navy-500)}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--navy-900);outline-offset:2px;border-radius:4px}
@@ -185,7 +182,7 @@ label.field{display:block;font-size:15.4px;color:var(--text-2);margin:0 0 4px}
 
 /* ---------- shell + rail ---------- */
 .shell{display:flex;align-items:flex-start}
-.rail{position:sticky;top:56px;height:calc(100vh / var(--ui-zoom) - 56px);background:var(--surface);border-right:1px solid var(--border);
+.rail{position:sticky;top:56px;height:calc(100vh - 56px);background:var(--surface);border-right:1px solid var(--border);
       width:var(--rail-w);flex:0 0 auto;padding:12px var(--rail-pad);display:flex;flex-direction:column;gap:6px;overflow:visible;
       transition:width .34s cubic-bezier(.32,.72,0,1),padding .34s cubic-bezier(.32,.72,0,1);z-index:20}
 body.rail-open .rail{width:var(--rail-w-open)}
@@ -330,6 +327,22 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .actionbox textarea{min-height:104px;font-size:18px;line-height:1.55;border-color:transparent;background:transparent;padding:6px 4px}
 .actionbox textarea:focus{background:transparent;outline:none}
 .actionbox textarea::placeholder{color:var(--text-3)}
+/* The chart fields carry their own visible box.  The composer's transparent
+   textarea styling is right for the one-line chat box, but it makes the chart
+   box ambiguous and lets a fractional page zoom paint the caret at the wrong
+   edge.  These selectors are deliberately stronger than .actionbox textarea. */
+#vispoints, #visinputs{display:block;width:100%;min-height:150px;padding:12px 14px;
+  border:1px solid var(--border);border-radius:var(--r-sm);background:#fff;color:var(--text);
+  line-height:1.6;caret-color:var(--navy-900);resize:vertical}
+#vispoints:focus, #visinputs:focus{border-color:var(--green-600);outline:none;
+  box-shadow:0 0 0 3px rgba(2,161,94,.14)}
+#visread{margin-top:10px}
+#visread table{font-size:15.4px}
+#visread td, #visread th{padding:5px 7px;vertical-align:top}
+#visread .visnote{color:var(--text-3);font-size:14.8px}
+#viscols{gap:10px;margin-top:8px}
+#viscols label{display:flex;flex-direction:column;gap:3px;font-size:14.8px;color:var(--text-2)}
+#viscols select{min-width:160px}
 .actionrow{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
 .runbtn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
         width:40px;height:40px;border-radius:50%;background:var(--navy-900);color:#fff;margin-left:auto;
@@ -357,7 +370,7 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 .wordtarget-field{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);
   border-radius:var(--r-md);padding:3px 10px;box-shadow:var(--sh-1);transition:border-color .14s ease,box-shadow .14s ease}
 .wordtarget-field:focus-within{border-color:var(--green-600);box-shadow:0 0 0 3px rgba(2,161,94,.12)}
-.wordtarget-field input{width:72px;border:0;background:transparent;text-align:right;font-size:17px;font-weight:650;
+.wordtarget-field input{width:72px;border:0;background:transparent;text-align:right;font-size:13.6px;font-weight:600;
   font-variant-numeric:tabular-nums;color:var(--navy-900);padding:4px 0}
 .wordtarget-field input:focus{outline:none}
 .wordtarget-field input::-webkit-outer-spin-button,
@@ -387,7 +400,7 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 
 /* ---------- buttons ---------- */
 .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface);border-radius:var(--r-md);
-     padding:8px 14px;font-size:16.6px;cursor:pointer;color:var(--navy-700)}
+     padding:8px 14px;font-size:16.6px;cursor:pointer;color:var(--navy-700);text-decoration:none}
 .btn:hover{border-color:var(--navy-300);background:var(--sunken)}
 .btn[disabled]{opacity:.5;cursor:not-allowed}
 .btn.primary{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
@@ -872,7 +885,7 @@ figcaption{font-size:15.4px;color:var(--text-3);margin-top:6px}
   .topbar{gap:10px;padding:0 12px}
   #pricingpill,#accountpill,#signuppill{display:none}
   .locale select{max-width:132px}
-  body.rail-open .rail{position:fixed;left:0;top:56px;width:var(--rail-w-open);height:calc(100vh / var(--ui-zoom) - 56px)}
+  body.rail-open .rail{position:fixed;left:0;top:56px;width:var(--rail-w-open);height:calc(100vh - 56px)}
   main{padding:20px 16px 90px}
   .hero h1{font-size:32.2px}
   .hero img{height:74px;margin-top:4px}
@@ -1938,23 +1951,18 @@ function renderPortfolioLanding(rows) {
     '</div>' +
     '<div class="pfheroactions">' + pfGuideLink("hero") + '</div></section>' +
     '<div class="pfstart">' +
-      '<div class="card"><div class="pfcardhead"><h3 style="margin:0">Your books</h3><span class="muted">' +
-        (rows.length ? rows.length + " stored" : "none yet") + '</span></div>' +
-        (rows.length
-          ? '<div class="tablewrap"><table><caption>Stored portfolios</caption><thead><tr>' +
+      (rows.length
+        ? '<div class="card"><div class="tablewrap"><table><caption>Stored portfolios</caption><thead><tr>' +
             "<th>Name</th><th>Mode</th><th>Holdings</th><th>Snapshots</th><th>Updated</th><th></th></tr></thead><tbody>" +
             rows.map((row) => row.corrupt
-              ? '<tr class="row-warn"><td colspan="5">A stored portfolio is unreadable: ' + esc(row.id) + "</td><td></td></tr>"
+              ? '<tr class="row-warn"><td colspan="5">A stored portfolio is unreadable: ' + esc(row.id) + '</td><td></td></tr>'
               : "<tr><td><strong>" + esc(row.name) + '</strong><div class="muted">' + esc(row.base_currency) +
                 (row.benchmark ? " \u00b7 " + esc(row.benchmark) : "") + "</div></td><td>" + esc(row.mode) +
                 "</td><td>" + esc(row.n_holdings) + "</td><td>" + esc(row.n_snapshots) + "</td><td class=\"muted\">" +
                 esc(pfStamp(row.updated_at)) + '</td><td><button class="btn sm" type="button" data-pfopen="' + esc(row.id) +
                 '">Open</button></td></tr>').join("") +
-            "</tbody></table></div>"
-          : '<p class="muted" style="margin:6px 0 0">No book yet. Create one beside this card; it stays local on this machine.</p>') +
-      '</div>' +
+            "</tbody></table></div></div>" : '') +
       '<div class="card"><h3 style="margin-top:0">Create a book</h3>' +
-        '<p class="muted" style="margin:0 0 10px">A paper starts with one valuation date; a fund adds a weekly journal and a return. Fill the form and press <strong>Create portfolio</strong>; nothing is saved before that.</p>' +
         '<div class="pf-form pfform3">' +
         '<div class="fieldgroup"><label class="field" for="pfname">Portfolio name</label><input type="text" id="pfname" placeholder="e.g. Investment paper — consumer stocks"></div>' +
         '<div class="fieldgroup"><label class="field" for="pfcurrency">Base currency</label><input type="text" id="pfcurrency" value="USD" maxlength="3"></div>' +
@@ -1966,7 +1974,7 @@ function renderPortfolioLanding(rows) {
         '<span class="muted">You can add holdings and prices after it is created.</span></div><div id="pfmsg"></div></div>' +
     '</div>' +
     '<section class="pfsection"><div class="pfsectionhead"><span class="pfkicker">Before you buy</span>' +
-      '<h3>Find and screen candidates</h3><p class="muted">Add the symbols you are weighing to the watch list, screen them on the criteria you care about, then send the inputs to the Business Calculator. A shortlist is sourced evidence — it is not a recommendation.</p></div>' +
+      '<h3>Find and screen candidates</h3></div>' +
       portfolioLabPanel("screen") + '</section>' +
     pfWorkedCases() +
     pfGuidanceCard();
@@ -2019,6 +2027,7 @@ function openPortfolio(id) {
   state.portfolioId = id;
   /* The price date belongs to the book you were in: a new book starts today. */
   state.pfDate = null;
+  state.pfEvidence = [];
   show("portfolio");
 }
 
@@ -2092,6 +2101,13 @@ function renderPortfolioWorkspace() {
   bindInstrumentRows(out);
   const holdingsImport = $("#pfhimportbtn"); if (holdingsImport) holdingsImport.onclick = importHoldings;
   const pricesImport = $("#pfpimportbtn"); if (pricesImport) pricesImport.onclick = importPrices;
+  if (!Array.isArray(state.pfEvidence)) state.pfEvidence = [];
+  const evidenceBtn = $("#pfevidencebtn"); if (evidenceBtn) evidenceBtn.onclick = attachEvidence;
+  $$("[data-pfcapture]").forEach((button) => { button.onclick = () => captureEvidence(button.dataset.pfcapture, button); });
+  $$("[data-pfevidenceremove]").forEach((button) => { button.onclick = () => {
+    const index = Number(button.dataset.pfevidenceremove);
+    if (!isNaN(index) && state.pfEvidence) { state.pfEvidence.splice(index, 1); renderPortfolioWorkspace(); }
+  }; });
   const fetchButton = $("#pffetch");
   if (fetchButton) {
     const equityReady = state.marketStatus && state.marketStatus.sources && state.marketStatus.sources.equity;
@@ -2163,6 +2179,14 @@ function pfNum(value, places) {
 function pfTone(value) {
   const text = String(value === undefined || value === null ? "" : value).trim();
   return text.startsWith("-") ? "pf-down" : "pf-up";
+}
+
+function pfEvidenceList() {
+  const items = state.pfEvidence || [];
+  if (!items.length) return '<p class="muted" style="margin:0">No evidence attached yet.</p>';
+  return '<ul style="margin:0;padding-left:18px">' + items.map((item, index) =>
+    '<li>' + esc(item.filename) + ' <span class="muted">(' + esc(Math.round((item.size_bytes || 0) / 1024)) + ' KB, ' + esc((item.sha256 || "").slice(0, 12)) + '\u2026)</span> ' +
+    '<button class="btn sm" type="button" data-pfevidenceremove="' + index + '">Remove</button></li>').join("") + '</ul>';
 }
 
 function pfOverview(p, holdings, latest, snapshot, nSnapshots) {
@@ -2274,13 +2298,13 @@ function pfWorkedCases() {
       not: "It does not annualise, impute missing prices or quietly use a shorter window: a short series stays a named gap. Prefill only fills the fields; you press =."
     }
   ];
-  const head = '<div class="pfsectionhead"><span class="pfkicker">Learn by example</span>' +
+  const head = '<div class="pfsectionhead"><span class="pfkicker" style="color:var(--green-700)">Learn by example</span>' +
     '<h3>Four worked cases, click by click</h3>' +
     '<p class="muted">Each card is one assignment shape: what to click, what you should see and the sentence to write. ' +
     'The same walkthrough, with a gap-decoding table, a submission checklist and a glossary, is the ' +
     '<a href="/guides/portfolio-lab-student-guide.pdf" target="_blank" rel="noopener">Student guide (PDF)</a> \u2014 it opens in a new page.</p></div>';
   return '<section class="pfsection" id="pfworkedcases">' + head + cases.map((item, index) =>
-    '<details class="card pfdetails pfcase"' + (index === 0 ? " open" : "") + '>' +
+    '<details class="card pfdetails pfcase">' +
       '<summary><strong>Case ' + (index + 1) + ' \u2014 ' + esc(item.title) + '</strong> <span class="muted">\u2014 ' + esc(item.kicker) + '</span></summary>' +
       '<p class="pfcaseask"><strong>Assignment.</strong> ' + esc(item.ask) + '</p>' +
       '<p><strong>You need.</strong> ' + esc(item.need) + '</p>' +
@@ -2458,10 +2482,12 @@ function pfData(holdings, latest, snapshot) {
     '<div class="fieldgroup"><label class="field" for="pfcash">Cash (' + esc((state.portfolioBundle || {}).portfolio.base_currency || "") + ')</label><input type="text" id="pfcash" placeholder="0"></div></div>' +
     '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pffetch">Fetch prices (Alpha Vantage)</button>' +
     '<span class="muted" id="pffetchhint"></span></div>' +
-    '<div class="tablewrap" style="margin-top:12px"><table><caption>Declared prices</caption><thead><tr><th>Symbol</th><th>Price</th></tr></thead><tbody>';
-  if (!holdings.length) html += '<tr><td colspan="2">Add a holding first.</td></tr>';
+    '<div class="tablewrap" style="margin-top:12px"><table><caption>Declared prices</caption><thead><tr><th>Symbol</th><th>Price</th><th>Source page</th></tr></thead><tbody>';
+  if (!holdings.length) html += '<tr><td colspan="3">Add a holding first.</td></tr>';
   holdings.forEach((row) => {
-    html += "<tr><td>" + esc(row.symbol) + '</td><td><input type="text" data-pfprice="' + esc(row.symbol) + '" placeholder="price"></td></tr>';
+    html += "<tr><td>" + esc(row.symbol) + '</td><td><input type="text" data-pfprice="' + esc(row.symbol) + '" placeholder="price"></td>' +
+      '<td><a class="btn sm" href="https://finance.yahoo.com/quote/' + encodeURIComponent(row.symbol) + '" target="_blank" rel="noopener">Open quote page ↗</a> ' +
+      '<button class="btn sm" type="button" data-pfcapture="' + esc(row.symbol) + '" title="Capture the quote page as evidence (optional)">Capture</button></td></tr>';
   });
   html += "</tbody></table></div>" +
     '<div class="row" style="margin-top:12px"><button class="btn primary" type="button" id="pfsnapshot"' + (holdings.length ? "" : " disabled") + ">Create the snapshot</button></div></div>" +
@@ -2470,7 +2496,12 @@ function pfData(holdings, latest, snapshot) {
     '<textarea id="pfpimport" rows="4" style="width:100%" placeholder="AAPL,200&#10;MSFT,400"></textarea>' +
     '<div class="row" style="margin-top:6px"><input type="file" id="pfpfile" accept=".csv,.tsv,.txt"><span class="muted">or choose a CSV/TSV file</span></div>' +
     '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pfpimportbtn">Import prices</button>' +
-    '<span class="muted">Prices stay in the portfolio base currency.</span></div></div>';
+    '<span class="muted">Prices stay in the portfolio base currency.</span></div></div>' +
+    '<div class="card" style="margin-top:14px"><h3>Evidence (optional)</h3>' +
+    '<p class="muted">Attach a screenshot or PDF of the stock quote page as proof of the price on this date. PNG, JPEG or PDF, up to 2 MB each. Optional: a snapshot without evidence is recorded as a named gap.</p>' +
+    '<div class="row" style="margin-top:8px"><input type="file" id="pfevidencefile" accept="image/png,image/jpeg,application/pdf">' +
+    '<button class="btn" type="button" id="pfevidencebtn">Attach evidence</button></div>' +
+    '<div id="pfevidencelist" style="margin-top:8px">' + pfEvidenceList() + '</div></div>';
   if (snapshot) {
     html += '<div class="card"><h3>Snapshot ' + esc(snapshot.date) + "</h3>" +
       '<div class="tablewrap"><table><caption>Valuation</caption><thead><tr><th>Symbol</th><th>Shares</th><th>Price</th><th>Value</th><th>Weight of NAV</th></tr></thead><tbody>' +
@@ -2479,6 +2510,7 @@ function pfData(holdings, latest, snapshot) {
       "</tbody></table></div>" +
       '<p style="margin-top:10px"><strong>NAV ' + pfNum(snapshot.outputs.nav, 2) + "</strong> · invested " + pfNum(snapshot.outputs.invested_value, 2) +
       " · cash " + pfNum(snapshot.outputs.cash, 2) + " · top three " + pfNum(snapshot.outputs.top3_concentration, 4) + "</p>" +
+      '<p class="muted" style="margin:4px 0 0">Evidence: ' + esc((snapshot.evidence || []).length ? ((snapshot.evidence || []).length + " file(s) attached") : "none (named gap)") + '</p>' +
       '<div class="row"><button class="btn dl" type="button" id="pfexport2">Download the report (.docx)</button></div></div>';
   }
   return html;
@@ -2655,6 +2687,56 @@ async function removeHolding(symbol) {
   } catch (error) { toast(error.message || String(error)); }
 }
 
+async function attachEvidence() {
+  const message = $("#pfmsg");
+  const input = $("#pfevidencefile");
+  const file = input && input.files && input.files[0];
+  if (!file) { toast("Choose a file first."); return; }
+  const date = ($("#pfdate").value || "").trim();
+  if (!date) { message.innerHTML = banner("blocked", "A date is needed", "Choose the snapshot date first."); return; }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const dataUrl = String(reader.result || "");
+      const base64 = dataUrl.indexOf(",") >= 0 ? dataUrl.split(",", 1)[1] : dataUrl;
+      const meta = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/evidence", {
+        date: date, filename: file.name, mime: file.type || "application/octet-stream", content: base64
+      });
+      if (!Array.isArray(state.pfEvidence)) state.pfEvidence = [];
+      state.pfEvidence.push(meta);
+      if (input) input.value = "";
+      renderPortfolioWorkspace();
+      toast("Evidence attached: " + meta.filename);
+    } catch (error) {
+      message.innerHTML = errorBanner(error);
+    }
+  };
+  reader.onerror = () => toast("That file could not be read.");
+  reader.readAsDataURL(file);
+}
+
+async function captureEvidence(symbol, button) {
+  const message = $("#pfmsg");
+  const date = ($("#pfdate").value || "").trim();
+  if (!date) { message.innerHTML = banner("blocked", "A date is needed", "Choose the snapshot date first."); return; }
+  if (button) { button.disabled = true; button.textContent = "Capturing…"; }
+  try {
+    const meta = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/evidence/capture",
+      { date: date, symbol: symbol });
+    if (!Array.isArray(state.pfEvidence)) state.pfEvidence = [];
+    state.pfEvidence.push(meta);
+    renderPortfolioWorkspace();
+    toast("Screenshot captured: " + meta.filename);
+  } catch (error) {
+    const text = String(error.message || error);
+    message.innerHTML = /unavailable|not available|could not be captured|could not produce/i.test(text)
+      ? banner("honesty", "Automatic screenshot not available",
+          "<p>" + esc(pfPlainError(error)) + "</p><p>Open the quote page and attach your own screenshot; the snapshot is not blocked.</p>")
+      : errorBanner(error);
+    if (button) { button.disabled = false; button.textContent = "Capture"; }
+  }
+}
+
 async function createSnapshot() {
   const message = $("#pfmsg");
   const date = ($("#pfdate").value || "").trim();
@@ -2664,8 +2746,12 @@ async function createSnapshot() {
   if (!date) { message.innerHTML = banner("blocked", "A date is needed", "Choose the snapshot date."); return; }
   message.innerHTML = loading("Valuing the portfolio");
   try {
+    const evidence = Array.isArray(state.pfEvidence) ? state.pfEvidence.map((item) => ({
+      filename: item.filename, sha256: item.sha256, captured_at: item.captured_at, mime: item.mime, size_bytes: item.size_bytes
+    })) : [];
     state.portfolioSnapshot = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/snapshot",
-      { date: date, cash: cash, prices: prices });
+      { date: date, cash: cash, prices: prices, evidence: evidence });
+    state.pfEvidence = [];
     state.portfolioTab = "data";
     await loadPortfolioPage();
     const fresh = $("#pfmsg");
@@ -2691,27 +2777,248 @@ async function exportPortfolio() {
   } catch (error) { toast(error.message || String(error)); }
 }
 
-function parsePoints(text, withRunning) {
-  return String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
-    .map((line) => {
-      const parts = line.split(",").map((part) => part.trim()).filter((part) => part !== "");
-      if (withRunning && parts.length >= 3) {
-        return { label: parts.slice(0, parts.length - 2).join(", "),
-                 value: parts[parts.length - 2], cumulative: parts[parts.length - 1] };
-      }
-      const cut = line.lastIndexOf(",");
-      if (cut < 0) return null;
-      return { label: line.slice(0, cut).trim(), value: line.slice(cut + 1).trim() };
-    }).filter(Boolean);
+/* The chart reader is one deterministic backend call.  The screen never parses
+   a figure itself: it sends the text or file to /api/cases/visuals/read and
+   shows the report before the chart is made. */
+let visSource = null;
+let visSourceText = "";
+let visUploaded = null;
+let visReadTimer = null;
+let visReadSeq = 0;
+
+function visText() { return ($("#vispoints") && $("#vispoints").value) || ""; }
+function visTitle() { return (($("#vistitle") && $("#vistitle").value) || "").trim(); }
+function visKind() { return ($("#viskind") && $("#viskind").value) || ""; }
+function visSourceKind() { return ($("#vissource") && $("#vissource").value) || "declared"; }
+function visCurrentFile() {
+  if (!visSource) return null;
+  const edited = !!visSourceText && visText().trim() !== visSourceText.trim();
+  return Object.assign({}, visSource, { edited: edited });
+}
+function visReadPayload(extra) {
+  const payload = { mode: "typed", text: visText(), kind: visKind(), title: visTitle() };
+  const file = visCurrentFile();
+  if (file) payload.file = file;
+  return Object.assign(payload, extra || {});
 }
 
-function visualRequest() {
-  const title = ($("#vistitle").value || "").trim();
-  const kind = $("#viskind").value;
-  const points = parsePoints($("#vispoints").value, kind === "pareto");
+function visReportList(items) {
+  if (!items || !items.length) return "";
+  return "<ul>" + items.map((item) => "<li>" + esc(item) + "</li>").join("") + "</ul>";
+}
+
+function renderVisualRead(report) {
+  const box = $("#visread");
+  if (!box) return;
+  if (!report) { box.innerHTML = ""; return; }
+  const parts = [];
+  if (report.ok) {
+    parts.push('<div class="banner ok"><strong>I understood this</strong><div>' +
+      esc((report.plan || []).slice(0, 1).join(" ")) + "</div></div>");
+  } else {
+    parts.push('<div class="banner blocked"><strong>I can\'t build this yet</strong>' +
+      visReportList(report.blocked && report.blocked.length ? report.blocked : (report.needs || [])) +
+      "</div>");
+  }
+  const points = report.points || [];
+  if (points.length) {
+    const pareto = report.kind && report.kind.value === "pareto";
+    const rows = points.slice(0, 12).map((point) =>
+      "<tr><td>" + esc(point.raw || (point.label + ", " + point.value)) + "</td><td><strong>" +
+      esc(point.label) + "</strong> = " + esc(point.value) + (point.unit ? " " + esc(point.unit) : "") +
+      "</td>" + (pareto ? "<td>" + esc(point.cumulative || "") + "</td>" : "") +
+      '<td class="visnote">' + (point.label_auto ? "auto label" : "") + "</td></tr>").join("");
+    parts.push('<div class="tablewrap" style="margin-top:10px"><table><caption>What I read</caption>' +
+      "<thead><tr><th>Your line</th><th>I read</th>" + (pareto ? "<th>Running total</th>" : "") +
+      "<th>Note</th></tr></thead><tbody>" + rows + "</tbody></table></div>");
+    if (points.length > 12) {
+      parts.push('<p class="muted">and ' + (points.length - 12) + " more point(s).</p>");
+    }
+  }
+  if ((report.warnings || []).length) {
+    parts.push('<div class="banner honesty"><strong>Check these</strong>' +
+      visReportList(report.warnings) + "</div>");
+  }
+  if ((report.skipped || []).length) {
+    parts.push('<details style="margin-top:8px"><summary>' + report.skipped.length +
+      " line(s) could not be read</summary>" +
+      visReportList(report.skipped.map((item) =>
+        "Line " + item.line + ": " + item.text + " - " + item.reason)) + "</details>");
+  }
+  if ((report.needs || []).length) {
+    parts.push('<p class="muted" style="margin-top:8px">Still needed: ' +
+      esc(report.needs.join(" ")) + "</p>");
+  }
+  if ((report.plan || []).length) {
+    parts.push('<div class="card" style="margin-top:10px"><h3 style="margin-top:0">What I will do</h3><ol>' +
+      report.plan.map((line) => "<li>" + esc(line) + "</li>").join("") + "</ol></div>");
+  }
+  box.innerHTML = parts.join("");
+}
+
+function renderVisualColumns(report) {
+  const host = $("#viscols");
+  if (!host) return;
+  const columns = report && report.columns_available;
+  const kind = report && report.source && report.source.kind;
+  if (!columns || columns.length < 2 || (kind !== "data" && kind !== "instruction")) {
+    host.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
+  const selected = report.columns || {};
+  const options = (current) => '<option value="">(none)</option>' + columns.map((column) =>
+    '<option value="' + esc(column.name) + '"' + (column.name === current ? " selected" : "") +
+    ">" + esc(column.name) + " (" + esc(column.type) + ")</option>").join("");
+  host.hidden = false;
+  host.innerHTML =
+    '<label>Label column<select id="vislabelcol">' + options(selected.label) + "</select></label>" +
+    '<label>Value column<select id="visvaluecol">' + options(selected.value) + "</select></label>" +
+    (report.kind && report.kind.value === "pareto"
+      ? '<label>Running total<select id="viscumcol">' + options(selected.cumulative) + "</select></label>"
+      : "");
+  const apply = () => {
+    if (!visUploaded) return;
+    const payload = Object.assign({}, visUploaded, {
+      kind: visKind(), title: visTitle(),
+      label_column: ($("#vislabelcol") && $("#vislabelcol").value) || undefined,
+      value_column: ($("#visvaluecol") && $("#visvaluecol").value) || undefined,
+      cumulative_column: ($("#viscumcol") && $("#viscumcol").value) || undefined
+    });
+    visualUploadRead(payload);
+  };
+  ["vislabelcol", "visvaluecol", "viscumcol"].forEach((id) => {
+    const field = $("#" + id);
+    if (field) field.onchange = apply;
+  });
+}
+
+function applyVisualReport(report, fromFile) {
+  if (!report) return;
+  if (fromFile && report.points && report.points.length) {
+    visSource = report.source || null;
+    visSourceText = report.normalized_text || "";
+    if (report.title && report.title.value) $("#vistitle").value = report.title.value;
+    if (report.kind && report.kind.value) $("#viskind").value = report.kind.value;
+    if (report.normalized_text) $("#vispoints").value = report.normalized_text;
+  }
+  renderVisualRead(report);
+  renderVisualColumns(report);
+}
+
+async function visualUploadRead(payload) {
+  const box = $("#visread");
+  if (box) box.innerHTML = loading("Reading the file again");
+  try {
+    ++visReadSeq;
+    const report = await post("/api/cases/visuals/read", payload);
+    visUploaded = payload;
+    applyVisualReport(report, true);
+  } catch (error) {
+    if (box) box.innerHTML = errorBanner(error);
+  }
+}
+
+async function visualUpload(mode, file) {
+  const box = $("#visread");
+  if (!box) return;
+  if (!file) return;
+  if (file.size > 5000000) {
+    box.innerHTML = banner("blocked", "The file is too large",
+      "<div>The limit is 5 MB. Split the file or paste the figures.</div>");
+    return;
+  }
+  box.innerHTML = loading("Reading " + file.name);
+  try {
+    const content_base64 = await readAsBase64(file);
+    const payload = { mode: mode, filename: file.name, content_base64: content_base64,
+                      kind: visKind(), title: visTitle() };
+    visUploaded = payload;
+    ++visReadSeq;
+    const report = await post("/api/cases/visuals/read", payload);
+    applyVisualReport(report, true);
+    if (report.ok) {
+      toast("Read " + (report.points || []).length + " figure(s) from " + file.name + ".");
+      if ($("#vispoints")) $("#vispoints").focus();
+    }
+  } catch (error) {
+    box.innerHTML = errorBanner(error);
+  }
+}
+
+async function visualReadLive() {
+  if (visSourceKind() === "calculation") {
+    renderVisualRead(null);
+    renderVisualColumns(null);
+    return;
+  }
+  const seq = ++visReadSeq;
+  try {
+    const report = await post("/api/cases/visuals/read", visReadPayload());
+    if (seq !== visReadSeq) return;
+    renderVisualRead(report);
+    renderVisualColumns(report);
+  } catch (error) {
+    if (seq !== visReadSeq) return;
+    const box = $("#visread");
+    if (box) box.innerHTML = '<p class="muted">' + esc(error.message || String(error)) + "</p>";
+  }
+}
+
+function scheduleVisualRead(delay) {
+  clearTimeout(visReadTimer);
+  visReadTimer = setTimeout(visualReadLive, delay == null ? 300 : delay);
+}
+
+function visualExample() {
+  const title = $("#vistitle");
+  if (title) title.value = "Revenue by quarter";
+  const kind = $("#viskind");
+  if (kind) kind.value = "bar";
+  const points = $("#vispoints");
+  if (points) points.value = "Q1, 120000\nQ2 240000\nQ3: 360000\n480000";
+  visSource = null;
+  visSourceText = "";
+  visUploaded = null;
+  scheduleVisualRead(0);
+  if (points) points.focus();
+}
+
+async function calculationRequest(title) {
+  const method = (($("#vismethod") && $("#vismethod").value) || "").trim();
+  if (!method) throw new Error("Choose a calculation.");
+  const report = await post("/api/cases/visuals/read", {
+    mode: "inputs", text: ($("#visinputs") && $("#visinputs").value) || "", title: title
+  });
+  if (!report.ok || !report.points.length) {
+    throw new Error((report.blocked || ["Add at least one input, value."]).join(" "));
+  }
+  const inputs = {};
+  report.points.forEach((point) => {
+    if (point.label_auto) throw new Error("Give each input a name, e.g. fixed, 40000.");
+    inputs[point.label.trim().toLowerCase().replace(/\s+/g, "_")] = point.value;
+  });
+  return { title: title, source: { kind: "calculation", method: method, inputs: inputs } };
+}
+
+async function visualRequest() {
+  const title = visTitle();
   if (!title) throw new Error("Give the visual a title.");
-  if (!points.length) throw new Error("Add at least one line: label, value.");
-  const body = { title: title, source: { kind: "declared", points: points } };
+  if (visSourceKind() === "calculation") return calculationRequest(title);
+  ++visReadSeq;
+  const report = await post("/api/cases/visuals/read", visReadPayload());
+  renderVisualRead(report);
+  renderVisualColumns(report);
+  if (!report.ok) {
+    throw new Error((report.blocked || report.needs || ["I could not read these figures."]).join(" "));
+  }
+  if (!report.points || !report.points.length) {
+    throw new Error("Add at least one line: label, value.");
+  }
+  const body = { title: title, source: { kind: "declared", points: report.points } };
+  const file = visCurrentFile();
+  if (file && file.filename) body.source.file = file;
+  const kind = report.kind && report.kind.value;
   if (kind) body.kind = kind;
   return body;
 }
@@ -2720,7 +3027,7 @@ async function visualPreview() {
   const out = $("#visout");
   out.innerHTML = loading("Drawing the preview");
   try {
-    const body = visualRequest();
+    const body = await visualRequest();
     body.preview = true;
     const r = await post("/api/cases/visuals", body);
     out.innerHTML = '<figure class="chart">' + (r.svg || "") + "</figure>" +
@@ -2732,7 +3039,8 @@ async function visualCreate() {
   const out = $("#visout");
   out.innerHTML = loading("Creating the visual");
   try {
-    const r = await post("/api/cases/visuals", visualRequest());
+    const body = await visualRequest();
+    const r = await post("/api/cases/visuals", body);
     const formats = ["png", "svg", "docx", "pptx", "pdf"];
     out.innerHTML = '<p class="muted">Saved: ' + esc(r.title) + " &middot; " + esc(r.kind) + "</p>" +
       '<div class="row" style="flex-wrap:wrap">' + formats.map((fmt) =>
@@ -2741,6 +3049,7 @@ async function visualCreate() {
     $$("[data-visexport]", out).forEach((button) => {
       button.onclick = () => visualExport(button.dataset.visid, button.dataset.visexport);
     });
+    loadVisuals();
   } catch (error) { out.innerHTML = errorBanner(error); }
 }
 
@@ -2936,13 +3245,25 @@ RENDERERS.home = function () {
           '<option value="pareto">pareto</option>' +
           '<option value="table">table</option></select>' +
         "</div>" +
+        '<div class="row" id="visuploadrow" style="flex-wrap:wrap;margin:6px 0;gap:8px">' +
+          '<button class="btn sm" id="visuploaddata" type="button">Upload data file</button>' +
+          '<button class="btn sm" id="visuploadbrief" type="button">Upload instruction file</button>' +
+          '<input type="file" id="visdatafile" accept=".csv,.tsv,.xlsx,.xlsm,.txt" hidden>' +
+          '<input type="file" id="visbrieffile" accept=".pdf,.docx,.docm,.txt,.md" hidden>' +
+          '<button class="btn sm" id="visexample" type="button">Try an example</button>' +
+          '<a class="btn sm" href="assets/samples/chart-data.csv" download>Sample CSV</a>' +
+          '<a class="btn sm" href="assets/samples/chart-instruction.docx" download>Sample instruction</a>' +
+        "</div>" +
         '<div id="viscalc" hidden>' +
           '<div class="row" style="flex-wrap:wrap;gap:8px;margin:6px 0">' +
             '<select id="vismethod" aria-label="Calculation"><option value="">Choose a calculation</option></select>' +
           "</div>" +
           '<textarea id="visinputs" rows="3" style="width:100%" placeholder="One per line: input, value - e.g.&#10;fixed, 40000&#10;price, 25&#10;variable, 12"></textarea>' +
         "</div>" +
-        '<textarea id="vispoints" rows="4" style="width:100%" placeholder="One per line: label, value - e.g.&#10;Q1, 120000&#10;Q2, 240000&#10;A pareto adds a third column: the running total"></textarea>' +
+        '<textarea id="vispoints" rows="6" style="width:100%" placeholder="Type or paste your figures here. One row per line.&#10;Q1, 120000&#10;Q2 240000&#10;Q3: 360000&#10;480000"></textarea>' +
+        '<div id="viscols" class="row" hidden></div>' +
+        '<p class="muted" id="vishint" style="margin:6px 0 0">Comma, space, tab or colon. A bare number gets a label you can change. A pareto needs a third number: the running total.</p>' +
+        '<div id="visread" aria-live="polite"></div>' +
         '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
           '<button class="btn" id="vispreview" type="button">Preview</button>' +
           '<button class="btn primary" id="viscreate" type="button">Create</button>' +
@@ -2981,13 +3302,53 @@ RENDERERS.home = function () {
   });
   const visSheet = $("#vissheet");
   if (visSheet) visSheet.onclick = visualSheet;
-  const visSource = $("#vissource");
-  if (visSource) visSource.onchange = () => {
-    const calculation = visSource.value === "calculation";
+  const visSourceSelect = $("#vissource");
+  if (visSourceSelect) visSourceSelect.onchange = () => {
+    const calculation = visSourceSelect.value === "calculation";
     const calcBox = $("#viscalc"); if (calcBox) calcBox.hidden = !calculation;
     const points = $("#vispoints"); if (points) points.hidden = calculation;
-    if (calculation) loadVisualMethods();
+    const uploadRow = $("#visuploadrow"); if (uploadRow) uploadRow.hidden = calculation;
+    const hint = $("#vishint"); if (hint) hint.hidden = calculation;
+    if (calculation) {
+      loadVisualMethods();
+      renderVisualRead(null);
+      renderVisualColumns(null);
+    } else {
+      scheduleVisualRead(0);
+    }
   };
+  const visKindSelect = $("#viskind");
+  if (visKindSelect) visKindSelect.onchange = () => {
+    if (visUploaded && visSource && (visSource.kind === "data" || visSource.kind === "instruction")) {
+      visualUploadRead(Object.assign({}, visUploaded, { kind: visKind(), title: visTitle() }));
+    } else {
+      scheduleVisualRead(0);
+    }
+  };
+  const visUploadData = $("#visuploaddata");
+  if (visUploadData) visUploadData.onclick = () => {
+    const input = $("#visdatafile"); if (input) input.click();
+  };
+  const visUploadBrief = $("#visuploadbrief");
+  if (visUploadBrief) visUploadBrief.onclick = () => {
+    const input = $("#visbrieffile"); if (input) input.click();
+  };
+  const visDataFile = $("#visdatafile");
+  if (visDataFile) visDataFile.onchange = () => {
+    const file = visDataFile.files && visDataFile.files[0];
+    visualUpload("data", file);
+    visDataFile.value = "";
+  };
+  const visBriefFile = $("#visbrieffile");
+  if (visBriefFile) visBriefFile.onchange = () => {
+    const file = visBriefFile.files && visBriefFile.files[0];
+    visualUpload("instruction", file);
+    visBriefFile.value = "";
+  };
+  const visExample = $("#visexample");
+  if (visExample) visExample.onclick = visualExample;
+  const visPoints = $("#vispoints");
+  if (visPoints) visPoints.addEventListener("input", () => scheduleVisualRead());
   loadVisuals();
   const legacy = $("#chatstart");
   if (legacy) legacy.onclick = startChat;
@@ -4126,13 +4487,16 @@ function planProfile() {
 
 function startPlan(mode, profile) {
   const chosen = PLAN_PROFILES[profile] ? profile : (state.planProfile || "business_plan");
-  // Switching document drops the composed one: its sections belong to the other profile.
-  if (chosen !== state.planProfile && state.plan && state.plan.data) state.plan = null;
   state.planProfile = chosen;
   state.planMode = mode || "strict";
-  if (state.plan && state.plan.data && (state.plan.data.mode || "strict") !== state.planMode) state.plan = null;
-  if (!state.plan || !state.plan.data) state.plan = null;
-  show("plan");
+  state.plan = null;
+  if (location.hash !== "#/home") { location.hash = "#/home"; } else { show("home"); }
+  const box = $("#objective");
+  if (box) {
+    box.placeholder = "Describe your " + planProfile().label.toLowerCase() + "...";
+    box.focus();
+  }
+  toast("Describe the plan in the Home box. It runs silently and the paper appears.");
 }
 
 function planCheckbox(value, label, group) {
@@ -4945,7 +5309,6 @@ function subjectCard(row) {
       '<span class="badge">' + esc(row.tool_count) + " calculations</span>" +
       (row.worksheet_count ? '<span class="badge mute">' + esc(row.worksheet_count) + " worksheets</span>" : "") +
       (row.record_count ? '<span class="badge mute">' + esc(row.record_count) + " records</span>" : "") +
-      (row.theory_count ? '<span class="badge mute">' + esc(row.theory_count) + " theory lenses</span>" : "") +
       (row.cross_cutting ? '<span class="badge warn">cross-cutting</span>' : "") +
     "</span>" +
     '<span class="capgo">Open the capabilities</span>' +
@@ -4993,8 +5356,7 @@ function renderRailSubjects() {
       '<span class="railtext">' + esc(row.label) + "</span>" +
       '<span class="railtip">' + esc(row.label) + ": " + esc(row.tool_count) + " calculations" +
         (row.worksheet_count ? ", " + esc(row.worksheet_count) + " worksheet" : "") +
-        (row.record_count ? ", " + esc(row.record_count) + " read-only records" : "") +
-        (row.theory_count ? ", " + esc(row.theory_count) + " theory lenses" : "") + "</span>" +
+        (row.record_count ? ", " + esc(row.record_count) + " read-only records" : "") + "</span>" +
     "</a>").join("");
   // show() is not re-run here, so set the current marker for an already-open subject
   markCurrentRailItem();
@@ -5253,11 +5615,10 @@ function subjectTiles(s) {
       '<div class="capgrid">' + left.map((row) => frameworkCard(row, "framework", row.discipline_label || "Other",
         "Read and cite - no worksheet yet")).join("") + "</div>";
   }
-  const theories = s.theories || [];
-  if (theories.length) {
-    html += '<h4 class="levelhead">Reading lenses - ' + theories.length + "</h4>" +
-      '<div class="capgrid">' + theories.map((row) => frameworkCard(row, "theory", "Supporting theory")).join("") + "</div>";
-  }
+  // Reading lenses are not surfaced as tiles: a theory is a reading aid, not a
+  // worksheet, and showing it as a card only adds noise.  The record stays in the
+  // catalogue and is reachable through search and the documentation, so a paper
+  // can still cite it when the student asks for it.
   return html;
 }
 
@@ -5324,11 +5685,7 @@ function frameworkPicker(s, groups) {
     opts.push('<optgroup label="' + esc(g.label) + '">' + g.rows.map((r) =>
       '<option value="r:' + esc(r.id) + '">' + esc(r.name) + "</option>").join("") + "</optgroup>");
   });
-  if (s.theories.length) {
-    opts.push('<optgroup label="Reading lenses">' + s.theories.map((r) =>
-      '<option value="r:' + esc(r.id) + '">' + esc(r.name) + "</option>").join("") + "</optgroup>");
-  }
-  const total = s.worksheets.length + groups.reduce((n, g) => n + g.rows.length, 0) + s.theories.length;
+  const total = s.worksheets.length + groups.reduce((n, g) => n + g.rows.length, 0);
   return '<div class="row" style="gap:8px;align-items:center;margin:0 0 10px;flex-wrap:wrap">' +
     '<label class="field" for="frameworkpick" style="margin:0">Choose a framework</label>' +
     '<select id="frameworkpick" style="min-width:320px"><option value="">' + esc(total) +
@@ -5734,7 +6091,7 @@ function renderSubject() {
   // Frameworks whose group is held back are not counted, not grouped and not shown.
   const visibleFrameworks = frameworks.filter((row) => !isHeldGroup(
     row.discipline_label || ((row.disciplines || [])[0] || "")));
-  if (sheets.length || visibleFrameworks.length || theories.length) {
+  if (sheets.length || visibleFrameworks.length) {
     // A shelf with worksheets leads with them: they complete themselves from the
     // brief, so they are the first thing a student should meet, not the last.
 
@@ -5756,18 +6113,15 @@ function renderSubject() {
       if (!group) { group = { label: label, rows: [] }; frameworkGroups.push(group); }
       group.rows.push(row);
     });
-    if (!HOLD.picker && (visibleFrameworks.length || theories.length)) {
+    if (!HOLD.picker && visibleFrameworks.length) {
       html += frameworkPicker(s, frameworkGroups);
     }
     frameworkGroups.filter((group) => !isHeldGroup(group.label)).forEach((group) => {
       html += '<h4 class="levelhead">' + esc(group.label) + ' - ' + group.rows.length + '</h4>' +
         '<div class="capgrid">' + group.rows.map((row) => frameworkCard(row, "framework", group.label)).join("") + "</div>";
     });
-    if (theories.length) {
-      html += '<h4 class="levelhead">Reading lenses - ' + theories.length + '</h4>' +
-        '<p class="muted">A theory explains behaviour or relationships; it does not prescribe a template. Read it to interpret the evidence, retrieve the original research, cite it, and state its limits.</p>' +
-        '<div class="capgrid">' + theories.map((row) => frameworkCard(row, "theory", "Supporting theory")).join("") + "</div>";
-    }
+    // Reading lenses are not surfaced as tiles; they stay in the catalogue and
+    // are reachable through search and the documentation.
   }
   if (tools.length || methodGaps.length) {
     // The finance shelf names its computed section after what it is; every other shelf keeps
@@ -5799,7 +6153,7 @@ function renderSubject() {
         '<div class="capgrid">' + methodGaps.map((row) => frameworkCard(row, "method", "Quantitative methods")).join("") + "</div>";
     }
   }
-  if (!tools.length && !sheets.length && !records.length && !theories.length) {
+  if (!tools.length && !sheets.length && !records.length) {
     html += '<p class="muted">No capability is assigned to this subject yet.</p>';
   }
   }
@@ -6239,7 +6593,7 @@ function plRenderScreen(data) {
   };
   const rows = data.rows.map((r) => {
     if (r.error) return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td colspan="7" class="muted">' + esc(r.error) + "</td></tr>";
-    return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td>' + esc(r.price || "n/a") + '</td><td>' +
+    return '<tr><td><strong>' + esc(r.symbol) + '</strong> <a class="muted" href="https://finance.yahoo.com/quote/' + encodeURIComponent(r.symbol) + '" target="_blank" rel="noopener" style="font-size:11px">quote ↗</a></td><td>' + esc(r.price || "n/a") + '</td><td>' +
       esc(pct(r.one_day_return)) + '</td><td>' + esc(mcap(r.market_cap)) + '</td><td>' + esc(num(r.pe_ratio, 2)) +
       '</td><td>' + esc(pct(r.roe)) + '</td><td>' +
       esc(r.sharpe === null || r.sharpe === undefined ? "n/a" : Number(r.sharpe).toFixed(2)) +
@@ -7874,6 +8228,13 @@ function evidenceWorksheetForm(t) {
       '<h3 style="margin-top:0">' + esc(unit.label || "Name the case") + "</h3>" +
       '<p class="muted">' + esc(unit.help || "Name the unit this framework analyses.") + "</p>" +
       '<input id="evunit" type="text" placeholder="' + esc(unit.example || "") + '" style="width:100%">' +
+      (unit.secondary
+        ? '<label class="field" style="margin-top:10px;display:block">' +
+            esc(unit.secondary.label || "The second part of the unit") +
+            '<input id="evunit2" type="text" placeholder="' + esc(unit.secondary.example || "") +
+              '" style="width:100%"></label>' +
+          '<p class="muted">' + esc(unit.secondary.help || "") + "</p>"
+        : "") +
       (p.unit_examples ? "" : "") +
     "</div>" +
     '<div class="card">' +
@@ -8209,6 +8570,11 @@ function evidenceUnitValue() {
   return field ? (field.value || "").trim() : "";
 }
 
+function evidenceUnitValue2() {
+  const field = document.getElementById("evunit2");
+  return field ? (field.value || "").trim() : "";
+}
+
 async function completeEvidenceFramework(t) {
   const instruction = (document.getElementById("evinstr").value || "").trim();
   if (!instruction) { toast("Paste the case instruction first."); return; }
@@ -8231,7 +8597,13 @@ async function completeEvidenceFramework(t) {
   // it is missing rather than detecting one.
   if (unit.field === "country") body.country = evidenceUnitValue();
   else if (unit.field === "industry") body.industry = evidenceUnitValue();
-  else body.unit = evidenceUnitValue();
+  else if (unit.field === "firm") {
+    body.unit = evidenceUnitValue();
+    body.industry = evidenceUnitValue2();
+  } else if (unit.field === "country_industry") {
+    body.country = evidenceUnitValue();
+    body.industry = evidenceUnitValue2();
+  } else body.unit = evidenceUnitValue();
   try {
     const result = await post("/api/cases/frameworks/complete", body);
     state.evCompletion = result;
@@ -8253,6 +8625,60 @@ function fillBadge(block) {
   };
   const found = map[fill] || map.research;
   return '<span class="fillbadge" style="background:' + found[1] + ";color:" + found[2] + '">' + esc(found[0]) + "</span>";
+}
+
+function evidenceReadingHtml(block) {
+  const r = block.reading || {};
+  if (!r || r.status === "absent") return "";
+  const scale = r.rating_scale || ["Low", "Moderate", "High"];
+  const label = r.rating_label || "Rating";
+  const stateWord = r.status === "confirmed" ? "confirmed"
+    : (r.status === "overridden" ? "overridden"
+      : (r.status === "dropped" ? "dropped" : "proposed"));
+  return '<div style="border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:8px">' +
+    "<div><strong>" + esc(label) + ":</strong> " + esc(r.rating || "Not rated") +
+      ' <span class="muted">(' + esc(stateWord) + ")</span></div>" +
+    '<div class="muted">Trend: ' + esc(r.trend || "not assessed") +
+      "; confidence: " + esc(r.confidence || "not assessed") + ". " +
+      esc(r.rationale || "") + "</div>" +
+    '<div class="row" style="gap:8px;flex-wrap:wrap;margin-top:6px">' +
+      "<label>Decision <select data-reading=\"" + esc(block.key) + "\">" +
+        '<option value="proposed">Leave as proposed</option>' +
+        '<option value="confirmed">Confirm</option>' +
+        '<option value="overridden">Override</option>' +
+        '<option value="dropped">Drop</option>' +
+      "</select></label>" +
+      "<label>Your value <select data-readingrating=\"" + esc(block.key) + "\">" +
+        scale.map((value) => '<option value="' + esc(value) + '"' +
+          (value === r.rating ? " selected" : "") + ">" + esc(value) + "</option>").join("") +
+      "</select></label>" +
+      '<input data-readingreason="' + esc(block.key) +
+        '" placeholder="Why (optional)" style="flex:1;min-width:140px">' +
+    "</div></div>";
+}
+
+async function recordEvidenceReadings(t) {
+  const decisions = {};
+  $$("[data-reading]").forEach((select) => {
+    const key = select.dataset.reading;
+    if (!key || select.value === "proposed") return;
+    const rating = document.querySelector('[data-readingrating="' + key + '"]');
+    const reason = document.querySelector('[data-readingreason="' + key + '"]');
+    decisions[key] = { status: select.value,
+                       rating: rating ? rating.value : "",
+                       reason: reason ? reason.value : "" };
+  });
+  if (!Object.keys(decisions).length) {
+    toast("Choose confirm, override or drop for at least one reading.");
+    return;
+  }
+  try {
+    state.evCompletion = await post("/api/cases/frameworks/readings",
+      { completion: state.evCompletion, decisions: decisions });
+    toast("Reading decisions recorded. The paper will print them.");
+  } catch (error) {
+    toast(error.message || "The reading decision could not be recorded.");
+  }
 }
 
 function renderEvidenceReview(t, result) {
@@ -8293,13 +8719,21 @@ function renderEvidenceReview(t, result) {
               : (item.provenance === "background" ? "general background (uncited)"
                 : (item.provenance === "analysis" ? "drafted from your instruction - review it"
                   : (block.fill === "quote" ? "your own words" : "your input"))))) +
-          "</span></span></label>").join("") + "</div></div>";
+          "</span></span></label>").join("") + "</div>" +
+      evidenceReadingHtml(block) + "</div>";
   }
   if ((result.notes || []).length) {
     html += '<p class="muted" style="margin-top:8px">' + esc(result.notes.join(" ")) + "</p>";
   }
+  if (blocks.some((block) => block.reading && block.reading.status !== "absent")) {
+    html += '<div class="row" style="margin-top:10px;flex-wrap:wrap">' +
+      '<button class="btn" id="evreadings">Record reading decisions</button>' +
+      '<span class="muted">A proposal is the system\'s judgment until you decide.</span></div>';
+  }
   html += '<div class="row" style="margin-top:10px"><button class="btn primary" id="evapply">Use the ticked items</button></div>';
   review.innerHTML = html;
+  const readings = document.getElementById("evreadings");
+  if (readings) readings.onclick = () => recordEvidenceReadings(t);
   const apply = document.getElementById("evapply");
   if (apply) apply.onclick = () => applyEvidenceCompletion(t);
   // The gap is acknowledged here, next to the reason, and the worksheet's own

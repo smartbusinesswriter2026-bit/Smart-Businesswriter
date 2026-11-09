@@ -1533,6 +1533,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, product_portfolios.snapshot(portfolio_id, parts[4]))
             if action == "snapshot" and verb == "POST":
                 return self._portfolio_snapshot(portfolio_id, body or {})
+            if action == "evidence" and verb == "POST" and len(parts) == 5 and parts[4] == "capture":
+                return self._portfolio_evidence_capture(portfolio_id, body or {})
             if action == "evidence" and verb == "POST":
                 return self._portfolio_evidence(portfolio_id, body or {})
             if action == "export" and verb == "POST":
@@ -1708,6 +1710,24 @@ class H(BaseHTTPRequestHandler):
         metadata = product_portfolios.save_evidence(portfolio_id, date, filename, mime, raw)
         return self._send(200, metadata)
 
+    def _portfolio_evidence_capture(self, portfolio_id, body):
+        if not isinstance(body, dict):
+            raise ValueError("body must be an object")
+        date = str(body.get("date") or "").strip()
+        if not date:
+            raise ValueError("a date is required (YYYY-MM-DD)")
+        symbol = str(body.get("symbol") or "").strip().upper()
+        if not symbol:
+            raise ValueError("a symbol is required")
+        from .product import evidence_capture
+        try:
+            png, mime = evidence_capture.capture(evidence_capture.quote_url(symbol))
+        except evidence_capture.EvidenceCaptureUnavailable as error:
+            return self._send(422, {"error": str(error), "unavailable": True})
+        filename = "%s-%s.png" % (symbol.replace("/", "-"), date)
+        metadata = product_portfolios.save_evidence(portfolio_id, date, filename, mime, png)
+        return self._send(200, metadata)
+
     def _portfolio_export(self, portfolio_id, body):
         bundle = product_portfolios.load(portfolio_id)
         snapshots = bundle["snapshots"]
@@ -1724,7 +1744,8 @@ class H(BaseHTTPRequestHandler):
         data, filename = product_portfolio_docx.render(bundle["portfolio"], snapshot,
                                                        holdings=bundle.get("holdings", []),
                                                        performance=performance,
-                                                       journal=bundle.get("journal", []))
+                                                       journal=bundle.get("journal", []),
+                                                       portfolio_id=portfolio_id)
         return self._send(200, {"filename": filename, "mime": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                                 "data": base64.b64encode(data).decode("ascii")})
 

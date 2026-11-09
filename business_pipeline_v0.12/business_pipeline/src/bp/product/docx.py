@@ -38,8 +38,15 @@ Target="word/document.xml"/>
 
 
 def _simple_content_types(media):
-    """The plain report's content types, plus a PNG default when pictures are present."""
-    extra = '<Default Extension="png" ContentType="image/png"/>' if media else ""
+    """The plain report's content types, plus image defaults when pictures are present."""
+    extra = ""
+    if media:
+        exts = {os.path.splitext(name)[1].lower().lstrip(".") for name, _ in media}
+        if "png" in exts:
+            extra += '<Default Extension="png" ContentType="image/png"/>'
+        if "jpg" in exts or "jpeg" in exts:
+            extra += '<Default Extension="jpg" ContentType="image/jpeg"/>'
+            extra += '<Default Extension="jpeg" ContentType="image/jpeg"/>'
     return CONTENT_TYPES.replace("</Types>", extra + "</Types>")
 
 
@@ -501,6 +508,15 @@ def academic_document_xml(title, sections, style="apa", byline=(), media=None):
         if figure:
             figure_number += 1
             parts.append(_figure_xml(figure, figure_number, media))
+        table = item.get("table") if isinstance(item, dict) else None
+        if isinstance(table, dict) and table.get("columns"):
+            columns = [str(column) for column in table["columns"]]
+            width = max(900, int(9360 / max(1, len(columns))))
+            parts.append(_note_table(columns, table.get("rows") or [],
+                                     widths=[width] * len(columns)))
+            if table.get("note"):
+                parts.append(_academic_para("Note. " + str(table["note"]), italic=True,
+                                            size=18, after=120))
         for line in lines:
             text = line if isinstance(line, str) else str(line)
             if text.startswith("\u2022") or text.startswith("-"):
@@ -616,7 +632,10 @@ def _note_table(columns, rows, widths=None):
     return "".join(parts)
 
 
-def note_document_xml(title, subtitle, sections):
+def note_document_xml(title, subtitle, sections, images=None, media=None):
+    if media is None:
+        media = []
+    images = images or []
     parts = [_note_para(title, bold=True, size=32, after=60)]
     if subtitle:
         parts.append(_note_para(subtitle, italic=True, size=20, after=200))
@@ -636,20 +655,47 @@ def note_document_xml(title, subtitle, sections):
             width = max(1200, int(9360 / max(1, len(columns))))
             parts.append(_note_table(columns, table.get("rows") or [],
                                      widths=[width] * len(columns)))
-    return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
-            '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
-            "<w:body>" + "".join(parts) + "</w:body></w:document>")
+    if images:
+        for index, (name, data) in enumerate(images, 1):
+            size = _png_size(data) if str(name).lower().endswith(".png") else None
+            img_width = FIGURE_WIDTH_EMU
+            if size:
+                img_height = int(img_width * size[1] / size[0])
+            else:
+                img_height = int(img_width * 0.42)
+            rel_id = "rId%d" % (len(media) + 1)
+            media.append((name, data))
+            parts.append(_note_para("Evidence: " + str(name), bold=True, size=20, after=40))
+            parts.append(_image_xml(rel_id, index + 1000, name, img_width, img_height, name))
+    if images:
+        root = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" '
+                'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+                'xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" '
+                'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
+                'xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">')
+    else:
+        root = ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+                '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">')
+    return root + "<w:body>" + "".join(parts) + "</w:body></w:document>"
 
 
-def render_note(title, subtitle, sections):
+def render_note(title, subtitle, sections, images=None):
     """The whole explanation .docx as bytes, deterministic for the same input."""
-    body = note_document_xml(title, subtitle, sections)
+    images = images or []
+    media = []
+    body = note_document_xml(title, subtitle, sections, images=images, media=media)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
-        for name, text in (("[Content_Types].xml", CONTENT_TYPES),
-                           ("_rels/.rels", RELS),
-                           ("word/document.xml", body)):
-            z.writestr(zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0)), text)
+        z.writestr(zipfile.ZipInfo("[Content_Types].xml", date_time=(1980, 1, 1, 0, 0, 0)),
+                   _simple_content_types(media))
+        z.writestr(zipfile.ZipInfo("_rels/.rels", date_time=(1980, 1, 1, 0, 0, 0)), RELS)
+        z.writestr(zipfile.ZipInfo("word/document.xml", date_time=(1980, 1, 1, 0, 0, 0)), body)
+        if media:
+            z.writestr(zipfile.ZipInfo("word/_rels/document.xml.rels", date_time=(1980, 1, 1, 0, 0, 0)),
+                       _simple_document_rels(media))
+        for name, data in media:
+            z.writestr(zipfile.ZipInfo("word/media/" + name, date_time=(1980, 1, 1, 0, 0, 0)), data)
     return buf.getvalue()
 
 

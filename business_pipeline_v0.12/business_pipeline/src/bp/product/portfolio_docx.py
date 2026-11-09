@@ -25,7 +25,7 @@ def filename(portfolio, snapshot):
     return "%s-%s.docx" % (name.strip("-") or "portfolio", snapshot.get("date", "snapshot"))
 
 
-def render(portfolio, snapshot, holdings=(), performance=None, journal=()):
+def render(portfolio, snapshot, holdings=(), performance=None, journal=(), portfolio_id=None):
     """Return the report bytes and its filename."""
     outputs = snapshot.get("outputs") or {}
     positions = snapshot.get("positions") or []
@@ -73,10 +73,46 @@ def render(portfolio, snapshot, holdings=(), performance=None, journal=()):
             "rows": [[symbol, _fmt(point.get("price")), point.get("source", ""), point.get("as_of", "")]
                      for symbol, point in sorted(prices.items())],
         }},
+    ])
+    evidence = snapshot.get("evidence") or []
+    if evidence:
+        sections.append({"heading": "Price evidence", "table": {
+            "columns": ["File", "SHA-256", "Captured at", "Size"],
+            "rows": [[str(item.get("filename", "")),
+                      str(item.get("sha256", ""))[:12] + "...",
+                      str(item.get("captured_at", "")),
+                      _fmt(item.get("size_bytes", 0))]
+                     for item in evidence],
+        }})
+        sections.append({"heading": "Price evidence note", "paragraphs": [
+            "Evidence files are stored with the portfolio. Each file's SHA-256 was recorded "
+            "at snapshot time; a changed file no longer matches and is detectable.",
+        ]})
+    else:
+        sections.append({"heading": "Price evidence", "paragraphs": [
+            "No evidence was attached to this snapshot. This is a named gap, not an omission.",
+        ]})
+    sections.extend([
         {"heading": "Checks", "bullets": _check_lines(snapshot, performance)},
         {"heading": "Assumptions and limits", "bullets": _limit_lines(performance)},
     ])
-    return docx.render_note(title, subtitle, sections), filename(portfolio, snapshot)
+    images = []
+    if portfolio_id:
+        try:
+            from . import portfolios as _portfolios
+            base = _portfolios.portfolios_dir() / str(portfolio_id)
+            for item in (snapshot.get("evidence") or []):
+                if not str(item.get("mime", "")).startswith("image/"):
+                    continue
+                rel = item.get("relative_path") or ("evidence/%s/%s" % (snapshot.get("date"), item.get("filename")))
+                path = base / str(rel)
+                try:
+                    images.append((str(item.get("filename")), path.read_bytes()))
+                except OSError:
+                    pass
+        except Exception:
+            images = []
+    return docx.render_note(title, subtitle, sections, images=images), filename(portfolio, snapshot)
 
 
 def _objective_lines(portfolio):

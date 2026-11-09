@@ -10,3 +10,11 @@ Pillow>=10
 #   macOS:   brew install tesseract
 #   Linux:   sudo apt install tesseract-ocr
 # If tesseract is not on PATH, set BP_TESSERACT_CMD to the full executable path.
+
+# Optional Portfolio Lab evidence capture (screenshots of public quote pages).
+# Install only if you want the "Capture" button to work automatically:
+#   pip install playwright
+#   playwright install chromium
+# Without it, the button reports a named gap and the student attaches their own
+# screenshot; a snapshot is never blocked by a missing browser.
+# playwright>=1.40

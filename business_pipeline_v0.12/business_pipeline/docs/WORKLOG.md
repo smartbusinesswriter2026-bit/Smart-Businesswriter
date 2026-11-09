@@ -1,3 +1,116 @@
+## 2026-11-09 - [product] The Portfolio Lab carries dated screenshot evidence
+
+**Ask.** A professor wants proof that a student really looked up the price on the date they recorded,
+not only a number the app says is sourced. The screenshot had to live inside the pipeline, be
+convenient, and never block a snapshot.
+
+**Did.**
+
+- `src/bp/product/evidence_capture.py` (new): `quote_url(symbol)` and `capture(url)`. The capture is
+  an optional Playwright headless-Chromium screenshot, restricted to an allowlist of public https
+  hosts (no SSRF), with a plain `EvidenceCaptureUnavailable` when the browser is missing or the page
+  fails. `requirements-optional.txt` documents `pip install playwright` +
+  `playwright install chromium`.
+- `portfolios.save_evidence` stores PNG/JPEG/PDF (≤2 MB) under `evidence/<date>/` with SHA-256 and
+  capture time; `save_snapshot` validates referenced evidence exists and its hash still matches, so a
+  swapped file is refused. Routes: `POST /api/portfolios/{id}/evidence` (base64) and
+  `POST /api/portfolios/{id}/evidence/capture` (symbol).
+- Page: **Open quote page ↗** and **Capture** per holding on *Prices and snapshot*; an
+  **Evidence (optional)** card with attach/remove; the snapshot summary names the evidence count or
+  the named gap.
+- `portfolio_docx.render` gains a **Price evidence** table and embeds image evidence; no evidence
+  prints as a named gap. `docx.render_note` learned optional inline images.
+- Clutter: the empty *Your books* card, the create-book explainer and the before-you-buy explainer
+  are removed; *Learn by example* is collapsed and its kicker is dark green.
+- Manual: `docs/PORTFOLIO_LAB_STUDENT_GUIDE.md` gains the two evidence paths, a professor-verification
+  bullet, a troubleshooting row and the glossary term. Tests: `test_product_portfolios.py` (19; the
+  evidence route and a swapped-hash refusal), `test_portfolio_student_guide.py`,
+  `test_product_instruments.py`.
+
+## 2026-11-09 - [product] A project plan is one silent paper from the brief's tables, charted in Word and PDF
+
+**Ask.** Home should finish a project-management brief the way it finishes a
+business plan: no card, no questions, one paper. The paper must carry the WBS,
+schedule, cost, RACI and risk tables, download once, and put the schedule chart in
+the document the reader gets.
+
+**Did.**
+
+- `src/bp/product/project_reader.py` (new): reads the charter labels and classifies
+  the brief's tables from their own column names (WBS, activities, resources, RACI
+  direct or matrix, risks). It fills only named columns or labelled lines; the only
+  derivations are position ids, a dotted parent that exists, and activity→WBS by id
+  or name. `tests/test_project_reader.py` (10).
+- `chat._detect_profile` recognises a project plan / project-management plan / work
+  breakdown structure / WBS / titled WBS table (proposal cues first).
+  `chat._read_project_record` stores `state["project"]`, and the project lane skips
+  `research()`: the record is the source, so there is no web evidence to fetch.
+- `_draft_project_plan` builds the tables as `table` figures on their sections;
+  `paper_view` appends them as `| ... |` lines that bypass the missing-input filter,
+  so a missing cell prints as declared. `paper.table_grid`/`table_lines` is the one
+  reader used by the pane, Word and PDF. No Gaps section, no checks summary.
+- `chat._schedule_figure` draws the Gantt from the stored early start/finish/float/
+  critical values, with digit-free labels; it is a separate level-2 **Schedule chart**
+  block because the Schedule section already carries its table. Word embeds the PNG,
+  PDF the inline SVG, the browser pane nothing.
+- `paper_bytes(state, "bundle")` returns one ZIP: the paper's `.docx`, its
+  `-workbook.xlsx` and, with Chrome, the `.pdf`. `project_workbook.py` (new) writes
+  Charter, WBS, Schedule, Cost, RACI and Risks sheets.
+- `revise` records `{paper, outline}` per history entry; `_rebuild_outline` reattaches
+  each section's stored figure and strips model-echoed table rows; `undo` restores
+  the outline (older plain-paper entries still undo).
+- Docs: `HOME_CHAT_ORCHESTRATION_MANUAL.md` §21.11, `HANDOFF.md`, `KNOWN_LIMITATIONS.md`,
+  `DECISIONS.md` B-252.
+
+**Proof.** `tests/test_project_reader.py` (10), `tests/test_project_plan.py` (14),
+`tests/test_silent_home.py` `SilentProjectPlanTest` (8); the document-profile,
+figure and chart files (75) green; full suite 4618 + 7 skipped, with one unrelated
+trial-balance tile failure in another lane. Live at 8021: the WBS brief returns the
+paper with nine tables and no Gaps; one Download saves
+`project-plan-the-riverside-community-kitchen.zip` (160,200 bytes) holding the docx
+(nine tables, `word/media/figure5.png`, "Project schedule"), the workbook with the six
+sheets, and the PDF.
+
+**Open.** PowerPoint for the chart, calendar dates and resource levelling, and the
+simplified three-table feasibility route (deferred).
+
+## 2026-11-09 - [framework-writing] The three Porter frameworks are written to the owner's guideline
+
+**Ask.** The owner supplied a writing guideline for competitive-position frameworks
+(Five Forces, Generic Strategies, Porter's Diamond) and asked the pipeline to write
+the frameworks properly: facts, inferences and judgments separated; every rating
+with drivers, trend, profitability impact and confidence; the module's output
+shape; and an evidence audit.
+
+**Did.**
+
+- `src/bp/product/framework_writing.py` (new) holds the rules and formatters:
+  source tier A-D, recency (3-year window), strength by a declared rule, stable
+  `S1` source IDs, the reading contract and validator, the scope statement, the
+  summary table, the reading paragraph, the audit rows/checks/verdict and the
+  confirmation state.
+- Five Forces, Generic Strategies and Diamond declare a `writing` module in
+  `framework_profiles.py`: section order, headings, scale (intensity/fit/
+  condition), driver checklists, summary/audit columns and the mid-call directive.
+- `completion.py` asks for the structured reading in the same per-dimension model
+  call, validates it, and builds the module sections; the deterministic draft
+  prints "not rated" and stays the fallback.
+- The two units are corrected: Generic Strategies = firm/business unit + market;
+  Diamond = nation/region + industry (`Global` refused).
+- `POST /api/cases/frameworks/readings` records confirm/override/drop; the review
+  page carries the control, and the paper prints the status.
+- `docx.py` renders a section table, and `paper.check` scans it for template text.
+
+**Verified.** `tests/test_framework_writing.py` (31), `test_five_forces_writing.py`
+(14), `test_generic_strategies_writing.py` (8), `test_porters_diamond_writing.py`
+(8), `test_framework_readings.py` (9); the full suite is reported below. Existing
+framework, conductor, PESTEL, paper-document and drafting tests remain green.
+
+**Left.** The reading is only as good as the accepted items: a thin run prints
+"not rated" and the audit says the evidence is insufficient. The tier/recency/
+strength rule is a product convention, printed in the audit note; it is not a
+claim the source makes.
+
 ## 2026-11-09 - [product] Bulk case reconciliation: method_contract 506 -> 0 recurrences
 
 **Ask.** Close the `method_contract` class (506 recurrences) that the concurrent core changes

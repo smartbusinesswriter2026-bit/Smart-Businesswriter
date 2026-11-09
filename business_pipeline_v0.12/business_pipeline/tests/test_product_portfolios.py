@@ -342,5 +342,46 @@ class RoutesTest(unittest.TestCase):
         self.assertTrue(body["quota"])
         self.assertIn("manually", body["error"])
 
+    def test_evidence_upload_snapshot_and_export(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Evidence route"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10", "cost_basis": "150"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-11-09", "price": "150", "source": "user"})
+        raw = base64.b64encode(b"fake png bytes").decode("ascii")
+        status, meta = _post(self.base, "/api/portfolios/%s/evidence" % pid,
+                             {"date": "2026-11-09", "filename": "shot.png",
+                              "mime": "image/png", "content": raw})
+        self.assertEqual(status, 200)
+        self.assertEqual(meta["filename"], "shot.png")
+        self.assertEqual(len(meta["sha256"]), 64)
+        status, snapshot = _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+                                 {"date": "2026-11-09", "cash": "0",
+                                  "prices": {"AAPL": {"price": "150", "source": "user"}},
+                                  "evidence": [{"filename": meta["filename"],
+                                                "sha256": meta["sha256"],
+                                                "captured_at": meta["captured_at"],
+                                                "mime": meta["mime"],
+                                                "size_bytes": meta["size_bytes"]}]})
+        self.assertEqual(status, 201)
+        self.assertEqual(len(snapshot["evidence"]), 1)
+        self.assertEqual(snapshot["evidence"][0]["filename"], "shot.png")
+        status, exported = _post(self.base, "/api/portfolios/%s/export" % pid, {"format": "docx"})
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(io.BytesIO(base64.b64decode(exported["data"]))) as archive:
+            xml = archive.read("word/document.xml").decode("utf-8")
+            names = archive.namelist()
+        self.assertIn("Price evidence", xml)
+        self.assertIn("shot.png", xml)
+        # a swapped evidence hash is refused
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+                  {"date": "2026-11-10", "cash": "0",
+                   "prices": {"AAPL": {"price": "150", "source": "user"}},
+                   "evidence": [{"filename": "shot.png", "sha256": "0" * 64,
+                                 "captured_at": meta["captured_at"]}]})
+        self.assertEqual(caught.exception.code, 422)
+
+
 if __name__ == "__main__":
     unittest.main()
