@@ -830,7 +830,7 @@ def selection(portfolio_id):
     return portfolio.get("selection")
 
 
-def save_statement(portfolio_id, symbol, filename, mime, raw):
+def save_statement(portfolio_id, symbol, filename, mime, raw, source="user upload"):
     """Store one financial statement (PDF/CSV/XLSX) for a symbol in a book.
 
     Returns metadata.  The file is written under ``statements/<symbol>/``.
@@ -886,6 +886,7 @@ def save_statement(portfolio_id, symbol, filename, mime, raw):
         "sha256": digest,
         "captured_at": _now(),
         "relative_path": "statements/%s/%s" % (symbol, safe),
+        "source": str(source or "user upload")[:60],
         "extracted": extracted,
     }
     # record in portfolio.json

@@ -314,13 +314,14 @@ Two paths are planned, in this order:
    it becomes **available** instead of greyed out; if nothing is uploaded, the parameter stays
    **manual** (type the value from your source) or **unavailable** (greyed out). This works for any
    company in any market, because the student supplies the source.
-2. **Online research second (best-effort, US-listed first).** For companies listed in the US, the
-   lab can pull income-statement and balance-sheet lines from SEC EDGAR (the same source it already
-   uses for fundamentals) and compute the ratios. For non-US companies this is a named gap until a
-   free official feed exists; the lab will never guess a figure.
+2. **Online research (built, best-effort, US-listed first).** For companies listed in the US, click
+   **Research online (US)** next to the symbol: the lab pulls income-statement and balance-sheet
+   lines from SEC EDGAR (the same source it already uses for fundamentals) and computes the ratios.
+   For non-US companies this is a named gap ("SEC EDGAR has no XBRL statement facts for …"); the
+   lab never guesses a figure.
 
-Nothing above is built yet. Parameters that need a statement are marked `manual` today and become
-`sourced` only when one of the two paths above lands.
+Step 1 (upload) is built; step 2 (online research) is built for US-listed companies. Parameters that
+need a statement are `manual` until a statement is uploaded or researched, then `sourced`.
 
 ## Glossary
 

@@ -2166,6 +2166,7 @@ function renderPortfolioWorkspace() {
   if (!Array.isArray(state.pfEvidence)) state.pfEvidence = [];
   const evidenceBtn = $("#pfevidencebtn"); if (evidenceBtn) evidenceBtn.onclick = attachEvidence;
   const stmtBtn = $("#pfstmtbtn"); if (stmtBtn) stmtBtn.onclick = attachStatement;
+  const resBtn = $("#pfstmtresearchbtn"); if (resBtn) resBtn.onclick = researchStatement;
   $$("[data-pfstmtextract]").forEach((button) => { button.onclick = () => extractStatement(button.dataset.pfstmtextract); });
   $$("[data-pfcapture]").forEach((button) => { button.onclick = () => captureEvidence(button.dataset.pfcapture, button); });
   $$("[data-pfevidenceremove]").forEach((button) => { button.onclick = () => {
@@ -2258,7 +2259,8 @@ function pfStatementList() {
       extra = ' <span class="muted">(no ratios extracted — ' + esc(ext.gaps.join(', ')) + ')</span>';
     }
     return '<div style="margin-bottom:6px"><strong>' + esc(item.symbol) + '</strong> — ' + esc(item.filename) +
-      ' <span class="muted">(' + esc(Math.round((item.size_bytes || 0) / 1024)) + ' KB)</span>' + extra +
+      ' <span class="muted">(' + esc(Math.round((item.size_bytes || 0) / 1024)) + ' KB' +
+      (item.source ? ', ' + esc(item.source) : '') + ')</span>' + extra +
       ' <button class="btn sm" type="button" data-pfstmtextract="' + esc(item.symbol) + '" data-pfstmtfile="' + esc(item.filename) + '">Re-extract</button></div>';
   }).join("");
 }
@@ -2589,7 +2591,8 @@ function pfData(holdings, latest, snapshot) {
     'accounting and composite criteria available instead of greyed out. Up to 5 MB.</p>' +
     '<div class="row" style="margin-top:8px"><input type="text" id="pfstmtsym" placeholder="Symbol" style="max-width:120px">' +
     '<input type="file" id="pfstmtfile" accept=".pdf,.csv,.xlsx,.xls,.txt">' +
-    '<button class="btn" type="button" id="pfstmtbtn">Upload statement</button></div>' +
+    '<button class="btn" type="button" id="pfstmtbtn">Upload statement</button>' +
+    '<button class="btn" type="button" id="pfstmtresearchbtn">Research online (US)</button></div>' +
     '<div id="pfstmtlist" style="margin-top:8px">' + pfStatementList() + '</div></div>';
   if (snapshot) {
     html += '<div class="card"><h3>Snapshot ' + esc(snapshot.date) + "</h3>" +
@@ -2881,6 +2884,33 @@ async function extractStatement(symbol) {
     toast("Extracted: " + (res.extracted && res.extracted.ratios ? Object.keys(res.extracted.ratios).length : 0) + " ratio(s).");
   } catch (error) {
     message.innerHTML = errorBanner(error);
+  }
+}
+
+async function researchStatement() {
+  const message = $("#pfmsg");
+  const sym = (($("#pfstmtsym") || {}).value || "").trim().toUpperCase();
+  if (!sym) { toast("Type a symbol first."); return; }
+  const btn = $("#pfstmtresearchbtn"); if (btn) { btn.disabled = true; btn.textContent = "Researching…"; }
+  try {
+    const meta = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/statements/research",
+      { symbol: sym });
+    if (!Array.isArray(state.pfStatements)) state.pfStatements = [];
+    state.pfStatements.push(meta);
+    if (state.portfolioBundle && state.portfolioBundle.portfolio) {
+      if (!Array.isArray(state.portfolioBundle.portfolio.statements)) state.portfolioBundle.portfolio.statements = [];
+      state.portfolioBundle.portfolio.statements.push(meta);
+    }
+    const symEl = $("#pfstmtsym"); if (symEl) symEl.value = "";
+    renderPortfolioWorkspace();
+    toast("Researched: " + meta.filename);
+  } catch (error) {
+    const text = String(error.message || error);
+    message.innerHTML = /unavailable|covers US registrants|no xbrl/i.test(text)
+      ? banner("honesty", "Online research not available",
+          "<p>" + esc(pfPlainError(error)) + "</p><p>This is a named gap, not an estimate. Upload a statement or type the value yourself.</p>")
+      : errorBanner(error);
+    if (btn) { btn.disabled = false; btn.textContent = "Research online (US)"; }
   }
 }
 

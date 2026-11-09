@@ -223,6 +223,21 @@ area/scatter/candlestick builds and refusals), `test_visual_input.py` 43,
 `test_product_charts.py` 23. Live browser check of the SWOT 2x2, the business
 model board and the dated Gantt.
 
+## 2026-11-10 - [product] The Portfolio Lab researches US statements online
+
+**Ask.** Allow the system to research financial statements online instead of only accepting uploads.
+
+**Did.**
+
+- `src/bp/product/edgar_statements.py` (new): `research(ticker)` pulls XBRL company facts from SEC
+  EDGAR (no key) for 13 line items and renders them as statement text; `EdgarUnavailable` for non-US
+  or fact-less companies. Reuses `statement_reader` for the ratios.
+- Route `POST /api/portfolios/{id}/statements/research` with `{symbol}`; stores the result as a
+  sourced statement (source "SEC EDGAR (US, no key)").
+- Page: **Research online (US)** button on the Financial statements card; named-gap banner on failure.
+- Tests: `tests/test_edgar_statements.py` (3, mocked).
+- Manual: `docs/PORTFOLIO_LAB_STUDENT_GUIDE.md` updated.
+
 ## 2026-11-10 - [product] Plan: financial-statement-backed ratios
 
 **Ask.** Allow the pipeline to use balance-sheet and statement ratios, via student upload first and

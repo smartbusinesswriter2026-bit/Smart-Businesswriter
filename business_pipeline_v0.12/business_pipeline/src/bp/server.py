@@ -1742,6 +1742,21 @@ class H(BaseHTTPRequestHandler):
                     raise ValueError("the file content is not valid base64")
                 metadata = product_portfolios.save_statement(portfolio_id, symbol, filename, mime, raw)
                 return self._send(200, metadata)
+            if action == "statements" and verb == "POST" and len(parts) == 5 and parts[4] == "research":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                symbol = str(body.get("symbol") or "").strip()
+                if not symbol:
+                    raise ValueError("a symbol is required")
+                from .product import edgar_statements
+                try:
+                    text, as_of, url, lines = edgar_statements.research(symbol)
+                except edgar_statements.EdgarUnavailable as error:
+                    return self._send(422, {"error": str(error), "unavailable": True})
+                raw = text.encode("utf-8")
+                metadata = product_portfolios.save_statement(
+                    portfolio_id, symbol, "%s-edgar.txt" % symbol.upper(), "text/plain", raw,
+                    source="SEC EDGAR (US, no key)")
+                return self._send(200, metadata)
             if action == "statements" and verb == "POST" and len(parts) == 5 and parts[4] == "extract":
                 if not isinstance(body, dict): raise ValueError("body must be an object")
                 symbol = str(body.get("symbol") or (parts[3] if False else "")).strip()
