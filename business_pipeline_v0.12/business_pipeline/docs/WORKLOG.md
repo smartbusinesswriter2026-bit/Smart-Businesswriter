@@ -1,3 +1,25 @@
+## 2026-11-10 - [design] The research ledger is on the page
+
+**Ask.** The research layer of the last increment stored a ledger per
+dimension: what was cited for each part, and why every other candidate was
+refused. It was in the payload and nowhere else, so the student could not see
+it.
+
+**Did.** `web/index.html` gained a collapsible **Research ledger** panel. It
+sits above the review of a framework completion and under the evidence of a
+chat paper. One row per dimension: the part's name, a badge (`cited`, `needs an
+official or data source`, `background only`, `gap`) and a count of what was
+cited, refused and kept as background. Expanding the row shows the cited items
+with their citation, the framework's own background paragraph marked *not
+cited*, and every refused candidate with the reason it was refused.
+
+**The boundary that matters.** The panel reads the record the server stored. It
+fetches nothing, decides nothing and invents no source. The reasons it prints
+are the closed set the server uses, so the page and the run always say the same
+thing. No new route and no change in `src/bp/**` beyond the build marker.
+
+**Next.** The ledger is now visible in the review and in the chat evidence step.
+
 ## 2026-11-10 - [computation] Research is framework-aware, and every dimension has a ledger
 
 **Ask.** The research layer returned generic pages: a PESTEL political

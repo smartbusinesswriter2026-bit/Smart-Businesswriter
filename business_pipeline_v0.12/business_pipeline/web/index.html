@@ -164,6 +164,25 @@ label.field{display:block;font-size:15.4px;color:var(--text-2);margin:0 0 4px}
 .fillbadge{display:inline-flex;align-items:center;font-size:13.8px;font-weight:650;letter-spacing:.01em;
   border-radius:var(--r-pill);padding:2px 9px;white-space:nowrap}
 .gapnote{margin:0 0 6px;font-size:15.4px;line-height:1.5;color:var(--text)}
+.ledgerpanel{border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);
+  padding:4px 14px 12px;margin:10px 0}
+.ledgerpanel>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:16px;color:var(--navy-900)}
+.ledgerpanel>summary .muted{font-size:14.4px}
+.ledgerrow{border-top:1px solid var(--border);padding:10px 0}
+.ledgerrow:first-of-type{border-top:none}
+.ledgerhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:2px}
+.ledgerhead strong{font-size:16.2px;color:var(--navy-900)}
+.ledgerbadge{display:inline-flex;align-items:center;font-size:13.6px;font-weight:650;letter-spacing:.01em;
+  border-radius:var(--r-pill);padding:2px 9px;white-space:nowrap}
+.ledgerbadge.ok{background:var(--green-100);color:var(--green-700)}
+.ledgerbadge.warn{background:var(--amber-bg);color:var(--amber)}
+.ledgerbadge.gap{background:var(--sunken);color:var(--text-2)}
+.ledgerdetail{margin:4px 0 2px}
+.ledgerdetail>summary{cursor:pointer;min-height:36px;display:flex;align-items:center;font-size:14.4px;
+  color:var(--text-2)}
+.ledgerdetail ul{margin:2px 0 8px;padding-left:22px}
+.ledgerdetail li{font-size:14.8px;line-height:1.5;margin:2px 0}
 .tickrow{display:flex;gap:9px;align-items:flex-start;margin:3px 0;min-height:44px;padding:6px 4px;
   border-radius:var(--r-sm);cursor:pointer}
 .tickrow:hover{background:var(--sunken)}
@@ -343,6 +362,45 @@ h3{font-size:16.6px;margin:20px 0 8px;color:var(--text-2);text-transform:upperca
 #viscols{gap:10px;margin-top:8px}
 #viscols label{display:flex;flex-direction:column;gap:3px;font-size:14.8px;color:var(--text-2)}
 #viscols select{min-width:160px}
+
+/* ---------- Chart setup: source tiles, propose card, kind chips ---------- */
+.vis-lede{margin:0 0 12px;max-width:70ch;color:#4A5A6B;font-size:15px;line-height:1.55}
+.vis-setup{display:grid;gap:16px;margin:4px 0 6px}
+.vis-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.vis-cap{font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
+.vis-titlerow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vis-title{flex:1 1 240px;min-width:0;font:inherit;font-size:16.5px;font-weight:600;color:var(--text);
+  background:#fff;border:1px solid var(--border);border-radius:var(--r-md);padding:11px 14px;box-shadow:var(--sh-1)}
+.vis-title:focus{outline:none;border-color:var(--green-600);box-shadow:0 0 0 3px rgba(2,161,94,.14)}
+.vis-source .segmented{display:flex;flex-wrap:wrap;width:100%;gap:3px;padding:4px;border-radius:16px}
+.vis-source .segmented .segbtn{flex:1 1 150px;justify-content:center;min-height:50px;padding:9px 12px;font-size:14.6px;line-height:1.15}
+.vis-source .segmented .segbtn svg{width:16px;height:16px}
+.vis-kindrow{display:flex;align-items:stretch;gap:10px;flex-wrap:wrap}
+.vis-propose{display:flex;align-items:center;gap:11px;flex:0 0 auto;min-width:250px;max-width:100%;
+  padding:10px 14px;border:1px solid var(--border);border-radius:14px;background:#fff;color:var(--text);
+  font:inherit;text-align:left;cursor:pointer;box-shadow:var(--sh-1);
+  transition:border-color .14s ease,box-shadow .14s ease,background .14s ease}
+.vis-propose:hover{border-color:var(--green-600)}
+.vis-propose[aria-pressed="true"]{border-color:var(--green-600);background:rgba(2,161,94,.07);
+  box-shadow:0 0 0 3px rgba(2,161,94,.10)}
+.vis-propose:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px}
+.vis-propose-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+  width:34px;height:34px;border-radius:10px;background:rgba(2,161,94,.12);color:var(--green-700)}
+.vis-propose-icon svg{width:18px;height:18px;fill:currentColor}
+.vis-propose strong{display:block;font-size:15.2px;line-height:1.2;color:var(--navy-900)}
+.vis-propose small{display:block;margin-top:2px;font-size:12.8px;line-height:1.35;color:#5B6B7C}
+.vis-chips{display:flex;flex-wrap:wrap;align-items:center;align-content:flex-start;gap:7px;flex:1 1 320px}
+.vis-chip{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border:1px solid var(--border);
+  border-radius:var(--r-pill);background:var(--surface);color:var(--text-2);font:inherit;font-size:14.2px;
+  font-weight:600;line-height:1;cursor:pointer;transition:background .14s ease,color .14s ease,border-color .14s ease}
+.vis-chip:hover{border-color:var(--green-600);color:var(--navy-900);background:rgba(2,161,94,.05)}
+.vis-chip[aria-pressed="true"]{background:var(--navy-900);border-color:var(--navy-900);color:#fff}
+.vis-chip:focus-visible{outline:2px solid var(--navy-900);outline-offset:2px}
+@media (max-width:640px){
+  .vis-propose{min-width:0;width:100%}
+  .vis-chips{flex-basis:100%}
+}
+
 .actionrow{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
 .runbtn{all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
         width:40px;height:40px;border-radius:50%;background:var(--navy-900);color:#fff;margin-left:auto;
@@ -2790,6 +2848,245 @@ function visText() { return ($("#vispoints") && $("#vispoints").value) || ""; }
 function visTitle() { return (($("#vistitle") && $("#vistitle").value) || "").trim(); }
 function visKind() { return ($("#viskind") && $("#viskind").value) || ""; }
 function visSourceKind() { return ($("#vissource") && $("#vissource").value) || "declared"; }
+
+/* The visible tiles and chips are the controls; the hidden selects stay the
+   single source of truth so every existing reader keeps working. */
+function syncVisSourceTiles() {
+  const select = $("#vissource");
+  const value = (select && select.value) || "declared";
+  $$("[data-vissource]").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(btn.dataset.vissource === value));
+  });
+}
+function syncVisKindChips() {
+  const select = $("#viskind");
+  const value = (select && select.value) || "";
+  $$("[data-viskind]").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String((btn.dataset.viskind || "") === value));
+  });
+}
+function backendSupportsChartSources() {
+  const build = state.health && state.health.build;
+  if (!build) return true;
+  const parts = String(build).split(".").map((part) => Number(part));
+  return parts[0] > 1 || (parts[0] === 1 && parts[1] >= 144);
+}
+
+function syncVisualSourceOptions() {
+  const source = $("#vissource");
+  if (!source) return;
+  const allowed = backendSupportsChartSources();
+  ["diagram", "gantt"].forEach((value) => {
+    const option = source.querySelector('option[value="' + value + '"]');
+    if (option && !allowed) option.remove();
+    const tile = document.querySelector('[data-vissource="' + value + '"]');
+    if (tile && !allowed) tile.remove();
+  });
+  if (!allowed && (source.value === "diagram" || source.value === "gantt")) {
+    source.value = "declared";
+    source.dispatchEvent(new Event("change"));
+  }
+  const kind = $("#viskind");
+  if (kind && !allowed) {
+    ["area", "scatter", "candlestick"].forEach((value) => {
+      const option = kind.querySelector('option[value="' + value + '"]');
+      if (option) option.remove();
+      const chip = document.querySelector('[data-viskind="' + value + '"]');
+      if (chip) chip.remove();
+    });
+    if (["area", "scatter", "candlestick"].indexOf(kind.value) >= 0) kind.value = "";
+  }
+  syncVisSourceTiles();
+  syncVisKindChips();
+}
+
+function visDiagramKind() { return ($("#visdiagramkind") && $("#visdiagramkind").value) || "process"; }
+function visDiagramText() { return ($("#visdiagramtext") && $("#visdiagramtext").value) || ""; }
+function visGanttText() { return ($("#visgantttext") && $("#visgantttext").value) || ""; }
+
+function diagramHint(kind) {
+  return {
+    process: "One step per line. Example: Research, Design, Build, Test.",
+    matrix2x2: "Four lines: top-left, top-right, bottom-left, bottom-right. Example: Strengths / Weaknesses / Opportunities / Threats.",
+    pyramid: "One level per line, apex first.",
+    funnel: "One stage per line, widest first.",
+    tree: "First line is the root; the next lines are children.",
+    board: "One 'Column | Card' per line. Repeat the column for more cards.",
+    journey: "Lines: 'stage: Name', then 'lane: Label | cell | cell'.",
+    wbs: "First line is the root; indent children with spaces."
+  }[kind] || "";
+}
+
+function diagramExample(kind) {
+  return {
+    process: "Research\nDesign\nBuild\nTest\nLaunch",
+    matrix2x2: "Strengths\nWeaknesses\nOpportunities\nThreats",
+    pyramid: "Vision\nStrategy\nOperations",
+    funnel: "Awareness\nInterest\nConsideration\nPurchase",
+    tree: "Company\nFinance\nMarketing\nOperations",
+    board: "Key Partners | Suppliers\nKey Activities | Production\nValue Propositions | Quality\nCustomer Segments | Students",
+    journey: "stage: Awareness\nstage: Consideration\nstage: Purchase\nlane: Customer | sees ad | compares | buys\nlane: Company | runs ad | answers | delivers",
+    wbs: "Project\n  Research\n  Design\n  Build\n    Test\n  Launch"
+  }[kind] || "";
+}
+
+function updateDiagramHint() {
+  const kind = visDiagramKind();
+  const hint = $("#visdiagramhint");
+  if (hint) hint.textContent = diagramHint(kind);
+  const text = $("#visdiagramtext");
+  if (text) {
+    const sample = diagramExample(kind).split("\n").slice(0, 3).join("  |  ");
+    text.placeholder = sample || "Type the words for the framework here.";
+  }
+}
+
+function parseDiagram(kind, text) {
+  const lines = String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const fail = (message) => { throw new Error(message); };
+  const noDigits = (label, where) => {
+    if (/\d/.test(label)) {
+      fail(where + " uses a number. Framework labels use words: write 'Marketing mix' instead of '4Ps'.");
+    }
+    return label;
+  };
+  const spec = { format: "bp-diagram/1", kind: kind, title: visTitle() || "Framework" };
+  const report = { ok: true, kind: kind, items: [] };
+  if (kind === "process" || kind === "pyramid" || kind === "funnel") {
+    if (lines.length < 2) fail("Add at least two items.");
+    spec.items = lines.map((line, index) => ({ label: noDigits(line, "Item " + (index + 1)) }));
+    report.items = lines;
+  } else if (kind === "matrix2x2") {
+    if (lines.length < 4) fail("A 2x2 framework needs four lines: top-left, top-right, bottom-left, bottom-right.");
+    spec.quadrants = {
+      top_left: noDigits(lines[0], "Top-left"),
+      top_right: noDigits(lines[1], "Top-right"),
+      bottom_left: noDigits(lines[2], "Bottom-left"),
+      bottom_right: noDigits(lines[3], "Bottom-right")
+    };
+    report.items = lines.slice(0, 4);
+  } else if (kind === "tree") {
+    if (lines.length < 2) fail("A tree needs a root line and at least one child line.");
+    spec.root = noDigits(lines[0], "Root");
+    spec.children = lines.slice(1).map((line, index) => ({ label: noDigits(line, "Child " + (index + 1)) }));
+    report.items = lines;
+  } else if (kind === "board") {
+    const columns = new Map();
+    lines.forEach((line) => {
+      const parts = line.split("|").map((part) => part.trim());
+      const column = noDigits(parts[0], "Column");
+      if (!columns.has(column)) columns.set(column, []);
+      if (parts[1]) columns.get(column).push({ label: noDigits(parts.slice(1).join(" | "), "Card") });
+    });
+    if (columns.size < 2) fail("A board needs at least two columns. Write 'Column | Card' on each line.");
+    spec.columns = Array.from(columns, ([label, cards]) => ({ label: label, cards: cards }));
+    report.items = Array.from(columns.keys());
+  } else if (kind === "journey") {
+    const stages = [], lanes = [];
+    lines.forEach((line) => {
+      if (/^stage\s*:/i.test(line)) {
+        stages.push(noDigits(line.split(":").slice(1).join(":").trim(), "Stage"));
+      } else if (/^lane\s*:/i.test(line)) {
+        const parts = line.split(":").slice(1).join(":").split("|").map((part) => part.trim());
+        lanes.push({ label: noDigits(parts[0], "Lane"),
+                     cells: parts.slice(1).map((cell) => cell ? noDigits(cell, "Cell") : "") });
+      }
+    });
+    if (stages.length < 2) fail("A journey needs at least two 'stage:' lines.");
+    if (!lanes.length) fail("A journey needs at least one 'lane: Label | cell | cell' line.");
+    spec.stages = stages.map((label) => ({ label: label }));
+    spec.lanes = lanes;
+    report.items = stages;
+  } else if (kind === "wbs") {
+    if (lines.length < 2) fail("A work breakdown needs a root line and at least one indented child.");
+    const root = { label: noDigits(lines[0], "Root"), children: [] };
+    const stack = [{ depth: 0, node: root }];
+    lines.slice(1).forEach((raw) => {
+      const depth = Math.max(1, (raw.match(/^\s*/) || [""])[0].length);
+      const node = { label: noDigits(raw.trim(), "Item"), children: [] };
+      while (stack.length && stack[stack.length - 1].depth >= depth) stack.pop();
+      if (!stack.length) stack.push({ depth: 0, node: root });
+      stack[stack.length - 1].node.children.push(node);
+      stack.push({ depth: depth, node: node });
+    });
+    spec.root = root;
+    report.items = lines;
+  } else {
+    fail("Unknown framework kind.");
+  }
+  return { spec: spec, report: report };
+}
+
+function parseGantt(text) {
+  const lines = String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (!lines.length) throw new Error("Add at least one task: task name, start, end.");
+  const dateRe = /^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/;
+  const rows = lines.map((line, index) => {
+    const parts = line.split(/[,\t|]/).map((part) => part.trim());
+    if (parts.length < 3 || !parts[0]) {
+      throw new Error("Line " + (index + 1) + ": write task name, start, end.");
+    }
+    return { label: parts[0], start: parts[1], end: parts[2],
+             start_label: "", end_label: "" };
+  });
+  const dated = rows.filter((row) => dateRe.test(row.start) && dateRe.test(row.end));
+  if (dated.length && dated.length !== rows.length) {
+    throw new Error("Use either day numbers for every task or ISO dates for every task, not both.");
+  }
+  if (dated.length) {
+    const base = Math.min.apply(null, dated.map((row) => Date.parse(row.start)));
+    rows.forEach((row) => {
+      row.start_label = row.start;
+      row.end_label = row.end;
+      row.start = String(Math.round((Date.parse(row.start) - base) / 86400000));
+      row.end = String(Math.round((Date.parse(row.end) - base) / 86400000));
+    });
+  }
+  rows.forEach((row, index) => {
+    const start = Number(row.start), end = Number(row.end);
+    if (!isFinite(start) || !isFinite(end)) {
+      throw new Error("Line " + (index + 1) + ": start and end must be day numbers or ISO dates.");
+    }
+    if (end < start) throw new Error("Line " + (index + 1) + ": end is before start.");
+  });
+  return { activities: rows.map((row) => ({
+    label: row.label, start: row.start, end: row.end,
+    start_label: row.start_label, end_label: row.end_label
+  })), report: { ok: true, tasks: rows } };
+}
+
+function renderDiagramRead(report) {
+  const box = $("#visread");
+  if (!box) return;
+  if (!report) { box.innerHTML = ""; return; }
+  if (!report.ok) {
+    box.innerHTML = '<div class="banner blocked"><strong>I can\'t build this yet</strong>' +
+      visReportList(report.blocked || []) + "</div>";
+    return;
+  }
+  const label = report.kind === "matrix2x2" ? "2x2" : report.kind.replace("_", " ");
+  box.innerHTML = '<div class="banner ok"><strong>I understood this</strong><div>' +
+    esc(report.items.length + " item(s) in the " + label + " framework.") +
+    "</div></div>" + visReportList(report.items);
+}
+
+function renderGanttRead(report) {
+  const box = $("#visread");
+  if (!box) return;
+  if (!report) { box.innerHTML = ""; return; }
+  if (!report.ok) {
+    box.innerHTML = '<div class="banner blocked"><strong>I can\'t build this yet</strong>' +
+      visReportList(report.blocked || []) + "</div>";
+    return;
+  }
+  box.innerHTML = '<div class="banner ok"><strong>I understood this</strong><div>' +
+    esc(report.tasks.length + " task(s). Day 0 is the earliest start.") + "</div></div>" +
+    '<div class="tablewrap"><table><caption>What I read</caption><thead><tr><th>Task</th>' +
+    "<th>Start</th><th>End</th></tr></thead><tbody>" +
+    report.tasks.map((row) => "<tr><td>" + esc(row.label) + "</td><td>" +
+      esc(row.start_label || row.start) + "</td><td>" + esc(row.end_label || row.end) +
+      "</td></tr>").join("") + "</tbody></table></div>";
+}
 function visCurrentFile() {
   if (!visSource) return null;
   const edited = !!visSourceText && visText().trim() !== visSourceText.trim();
@@ -2822,12 +3119,27 @@ function renderVisualRead(report) {
   }
   const points = report.points || [];
   if (points.length) {
-    const pareto = report.kind && report.kind.value === "pareto";
-    const rows = points.slice(0, 12).map((point) =>
-      "<tr><td>" + esc(point.raw || (point.label + ", " + point.value)) + "</td><td><strong>" +
-      esc(point.label) + "</strong> = " + esc(point.value) + (point.unit ? " " + esc(point.unit) : "") +
-      "</td>" + (pareto ? "<td>" + esc(point.cumulative || "") + "</td>" : "") +
-      '<td class="visnote">' + (point.label_auto ? "auto label" : "") + "</td></tr>").join("");
+    const kindValue = (report.kind && report.kind.value) || "";
+    const pareto = kindValue === "pareto";
+    const scatter = kindValue === "scatter";
+    const candle = kindValue === "candlestick";
+    const rows = points.slice(0, 12).map((point) => {
+      let readText;
+      if (scatter) {
+        const xText = (point.x == null || point.x === "") ? "x missing" : esc(point.x);
+        readText = esc(point.label) + " = (" + xText + ", " + esc(point.value) + ")";
+      } else if (candle) {
+        const price = (key) => (point[key] == null || point[key] === "") ? "missing" : esc(point[key]);
+        readText = esc(point.label) + " = open " + price("open") + " / high " + price("high") +
+          " / low " + price("low") + " / close " + price("close");
+      } else {
+        readText = esc(point.label) + " = " + esc(point.value) +
+          (point.unit ? " " + esc(point.unit) : "");
+      }
+      return "<tr><td>" + esc(point.raw || (point.label + ", " + point.value)) + "</td><td><strong>" +
+        readText + "</strong></td>" + (pareto ? "<td>" + esc(point.cumulative || "") + "</td>" : "") +
+        '<td class="visnote">' + (point.label_auto ? "auto label" : "") + "</td></tr>";
+    }).join("");
     parts.push('<div class="tablewrap" style="margin-top:10px"><table><caption>What I read</caption>' +
       "<thead><tr><th>Your line</th><th>I read</th>" + (pareto ? "<th>Running total</th>" : "") +
       "<th>Note</th></tr></thead><tbody>" + rows + "</tbody></table></div>");
@@ -2899,7 +3211,10 @@ function applyVisualReport(report, fromFile) {
     visSource = report.source || null;
     visSourceText = report.normalized_text || "";
     if (report.title && report.title.value) $("#vistitle").value = report.title.value;
-    if (report.kind && report.kind.value) $("#viskind").value = report.kind.value;
+    if (report.kind && report.kind.value) {
+      $("#viskind").value = report.kind.value;
+      syncVisKindChips();
+    }
     if (report.normalized_text) $("#vispoints").value = report.normalized_text;
   }
   renderVisualRead(report);
@@ -2952,6 +3267,24 @@ async function visualReadLive() {
     renderVisualColumns(null);
     return;
   }
+  if (visSourceKind() === "diagram") {
+    renderVisualColumns(null);
+    try {
+      renderDiagramRead(parseDiagram(visDiagramKind(), visDiagramText()).report);
+    } catch (error) {
+      renderDiagramRead({ ok: false, blocked: [error.message || String(error)] });
+    }
+    return;
+  }
+  if (visSourceKind() === "gantt") {
+    renderVisualColumns(null);
+    try {
+      renderGanttRead(parseGantt(visGanttText()).report);
+    } catch (error) {
+      renderGanttRead({ ok: false, blocked: [error.message || String(error)] });
+    }
+    return;
+  }
   const seq = ++visReadSeq;
   try {
     const report = await post("/api/cases/visuals/read", visReadPayload());
@@ -2971,12 +3304,53 @@ function scheduleVisualRead(delay) {
 }
 
 function visualExample() {
+  const source = visSourceKind();
+  if (source === "calculation") {
+    if ($("#vistitle")) $("#vistitle").value = "Break-even";
+    const method = $("#vismethod");
+    if (method && Array.from(method.options).some((option) => option.value === "breakeven")) {
+      method.value = "breakeven";
+    }
+    if ($("#visinputs")) $("#visinputs").value = "fixed, 40000\nprice, 25\nvariable, 12";
+    renderVisualRead(null);
+    return;
+  }
+  if (source === "diagram") {
+    const kind = visDiagramKind();
+    const titles = { process: "Project process", matrix2x2: "SWOT",
+                     pyramid: "Strategy pyramid", funnel: "Sales funnel",
+                     tree: "Organisation chart", board: "Business model canvas",
+                     journey: "Customer journey", wbs: "Work breakdown" };
+    if ($("#vistitle")) $("#vistitle").value = titles[kind] || "Framework";
+    if ($("#visdiagramtext")) $("#visdiagramtext").value = diagramExample(kind);
+    scheduleVisualRead(0);
+    if ($("#visdiagramtext")) $("#visdiagramtext").focus();
+    return;
+  }
+  if (source === "gantt") {
+    if ($("#vistitle")) $("#vistitle").value = "Project timeline";
+    if ($("#visgantttext")) $("#visgantttext").value = "Research, 0, 5\nDraft, 5, 12\nReview, 12, 14";
+    scheduleVisualRead(0);
+    if ($("#visgantttext")) $("#visgantttext").focus();
+    return;
+  }
   const title = $("#vistitle");
-  if (title) title.value = "Revenue by quarter";
   const kind = $("#viskind");
-  if (kind) kind.value = "bar";
+  const chosen = (kind && kind.value) || "bar";
+  const examples = {
+    area: { title: "Revenue trend", text: "Q1, 120000\nQ2 150000\nQ3 135000\nQ4 180000" },
+    scatter: { title: "Ad spend and sales",
+               text: "Ad spend, 1200, 45000\nFootfall, 800, 30000\nReferral, 1500, 52000" },
+    candlestick: { title: "Share price",
+                   text: "Day one, 100, 120, 90, 110\nDay two, 110, 115, 100, 105\nDay three, 105, 112, 98, 108" }
+  };
+  const example = examples[chosen] || { title: "Revenue by quarter",
+    text: "Q1, 120000\nQ2 240000\nQ3: 360000\n480000" };
+  if (title) title.value = example.title;
+  if (kind && !kind.value) kind.value = "bar";
+  syncVisKindChips();
   const points = $("#vispoints");
-  if (points) points.value = "Q1, 120000\nQ2 240000\nQ3: 360000\n480000";
+  if (points) points.value = example.text;
   visSource = null;
   visSourceText = "";
   visUploaded = null;
@@ -3005,6 +3379,16 @@ async function visualRequest() {
   const title = visTitle();
   if (!title) throw new Error("Give the visual a title.");
   if (visSourceKind() === "calculation") return calculationRequest(title);
+  if (visSourceKind() === "diagram") {
+    const parsed = parseDiagram(visDiagramKind(), visDiagramText());
+    renderDiagramRead(parsed.report);
+    return { title: title, source: { kind: "diagram", spec: parsed.spec } };
+  }
+  if (visSourceKind() === "gantt") {
+    const parsed = parseGantt(visGanttText());
+    renderGanttRead(parsed.report);
+    return { title: title, source: { kind: "gantt", activities: parsed.activities } };
+  }
   ++visReadSeq;
   const report = await post("/api/cases/visuals/read", visReadPayload());
   renderVisualRead(report);
@@ -3180,6 +3564,26 @@ async function loadVisualMethods() {
 
 RENDERERS.home = function () {
   const p = $("#panel-home");
+  /* The chart setup is two custom pickers over hidden selects, so the rest of
+     the page keeps reading #vissource and #viskind as the single source of
+     truth.  The tiles name the source in words a student uses; the chips let
+     the chart be chosen without opening a native dropdown. */
+  const visSourceTiles = [
+    ["declared", "Figures I type", '<path d="M4 5h16v2H4zM4 11h10v2H4zM4 17h7v2H4z"/>'],
+    ["calculation", "A calculation", '<path d="M6 2h12a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm1 3v3h10V5H7zm0 6h2v2H7v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zM7 15h2v2H7v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2z"/>'],
+    ["diagram", "Framework or diagram", '<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>'],
+    ["gantt", "Project timeline", '<path d="M4 5h10v2H4zM8 11h12v2H8zM4 17h8v2H4z"/>']
+  ].map((row) =>
+    '<button type="button" class="segbtn" data-vissource="' + row[0] + '" aria-pressed="' +
+    (row[0] === "declared") + '"><svg viewBox="0 0 24 24" aria-hidden="true">' + row[2] +
+    "</svg>" + row[1] + "</button>").join("");
+  const visKindChips = [
+    ["bar", "Bar"], ["line", "Line"], ["area", "Area"], ["scatter", "Scatter"],
+    ["candlestick", "Candlestick"], ["pie", "Pie"], ["stacked_bar", "Stacked bar"],
+    ["waterfall", "Waterfall"], ["pareto", "Pareto"], ["table", "Table"]
+  ].map((row) =>
+    '<button type="button" class="vis-chip" data-viskind="' + row[0] +
+    '" aria-pressed="false">' + row[1] + "</button>").join("");
   p.innerHTML =
     '<div class="hero">' +
       '<img src="' + MARK + '" alt="">' +
@@ -3233,24 +3637,48 @@ RENDERERS.home = function () {
         '<div id="attachments" class="attachments" aria-live="polite"></div>' +
       "</div>" +
       '<div id="chartmode" hidden>' +
-        '<p class="muted" style="margin:0 0 8px">A figure on its own, without a paper. Type your figures or pick a calculation, choose a chart, download it.</p>' +
-        '<div class="row" style="flex-wrap:wrap;margin:6px 0;gap:8px">' +
-          '<input id="vistitle" placeholder="Title, e.g. Revenue by quarter" style="flex:1;min-width:220px">' +
-          '<select id="vissource" aria-label="Where the figures come from">' +
-          '<option value="declared">Figures I type</option>' +
-          '<option value="calculation">A calculation</option></select>' +
-          '<select id="viskind" aria-label="Chart kind"><option value="">Propose for me</option>' +
-          '<option value="bar">bar</option><option value="line">line</option><option value="pie">pie</option>' +
-          '<option value="stacked_bar">stacked bar</option><option value="waterfall">waterfall</option>' +
-          '<option value="pareto">pareto</option>' +
-          '<option value="table">table</option></select>' +
+        '<p class="vis-lede">A figure on its own, without a paper. Type figures, pick a calculation, or build a framework or project timeline. Check what I understood, then download it.</p>' +
+        '<div class="vis-setup">' +
+          '<div class="vis-field">' +
+            '<label class="vis-cap" for="vistitle">Title</label>' +
+            '<div class="vis-titlerow">' +
+              '<input id="vistitle" class="vis-title" placeholder="e.g. Revenue by quarter">' +
+              '<button class="btn sm" id="visexample" type="button">Try an example</button>' +
+            "</div>" +
+          "</div>" +
+          '<div class="vis-field vis-source">' +
+            '<span class="vis-cap" id="vissource-cap">Where the figures come from</span>' +
+            '<div class="segmented" role="group" aria-labelledby="vissource-cap">' + visSourceTiles + "</div>" +
+            '<select id="vissource" class="visually-hidden" tabindex="-1" aria-hidden="true">' +
+            '<option value="declared">Figures I type</option>' +
+            '<option value="calculation">A calculation</option>' +
+            '<option value="diagram">A framework or diagram</option>' +
+            '<option value="gantt">A project timeline</option></select>' +
+          "</div>" +
+          '<div class="vis-field" id="viskindfield">' +
+            '<span class="vis-cap" id="viskind-cap">Chart</span>' +
+            '<div class="vis-kindrow" role="group" aria-labelledby="viskind-cap">' +
+              '<button type="button" class="vis-propose" data-viskind="" aria-pressed="true">' +
+                '<span class="vis-propose-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2l1.7 5.3L19 9l-5.3 1.7L12 16l-1.7-5.3L5 9l5.3-1.7zM19 15l.9 2.6L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.4z"/></svg></span>' +
+                '<span><strong>Propose for me</strong><small>I choose the chart from the shape of your data.</small></span>' +
+              "</button>" +
+              '<div class="vis-chips">' + visKindChips + "</div>" +
+            "</div>" +
+            '<select id="viskind" class="visually-hidden" tabindex="-1" aria-hidden="true">' +
+            '<option value="">Propose for me</option>' +
+            '<option value="bar">bar</option><option value="line">line</option>' +
+            '<option value="area">area</option><option value="scatter">scatter</option>' +
+            '<option value="candlestick">candlestick</option><option value="pie">pie</option>' +
+            '<option value="stacked_bar">stacked bar</option><option value="waterfall">waterfall</option>' +
+            '<option value="pareto">pareto</option>' +
+            '<option value="table">table</option></select>' +
+          "</div>" +
         "</div>" +
         '<div class="row" id="visuploadrow" style="flex-wrap:wrap;margin:6px 0;gap:8px">' +
           '<button class="btn sm" id="visuploaddata" type="button">Upload data file</button>' +
           '<button class="btn sm" id="visuploadbrief" type="button">Upload instruction file</button>' +
           '<input type="file" id="visdatafile" accept=".csv,.tsv,.xlsx,.xlsm,.txt" hidden>' +
           '<input type="file" id="visbrieffile" accept=".pdf,.docx,.docm,.txt,.md" hidden>' +
-          '<button class="btn sm" id="visexample" type="button">Try an example</button>' +
           '<a class="btn sm" href="assets/samples/chart-data.csv" download>Sample CSV</a>' +
           '<a class="btn sm" href="assets/samples/chart-instruction.docx" download>Sample instruction</a>' +
         "</div>" +
@@ -3260,9 +3688,28 @@ RENDERERS.home = function () {
           "</div>" +
           '<textarea id="visinputs" rows="3" style="width:100%" placeholder="One per line: input, value - e.g.&#10;fixed, 40000&#10;price, 25&#10;variable, 12"></textarea>' +
         "</div>" +
+        '<div id="visdiagram" hidden>' +
+          '<div class="row" style="flex-wrap:wrap;gap:8px;margin:6px 0">' +
+            '<select id="visdiagramkind" aria-label="Framework or diagram kind">' +
+            '<option value="process">Process / flowchart</option>' +
+            '<option value="matrix2x2">2x2 framework (SWOT, BCG, Ansoff, stakeholder map)</option>' +
+            '<option value="pyramid">Pyramid / hierarchy</option>' +
+            '<option value="funnel">Funnel</option>' +
+            '<option value="tree">Tree / org chart / decision tree</option>' +
+            '<option value="board">Board / canvas</option>' +
+            '<option value="journey">Customer journey</option>' +
+            '<option value="wbs">Work breakdown</option></select>' +
+          "</div>" +
+          '<textarea id="visdiagramtext" rows="7" style="width:100%" placeholder="Type the words for the framework here."></textarea>' +
+          '<p class="muted" id="visdiagramhint" style="margin:6px 0 0"></p>' +
+        "</div>" +
+        '<div id="visgantt" hidden>' +
+          '<textarea id="visgantttext" rows="6" style="width:100%" placeholder="Task name, start, end - e.g.&#10;Research, 0, 5&#10;Draft, 5, 12&#10;Review, 12, 14"></textarea>' +
+          '<p class="muted" id="visgantthint" style="margin:6px 0 0">Use day numbers (0 is the project start), or ISO dates such as 2026-01-01, 2026-01-10.</p>' +
+        "</div>" +
         '<textarea id="vispoints" rows="6" style="width:100%" placeholder="Type or paste your figures here. One row per line.&#10;Q1, 120000&#10;Q2 240000&#10;Q3: 360000&#10;480000"></textarea>' +
         '<div id="viscols" class="row" hidden></div>' +
-        '<p class="muted" id="vishint" style="margin:6px 0 0">Comma, space, tab or colon. A bare number gets a label you can change. A pareto needs a third number: the running total.</p>' +
+        '<p class="muted" id="vishint" style="margin:6px 0 0">Comma, space, tab or colon. A bare number gets a label you can change. A pareto needs a third number: the running total. A scatter line is label, x, y; a candlestick line is label, open, high, low, close.</p>' +
         '<div id="visread" aria-live="polite"></div>' +
         '<div class="row" style="margin-top:8px;flex-wrap:wrap">' +
           '<button class="btn" id="vispreview" type="button">Preview</button>' +
@@ -3304,19 +3751,45 @@ RENDERERS.home = function () {
   if (visSheet) visSheet.onclick = visualSheet;
   const visSourceSelect = $("#vissource");
   if (visSourceSelect) visSourceSelect.onchange = () => {
-    const calculation = visSourceSelect.value === "calculation";
+    const source = visSourceSelect.value;
+    const calculation = source === "calculation";
+    const diagram = source === "diagram";
+    const gantt = source === "gantt";
+    const declared = source === "declared";
     const calcBox = $("#viscalc"); if (calcBox) calcBox.hidden = !calculation;
-    const points = $("#vispoints"); if (points) points.hidden = calculation;
-    const uploadRow = $("#visuploadrow"); if (uploadRow) uploadRow.hidden = calculation;
-    const hint = $("#vishint"); if (hint) hint.hidden = calculation;
+    const diagramBox = $("#visdiagram"); if (diagramBox) diagramBox.hidden = !diagram;
+    const ganttBox = $("#visgantt"); if (ganttBox) ganttBox.hidden = !gantt;
+    const points = $("#vispoints"); if (points) points.hidden = !declared;
+    const uploadRow = $("#visuploadrow"); if (uploadRow) uploadRow.hidden = !declared;
+    const hint = $("#vishint"); if (hint) hint.hidden = !declared;
+    const kindField = $("#viskindfield"); if (kindField) kindField.hidden = !declared;
     if (calculation) {
       loadVisualMethods();
       renderVisualRead(null);
       renderVisualColumns(null);
+    } else if (diagram) {
+      updateDiagramHint();
+      renderVisualRead(null);
+      renderVisualColumns(null);
+      scheduleVisualRead(0);
+    } else if (gantt) {
+      renderVisualRead(null);
+      renderVisualColumns(null);
+      scheduleVisualRead(0);
     } else {
       scheduleVisualRead(0);
     }
   };
+  /* The source tiles and chart chips drive the hidden selects. */
+  $$("[data-vissource]").forEach((btn) => {
+    btn.onclick = () => {
+      const select = $("#vissource");
+      if (!select) return;
+      select.value = btn.dataset.vissource;
+      select.dispatchEvent(new Event("change"));
+      syncVisSourceTiles();
+    };
+  });
   const visKindSelect = $("#viskind");
   if (visKindSelect) visKindSelect.onchange = () => {
     if (visUploaded && visSource && (visSource.kind === "data" || visSource.kind === "instruction")) {
@@ -3325,6 +3798,24 @@ RENDERERS.home = function () {
       scheduleVisualRead(0);
     }
   };
+  $$("[data-viskind]").forEach((btn) => {
+    btn.onclick = () => {
+      const select = $("#viskind");
+      if (!select) return;
+      select.value = btn.dataset.viskind || "";
+      select.dispatchEvent(new Event("change"));
+      syncVisKindChips();
+    };
+  });
+  const visDiagramKindSelect = $("#visdiagramkind");
+  if (visDiagramKindSelect) visDiagramKindSelect.onchange = () => {
+    updateDiagramHint();
+    scheduleVisualRead(0);
+  };
+  const visDiagramText = $("#visdiagramtext");
+  if (visDiagramText) visDiagramText.addEventListener("input", () => scheduleVisualRead());
+  const visGanttText = $("#visgantttext");
+  if (visGanttText) visGanttText.addEventListener("input", () => scheduleVisualRead());
   const visUploadData = $("#visuploaddata");
   if (visUploadData) visUploadData.onclick = () => {
     const input = $("#visdatafile"); if (input) input.click();
@@ -3349,6 +3840,8 @@ RENDERERS.home = function () {
   if (visExample) visExample.onclick = visualExample;
   const visPoints = $("#vispoints");
   if (visPoints) visPoints.addEventListener("input", () => scheduleVisualRead());
+  syncVisSourceTiles();
+  syncVisKindChips();
   loadVisuals();
   const legacy = $("#chatstart");
   if (legacy) legacy.onclick = startChat;
@@ -3635,6 +4128,7 @@ function renderChat() {
     const orientation = (c.orientation_sources || []).filter((item) =>
       !/wikipedia|wikimedia|wikiwand|dbpedia|fandom|baike|about\.com|answers\.com|ehow|quora|reddit|slideshare/i
         .test(String((item && item.url) || "") + " " + String((item && item.title) || "")));
+    html += researchLedgerHtml(c.research_ledger || [], labels);
     if (orientation.length) {
       html += '<h4 class="levelhead">Background reading (not cited)</h4>' +
         '<p class="muted">These pages only orient the search. They are not evidence and never appear in the references.</p>';
@@ -3726,6 +4220,12 @@ async function startChat() {
   const out = $("#chatout");
   if (out) out.innerHTML = loading("Working");
   const body = { brief: brief, subject: "any", silent: true };
+  /* A document door (Build the complete project plan, etc.) states its profile
+     once, so an unlabelled brief still lands on the document the student chose. */
+  if (state.planDoor) {
+    body.profile = state.planDoor;
+    body.mode = state.planMode || "strict";
+  }
   const lengthBox = $("#homelength");
   const lengthChoice = lengthBox ? String(lengthBox.value || "").trim() : "";
   if (lengthChoice) body.words = lengthChoice;
@@ -3742,6 +4242,7 @@ async function startChat() {
     state.chat = response.paper
       ? { id: response.id, paper: response.paper, thread: [{ role: "user", text: brief }] }
       : response;
+    state.planDoor = null;
     /* The conversation now carries the brief, so the composer starts empty: a
        stray arrow press would otherwise restart over the same brief. */
     if (box) box.value = "";
@@ -3910,6 +4411,124 @@ function evidenceLedgerHtml(c) {
       "<li>" + esc((gap && (gap.reason || gap.id)) || "gap") + "</li>").join("") + "</ul>";
   }
   return html + "</div>";
+}
+
+/* The research ledger: what was cited for each part, and why every other
+   candidate was refused.  It is the same record the server stored with the run;
+   this only reads it.  The reasons are the closed set the product uses, so the
+   panel says the same thing the server decided. */
+const RESEARCH_REASONS = {
+  no_cue: "no cue for this part",
+  no_geography: "not about this country or region",
+  tier_missing: "a source type below the one this part requires",
+  blocked_domain: "a source this product refuses",
+  below_floor: "too weakly relevant to cite",
+  duplicate: "already used in another part",
+  full_text_cue_missing: "no cue for this part in the passage"
+};
+
+const RESEARCH_TIERS = {
+  official: "official",
+  data: "data",
+  research: "research",
+  news: "news"
+};
+
+function researchTierPhrase(tiers) {
+  const list = (tiers || []).map((tier) => RESEARCH_TIERS[tier] || tier);
+  if (!list.length) return "";
+  if (list.length === 1) {
+    return (/^[aeiou]/i.test(list[0]) ? "an " : "a ") + list[0] + " source";
+  }
+  return "an " + list.slice(0, list.length - 1).join(" or ") + " source";
+}
+
+/* One ledger item, read for what it is.  A completion item says where it came
+   from (a cited source, the framework's own background, the student's words);
+   a retrieval item has no provenance and is a cited source by the fact it was
+   accepted at all. */
+function researchItemKind(item) {
+  const provenance = String((item && item.provenance) || "").toLowerCase();
+  if (provenance) {
+    if (provenance === "sourced") return "cited";
+    if (provenance === "background") return "background";
+    return "other";
+  }
+  return (item && (item.title || item.doi || item.url)) ? "cited" : "other";
+}
+
+function researchLedgerHtml(ledger, labels) {
+  const rows = Array.isArray(ledger) ? ledger : [];
+  if (!rows.length) return "";
+  labels = labels || {};
+  let cited = 0;
+  rows.forEach((row) => {
+    const grading = (row || {}).grading || {};
+    const items = (row || {}).accepted || [];
+    const hasCitation = items.some((item) => researchItemKind(item) === "cited");
+    if (hasCitation && grading.ok !== false) cited += 1;
+  });
+  let html = '<details class="ledgerpanel"><summary>Research ledger' +
+    '<span class="muted">' + esc(String(cited)) + " of " + esc(String(rows.length)) +
+    " parts cited from the source type they require</span></summary>" +
+    '<p class="muted" style="margin:0 0 4px">What was cited for each part, and why every other ' +
+    "candidate was refused. A refused candidate is never a finding: it is the reason the part reads the way it does.</p>";
+  rows.forEach((row) => {
+    row = row || {};
+    const items = row.accepted || [];
+    const citedItems = items.filter((item) => researchItemKind(item) === "cited");
+    const backgroundItems = items.filter((item) => researchItemKind(item) === "background");
+    const rejected = row.rejected || [];
+    const background = row.background || [];
+    const gaps = row.gaps || [];
+    const grading = row.grading || {};
+    const name = labels[row.dimension] || row.dimension || "Part";
+    let badge;
+    if (citedItems.length && grading.ok === false) {
+      badge = '<span class="ledgerbadge warn">needs ' + esc(researchTierPhrase(grading.missing_tiers)) + "</span>";
+    } else if (citedItems.length) {
+      badge = '<span class="ledgerbadge ok">cited</span>';
+    } else if (backgroundItems.length) {
+      badge = '<span class="ledgerbadge gap">background only</span>';
+    } else {
+      badge = '<span class="ledgerbadge gap">gap</span>';
+    }
+    html += '<div class="ledgerrow"><div class="ledgerhead"><strong>' + esc(name) + "</strong>" + badge + "</div>" +
+      '<p class="muted" style="margin:0">' + esc(String(citedItems.length)) + " cited, " +
+      esc(String(rejected.length)) + " refused" +
+      (backgroundItems.length ? ", " + esc(String(backgroundItems.length)) + " background paragraph" : "") +
+      (background.length ? ", " + esc(String(background.length)) + " background pages" : "") + "</p>";
+    if (citedItems.length) {
+      html += '<details class="ledgerdetail"><summary>Cited (' + esc(String(citedItems.length)) + ")</summary><ul>" +
+        citedItems.map((item) => {
+          item = item || {};
+          const title = item.title || item.text || "Source";
+          const where = item.source || item.citation || item.venue || item.database || "";
+          return "<li><strong>" + esc(title) + "</strong>" +
+            (where ? ' <span class="muted">' + esc(where) + "</span>" : "") + "</li>";
+        }).join("") + "</ul></details>";
+    }
+    if (backgroundItems.length) {
+      html += '<details class="ledgerdetail"><summary>Background paragraph (not cited)</summary><ul>' +
+        backgroundItems.map((item) => "<li>" + esc((item && item.text) || "Background") + "</li>").join("") +
+        "</ul></details>";
+    }
+    if (rejected.length) {
+      html += '<details class="ledgerdetail"><summary>Refused (' + esc(String(rejected.length)) + ")</summary><ul>" +
+        rejected.map((entry) => {
+          entry = entry || {};
+          const candidate = entry.candidate || {};
+          const title = candidate.title || candidate.url || "candidate";
+          const reason = RESEARCH_REASONS[entry.reason] || entry.reason || "refused";
+          return "<li>" + esc(title) + ' <span class="muted">- ' + esc(reason) + "</span></li>";
+        }).join("") + "</ul></details>";
+    }
+    if (gaps.length) {
+      html += '<p class="gapnote">' + esc(gaps.join(" ")) + "</p>";
+    }
+    html += "</div>";
+  });
+  return html + "</details>";
 }
 
 function figurePanel(plan) {
@@ -4449,9 +5068,9 @@ const PLAN_PROFILES = {
   feasibility_study: {
     label: "Feasibility study", subject: "entrepreneurship", convention: "Feasibility-study convention",
     heading: "Test the idea with a feasibility study", start: "Start the feasibility study",
-    blurb: "A feasibility study tests market, technical, management, legal and financial feasibility one at a time and " +
-      "stops where the evidence does. The export is blocked until every required field is supplied and every required " +
-      "computation has run.",
+    blurb: "A feasibility study tests market, technical, management, legal and financial feasibility. A brief with a " +
+      "market table and a cost table runs as a three-table study (demand and price, investment and operating cost, " +
+      "and the returns the break-even method computes); one download holds the paper, its workbook and a PDF.",
   },
   marketing_plan: {
     label: "Marketing plan", subject: "marketing", convention: "Marketing-plan convention",
@@ -4462,13 +5081,15 @@ const PLAN_PROFILES = {
   project_proposal: {
     label: "Project proposal", subject: "project-management", convention: "Project-proposal convention",
     heading: "Build the project proposal", start: "Start the project proposal",
-    blurb: "A project proposal states the problem, the objectives, the work plan, the budget and how delivery will be " +
-      "monitored. The export is blocked until every required field is supplied and every required computation has run.",
+    blurb: "A project proposal states the problem, the objectives, the work plan and its timeline, the budget, " +
+      "monitoring and the risks. A brief with a work-plan table and a budget table runs as one silent proposal; " +
+      "one download holds the paper, its workbook and a PDF.",
   },
   project_plan: {
     label: "Complete project plan", subject: "project-management", convention: "Project-plan convention",
     heading: "Build the complete project plan", start: "Start the project plan",
-    blurb: "Charter, scope, WBS, CPM schedule, cost roll-up, RACI and risk register in one document.",
+    blurb: "Charter, scope, WBS, CPM schedule, cost roll-up, RACI and risk register in one document, with the " +
+      "schedule chart in the Word file and PDF and a slide deck in the same download.",
   },
 };
 
@@ -4489,6 +5110,9 @@ function startPlan(mode, profile) {
   const chosen = PLAN_PROFILES[profile] ? profile : (state.planProfile || "business_plan");
   state.planProfile = chosen;
   state.planMode = mode || "strict";
+  /* The door names its profile once.  The Home box is shared by every door, so
+     the choice is cleared after the run rather than left to capture the next one. */
+  state.planDoor = chosen;
   state.plan = null;
   if (location.hash !== "#/home") { location.hash = "#/home"; } else { show("home"); }
   const box = $("#objective");
@@ -8692,6 +9316,9 @@ function renderEvidenceReview(t, result) {
     ((summary.gaps || 0) > 0 ? " - " + esc(String(summary.gaps) + " part(s) for you to write") : "") + "</span></div>" +
     '<p class="muted">Tick what the paper may use. A researched item carries its citation; a gap stays a gap. ' +
       "Nothing is written into the worksheet until you apply it.</p>";
+  const ledgerLabels = {};
+  blocks.forEach((block) => { ledgerLabels[block.key] = block.label; });
+  html += researchLedgerHtml(result.research || [], ledgerLabels);
   for (const block of blocks) {
     html += '<div class="partcard' + (block.items.length ? "" : " empty") + '">' +
       '<div class="parthead"><strong>' + esc(block.label) + "</strong>" + fillBadge(block) + "</div>";
@@ -11540,7 +12167,7 @@ async function boot() {
     api("/api/presets").then((d) => { state.presets = d || {}; }),
     api("/api/methods").then((d) => { state.methods = d || []; }),
     api("/api/currencies").then((d) => { state.currencies = (d && d.currencies) || []; }),
-    api("/api/health").then((d) => { state.health = d || null; paintBuild(d && d.build); })
+    api("/api/health").then((d) => { state.health = d || null; paintBuild(d && d.build); syncVisualSourceOptions(); })
   ]);
   const failed = results.filter((r) => r.status === "rejected");
   if (failed.length && failed.length < results.length) {
