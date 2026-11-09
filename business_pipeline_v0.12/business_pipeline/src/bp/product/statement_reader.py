@@ -108,6 +108,72 @@ def _split_line(line):
     return parts[0].strip(), parts[1].strip()
 
 
+def _read_xlsx(raw):
+    import io
+    try:
+        import openpyxl
+    except Exception:
+        return ""
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(raw), data_only=True)
+    except Exception:
+        return ""
+    out = []
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            cells = [("" if c.value is None else str(c.value)).strip() for c in row]
+            if not any(cells):
+                continue
+            # two-column label/value
+            if len(cells) >= 2 and cells[0] and cells[1]:
+                out.append("%s, %s" % (cells[0], cells[1]))
+            elif len(cells) == 1 and cells[0]:
+                out.append(cells[0])
+    return "\n".join(out)
+
+
+def _read_pdf(raw):
+    try:
+        import pypdf
+    except Exception:
+        try:
+            import PyPDF2 as pypdf  # type: ignore
+        except Exception:
+            return ""
+    try:
+        reader = pypdf.PdfReader(__import__("io").BytesIO(raw))
+    except Exception:
+        return ""
+    out = []
+    for page in getattr(reader, "pages", []):
+        try:
+            out.append(page.extract_text() or "")
+        except Exception:
+            pass
+    return "\n".join(out)
+
+
+def read_bytes(raw, mime):
+    mime = str(mime or "").lower()
+    if isinstance(raw, str):
+        raw = raw.encode("utf-8")
+    raw = bytes(raw)
+    if mime in ("text/csv", "text/plain", "text/tab-separated-values"):
+        text = raw.decode("utf-8", errors="replace")
+    elif mime in ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                  "application/vnd.ms-excel"):
+        text = _read_xlsx(raw)
+    elif mime == "application/pdf":
+        text = _read_pdf(raw)
+    else:
+        # try utf-8 first, then xlsx/pdf by sniffing
+        try:
+            text = raw.decode("utf-8")
+        except Exception:
+            text = _read_pdf(raw) or _read_xlsx(raw)
+    return read(text)
+
+
 def read(text):
     lines = {}
     for raw in str(text or "").splitlines():

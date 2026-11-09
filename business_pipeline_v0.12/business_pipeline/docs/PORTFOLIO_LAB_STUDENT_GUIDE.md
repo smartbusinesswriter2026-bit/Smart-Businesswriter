@@ -35,9 +35,13 @@ The method conventions (rates as decimals, returns per period) are in
 - **Before you buy → Find and screen candidates** — the lab itself, in three tabs:
   **Watch list and prices**, **Find candidates**, **Evaluate**. On **Find candidates** you first
   choose a parameter set (Finance, Accounting, Both or Composite) and tick the criteria you will
-  use; each carries its classroom definition and formula. The shortlist table shows only those
-  columns, and you can **Save this shortlist to the book** so the criteria, the values shown and
-  your one-line reasons are printed in the report.
+  use; each carries its classroom definition and formula. You can set a **min** threshold per
+  criterion to score candidates (X/Y met) and an optional **benchmark** ticker for relative values.
+  The shortlist table shows only those columns, and you can **Save this shortlist to the book** so
+  the criteria, the values shown, the score and your one-line reasons are printed in the report.
+  Accounting and composite criteria are greyed out until a financial statement is uploaded for that
+  symbol (see **Financial statements** on **Prices and snapshot**); a CSV/text statement is read
+  automatically to pre-fill the ratios.
 - **How to choose what you hold** — the six-step guide (collapsed).
 - **Learn by example** — these four cases, in the app.
 

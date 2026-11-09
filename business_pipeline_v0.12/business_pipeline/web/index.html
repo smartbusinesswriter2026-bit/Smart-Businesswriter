@@ -7151,7 +7151,10 @@ function portfolioLabPanel(initialTab) {
       '<div class="card" style="margin:0 0 12px"><h3 style="margin-top:0">Choose your criteria (guided checklist)</h3>' +
         '<p class="muted" style="margin:0 0 8px">Pick a parameter set from your class, tick the criteria you will use, then screen. Each criterion carries its classroom definition; a missing value is a named gap, not a zero. Nothing is recommended.</p>' +
         '<div class="row" style="margin-bottom:8px" id="plparamsets">' + pfParamSetRadios() + '</div>' +
-        '<div id="plparamlist">' + pfParamCheckboxes() + '</div></div>' +
+        '<div id="plparamlist">' + pfParamCheckboxes() + '</div>' +
+        '<div class="row" style="margin-top:6px"><label class="field" for="plbench" style="margin-right:6px">Benchmark (optional)</label>' +
+        '<input type="text" id="plbench" placeholder="e.g. SPY" style="max-width:120px" value="' + esc(state.pfBench || "") + '">' +
+        '<span class="muted" style="font-size:11px;margin-left:6px">relative values shown when set</span></div></div>' +
       '<div class="pffieldgrid">' +
         '<div class="fieldgroup"><label class="field" for="plcands">Symbols to screen</label><input type="text" id="plcands" placeholder="AAPL, MSFT, JPM" aria-label="Candidate symbols, comma separated">' +
           '<div class="row" style="margin-top:6px"><button class="btn sm" type="button" id="plusewatch">Use my watch list</button></div></div>' +
@@ -7206,6 +7209,9 @@ function bindParamCheckboxes() {
   $$("[data-plparam]").forEach((cb) => {
     cb.onchange = () => { if (!state.pfParamChecked) state.pfParamChecked = {}; state.pfParamChecked[cb.dataset.plparam] = cb.checked; };
   });
+  $$("[data-plthr]").forEach((inp) => {
+    inp.onchange = () => { if (!state.pfThresholds) state.pfThresholds = {}; state.pfThresholds[inp.dataset.plthr] = inp.value.trim(); };
+  });
 }
 
 function plShowTab(name) {
@@ -7257,18 +7263,20 @@ function pfParamCheckboxes() {
   const params = pfParamCatalog().filter((p) => (p.sets || []).indexOf(set) >= 0 ||
     (set === "both" && ((p.sets || []).indexOf("finance") >= 0 || (p.sets || []).indexOf("accounting") >= 0)));
   if (!params.length) return '<p class="muted">No parameters for this set.</p>';
-  return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">' +
+  if (!state.pfThresholds) state.pfThresholds = {};
+  return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px">' +
     params.map((p) => {
-      const isOn = checked[p.id] !== false && checked[p.id] !== undefined ? checked[p.id] : true;
-      // default: checked on first render
       if (checked[p.id] === undefined) checked[p.id] = true;
       const on = checked[p.id];
+      const thr = state.pfThresholds[p.id] || "";
       return '<label class="pfcheck" title="' + esc(p.formula) + '">' +
         '<input type="checkbox" data-plparam="' + esc(p.id) + '" ' + (on ? "checked" : "") + '> ' +
         '<strong>' + esc(p.label) + '</strong> ' +
         '<span class="muted" style="font-size:11px">(' + esc(p.source) +
         (p.requires_statement ? ', needs a statement' : '') + ')</span>' +
-        '<div class="muted" style="font-size:11px;margin-left:20px">' + esc(p.definition) + '</div></label>';
+        '<div class="muted" style="font-size:11px;margin-left:20px">' + esc(p.definition) + '</div>' +
+        '<div style="margin-left:20px;margin-top:2px"><span class="muted" style="font-size:11px">min: </span>' +
+        '<input type="text" data-plthr="' + esc(p.id) + '" value="' + esc(thr) + '" placeholder="none" style="width:70px;font-size:11px"></div></label>';
     }).join("") + '</div>';
 }
 function plQuotesAvailable() { return pfQuoteProviders().length > 0; }
@@ -7408,8 +7416,11 @@ function plRenderScreen(data) {
     return;
   }
   // header
+  const hasThresholds = checked.some((p) => (state.pfThresholds || {})[p.id]);
   let head = '<thead><tr><th>Symbol</th>';
   checked.forEach((p) => { head += '<th title="' + esc(p.formula) + '">' + esc(p.label) + '</th>'; });
+  if (hasThresholds) head += '<th>Score</th>';
+  if (state.pfBench) head += '<th>vs ' + esc(state.pfBench) + '</th>';
   head += '<th>Gaps</th><th>Your reason</th></tr></thead>';
   const rows = data.rows.map((r) => {
     if (r.error) return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td colspan="' + (checked.length + 2) + '" class="muted">' + esc(r.error) + "</td></tr>";
@@ -7418,6 +7429,25 @@ function plRenderScreen(data) {
       const v = plValueFor(r, p);
       html += '<td>' + fmt(p, v, r.symbol) + '</td>';
     });
+    // scorecard
+    if (hasThresholds) {
+      let score = 0, total = 0;
+      checked.forEach((p) => {
+        const thr = (state.pfThresholds || {})[p.id];
+        if (!thr) return;
+        total++;
+        const v = plValueFor(r, p);
+        if (v !== null && v !== undefined && v !== "" && Number(v) >= Number(thr)) score++;
+      });
+      html += '<td>' + (total ? (score + "/" + total) : "n/a") + '</td>';
+    }
+    // benchmark relative (price ratio)
+    if (state.pfBench) {
+      const bp = Number(state.pfBenchValue);
+      const rp = Number(r.price);
+      const rel = (isFinite(bp) && bp !== 0 && isFinite(rp)) ? (rp / bp).toFixed(2) + "x" : "n/a";
+      html += '<td>' + esc(rel) + '</td>';
+    }
     html += '<td class="muted">' + esc((r.gaps || []).join("; ")) + '</td>';
     html += '<td><input type="text" data-pfreason="' + esc(r.symbol) + '" placeholder="why this name" style="width:140px"></td></tr>';
     return html;
@@ -7450,11 +7480,24 @@ async function saveShortlist() {
     state.pfReasons[r.symbol] = reason;
     const values = {};
     checked.forEach((p) => { values[p.id] = plValueFor(r, p); });
-    return { symbol: r.symbol, values: values, reason: reason };
+    const scorecard = {};
+    let score = 0, total = 0;
+    checked.forEach((p) => {
+      const thr = (state.pfThresholds || {})[p.id];
+      if (!thr) return;
+      total++;
+      const v = values[p.id];
+      const pass = (v !== null && v !== undefined && v !== "" && Number(v) >= Number(thr));
+      if (pass) score++;
+      scorecard[p.id] = pass;
+    });
+    return { symbol: r.symbol, values: values, reason: reason,
+             scorecard: scorecard, score: (total ? (score + "/" + total) : null) };
   });
   try {
     await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/selection", {
-      set: pfParamSet(), parameters: checked.map((p) => p.id), rows: outRows
+      set: pfParamSet(), parameters: checked.map((p) => p.id),
+      thresholds: state.pfThresholds || {}, rows: outRows
     });
     toast("Shortlist saved to the book.");
   } catch (e) { message.innerHTML = errorBanner(e); }
@@ -7589,6 +7632,11 @@ async function plScreen() {
     return;
   }
   box.innerHTML = loading("Screening " + symbols.length + " symbol(s)");
+  state.pfBench = (($("#plbench") || {}).value || "").trim().toUpperCase();
+  state.pfBenchValue = null;
+  if (state.pfBench) {
+    try { const q = await api("/api/market/quote?symbol=" + encodeURIComponent(state.pfBench)); state.pfBenchValue = q && q.value; } catch (e) { state.pfBenchValue = null; }
+  }
   try {
     const data = await post("/api/cases/screen", {
       symbols: symbols, provider: plProvider(),

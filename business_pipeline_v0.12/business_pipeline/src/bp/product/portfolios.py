@@ -788,6 +788,9 @@ def save_selection(portfolio_id, selection):
     if not isinstance(parameters, list):
         raise ValueError("parameters must be a list")
     parameters = [str(p).strip() for p in parameters if str(p).strip()]
+    thresholds = selection.get("thresholds")
+    if thresholds is not None and not isinstance(thresholds, dict):
+        raise ValueError("thresholds must be an object")
     rows = selection.get("rows") or []
     if not isinstance(rows, list):
         raise ValueError("rows must be a list")
@@ -802,13 +805,21 @@ def save_selection(portfolio_id, selection):
         values = values or {}
         cleaned_values = {str(k): (None if v in (None, "") else str(v)) for k, v in values.items()}
         reason = str(row.get("reason") or "").strip()[:500]
-        cleaned_rows.append({"symbol": symbol, "values": cleaned_values, "reason": reason})
-    portfolio["selection"] = {
+        entry = {"symbol": symbol, "values": cleaned_values, "reason": reason}
+        if isinstance(row.get("scorecard"), dict):
+            entry["scorecard"] = row["scorecard"]
+        if row.get("score") is not None:
+            entry["score"] = str(row.get("score"))
+        cleaned_rows.append(entry)
+    cleaned = {
         "set": set_id,
         "parameters": parameters,
         "rows": cleaned_rows,
         "recorded_at": _now(),
     }
+    if thresholds is not None:
+        cleaned["thresholds"] = thresholds
+    portfolio["selection"] = cleaned
     portfolio["updated_at"] = _now()
     _write(_path(portfolio_id, "portfolio.json"), portfolio)
     return portfolio["selection"]
@@ -862,12 +873,11 @@ def save_statement(portfolio_id, symbol, filename, mime, raw):
     target.write_bytes(raw)
     digest = hashlib.sha256(raw).hexdigest()
     extracted = None
-    if mime in ("text/csv", "text/plain"):
-        try:
-            from . import statement_reader as _sr
-            extracted = _sr.read(raw.decode("utf-8", errors="replace"))
-        except Exception:
-            extracted = None
+    try:
+        from . import statement_reader as _sr
+        extracted = _sr.read_bytes(raw, mime)
+    except Exception:
+        extracted = None
     metadata = {
         "symbol": symbol,
         "filename": safe,
@@ -920,12 +930,11 @@ def extract_statement(portfolio_id, symbol):
         raise ValueError("the statement file is missing")
     mime = str(latest.get("mime") or "").lower()
     extracted = None
-    if mime in ("text/csv", "text/plain"):
-        try:
-            from . import statement_reader as _sr
-            extracted = _sr.read(full.read_text(encoding="utf-8", errors="replace"))
-        except Exception:
-            extracted = None
+    try:
+        from . import statement_reader as _sr
+        extracted = _sr.read_bytes(full.read_bytes(), mime)
+    except Exception:
+        extracted = None
     # update the stored record
     portfolio = _portfolio(portfolio_id)
     stmts = portfolio.get("statements") or []

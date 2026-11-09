@@ -71,19 +71,31 @@ def render(portfolio, snapshot, holdings=(), performance=None, journal=(), portf
             pass
         set_name = str(selection.get("set") or "").strip() or "not recorded"
         rows = selection.get("rows") or []
-        columns = ["Symbol"] + param_labels + ["Reason"]
+        thresholds = selection.get("thresholds") or {}
+        columns = ["Symbol"] + param_labels
+        if any(isinstance(r.get("score"), str) for r in rows):
+            columns = columns + ["Score"]
+        columns = columns + ["Reason"]
         table_rows = []
         for row in rows:
             vals = row.get("values") or {}
-            table_rows.append([row.get("symbol", "")] +
-                             [str(vals.get(pid, "") or "not sourced") for pid in params] +
-                             [row.get("reason") or "(not recorded)"])
-        sections.append({"heading": "Selection criteria and shortlist", "paragraphs": [
+            tr = [row.get("symbol", "")] + [str(vals.get(pid, "") or "not sourced") for pid in params]
+            if any(isinstance(r.get("score"), str) for r in rows):
+                tr = tr + [str(row.get("score") or "")]
+            tr = tr + [row.get("reason") or "(not recorded)"]
+            table_rows.append(tr)
+        paras = [
             "Parameter set: %s." % set_name,
             "Criteria used: %s." % (", ".join(param_labels) if param_labels else "none recorded"),
-            "Each value below is what the screener showed or what the student typed; a missing value "
-            "is a named gap, not an estimate.",
-        ], "table": {"columns": columns, "rows": table_rows}})
+            "Shortlisted: %d holding(s)." % len(rows),
+        ]
+        if thresholds:
+            paras.append("Thresholds declared: %s." % ", ".join(
+                "%s >= %s" % (k, v) for k, v in thresholds.items() if v not in (None, "")))
+        paras.append("Each value below is what the screener showed or what the student typed; a missing value "
+                     "is a named gap, not an estimate.")
+        sections.append({"heading": "Selection criteria and shortlist", "paragraphs": paras,
+                        "table": {"columns": columns, "rows": table_rows}})
     else:
         sections.append({"heading": "Selection criteria and shortlist", "paragraphs": [
             "No selection record was stored for this book. This is a named gap, not an omission.",
