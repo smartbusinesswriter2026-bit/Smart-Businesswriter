@@ -11,6 +11,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 sys.path.insert(0, "src")
@@ -380,7 +381,9 @@ class LearningFromErrorsTest(unittest.TestCase):
                                   return_value=("normalized problem", ["split inline list"])), \
                 mock.patch.object(auto_resolve, "_verify_fix",
                                   return_value={"ok": True, "model": "beam-free",
-                                                "reason": "the answer matches"}):
+                                                "reason": "the answer matches"}), \
+                mock.patch("bp.product.regression_cases.cases_path",
+                           return_value=Path(self.root) / "cases.jsonl"):
             fixed = auto_resolve.resolve(first)
         self.assertTrue(fixed["resolved"])
         self.assertEqual(fixed["cause"], "pipeline.parser_shape")

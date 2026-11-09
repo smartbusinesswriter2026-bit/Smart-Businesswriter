@@ -17,7 +17,15 @@ _MAX_CASES = 500
 
 
 def cases_path():
-    """qa/regression/problem_norm_cases.jsonl at the repository root."""
+    """qa/regression/problem_norm_cases.jsonl at the repository root.
+
+    `BP_REGRESSION_CASES` redirects it; the test suite points it at its own file so a
+    mocked fix cannot write a golden case into the owner's real regression suite.
+    """
+    import os
+    override = os.environ.get("BP_REGRESSION_CASES")
+    if override:
+        return Path(override)
     return (Path(__file__).resolve().parents[3] / "qa" / "regression"
             / "problem_norm_cases.jsonl")
 

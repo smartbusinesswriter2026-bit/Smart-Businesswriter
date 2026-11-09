@@ -26,6 +26,11 @@ os.environ.setdefault("BP_STATEMENT_LIBRARY_ORIGIN", "test")
 # asserts on the log sets BP_OPS_LOG itself.
 os.environ.setdefault("BP_OPS_LOG", os.path.join(tempfile.gettempdir(), "bp_test_ops_log"))
 
+# A verified fix appends a golden case to the regression file.  A unit test that mocks
+# a fix into passing must not write that case into the owner's real regression suite.
+os.environ.setdefault("BP_REGRESSION_CASES",
+                      os.path.join(tempfile.gettempdir(), "bp_test_regression_cases.jsonl"))
+
 # Background reading is no longer part of the pipeline; the flag stays off so
 # an inherited environment cannot turn a live call on.
 os.environ.setdefault("BP_ORIENTATION", "0")
