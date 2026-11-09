@@ -279,15 +279,29 @@ def read(text):
     else:
         gaps.append("graham_number")
 
-    # piotroski: report as gap unless all nine inputs present; we do not fabricate the score
-    piotroski_inputs = ("net_income", "current_assets", "current_liabilities",
-                        "total_assets", "total_liabilities", "equity", "revenue")
-    if all(k in lines for k in piotroski_inputs):
-        # minimal proxy: profitability + leverage/liquidity; full 9-test score left to student
-        ratios["piotroski_f"] = None
-        gaps.append("piotroski_f")
+    # piotroski F-score: 9 binary tests.  Only the single-period test we can actually
+    # compute from one statement is test 1 (net income > 0); the other eight need a
+    # prior period or a cash-flow line we do not have, so they are named gaps rather
+    # than invented.  The score is the count of tests we could run and pass.
+    piotroski_score = 0
+    piotroski_possible = 0
+    piotroski_gaps = []
+    if "net_income" in lines:
+        piotroski_possible += 1
+        if lines["net_income"] > 0:
+            piotroski_score += 1
     else:
-        gaps.append("piotroski_f")
+        piotroski_gaps.append("piotroski_f (net income)")
+    # tests 2-9 need prior-period figures or operating cash flow, which a single
+    # statement does not carry
+    for name in ("operating cash flow > 0", "ROA increased", "CFO > net income",
+                 "long-term debt decreased", "current ratio increased",
+                 "no new shares issued", "gross margin increased",
+                 "asset turnover increased"):
+        piotroski_gaps.append("piotroski_f (%s)" % name)
+    if piotroski_possible > 0:
+        ratios["piotroski_f"] = piotroski_score
+    gaps.extend(piotroski_gaps)
 
     # remove None placeholders
     for k in [k for k, v in ratios.items() if v is None]:

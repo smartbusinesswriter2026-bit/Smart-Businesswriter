@@ -42,7 +42,9 @@ class ReadTest(unittest.TestCase):
         self.assertAlmostEqual(result["ratios"]["roa"], 120 / 800)
         self.assertAlmostEqual(result["ratios"]["roe"], 120 / 480)
         # altman_z and piotroski_f need statement lines this CSV does not carry
-        self.assertEqual(result["gaps"], ["altman_z", "piotroski_f"])
+        self.assertIn("altman_z", result["gaps"])
+        self.assertTrue(any(g.startswith("piotroski_f") for g in result["gaps"]))
+        self.assertIn("piotroski_f", result["ratios"])
 
     def test_missing_lines_are_named_gaps(self):
         text = "Revenue,1000\nNet income,120\n"
