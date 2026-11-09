@@ -299,6 +299,25 @@ dividends or corporate actions, long-only, and no short selling. It does not val
 or a market with no free official feed — enter those figures manually and say where they came from.
 The watch list is one list for the whole machine, not one per book.
 
+## Future expansion: balance-sheet and accounting ratios (planned)
+
+Many classroom parameters need figures the lab does not source today: current ratio, debt-to-equity,
+Altman Z, Piotroski F, DuPont and margin ratios all need income-statement and balance-sheet lines.
+Two paths are planned, in this order:
+
+1. **Upload first (student-supplied, always available).** A student uploads a financial statement
+   (PDF, CSV or XLSX) per company. The lab stores it with the book, and any parameter that depends on
+   it becomes **available** instead of greyed out; if nothing is uploaded, the parameter stays
+   **manual** (type the value from your source) or **unavailable** (greyed out). This works for any
+   company in any market, because the student supplies the source.
+2. **Online research second (best-effort, US-listed first).** For companies listed in the US, the
+   lab can pull income-statement and balance-sheet lines from SEC EDGAR (the same source it already
+   uses for fundamentals) and compute the ratios. For non-US companies this is a named gap until a
+   free official feed exists; the lab will never guess a figure.
+
+Nothing above is built yet. Parameters that need a statement are marked `manual` today and become
+`sourced` only when one of the two paths above lands.
+
 ## Glossary
 
 - **Book / portfolio** — the declared holdings, cash and base currency you are valuing.

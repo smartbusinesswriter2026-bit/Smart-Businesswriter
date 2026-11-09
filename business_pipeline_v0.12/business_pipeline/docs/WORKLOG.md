@@ -223,6 +223,15 @@ area/scatter/candlestick builds and refusals), `test_visual_input.py` 43,
 `test_product_charts.py` 23. Live browser check of the SWOT 2x2, the business
 model board and the dated Gantt.
 
+## 2026-11-10 - [product] Plan: financial-statement-backed ratios
+
+**Ask.** Allow the pipeline to use balance-sheet and statement ratios, via student upload first and
+online research second, with greyed-out parameters until the data exists.
+
+**Did.** Documented the plan in `docs/PORTFOLIO_LAB_STUDENT_GUIDE.md` ("Future expansion") and the
+CHANGELOG. No code. The existing upload (base64), hashing and evidence-slot patterns are the
+building blocks; the catalog's `source` field is the switch from manual to sourced.
+
 ## 2026-11-10 - [product] The Portfolio Lab guides stock selection by classroom criteria
 
 **Ask.** The lab should guide primarily students in picking stocks using parameters commonly
