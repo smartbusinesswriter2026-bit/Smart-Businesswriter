@@ -54,6 +54,40 @@ def render(portfolio, snapshot, holdings=(), performance=None, journal=(), portf
                      for p in positions],
         }},
     ]
+    selection = portfolio.get("selection")
+    if isinstance(selection, dict) and selection.get("rows"):
+        params = selection.get("parameters") or []
+        param_labels = params
+        # resolve labels from the parameter catalog when available
+        try:
+            from . import portfolio_parameters as _pp
+            labels = []
+            for pid in params:
+                p = _pp.get(pid)
+                labels.append(p["label"] if p else pid)
+            if labels:
+                param_labels = labels
+        except Exception:
+            pass
+        set_name = str(selection.get("set") or "").strip() or "not recorded"
+        rows = selection.get("rows") or []
+        columns = ["Symbol"] + param_labels + ["Reason"]
+        table_rows = []
+        for row in rows:
+            vals = row.get("values") or {}
+            table_rows.append([row.get("symbol", "")] +
+                             [str(vals.get(pid, "") or "not sourced") for pid in params] +
+                             [row.get("reason") or "(not recorded)"])
+        sections.append({"heading": "Selection criteria and shortlist", "paragraphs": [
+            "Parameter set: %s." % set_name,
+            "Criteria used: %s." % (", ".join(param_labels) if param_labels else "none recorded"),
+            "Each value below is what the screener showed or what the student typed; a missing value "
+            "is a named gap, not an estimate.",
+        ], "table": {"columns": columns, "rows": table_rows}})
+    else:
+        sections.append({"heading": "Selection criteria and shortlist", "paragraphs": [
+            "No selection record was stored for this book. This is a named gap, not an omission.",
+        ]})
     if performance:
         sections.append(_performance_section(performance, currency))
     elif str(portfolio.get("mode")) == "fund":

@@ -33,7 +33,11 @@ The method conventions (rates as decimals, returns per period) are in
 - **Your books** and **Create a book** — the stored books and the form for a new one
   (*Portfolio name*, *Base currency*, *Benchmark*, *Mode*, *Objective*, *Team*).
 - **Before you buy → Find and screen candidates** — the lab itself, in three tabs:
-  **Watch list and prices**, **Find candidates**, **Evaluate**.
+  **Watch list and prices**, **Find candidates**, **Evaluate**. On **Find candidates** you first
+  choose a parameter set (Finance, Accounting, Both or Composite) and tick the criteria you will
+  use; each carries its classroom definition and formula. The shortlist table shows only those
+  columns, and you can **Save this shortlist to the book** so the criteria, the values shown and
+  your one-line reasons are printed in the report.
 - **How to choose what you hold** — the six-step guide (collapsed).
 - **Learn by example** — these four cases, in the app.
 
@@ -285,6 +289,7 @@ is not a recommendation. It is a dated record you can defend.
 | Wrong weights on the hero | the snapshot was taken before a holding change; take a new snapshot on a new date |
 | Report will not export | a snapshot is required first; the button is disabled until one exists |
 | **Capture** says automatic screenshots are not available | the optional browser is not installed on this machine; use **Open quote page ↗** and **Attach evidence** instead (the snapshot is not blocked) |
+| **Screen these symbols** refuses with "No criteria selected" | tick at least one criterion in the checklist above |
 | Evidence will not attach | the file must be PNG, JPEG or PDF and 2 MB or smaller; evidence can only be added before the snapshot for that date |
 
 ## What the lab cannot do

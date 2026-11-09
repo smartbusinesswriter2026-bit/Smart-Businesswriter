@@ -7,7 +7,7 @@ from urllib.parse import urlparse, parse_qs, quote, unquote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
 from . import finance_methods  # registers additional computation methods into methods.LIBRARY
-from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, session_paper as product_session_paper, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments, visual_input as product_visual_input
+from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, session_paper as product_session_paper, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments, visual_input as product_visual_input, portfolio_parameters as product_portfolio_parameters
 from .product import ops_log as product_ops_log
 from .product import test_runner as product_test_runner
 from .product import chat_heal as product_chat_heal
@@ -166,6 +166,17 @@ def _load_opencode_env():
         "BP_COUNCIL_MODEL": values.get("COUNCIL_MODEL"),
         "BP_LLM_MODEL_TIER2": values.get("LLM_MODEL_TIER2"),
         "BP_LLM_MODEL_TIER3": values.get("LLM_MODEL_TIER3"),
+        # The Relevance Research Agent's own provider and models.  The
+        # per-stage names let the three stages that read or write use
+        # different models; each falls back to BP_RELEVANCE_MODEL.
+        "BP_RELEVANCE_PROVIDER": values.get("BP_RELEVANCE_PROVIDER"),
+        "BP_RELEVANCE_MODEL": values.get("BP_RELEVANCE_MODEL"),
+        "BP_RELEVANCE_DISCOVERY_MODEL": values.get("BP_RELEVANCE_DISCOVERY_MODEL"),
+        "BP_RELEVANCE_EXTRACT_MODEL": values.get("BP_RELEVANCE_EXTRACT_MODEL"),
+        "BP_RELEVANCE_DESIGN_MODEL": values.get("BP_RELEVANCE_DESIGN_MODEL"),
+        "BP_RELEVANCE_AUTOSTART": values.get("BP_RELEVANCE_AUTOSTART"),
+        "BP_RELEVANCE_MAX_PAGES": values.get("BP_RELEVANCE_MAX_PAGES"),
+        "BP_RELEVANCE_BUDGET_TOKENS": values.get("BP_RELEVANCE_BUDGET_TOKENS"),
     }
     for key, value in mapping.items():
         # An exported BP_* name wins, and an explicitly *empty* one means "not
@@ -855,6 +866,90 @@ class H(BaseHTTPRequestHandler):
                 _qs = parse_qs(_ops_url.query)
                 _limit = int((_qs.get("limit") or ["50"])[0])
                 return self._send(200, {"experiments": product_autoresearch.experiments(limit=_limit)})
+            # ── Relevance Research Agent (RRA) ──
+            if _ops_url.path == "/api/ops/relevance/status":
+                from .product import relevance as _rel
+                _runs = _rel.read_runs(limit=1)
+                _latest = _runs[-1] if _runs else None
+                return self._send(200, {
+                    "status": (_latest or {}).get("status", "idle"),
+                    "latest_run": _latest,
+                    "decisions": _rel.decision_summary(),
+                    "pending": len(_rel.pending_decisions()),
+                })
+            if _ops_url.path == "/api/ops/relevance/runs":
+                from .product import relevance as _rel
+                _qs = parse_qs(_ops_url.query)
+                _limit = int((_qs.get("limit") or ["50"])[0])
+                return self._send(200, {"runs": _rel.read_runs(limit=_limit)})
+            if _ops_url.path == "/api/ops/relevance/evidence":
+                from .product import relevance as _rel
+                _qs = parse_qs(_ops_url.query)
+                _limit = int((_qs.get("limit") or ["1000"])[0])
+                return self._send(200, {"evidence": _rel.read_evidence(limit=_limit)})
+            if _ops_url.path == "/api/ops/relevance/coverage":
+                from .product import relevance as _rel
+                return self._send(200, {"coverage": _rel.read_coverage()})
+            if _ops_url.path == "/api/ops/relevance/gaps":
+                from .product import relevance as _rel
+                _qs = parse_qs(_ops_url.query)
+                _status = (_qs.get("status") or [""])[0] or None
+                _gaps = _rel.read_latest_gaps()
+                if _status:
+                    _gaps = [g for g in _gaps if g.get("status") == _status]
+                return self._send(200, {"gaps": _gaps, "total": len(_gaps)})
+            if _ops_url.path == "/api/ops/loops":
+                from .product import ops_switches as _switches
+                return self._send(200, {"capabilities": _switches.all_switches()})
+            if _ops_url.path == "/api/ops/loops/capability":
+                from .product import ops_switches as _switches
+                return self._send(200, {"capabilities": _switches.all_switches()})
+            if _ops_url.path == "/api/ops/relevance/watchlist":
+                from .product import relevance as _rel
+                return self._send(200, {"watchlist": _rel.read_watchlist()})
+            if _ops_url.path == "/api/ops/relevance/config":
+                from .product.relevance import config as _rel_config
+                return self._send(200, _rel_config.describe())
+            if _ops_url.path == "/api/ops/relevance/urls":
+                from .product.relevance import discovery as _discovery
+                return self._send(200, {"urls": _discovery.load_discovered()})
+            if _ops_url.path == "/api/ops/relevance/backtest":
+                from .product.relevance import backtest as _rel_backtest
+                from .product import relevance as _rel
+                try:
+                    _gaps = [g for g in _rel.read_latest_gaps() if g.get("status") == "open"]
+                    _rows = _rel.read_coverage()
+                    return self._send(200, _rel_backtest.evaluate(
+                        produced_gaps=_gaps, coverage_rows=_rows))
+                except Exception as e:
+                    return self._send(500, {"error": str(e)[:300]})
+            if _ops_url.path == "/api/ops/relevance/report":
+                from .product import relevance as _rel
+                import json as _json
+                _runs = _rel.read_runs(limit=1)
+                _latest = _runs[-1] if _runs else None
+                _gaps = _rel.read_gaps()
+                _open_gaps = [g for g in _gaps if g.get("status") == "open"]
+                _lines = [
+                    "# RRA Report",
+                    "",
+                    "## Run status",
+                    "Latest run: %s" % ((_latest or {}).get("run_id", "none")),
+                    "Status: %s" % ((_latest or {}).get("status", "idle")),
+                    "Evidence: %d" % ((_latest or {}).get("evidence_count", 0)),
+                    "Gaps: %d open" % len(_open_gaps),
+                    "Watch items: %d" % ((_latest or {}).get("watchitem_count", 0)),
+                    "",
+                    "## Open gaps",
+                ]
+                for g in _open_gaps:
+                    _lines.append("- **%s** (%s) — %s" % (
+                        g.get("title", ""), g.get("priority", ""), g.get("general_capability_statement", "")[:120]))
+                _lines.append("")
+                _lines.append("## Watchlist")
+                for w in _rel.read_watchlist():
+                    _lines.append("- %s: %s" % (w.get("item", ""), w.get("why_at_risk", "")))
+                return self._send(200, {"report": "\n".join(_lines)})
             if urlparse(self.path).path == "/api/ops/findings":
                 _qs = parse_qs(_ops_url.query)
                 _source = (_qs.get("source") or [""])[0] or None
@@ -1348,6 +1443,82 @@ class H(BaseHTTPRequestHandler):
             if self.path == "/api/ops/autoresearch/stop":
                 ok, msg = product_autoresearch.stop()
                 return self._send(200, {"ok": ok, "message": msg})
+            # ── The owner's switches (the loops and the search chain) ──
+            if self.path == "/api/ops/loops":
+                from .product import ops_switches as _switches
+                return self._send(200, {"capabilities": _switches.all_switches()})
+            if self.path.startswith("/api/ops/loops/") and self.path.endswith("/switch"):
+                body = self._body()
+                if not isinstance(body, dict):
+                    return self._send(422, {"error": "body must be a JSON object"})
+                key = self.path.split("/")[4]        # /api/ops/loops/{key}/switch
+                on = body.get("enabled", body.get("on", True))
+                from .product import ops_switches as _switches
+                ok, message = _switches.set_switch(key, bool(on))
+                if not ok:
+                    return self._send(422, {"error": message})
+                return self._send(200, {"ok": True, "message": message,
+                                        "capabilities": _switches.all_switches()})
+            # ── RRA POST routes ──
+            if self.path == "/api/ops/relevance/start":
+                body = self._body()
+                urls = body.get("urls", []) if isinstance(body, dict) else []
+                page_budget = body.get("page_budget") if isinstance(body, dict) else None
+                token_budget = body.get("token_budget") if isinstance(body, dict) else None
+                use_model = body.get("use_model", True) if isinstance(body, dict) else True
+                discover = body.get("discover", True) if isinstance(body, dict) else True
+                from .product import relevance as _rel
+                from .product.relevance import config as _rel_config
+                try:
+                    result = _rel.run_sweep(
+                        url_list=urls or None,
+                        page_budget=page_budget or _rel_config.max_pages(),
+                        token_budget=token_budget or _rel_config.budget_tokens(),
+                        use_model=bool(use_model),
+                        discover=bool(discover),
+                        delay=_rel_config.delay(),
+                    )
+                    return self._send(200, result)
+                except Exception as e:
+                    return self._send(500, {"error": str(e)[:300]})
+            if self.path == "/api/ops/relevance/stop":
+                from .product.relevance import job as _rel_job
+                ok, msg = _rel_job.stop()
+                return self._send(200 if ok else 409, {"ok": ok, "message": msg})
+            if self.path == "/api/ops/relevance/discover":
+                body = self._body()
+                use_model = body.get("use_model", True) if isinstance(body, dict) else True
+                from .product.relevance import discovery as _discovery
+                from .product.relevance import s0_scope as _scope
+                from .product.relevance import config as _rel_config
+                school_list = _scope.load_school_list()
+                allowlist = _scope.load_allowlist()
+                if not school_list:
+                    return self._send(422, {"error": "school list is required"})
+                try:
+                    urls, notes, per_school = _discovery.discover_urls(
+                        school_list,
+                        allowlist=allowlist, use_model=bool(use_model))
+                    path, err = _discovery.save_discovered(urls=urls, notes=notes,
+                                                           per_school=per_school)
+                    return self._send(200, {"urls": urls, "count": len(urls),
+                                            "notes": notes, "per_school": per_school,
+                                            "saved": bool(path)})
+                except Exception as e:
+                    return self._send(500, {"error": str(e)[:300]})
+            if self.path.startswith("/api/ops/relevance/gaps/") and self.path.endswith("/decision"):
+                body = self._body()
+                if not isinstance(body, dict):
+                    return self._send(422, {"error": "body must be a JSON object"})
+                gap_id = self.path.split("/")[5]  # /api/ops/relevance/gaps/{id}/decision
+                decision = body.get("decision", "")
+                reason = body.get("reason", "")
+                user = body.get("user", "owner")
+                from .product import relevance as _rel
+                ok, err = _rel.record_decision(gap_id, decision, reason=reason, user=user)
+                if not ok:
+                    return self._send(422, {"error": err})
+                return self._send(200, {"ok": True, "gap_id": gap_id, "decision": decision})
             # ── Validation findings (admin Validation tab) ──
             if self.path == "/api/ops/findings/ingest":
                 body = self._body()
@@ -1471,6 +1642,10 @@ class H(BaseHTTPRequestHandler):
                 if verb != "GET":
                     return self._send(405, {"error": "method %s is not allowed on the instrument list" % verb})
                 return self._send(200, product_instruments.bundle())
+            if len(parts) == 3 and parts[1] == "portfolios" and parts[2] == "parameters":
+                if verb != "GET":
+                    return self._send(405, {"error": "method %s is not allowed on the parameter catalog" % verb})
+                return self._send(200, product_portfolio_parameters.catalogue())
             if len(parts) == 2 and parts[1] == "portfolios":
                 if verb == "GET": return self._send(200, {"portfolios": product_portfolios.summaries()})
                 if verb == "POST":
@@ -1537,6 +1712,11 @@ class H(BaseHTTPRequestHandler):
                 return self._portfolio_evidence_capture(portfolio_id, body or {})
             if action == "evidence" and verb == "POST":
                 return self._portfolio_evidence(portfolio_id, body or {})
+            if action == "selection" and verb == "GET" and len(parts) == 4:
+                return self._send(200, {"selection": product_portfolios.selection(portfolio_id)})
+            if action == "selection" and verb == "POST" and len(parts) == 4:
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                return self._send(200, product_portfolios.save_selection(portfolio_id, body))
             if action == "export" and verb == "POST":
                 return self._portfolio_export(portfolio_id, body or {})
             return self._send(404, {"error": "not found"})
@@ -1942,20 +2122,21 @@ def serve(port=8000, host="127.0.0.1", sandbox=True, models=None):
     SANDBOX_ENABLED = bool(sandbox)
     print(f"Workbench on http://{host}:{port} (sandbox {'ON' if sandbox else 'OFF: development only'}; model assistance {'ON: ' + MODELS.builder.name + ' ' + MODELS.builder.model if MODELS else 'OFF'}; literature ON: {', '.join(LITERATURE_SOURCES)})")
     print("Health: /api/health | cases: /api/cases | request log: " + (str(product_ops.request_log_path()) if product_ops.request_log_path() else "disabled"))
-    # Start the repair loop when there is something to repair.  A queue of open errors
-    # beside an "idle" loop is the defect the owner reported: the loop only ran when
-    # someone pressed Start.  Auto-start is opt-out with BP_AUTORESEARCH_AUTOSTART=0.
+    # The owner's switches decide what runs.  Every loop is **off by default**
+    # and starts only when its switch is on; the search chain is published
+    # from the same place.  The old behaviour — a repair loop that started by
+    # itself whenever an error was waiting — is now a switch, and the default
+    # is off.
     try:
-        import os as _os
-        if _os.environ.get("BP_AUTORESEARCH_AUTOSTART", "1") != "0":
-            from .product import ops_log as _ol
-            waiting = [e for e in _ol.list_errors(limit=200)
-                       if e.get("problem") or e.get("case_id")]
-            if waiting:
-                product_autoresearch.start()
-                print("Repair loop: started (%d replayable error(s) waiting)" % len(waiting))
+        from .product import ops_switches as _switches
+        applied = _switches.apply_all()
+        for entry in applied.get("loops", []):
+            print("%s: %s" % (entry.get("key"), "started" if entry.get("ok") else
+                              ("skipped — " + str(entry.get("message"))[:80])))
+        if applied.get("search_order"):
+            print("Search chain: %s" % applied["search_order"])
     except Exception as _exc:
-        print("Repair loop: auto-start skipped (%s)" % _exc)
+        print("Switches: not applied (%s)" % _exc)
     class _Reusable(ThreadingHTTPServer):
         allow_reuse_address = True
     try:

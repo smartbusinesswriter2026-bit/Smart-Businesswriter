@@ -54,6 +54,43 @@ computation changed.
 **Next.** Five Forces, the business-plan evidence blocks, the quality modules,
 the portfolio/canvas modules, then the remaining profiles, one slice at a time.
 
+## 2026-11-10 - [design] The owner's switches, the growth loop, and a search backup that works
+
+**Ask.** Add the search backups as capabilities, and give the growth loop and
+the repair loop switch buttons: on by the owner's hand, off by default, and
+working the moment they are turned on.
+
+**Did.**
+
+**The switches.**  `ops_switches` is a capability registry: three loops and
+three search providers.  Every loop is off by default and starts only when its
+switch is on.  The repair loop no longer starts by itself at boot when an
+error is waiting — that behaviour became a switch, and the default is off.  The
+console has a **Loops** tab under Self-Healing.
+
+**The growth loop.**  It takes an open capability-gap finding and writes a
+PROVISIONAL scaffold: the method stub, the capability entry, the preset, the
+test sketch and a README that carries the gap and the lessons the error
+database already holds.  It wires nothing in, commits nothing and resolves
+nothing; a human writes the method and runs the suite.
+
+**The search backup.**  The chain is `brave -> firecrawl -> opengo`, and the
+last leg is the OpenCode Go gateway running DeepSeek V4.1 Flash with its
+websearch tool.  Four defects in that provider were found on the way:
+
+1. the session was killed at the websearch **tool call**, before the tool
+   returned its results;
+2. the parser read the older plain-text shape while the tool now answers in
+   **JSON**;
+3. the **site filter never reached the prompt**, so every answer came from the
+   open web and was dropped by the curated filter;
+4. a search every provider **refused** was cached as "this source has
+   nothing", poisoning the cache for its whole TTL.
+
+**Measured.**  Brave 429, Firecrawl 429, OpenCode answers with two real INSEAD
+pages.  The switches: growth loop on → running within a second; off → stopped
+within a second.
+
 ## 2026-11-10 - [design] The Relevance Research Agent checks itself, and the framework question is settled
 
 **Ask.** Build the RRA end to end, then use it to find the capability gaps the
@@ -185,6 +222,28 @@ the digit refusal, Gantt build/export, the end-before-start refusal, and the
 area/scatter/candlestick builds and refusals), `test_visual_input.py` 43,
 `test_product_charts.py` 23. Live browser check of the SWOT 2x2, the business
 model board and the dated Gantt.
+
+## 2026-11-10 - [product] The Portfolio Lab guides stock selection by classroom criteria
+
+**Ask.** The lab should guide primarily students in picking stocks using parameters commonly
+taught in finance and accounting classes, with the result and the rationale recorded, so the
+pipeline can explain why a stock was chosen over the course of weeks or days.
+
+**Did.**
+
+- `src/bp/product/portfolio_parameters.py` (new): four sets (Finance, Accounting, Both, Composite)
+  with 22 parameters; each carries label, definition, formula, unit, source (sourced/manual) and
+  optional screener field. `catalogue()`, `parameters_for(set)`, `get(id)`. No value is invented.
+- Route `GET /api/portfolios/parameters` serves the catalog; `POST /api/portfolios/{id}/selection`
+  stores the set, criteria and rows; `portfolios.selection` reads it back.
+- `portfolio_docx.render` adds a **Selection criteria and shortlist** section (criteria labels,
+  candidate values, reasons) or a named gap when nothing was stored.
+- Page: a guided checklist on **Find candidates** (set radio + per-criterion checkbox with
+  definition tooltip), a dynamic shortlist table with only the chosen columns, a per-row
+  "Your reason" input, and **Save this shortlist to the book**.
+- Manual: `docs/PORTFOLIO_LAB_STUDENT_GUIDE.md` gains the criteria description, troubleshooting
+  row and glossary is unchanged.
+- Tests: `tests/test_portfolio_parameters.py` (11), `tests/test_product_portfolios.py` (32 total).
 
 ## 2026-11-09 - [product] The Portfolio Lab carries dated screenshot evidence
 

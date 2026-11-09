@@ -1967,6 +1967,9 @@ async function loadPortfolioPage() {
     if (!state.instruments) {
       try { state.instruments = await api("/api/portfolios/instruments"); } catch (error) { state.instruments = null; }
     }
+    if (!state.portfolioParameters) {
+      try { state.portfolioParameters = await api("/api/portfolios/parameters"); } catch (error) { state.portfolioParameters = null; }
+    }
     if (state.portfolioId) {
       const bundle = await api("/api/portfolios/" + encodeURIComponent(state.portfolioId));
       state.portfolioBundle = bundle;
@@ -7059,6 +7062,10 @@ function portfolioLabPanel(initialTab) {
       '<div id="plwatch" aria-live="polite">' + loading("Reading tracked instruments") + '</div>' +
     '</section>' +
     '<section class="plpanel" id="plpanel-screen">' +
+      '<div class="card" style="margin:0 0 12px"><h3 style="margin-top:0">Choose your criteria (guided checklist)</h3>' +
+        '<p class="muted" style="margin:0 0 8px">Pick a parameter set from your class, tick the criteria you will use, then screen. Each criterion carries its classroom definition; a missing value is a named gap, not a zero. Nothing is recommended.</p>' +
+        '<div class="row" style="margin-bottom:8px" id="plparamsets">' + pfParamSetRadios() + '</div>' +
+        '<div id="plparamlist">' + pfParamCheckboxes() + '</div></div>' +
       '<div class="pffieldgrid">' +
         '<div class="fieldgroup"><label class="field" for="plcands">Symbols to screen</label><input type="text" id="plcands" placeholder="AAPL, MSFT, JPM" aria-label="Candidate symbols, comma separated">' +
           '<div class="row" style="margin-top:6px"><button class="btn sm" type="button" id="plusewatch">Use my watch list</button></div></div>' +
@@ -7101,8 +7108,18 @@ function bindPortfolioLab() {
   const newsyms = $("#plnewsyms");
   if (newsyms) newsyms.onkeydown = (event) => { if (event.key === "Enter") plAddSymbols(); };
   $$("[data-pltab]").forEach((button) => { button.onclick = () => plShowTab(button.dataset.pltab); });
+  $$('input[name="plparamset"]').forEach((radio) => {
+    radio.onchange = () => { state.pfParamSet = radio.value; const box = $("#plparamlist"); if (box) box.innerHTML = pfParamCheckboxes(); bindParamCheckboxes(); };
+  });
+  bindParamCheckboxes();
   plShowTab(state.plTab || "watch");
   plLoadWatch();
+}
+
+function bindParamCheckboxes() {
+  $$("[data-plparam]").forEach((cb) => {
+    cb.onchange = () => { if (!state.pfParamChecked) state.pfParamChecked = {}; state.pfParamChecked[cb.dataset.plparam] = cb.checked; };
+  });
 }
 
 function plShowTab(name) {
@@ -7131,6 +7148,36 @@ function pfQuoteProviders() {
 }
 function pfQuoteOptions() {
   return pfQuoteProviders().map((id) => '<option value="' + id + '">' + PF_PROVIDER_LABELS[id] + "</option>").join("");
+}
+function pfParamCatalog() { return (state.portfolioParameters && state.portfolioParameters.parameters) || []; }
+function pfParamSets() { return (state.portfolioParameters && state.portfolioParameters.sets) || []; }
+function pfParamSet() { return state.pfParamSet || "finance"; }
+function pfParamChecked() { if (!state.pfParamChecked) state.pfParamChecked = {}; return state.pfParamChecked; }
+function pfParamSetRadios() {
+  const chosen = pfParamSet();
+  return pfParamSets().map((s) =>
+    '<label class="pfcheck" style="margin-right:12px"><input type="radio" name="plparamset" value="' + esc(s.id) +
+    '" ' + (chosen === s.id ? "checked" : "") + '> <strong>' + esc(s.label) + '</strong> <span class="muted">' +
+    esc(s.description) + '</span></label>').join("");
+}
+function pfParamCheckboxes() {
+  const set = pfParamSet();
+  const checked = pfParamChecked();
+  const params = pfParamCatalog().filter((p) => (p.sets || []).indexOf(set) >= 0 ||
+    (set === "both" && ((p.sets || []).indexOf("finance") >= 0 || (p.sets || []).indexOf("accounting") >= 0)));
+  if (!params.length) return '<p class="muted">No parameters for this set.</p>';
+  return '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px">' +
+    params.map((p) => {
+      const isOn = checked[p.id] !== false && checked[p.id] !== undefined ? checked[p.id] : true;
+      // default: checked on first render
+      if (checked[p.id] === undefined) checked[p.id] = true;
+      const on = checked[p.id];
+      return '<label class="pfcheck" title="' + esc(p.formula) + '">' +
+        '<input type="checkbox" data-plparam="' + esc(p.id) + '" ' + (on ? "checked" : "") + '> ' +
+        '<strong>' + esc(p.label) + '</strong> ' +
+        '<span class="muted" style="font-size:11px">(' + esc(p.source) + ')</span>' +
+        '<div class="muted" style="font-size:11px;margin-left:20px">' + esc(p.definition) + '</div></label>';
+    }).join("") + '</div>';
 }
 function plQuotesAvailable() { return pfQuoteProviders().length > 0; }
 function plProvider() {
@@ -7203,8 +7250,28 @@ function plRenderWatch(data) {
   plFillPrefillSelects();
 }
 
+function plCheckedParams() {
+  const checked = pfParamChecked();
+  const set = pfParamSet();
+  return pfParamCatalog().filter((p) => {
+    if (checked[p.id] === false) return false;
+    if (checked[p.id] === undefined) return false; // not explicitly ticked
+    return (p.sets || []).indexOf(set) >= 0 ||
+      (set === "both" && ((p.sets || []).indexOf("finance") >= 0 || (p.sets || []).indexOf("accounting") >= 0));
+  });
+}
+
+function plValueFor(row, param) {
+  const field = param.screener_field;
+  if (!field) return null; // manual: student types
+  const v = row[field];
+  if (v === null || v === undefined || v === "") return null;
+  return v;
+}
+
 function plRenderScreen(data) {
   const box = $("#plscreenout"); if (!box || !data || !data.rows) return;
+  const checked = plCheckedParams();
   const pct = (v) => (v === null || v === undefined || v === "") ? "n/a" : (Number(v) * 100).toFixed(2) + "%";
   const num = (v, d) => (v === null || v === undefined || v === "") ? "n/a" : Number(v).toFixed(d);
   const mcap = (v) => {
@@ -7215,17 +7282,77 @@ function plRenderScreen(data) {
     if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
     return String(n);
   };
+  const fmt = (param, v) => {
+    if (v === null || v === undefined || v === "") return '<span class="muted">not sourced — type it</span>';
+    if (param.id === "market_cap") return mcap(v);
+    if (param.id === "pe_ratio" || param.id === "pb_ratio" || param.id === "beta" ||
+        param.id === "sharpe" || param.id === "dupont_roe") return num(v, 2);
+    if (param.id === "roe" || param.id === "roa" || param.id === "gross_margin" ||
+        param.id === "net_margin" || param.id === "asset_turnover" || param.id === "inventory_turnover" ||
+        param.id === "dividend_yield" || param.id === "eps_growth" || param.id === "one_day_return" ||
+        param.id === "mean_return" || param.id === "current_ratio" || param.id === "quick_ratio" ||
+        param.id === "debt_to_equity") {
+      // ratios may be decimals or percent; show as number
+      return num(v, 4);
+    }
+    return esc(String(v));
+  };
+  if (!checked.length) {
+    box.innerHTML = banner("blocked", "No criteria selected",
+      "<div>Tick at least one criterion in the checklist above, then screen again.</div>");
+    return;
+  }
+  // header
+  let head = '<thead><tr><th>Symbol</th>';
+  checked.forEach((p) => { head += '<th title="' + esc(p.formula) + '">' + esc(p.label) + '</th>'; });
+  head += '<th>Gaps</th><th>Your reason</th></tr></thead>';
   const rows = data.rows.map((r) => {
-    if (r.error) return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td colspan="7" class="muted">' + esc(r.error) + "</td></tr>";
-    return '<tr><td><strong>' + esc(r.symbol) + '</strong> <a class="muted" href="https://finance.yahoo.com/quote/' + encodeURIComponent(r.symbol) + '" target="_blank" rel="noopener" style="font-size:11px">quote ↗</a></td><td>' + esc(r.price || "n/a") + '</td><td>' +
-      esc(pct(r.one_day_return)) + '</td><td>' + esc(mcap(r.market_cap)) + '</td><td>' + esc(num(r.pe_ratio, 2)) +
-      '</td><td>' + esc(pct(r.roe)) + '</td><td>' +
-      esc(r.sharpe === null || r.sharpe === undefined ? "n/a" : Number(r.sharpe).toFixed(2)) +
-      '</td><td class="muted">' + esc((r.gaps || []).join("; ")) + "</td></tr>";
+    if (r.error) return '<tr><td><strong>' + esc(r.symbol) + '</strong></td><td colspan="' + (checked.length + 2) + '" class="muted">' + esc(r.error) + "</td></tr>";
+    let html = '<tr><td><strong>' + esc(r.symbol) + '</strong> <a class="muted" href="https://finance.yahoo.com/quote/' + encodeURIComponent(r.symbol) + '" target="_blank" rel="noopener" style="font-size:11px">quote ↗</a></td>';
+    checked.forEach((p) => {
+      const v = plValueFor(r, p);
+      html += '<td>' + fmt(p, v) + '</td>';
+    });
+    html += '<td class="muted">' + esc((r.gaps || []).join("; ")) + '</td>';
+    html += '<td><input type="text" data-pfreason="' + esc(r.symbol) + '" placeholder="why this name" style="width:140px"></td></tr>';
+    return html;
   }).join("");
   box.innerHTML = '<div class="tablewrap"><table><caption>Shortlist (' + data.count + ') - sourced, not a recommendation</caption>' +
-    '<thead><tr><th>Symbol</th><th>Price</th><th>1-day</th><th>Mkt cap</th><th>P/E</th><th>ROE</th><th>Sharpe</th><th>Gaps</th></tr></thead><tbody>' +
-    rows + '</tbody></table></div><p class="muted">' + esc(data.note) + "</p>";
+    head + '<tbody>' + rows + '</tbody></table></div>' +
+    '<p class="muted">' + esc(data.note) + "</p>" +
+    '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pfsaveshortlist">Save this shortlist to the book</button>' +
+    '<span class="muted">Stores the criteria, the values shown and your reasons in the book and the report.</span></div>';
+  const saveBtn = $("#pfsaveshortlist"); if (saveBtn) saveBtn.onclick = saveShortlist;
+  // restore any typed reasons
+  if (state.pfReasons) {
+    Object.keys(state.pfReasons).forEach((sym) => {
+      const el = $('[data-pfreason="' + sym + '"]');
+      if (el) el.value = state.pfReasons[sym];
+    });
+  }
+}
+
+async function saveShortlist() {
+  const message = $("#pfmsg");
+  if (!state.portfolioId) { toast("Open a book first."); return; }
+  const checked = plCheckedParams();
+  if (!checked.length) { toast("Tick at least one criterion first."); return; }
+  const rows = (state.plScreenData && state.plScreenData.rows) || [];
+  const outRows = rows.filter((r) => !r.error).map((r) => {
+    const el = $('[data-pfreason="' + r.symbol + '"]');
+    const reason = el ? el.value.trim() : "";
+    if (!state.pfReasons) state.pfReasons = {};
+    state.pfReasons[r.symbol] = reason;
+    const values = {};
+    checked.forEach((p) => { values[p.id] = plValueFor(r, p); });
+    return { symbol: r.symbol, values: values, reason: reason };
+  });
+  try {
+    await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/selection", {
+      set: pfParamSet(), parameters: checked.map((p) => p.id), rows: outRows
+    });
+    toast("Shortlist saved to the book.");
+  } catch (e) { message.innerHTML = errorBanner(e); }
 }
 
 let plLastPrefill = null;
@@ -7358,12 +7485,14 @@ async function plScreen() {
   }
   box.innerHTML = loading("Screening " + symbols.length + " symbol(s)");
   try {
-    plRenderScreen(await post("/api/cases/screen", {
+    const data = await post("/api/cases/screen", {
       symbols: symbols, provider: plProvider(),
       criteria: { sort: ($("#plsort") || {}).value || "one_day_return", order: "desc" },
       include_fundamentals: !!($("#plfund") || {}).checked,
       fundamentals_provider: ($("#plfundprov") || {}).value || "alphavantage"
-    }));
+    });
+    state.plScreenData = data;
+    plRenderScreen(data);
   } catch (e) { box.innerHTML = errorBanner(e); }
 }
 

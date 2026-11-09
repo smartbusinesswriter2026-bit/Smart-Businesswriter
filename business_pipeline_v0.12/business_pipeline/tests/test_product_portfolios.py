@@ -383,5 +383,43 @@ class RoutesTest(unittest.TestCase):
         self.assertEqual(caught.exception.code, 422)
 
 
+    def test_selection_is_stored_and_printed_in_the_report(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Selection route"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid,
+              {"symbol": "AAPL", "shares": "10", "cost_basis": "150"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-11-09", "price": "150", "source": "user"})
+        status, saved = _post(self.base, "/api/portfolios/%s/selection" % pid, {
+            "set": "finance", "parameters": ["pe_ratio", "roe"],
+            "rows": [{"symbol": "AAPL", "values": {"pe_ratio": 20.5, "roe": 0.25},
+                      "reason": "cheap quality"}]})
+        self.assertEqual(status, 200)
+        self.assertEqual(saved["parameters"], ["pe_ratio", "roe"])
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+              {"date": "2026-11-09", "cash": "0", "prices": {"AAPL": {"price": "150"}}})
+        status, exported = _post(self.base, "/api/portfolios/%s/export" % pid, {"format": "docx"})
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(io.BytesIO(base64.b64decode(exported["data"]))) as archive:
+            xml = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("Selection criteria and shortlist", xml)
+        self.assertIn("Price-to-earnings", xml)
+        self.assertIn("cheap quality", xml)
+
+    def test_a_book_without_a_selection_prints_a_named_gap(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "No selection"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-11-09", "price": "150", "source": "user"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+              {"date": "2026-11-09", "cash": "0", "prices": {"AAPL": {"price": "150"}}})
+        status, exported = _post(self.base, "/api/portfolios/%s/export" % pid, {"format": "docx"})
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(io.BytesIO(base64.b64decode(exported["data"]))) as archive:
+            xml = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("No selection record was stored", xml)
+
+
 if __name__ == "__main__":
     unittest.main()

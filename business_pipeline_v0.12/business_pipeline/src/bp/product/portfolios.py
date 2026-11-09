@@ -773,6 +773,52 @@ def delete(portfolio_id):
     return True
 
 
+def save_selection(portfolio_id, selection):
+    """Store the student's stock-selection record on the portfolio.
+
+    ``selection`` is a dict with ``set`` (str), ``parameters`` (list of ids) and
+    ``rows`` (list of {symbol, values, reason}).  Nothing is computed; the values
+    are what the screener showed or what the student typed.
+    """
+    portfolio = _portfolio(portfolio_id)
+    if not isinstance(selection, dict):
+        raise ValueError("selection must be an object")
+    set_id = str(selection.get("set") or "").strip().lower()
+    parameters = selection.get("parameters") or []
+    if not isinstance(parameters, list):
+        raise ValueError("parameters must be a list")
+    parameters = [str(p).strip() for p in parameters if str(p).strip()]
+    rows = selection.get("rows") or []
+    if not isinstance(rows, list):
+        raise ValueError("rows must be a list")
+    cleaned_rows = []
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("each row must be an object")
+        symbol = _symbol(row.get("symbol"))
+        values = row.get("values")
+        if values is not None and not isinstance(values, dict):
+            raise ValueError("row.values must be an object")
+        values = values or {}
+        cleaned_values = {str(k): (None if v in (None, "") else str(v)) for k, v in values.items()}
+        reason = str(row.get("reason") or "").strip()[:500]
+        cleaned_rows.append({"symbol": symbol, "values": cleaned_values, "reason": reason})
+    portfolio["selection"] = {
+        "set": set_id,
+        "parameters": parameters,
+        "rows": cleaned_rows,
+        "recorded_at": _now(),
+    }
+    portfolio["updated_at"] = _now()
+    _write(_path(portfolio_id, "portfolio.json"), portfolio)
+    return portfolio["selection"]
+
+
+def selection(portfolio_id):
+    portfolio = _portfolio(portfolio_id)
+    return portfolio.get("selection")
+
+
 def portfolio_fit(portfolio_id, candidate_symbol, candidate_weight):
     """Show what adding a candidate does to concentration, sector, and risk contribution.
 
