@@ -721,9 +721,10 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - **A chart reaches a spreadsheet two ways, and the native one needs numbers.** A bar, line, stacked bar,
   pie or pareto figure is written as **cells plus a `<c:chart>` part**: the labels and values sit on the
   sheet above a `xdr:graphicFrame`, the chart caches the record's own strings and references those cells,
-  so Excel redraws it and a reader can check every figure in the cells. A waterfall, a gantt and a table
-  keep their anchored picture, because there is no faithful native shape for them; a figure whose values
-  are not all numbers also keeps its picture. A picture is only carried when a rasterizer produced the PNG.
+  so Excel redraws it and a reader can check every figure in the cells. A waterfall, an area, a scatter,
+  a candlestick, a gantt and a table keep their anchored picture, because there is no faithful native
+  shape for them; a figure whose values are not all numbers also keeps its picture. A picture is only
+  carried when a rasterizer produced the PNG.
 - **A pareto is drawn from two stored series.** Each entry names its bar artifact and its running-total
   artifact; the drawing checks that the running total never falls, and scales the line to its own stored
   maximum. It never sums the bars to make the curve, so a pareto the record does not hold cannot appear.
@@ -747,6 +748,44 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - **A PNG or PDF needs a rasterizer or Chrome.** Without one the export is refused with the reason,
   never an empty file.
 
+## Added with the chart reader (B-250)
+- **The reader does not guess a decimal separator.** A single three-digit
+  separator is read as thousands (`1,200` -> 1200, `1.200` -> 1200) and shown as
+  parsed. Write `1.2` when you mean one point two.
+- **A bare number gets an `Item N` label.** The label is marked "auto" and is
+  editable; the reader does not pretend it came from the student.
+- **A pareto is never summed.** It needs a supplied running total on every line;
+  a missing or falling running total is refused. This keeps B-248.
+- **A PDF table may flatten.** DOCX tables are read structurally; a PDF whose
+  labels and values are on separate lines is refused rather than guessed.
+- **A scanned PDF needs a text layer or OCR.** Without one the reader refuses
+  with the reader's reason.
+- **An instruction file with no figures is refused.** The reader will not invent
+  a table from prose.
+- **An XLSX upload reads the first sheet.** The report names the sheet it used.
+  If the data is on another sheet, save that sheet as a separate workbook or CSV.
+- **The reader caps at 200 points.** A larger input is cut at the cap and the
+  warning says so; the rest is not silently charted.
+- **The public Cloudflare Pages copy is static.** The read/build routes run on
+  the local workbench server; the published site has no backend, so the Chart
+  window's upload and create actions work where the existing visuals API works.
+- **A framework diagram carries words, not numbers.** The existing T4 rule
+  still applies: write "Marketing mix", not "4Ps". A label with a digit is
+  refused with that hint.
+- **A Gantt timeline uses day numbers or ISO dates for every task.** Mixing the
+  two forms is refused. The date text is a stored display artifact; the bars
+  use day offsets, so the x-axis is numbered from the earliest start.
+- **A scatter or candlestick line carries more numbers than a bar.** Typed input
+  and an instruction file read `label, x, y` and `label, open, high, low, close`.
+  A data-file upload still maps only label/value (and the pareto running total),
+  so a scatter or candlestick from a CSV/XLSX must be typed or come from an
+  instruction file. A scatter needs an x on every point; a candlestick refuses a
+  high below its low or an open/close outside the high-low range.
+- **An area chart reuses the line values.** It draws the same stored points as a
+  line with a filled area; it does not stack several series.
+- **A framework diagram is structure only.** It does not score, rank or compute;
+  the subject worksheets still own the evidence and analysis.
+
 ## Added with the offline test suite
 - **The suite never reaches a model.** `bp.server` maps `Backend/.env` onto `BP_LLM_PROVIDER`,
   `BP_OPENGO_API_KEY` and their siblings when those names are *absent*, so a developer machine
@@ -759,3 +798,149 @@ If an assignment needs one of these, say so in the limitations and show the meth
 - **The suite therefore does not prove the model lanes against a live provider.** They are
   covered by stubs and by the provider unit tests with an injected opener; a live call is still
   the owner's first run, as `bp/llm.py` says of every provider.
+
+## Deferred with the silent plan release (owner decision, 2026-11-09)
+- **Full feasibility and project-proposal guide schemas.** The silent profiles read the labelled
+  facts they are given (project, market, technical, legal, budget, beneficiaries, activities) and
+  write the 13 guide sections. They do not yet parse every table in those guides; the remaining
+  schema is deferred, not silently invented.
+- **Tax beyond the US effective-rate preset.** The product applies a stated rate, or 21% US
+  federal corporate when none is stated, and labels the basis. Brackets, state tax, payroll tax,
+  credits, losses carried forward and other jurisdictions are deferred. It is not a tax return
+  and not tax advice.
+- **Cited Market Analysis research.** Home does not retrieve market evidence for the plan's
+  Market Analysis. The section is omitted when the brief does not support it; no uncited market
+  claim is written.
+
+These are accepted limitations for deployment, not open defects. A later lane can add each
+without changing the silent Home contract.
+
+## Added with the framework writing modules (B-251)
+- **The rating is a judgment, not a measurement.** The model proposes it from the accepted items, code validates it, and the student confirms or overrides it. A rating can be wrong about the world; it cannot be unsupported by the items, because every fact or inference driver must name one.
+- **The tier, recency and strength rules are product conventions.** Tier A-D, the three-year recency window and the Strong/Moderate/Weak scale are declared in the audit note. They are not claims the source makes, and an unknown database defaults to C, never A.
+- **A thin run prints "not rated".** With no model, or when the model's reading is refused, the draft carries the evidence and the audit but no rating. The paper says so rather than inventing one.
+- **The Diamond's outcome evidence is the model's section.** When it is empty, the audit labels the whole analysis an explanatory hypothesis; it never assumes an outcome.
+- **Generic Strategies coverage depends on the model naming a value-chain area.** A driver without an area is not counted, so the coverage check can fail on an analysis that is otherwise sound; the audit says which areas it saw.
+
+## Added with the quiet project-plan lane (B-252)
+- **The record is the brief's tables.** The project plan reads a labelled charter and classified tables; it does not invent a work package, a cost, an owner, a duration, a RACI letter or a risk from prose alone. A brief with no WBS table produces a paper whose tables are missing or empty and whose `project_plan.validate` problems are named, not a guessed breakdown.
+- **No web evidence is retrieved for a project plan.** The record is the source, so the paper cites none and its References section says "No sources were used." That is accepted for a planning document; it is not a literature review.
+- **The chart is a Gantt, and only when the schedule ran.** There is no network diagram, S-curve or resource histogram yet, and PowerPoint is a later addition. If the frozen schedule did not run, or Plotly/kaleido is absent so the PNG cannot be drawn, the paper keeps its schedule table and simply carries no chart.
+- **Height and dates are periods, not calendar dates.** The schedule's early/late values and the critical path are in the declared duration unit; the plan does not convert them to calendar dates and does not level resources.
+- **A revision preserves the recorded tables; it cannot add one.** `_rebuild_outline` reattaches each section's stored figure and strips model-echoed table rows. A table the record did not carry stays absent, and a change to scope must follow the plan's change-control route.
+- **The simplified three-table feasibility route is deferred.** The full feasibility study keeps its existing guide route; the owner-rejected multi-day rebuild is not started.
+
+## Added with the project deck and the three-table feasibility study (B-253)
+- **The project plan and the three-table feasibility study each get a dedicated deck.** The project deck has a title slide, the summary claim, the Schedule chart and one table slide per recorded table; the feasibility deck has a title slide, the summary claim and the market, cost and returns tables. Neither carries a chart beyond the project Gantt, and both use only a fade; speaker notes carry the section prose. Other papers use the generic `deck.from_paper` path, which reorders the paper's own sentences and includes only figures the registry holds. A deck is an export, never a second paper.
+- **The simplified feasibility study is break-even, not a full appraisal.** It computes the expected revenue, break-even volume and revenue, contribution margin and margin of safety from the declared demand, price, fixed cost and variable cost. It does not build projected statements, sensitivity tables, payback, NPV or tax; the full guide route still exists for a narrative brief and its own blocks.
+- **The market table uses the declared demand as the expected volume.** No market share is inferred and no market is forecast; the paper says so. A brief that states only a market size in currency, or only a share, is a guide-route brief or a named gap, not a three-table one.
+- **A subject door names its profile once.** If the student opens Home directly, the lane is chosen by the brief's own words or its WBS/table shape; a completely unlabelled narrative with no tables is not guessed into the project or feasibility lane.
+- **A project title falls back to the brief's first line.** The fallback is used only when no label states a title, the line has no colon, is at most 90 characters and is not a table header; otherwise the title stays missing and is named.
+
+
+
+## Added with the portfolio, growth and canvas modules (B-252)
+- **GE-McKinsey's factor table is not parsed from a brief yet.** The adapter accepts structured axes (factor, weight, score per unit); when the brief holds only a portfolio table, the paper names the missing factor table rather than inventing scores.
+- **The GE sensitivity test is stated, not computed.** The guideline asks how the zone changes when the top weights move; the module names the test but the first build does not run the second weighted pass.
+- **BCG accepts a share-only table.** When revenue and market size are absent, the adapter passes the declared own share and competitor share to `market_share` (the method only needs the ratio). A table with revenue and market size is preferred and gives the same relative share.
+- **An H test is model-proposed.** The register prints the test, the success criterion and the confidence; it does not run the experiment.
+- **The canvas consistency checks are model prose.** The paper prints them, but there is no deterministic link checker that proves every segment has a revenue stream; that is the next refinement.
+
+## Added with the quality modules and framework charts (B-255)
+- **RPN and Five-S scores now come from the frozen core** (`fmea_rpn`, `five_s_score`), and `quality_reader` reads the brief's FMEA/5S/PDCA tables. PDCA measures are read but not yet charted from a pasted table, and a renamed Five-S category is a named gap rather than a guessed match.
+- **The FMEA worksheet, Five-S scorecard, PDCA cycle log and RCA verification table are model-supplied.** `clean_tables` checks their shape and the paper scans them for template text; a deterministic reader for those tables is the next refinement.
+- **The chart values in a model-supplied chart are shape-checked, not traced number by number.** The BCG and GE charts are safe because they plot the core's calculation rows; a model chart is refused when its shape is impossible, and the audit remains the place to challenge a value.
+- **The RCA chart is a tree of the key why-chain, not a full fishbone.** The pipeline has a tree diagram and a matrix, but no fishbone kind; a fishbone layout is a renderer addition, not a data change.
+
+## Added with the Relevance Research Agent (B-257)
+- **The RRA reads what a school publishes, not what it teaches.**  A curriculum page is a
+  curriculum page; it is not the teaching, the marking or the level.  The evidence records a
+  url, a retrieval time, a SHA-256, a tier and a verbatim excerpt under 25 words — that is a
+  citation of what the page said, and it is the most the system can honestly claim.
+- **The sampling frame is a sample.**  `qa/relevance/schools.json` lists twenty-five business
+  schools in the United States and Europe and the bodies to watch.  It is English-language,
+  elite and Western by construction, while the product is global.  A region is recorded on
+  every evidence record so the bias is visible in the data, not hidden in the design.
+- **Most syllabi are not public.**  Where a school does not publish its core-course list or
+  its assessment briefs, the RRA cannot find one: it does not infer the curriculum from the
+  school's reputation, and a gap it cannot fill is reported as a gap.
+- **The model may only propose.**  It can draft a search query, pick the passage that matters
+  and draft the spec fields; the code checks every one of them.  A paraphrase in place of an
+  excerpt is discarded, and a URL the search did not return is never read.  It never decides
+  what a school teaches and never writes a gap spec that survives on its own.
+- **Nothing is applied.**  There is no apply endpoint and no autonomous code writing.  A gap
+  reaches the growth loop only through a recorded human decision, and the growth loop still
+  needs a human to write the method logic and run the suite before a capability is committed.
+- **A paywalled source is a pointer, not evidence.**  It is flagged and marked as such; the
+  system never circumvents a paywall, and a snippet is never quoted as if the full text had
+  been read.
+- **The back-test measures the RRA against the owner's own list.**  Recall of 12/12 with 0
+  false flags means the harness agrees with a seeded set the owner wrote; it is not proof
+  against the world's curricula.  The set is a floor, not a certificate.
+- **The catalogue snapshot can go stale.**  It is a read-only export of 127 capabilities, 89
+  frameworks and 216 methods.  `check_drift()` says when the code has moved on; until it is
+  regenerated the Mapper compares against the older snapshot.
+- **The scheduled sweep is off by default.**  `BP_RELEVANCE_AUTOSTART` is 0 and
+  `BP_RELEVANCE_INTERVAL` is thirty days.  The RRA runs when the owner runs it.
+
+## Added with framework-aware research (B-258)
+- **Every profile that retrieves evidence declares a research block today.** The leadership/culture/
+  ethics batch completes the set: change management, logic models and theory of change route to
+  people, the culture frameworks to culture, and ethical dilemma / stakeholder CSR to ethics. Four
+  profiles are quote-only and have no block (ethical decision process, leader effectiveness,
+  leadership development, organisational culture) because every part is the student's own. VRIO and
+  the value stream map are deliberately without a block: VRIO retrieves no external evidence by
+  design, and the value stream map is quote/gap only.
+- **The required tiers are a product convention, not a universal rule.** PESTEL asks for an
+  official or data source where the topic has one; Five Forces asks for data or research because
+  industry structure is rarely published as a primary statistic; the business plan asks for
+  official, data or research for market, customers and competition, and official or data for
+  regulation; BCG and GE ask for data or research; the quality modules, the canvases, the people
+  frameworks and the project/operations profiles require no tier because their blocks are the
+  student's own. A topic whose registry has only research or press sources would surface more named
+  gaps. The convention is printed in the ledger so a reader can challenge it, and it is never used
+  to invent a replacement source.
+- **The ledger is run-state, not plan-state.** It records what the retriever saw and why a
+  candidate was refused, and it is stored on the run; it does not change the frozen plan hash
+  or a citation.
+
+
+
+
+
+
+
+## Measured limits of the Relevance Research Agent (B-259)
+
+These were measured, not assumed.  Each one is a limit on what the RRA can
+*see*, and each one makes the RRA withhold rather than over-report.
+
+- **The search provider rate-limits.**  A full sweep — every topic against
+  every school — runs into HTTP 429 and comes back with nothing.  That looks
+  like a finding and is not one: the sweep would report "no framework is
+  taught anywhere" from a provider that refused to answer.  The sweep now
+  carries a **search budget** (`DEFAULT_SEARCH_BUDGET`, 120) and says when it
+  stops.  A frame this size needs several sweeps, not one.
+- **A site-restricted search returns the school's home page first** for
+  almost every topic, and a home page names nothing.  The topic discovery now
+  skips a URL with no content path.
+- **Many course catalogues are rendered by JavaScript.**  A plain fetch sees
+  only the shell — one Bocconi course page returned 248 characters where a
+  browser shows the full description — so the framework the course teaches is
+  not in the text the reader can see.  The reader reads **server-rendered
+  text only**; a client-rendered page is a gap the RRA cannot close today.
+- **A short label is not safe to text-match.**  "5S" stripped of punctuation
+  is "5s", which appears by chance in almost any long page, and a two-letter
+  token matches course codes.  The reader refuses a topic whose label is
+  under four characters, and a short label must sit on a word boundary.
+- **The 25-word excerpt is too narrow to evidence a framework.**  A
+  course-catalogue page names a framework somewhere in a thousand words.  The
+  reader therefore records **which topics a page names** — a derived fact,
+  not a copy of the page — so the control set can see the page even when the
+  excerpt misses the name.
+- **The control set measures the sweep, not the world.**  Recall of 12/12 on
+  the seeded set means the harness agrees with a list the owner wrote.  A
+  sweep whose controls fail reports **no gaps at all**, which is the safe
+  direction and also the unhelpful one: a sweep that cannot see the
+  frameworks the system already has is not measuring anything, and the
+  console says so in as many words.

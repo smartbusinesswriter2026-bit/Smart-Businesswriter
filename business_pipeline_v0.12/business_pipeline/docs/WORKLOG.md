@@ -1,3 +1,169 @@
+## 2026-11-10 - [computation] Research is framework-aware, and every dimension has a ledger
+
+**Ask.** The research layer returned generic pages: a PESTEL political
+dimension and a Five Forces rivalry dimension were searched the same way, so a
+correct source for one dimension was often not a source for it at all. The
+owner asked for research customised to the pipeline's frameworks, not a general
+search engine.
+
+**Did.** A profile may now declare a `research` block: the topic each dimension
+belongs to, the source-tier order it prefers, a query budget, the research needs
+it serves and the tiers that make it citable. `bp.product.research_contract`
+holds the closed vocabularies and the ledger; `retrieval.retrieve` consumes the
+block (topic routing, tier ranking, query budget) and returns a ledger with the
+reason every candidate was refused. `completion` and `chat` call the same block
+and apply the same grading rule, so the same brief still returns the same
+evidence on both surfaces. PESTEL is the first slice, Five Forces the second,
+the business plan the third, the quality modules the fourth, the
+portfolio/canvas modules the fifth, the strategy/management batch the sixth,
+the marketing batch the seventh, the people/change batch the eighth, the
+project/operations batch the ninth and the leadership/culture/ethics batch the
+tenth; the plan is a profile, so its block lives beside its four evidence
+dimensions in `chat.PLAN_RESEARCH`.
+
+**The boundary that matters.** The source tier (official/data/research/news) and
+the audit tier (A/B/C/D) are different vocabularies; the source tier is kept
+beside the audit tier as `source_tier`, so a C-grade source is never mistaken
+for a news source. A known tier outside the required list becomes background and
+the dimension is a named gap; an item with no source tier is kept, which is why
+the existing behaviour is unchanged. No model call, no new source and no
+computation changed.
+
+**Next.** Five Forces, the business-plan evidence blocks, the quality modules,
+the portfolio/canvas modules, then the remaining profiles, one slice at a time.
+
+## 2026-11-10 - [design] The Relevance Research Agent checks itself, and the framework question is settled
+
+**Ask.** Build the RRA end to end, then use it to find the capability gaps the
+system may have overlooked.  The research phase had left one question open —
+the framework question — and three dates unverified.
+
+**Did.** Three things.
+
+**(1) The chain.**  The model-driven stages went in: URL discovery (a better
+search query, never a URL the search did not return), reading (the passage
+that matters, checked verbatim by code — a paraphrase is discarded), and the
+gap spec (each field validated; an invalid lane, priority, effort or category
+dropped).  Per-stage models (D-4) let those three stages read and write with
+different models, while the two stages that *decide* — the skeptic and the
+evaluator — stay deterministic and never call a model.
+
+**(2) The control set.**  `qa/relevance/controls.json` holds what the system
+**already has**, and every sweep runs it against what it read.  A framework
+control holds only when its name appears in an **evidence excerpt**; a
+capability or retrieval control holds on the catalogue.  Below 75 % held, the
+measurement **failed and no gap is promoted** — the candidates are withheld
+and the run says why.
+
+This exists because the research phase measured the same thing the hard way.
+Reading the sampling frame's core-course lists produced **zero** hits for
+every framework — *including the seven the system already has*.  Two of the
+three methods tried failed exactly that way and nothing reported it, because
+nothing was carrying a control.
+
+**(3) The findings.**  `docs/RRA_FINDINGS_PHASE1.md`, from the primary
+documents: the AACSB 2026 Global Standards are **effective 1 July 2026** (the
+first sweep's "ratified 14 Apr 2026" was T2/T3 and is withdrawn), 4.3 is
+**Digital Agility** with AI named inside it, IFRS 18 is effective for annual
+periods beginning on or after **1 January 2027**, the revised ESRS were
+**adopted 3 July 2026**, and HBS's own curriculum page names **Data Science &
+AI for Leaders** as required — that claim moves from T2/T3 to T1.
+
+The framework question is settled, and the way it was settled matters: the
+**accreditor names no framework at all**, and the core-course lists name
+**subjects**.  The evidence lives in the **course catalogues**.  Balanced
+Scorecard, McKinsey 7S and Three Horizons are taught at two or more
+independent schools — the same standing as the frameworks the system already
+has.
+
+**Measured.**  75 searches, 176 school pages read.  The controls held at the
+mentioned level (5 of 7) and one held at the taught level, so the candidates
+were read *against the controls* rather than against zero: Balanced Scorecard
+is taught at 3 schools, Business Model Canvas — already in the catalogue — at
+4.
+
+**Bugs found on the way.**  The `llm` import pointed one level too shallow
+(`bp.product` instead of `bp`), so every model call raised; the domain match
+rejected a registry subdomain against its allowlist host, so 24 of 25 schools
+were never searched; and the RRA had no search credentials of its own, because
+the product's web layer expects them exported.
+
+**Tests.**  120 RRA tests in seven `unittest.TestCase` files, so the canonical
+`python -m unittest discover -s tests` runs them and the documented count
+sees them.
+
+## 2026-11-09 - [design] The Relevance Research Agent: the pipeline looks outward
+
+**Ask.** The repair loop detects breakage and the growth loop creates
+capability, but neither looks outward. The owner wanted a system that fills
+the capability gaps it may have overlooked, that stays relevant, and that does
+not become obsolete.
+
+**Did.** A new product-backend package, `src/bp/product/relevance/`, with
+eight sequential stages and a deterministic gate on each: scope, scout,
+discover, read, map, skeptic, design, evaluate, gate. The registries the owner
+edits live in `qa/relevance/`: the sampling frame, the source allowlist, the
+taxonomy, the back-test set and a catalogue snapshot with a drift check.
+
+**The boundary that matters.** The model proposes; code decides. It may draft
+a search query, pick the passage that matters, and draft the spec fields. A URL
+the search did not return is never read, an excerpt that is not a literal
+substring of the fetched page is discarded, and an invalid lane, priority,
+effort or category is dropped. There is no apply endpoint: a gap leaves the
+queue only through a recorded human decision, and an approved gap reaches the
+growth loop through `ops_log.log_finding(rule="capability_gap", source=
+"relevance")`, so it appears in the Validation panel under the filter that
+already existed.
+
+**Measured.** The back-test seeds twelve known gaps and eleven present items.
+On a live run over a T1 source: recall 12/12, 0 false flags, PASS against the
+owner's threshold of 8 of 10 with 0 false flags. Two of the twelve are parked
+items, and recognising them as parked counts as a correct identification
+rather than a proposal to build them.
+
+**Where it stops.** No file in the package lives in `src/bp/**`; no
+frozen-core entry, computation or paper-path import changed. The write path is
+confined to `state/relevance/` and `qa/relevance/`. Wikipedia and its class are
+blocked at fetch time. `BP_RELEVANCE_AUTOSTART` defaults to 0.
+
+**Tests.** 106 new tests in six files, written as `unittest.TestCase` so the
+canonical `python -m unittest discover -s tests` runs them and the documented
+suite count sees them. Suite 4834.
+
+## 2026-11-09 - [product] Chart window: frameworks and a project timeline
+
+**Ask.** Business students make more than bar and line charts: SWOT, BCG, Ansoff,
+stakeholder maps, org charts, process flowcharts, business model canvases, sales
+funnels, customer journeys, WBS and Gantt timelines. The Chart window only
+offered the seven numeric chart kinds.
+
+**Did.**
+
+- **Diagram source.** `visuals.py` accepts `source.kind = "diagram"` and
+  validates a `bp-diagram/1` spec with the existing `diagrams.py` renderer. The
+  visual stores, previews, exports (SVG/PNG/Word/PowerPoint/PDF) and combines on
+  a figure sheet like any other visual.
+- **Gantt source.** `source.kind = "gantt"` builds a project timeline from
+  declared task names and day numbers or ISO dates. The date text is a stored
+  display artifact; the bars use day offsets. A task that ends before it starts
+  is refused.
+- **The window.** The Chart window gains "A framework or diagram" with process,
+  matrix2x2, pyramid, funnel, tree, board, journey and WBS, plus "A project
+  timeline". Each has a live "I understood" report and a try-an-example button.
+- **The rule.** Diagram labels stay text-only (write "Marketing mix", not "4Ps");
+  a digit is refused with that hint.
+- **Statistical charts.** The reader also accepts area, scatter (`label, x, y`)
+  and candlestick (`label, open, high, low, close`) lines. A scatter needs an x
+  on every point; a candlestick refuses a high below its low or an open/close
+  outside the high-low range. `charts.py` gained the three renderers, and the
+  window's kind list and "I read" table show x and the four prices.
+
+**Measured.** `tests/test_product_visuals.py` 42 (diagram build/list/preview/export,
+the digit refusal, Gantt build/export, the end-before-start refusal, and the
+area/scatter/candlestick builds and refusals), `test_visual_input.py` 43,
+`test_product_charts.py` 23. Live browser check of the SWOT 2x2, the business
+model board and the dated Gantt.
+
 ## 2026-11-09 - [product] The Portfolio Lab carries dated screenshot evidence
 
 **Ask.** A professor wants proof that a student really looked up the price on the date they recorded,
@@ -26,6 +192,71 @@ convenient, and never block a snapshot.
   bullet, a troubleshooting row and the glossary term. Tests: `test_product_portfolios.py` (19; the
   evidence route and a swapped-hash refusal), `test_portfolio_student_guide.py`,
   `test_product_instruments.py`.
+
+## 2026-11-09 - [product] The feasibility study gets its deck, and the product boundary declares its optional browser
+
+**Ask.** Fix the one boundary failure the full suite named, then take the next step.
+
+**Did.**
+
+- `chat._feasibility_deck` (new): a five-slide deck from the three-table study (title,
+  executive-summary claim, market and demand, investment and operating cost, returns).
+  It names the same cells the paper prints, carries the section prose as speaker notes,
+  and computes nothing. `pptx_bytes`/`pdf_bytes` route the study to it;
+  `paper_bytes(state, "bundle")` adds `<slug>-deck.pptx` beside the docx, workbook and PDF.
+- `tests/test_product_boundary.py`: `playwright` is now a declared optional dependency of
+  `evidence_capture.py`, exactly as the optional document readers and renderers are
+  declared. That module already imports the browser lazily inside `capture` and raises a
+  named gap when it is absent, so the product still imports with the standard library
+  alone. No check was removed, loosened or skipped.
+
+**Proof.** `tests/test_silent_home.py` `SilentFeasibilityTest` (6: detection, three tables,
+frozen values, the workbook and deck in one ZIP, the deck's tables, a revision that keeps
+the tables), `tests/test_product_boundary.py` (8, green); the lane files (81) and the
+profile/figure/chart/deck/export files (112) green. A live deck render is five pages and
+carries `Declared demand`, `Total investment`, `Break-even volume` and `Margin of safety`.
+
+**Open.** No proforma, sensitivity or payback in the three-table route; the deck's only
+chart is the project Gantt.
+
+## 2026-11-09 - [product] The project plan travels as a deck, feasibility gets three tables, and the door starts its document
+
+**Ask.** Both follow-ups: a PowerPoint for the project plan's chart, and the simplified
+three-table feasibility route. Also: the Project management shelf already has a
+**Build the complete project plan** door and it must actually start that lane.
+
+**Did.**
+
+- `chat._project_deck` (new) builds the paper as a claim deck: title, executive-summary
+  sentence, the **Schedule chart** slide (stored Gantt PNG), then WBS, schedule, cost,
+  RACI and risk table slides. Claims are the paper's own first sentences, tables name the
+  same figure ids, speaker notes carry the section prose. `pptx_bytes`/`pdf_bytes` route a
+  project plan to it; the one ZIP now also carries `<slug>-deck.pptx`.
+- `src/bp/product/feasibility_reader.py` (new): reads a labelled project, a market table
+  (`Item | Value`) and a cost table (`Item | Amount`), classifying rows by their own labels
+  and filling nothing.
+- `src/bp/product/feasibility_plan.py` (new): validates, sums the declared investment, runs
+  the **frozen `breakeven`** with the declared demand, and builds the market, cost and
+  returns tables. `feasibility_workbook.py` (new) writes Project/Market/Costs/Returns.
+- `chat._read_feasibility_record` / `_draft_feasibility_simple`: a table-shaped
+  feasibility brief takes the three-table route, skips research and skips the profile
+  writer; a narrative brief keeps the guide route. `paper._plan_missing` gates the simple
+  route on its own record.
+- Web: `startPlan` records the chosen document, `startChat` posts `profile` and `mode` for
+  that run and clears the choice; the door now reaches the lane even when the brief does
+  not name it. `project_reader` takes a short first line as the title when no label does.
+
+**Proof.** `tests/test_feasibility_reader.py` (5), `tests/test_feasibility_plan.py` (6),
+`tests/test_project_reader.py` (11), `tests/test_silent_home.py` (project 8, feasibility 5),
+`tests/test_document_profile_doors.py`; 59 lane tests green, profile/figure/chart/deck/export
+files 112 green. Live 8021: the Project management door's **Start the project plan** opened
+Home, a brief with no "project plan" words produced the project paper (title "Kitchen
+project, opening in June"), the ZIP held docx + workbook + pdf + an 8-slide deck with
+`ppt/media/image1.png`; the feasibility brief produced Market/Financial/Returns tables with
+no gap line, and its ZIP held docx + workbook (Project, Market, Costs, Returns) + pdf.
+
+**Open.** The feasibility route has no proforma/sensitivity/payback; the deck has no
+animations; the door is one-shot by design.
 
 ## 2026-11-09 - [product] A project plan is one silent paper from the brief's tables, charted in Word and PDF
 
@@ -74,6 +305,71 @@ sheets, and the PDF.
 **Open.** PowerPoint for the chart, calendar dates and resource levelling, and the
 simplified three-table feasibility route (deferred).
 
+## 2026-11-10 - [framework-writing] FMEA RPN and Five-S score in the frozen core
+
+**Ask.** Close the "declared, not recomputed" limit on the quality modules.
+
+**Did.** Added `fmea_rpn` (S x O x D) and `five_s_score` (sum over the declared
+maximum) to `src/bp/methods.py`, with their profile/tests/caveats/templates; the
+frozen fixture, catalogue and calc-inputs were regenerated (218 methods).
+`quality_reader.py` reads the FMEA worksheet, Five-S scorecard and PDCA measure
+table from the brief. `framework_calc.fmea`/`five_s` call the core, rank RPN into
+a Pareto and the S scores into a bar, and `completion.complete` attaches the
+calculation and chart to the paper.
+
+**Verified.** Live FMEA: Seal leaks 7/4/3 -> 84.00 and Wrong part 4/6/2 -> 48.00,
+Pareto cumulative 84/132. `test_quality_reader.py` (4), `test_framework_calc.py`
+(11), `test_quality_writing.py` (7), method inventory/contracts, frozen fixture
+and boundary tests green.
+
+**Left.** PDCA measures are read but not yet charted from a pasted table; the
+five S categories are matched by name (a renamed category is a named gap).
+
+## 2026-11-09 - [framework-writing] Quality modules and chart tie-up
+
+**Ask.** The owner supplied the quality guideline (RCA, FMEA, PDCA, Five-S) and
+asked that frameworks tie up with the charts already created, across frameworks.
+
+**Did.** Added `framework_figures.py`, an adapter over `visuals`, `charts`,
+`diagrams` and `figures` (bar, line, pie, pareto, waterfall, stacked bar, tree);
+a generic `tables` contract for a module's own worksheet; writing modules for
+RCA, FMEA, PDCA and Five-S, each with a `tables` and a `chart` part; BCG and GE
+charts from the frozen calculation rows. The chart values are only what the
+record holds, the figure is stamped, and Word embeds the PNG or falls back to the
+value table.
+
+**Verified.** `test_framework_figures.py` (6), `test_quality_writing.py` (4),
+`test_bcg_ge_writing.py` (5), the operations acceptance suite, and 247 quality
+and framework tests green.
+
+**Left.** The RPN and Five-S scores are declared in the module record and audited
+by the paper; a frozen `fmea_rpn` / `five_s_score` method is the next computation
+slice. The model supplies the FMEA/scorecard/cycle-log tables; a deterministic
+reader for those tables is the next refinement.
+
+## 2026-11-09 - [framework-writing] Portfolio, growth and canvas modules
+
+**Ask.** Two further owner instruction sets: portfolio/growth (Ansoff, BCG,
+GE-McKinsey, ERRC) and canvas (BMC, Lean, VPC). They add H, shown calculations
+and an assumption register.
+
+**Did.** Added H to the claim types with a required test for every H driver; the
+assumption register; the standard canvas grids in `matrix.LAYOUTS`; writing
+modules for Ansoff, ERRC, BMC, Lean and VPC; `portfolio_reader` (the brief's unit
+table) and `framework_calc` (calls the frozen `market_share`, `growth_rate` and
+`weighted_summary`, then classifies the BCG quadrant / GE zone). BCG and GE
+writing modules read the calculation record; the model never computes. Corrected
+the units for all seven profiles; Ansoff and ERRC are draftable.
+
+**Verified.** `test_portfolio_canvas_writing` (6), `test_canvas_writing` (3),
+`test_portfolio_reader` (4), `test_framework_calc` (6), `test_bcg_ge_writing`
+(4), the four existing profile tests updated to the new units, and 379 framework
+and product tests green.
+
+**Left.** GE-McKinsey's factor/weight/score table is not parsed from a brief yet;
+the adapter accepts the structured axes and the paper names the gap when they
+are absent. The GE sensitivity test is stated in the module but not computed.
+
 ## 2026-11-09 - [framework-writing] The three Porter frameworks are written to the owner's guideline
 
 **Ask.** The owner supplied a writing guideline for competitive-position frameworks
@@ -101,8 +397,8 @@ shape; and an evidence audit.
   page carries the control, and the paper prints the status.
 - `docx.py` renders a section table, and `paper.check` scans it for template text.
 
-**Verified.** `tests/test_framework_writing.py` (31), `test_five_forces_writing.py`
-(14), `test_generic_strategies_writing.py` (8), `test_porters_diamond_writing.py`
+**Verified.** `tests/test_framework_writing.py` (33), `test_five_forces_writing.py`
+(14), `test_generic_strategies_writing.py` (9), `test_porters_diamond_writing.py`
 (8), `test_framework_readings.py` (9); the full suite is reported below. Existing
 framework, conductor, PESTEL, paper-document and drafting tests remain green.
 
@@ -6165,3 +6461,4 @@ can reference it.  Separately record the intended future work.
   versioning as not-yet-built.
 - Sections 8.3 and 8.4 are written so a debugger can follow them without reading the
   code first.
+

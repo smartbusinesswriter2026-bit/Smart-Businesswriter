@@ -24,6 +24,23 @@ def web(query, region="Global", limit=10, category=None, fast=False, sites=None,
     return {"results": [], "notice": "No web result.", "sites": list(sites or [])}
 
 
+def no_corpus_academic(query, databases=None, limit=10, year_from=None):
+    if databases == ["corpus"]:
+        return {"results": [], "errors": [], "skipped": []}
+    return academic(query, databases, limit, year_from)
+
+
+def news_web(query, region="Global", limit=10, category=None, fast=False, sites=None,
+             providers=None, **kwargs):
+    return {"results": [{
+        "title": "Saudi grocery " + str(query)[:90],
+        "description": ("Competition and market share, market entry barriers and capital, substitute "
+                        "products and switching, buyer power and consumer demand, supplier power and "
+                        "procurement in the Saudi grocery market."),
+        "url": "https://example.org/news", "site": "Example Press", "tier": "news", "year": 2024,
+    }], "sites": list(sites or [])}
+
+
 def _paper_data():
     """A valid full-paper payload, long enough for the draft assembler."""
     return {
@@ -61,6 +78,19 @@ class CompletionTest(unittest.TestCase):
             "A grocery chain is considering a cold-chain acquisition in Saudi Arabia.")
         self.assertEqual(sum(1 for block in result["blocks"] if block["gap"]), 5)
         self.assertTrue(all(not block["items"] for block in result["blocks"]))
+
+    @mock.patch("bp.product.sources.search_web", side_effect=news_web)
+    @mock.patch("bp.product.sources.search_academic", side_effect=no_corpus_academic)
+    def test_a_force_with_only_press_evidence_is_a_named_gap(self, _a, _w):
+        """Five Forces requires industry data or research, not a press page."""
+        result = completion.complete(
+            "template_five_forces",
+            "A grocery chain is considering a cold-chain acquisition in Saudi Arabia.")
+        for block in result["blocks"]:
+            self.assertFalse([item for item in block["items"]
+                              if item["provenance"] == "sourced"], block["key"])
+            reasons = [row["reason"] for row in block["ledger"]["rejected"]]
+            self.assertIn("tier_missing", reasons, block["key"])
 
     @mock.patch("bp.product.sources.search_web", side_effect=web)
     @mock.patch("bp.product.sources.search_academic", side_effect=academic)
@@ -143,9 +173,11 @@ class CompletionTest(unittest.TestCase):
                       for key, label, _ in completion.FORCES]}
         report = completion.draft(result, "apa", "draft")
         headings = [section["heading"] for section in report["sections"]]
-        for required in ("Introduction", "Case and Industry Context", "Five Forces", "Discussion",
-                         "What the Evidence Shows", "Implications for the Decision", "Limitations",
-                         "Conclusion", "References"):
+        for required in ("Introduction", "Case and Industry Context", "Five Forces",
+                         "Scope of the Analysis", "Force Ratings", "Discussion",
+                         "Synthesis and Interactions", "Forward-Looking Shifts",
+                         "Implications for the Decision", "Limitations", "Conclusion",
+                         "Evidence Audit", "References"):
             self.assertIn(required, headings)
         self.assertGreaterEqual(report["words"], 700)
 

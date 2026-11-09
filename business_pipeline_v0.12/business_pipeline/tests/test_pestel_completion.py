@@ -34,6 +34,29 @@ def web(query, region="Global", limit=10, category=None, fast=False):
     return {"results": [], "notice": "Web search is not configured.", "sites": []}
 
 
+def no_corpus_academic(query, databases=None, limit=10, year_from=None):
+    """The corpus misses; the journal APIs answer as before."""
+    if databases == ["corpus"]:
+        return {"results": [], "errors": [], "skipped": []}
+    return academic(query, databases, limit, year_from)
+
+
+def news_web(query, region="Global", limit=10, category=None, fast=False, **kwargs):
+    """A vetted page whose tier is press, so the source-type rule can see it."""
+    return {"results": [{
+        "title": "Iran " + query[:60],
+        "description": "Iran evidence on the conditions named in the query.",
+        "url": "https://example.org/news", "site": "Example Press", "tier": "news",
+        "year": 2024,
+    }], "sites": []}
+
+
+def complete_news(**kwargs):
+    with mock.patch("bp.product.sources.search_academic", side_effect=no_corpus_academic), \
+            mock.patch("bp.product.sources.search_web", side_effect=news_web):
+        return completion.complete("template_pestel", kwargs.pop("instruction", BRIEF), **kwargs)
+
+
 def blocks(result):
     return {block["key"]: block for block in result["blocks"]}
 
@@ -114,6 +137,23 @@ class PestelCompletionTest(unittest.TestCase):
         sourced = [block for block in result["blocks"]
                    if any(item["provenance"] == "sourced" for item in block["items"])]
         self.assertEqual(len(sourced), 1)
+
+    def test_a_dimension_with_only_news_is_a_named_gap_not_a_weaker_source(self):
+        """The source-type rule: a press page cannot stand in for official data."""
+        result = complete_news()
+        for block in result["blocks"]:
+            self.assertFalse([item for item in block["items"]
+                              if item["provenance"] == "sourced"], block["key"])
+            self.assertTrue(block["gap"], block["key"])
+            reasons = [row["reason"] for row in block["ledger"]["rejected"]]
+            self.assertIn("tier_missing", reasons, block["key"])
+
+    def test_the_ledger_records_the_accepted_and_rejected_candidates(self):
+        result = complete()
+        for block in result["blocks"]:
+            self.assertIn("ledger", block)
+            self.assertEqual(block["ledger"]["dimension"], block["key"])
+            self.assertTrue(block["ledger"]["accepted"] or block["ledger"]["gaps"], block["key"])
 
     def test_the_paper_has_the_pestel_outline_and_a_pestel_title(self):
         result = complete()

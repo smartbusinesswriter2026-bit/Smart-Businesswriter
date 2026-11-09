@@ -26,6 +26,8 @@ evidence does not establish; it never supplies a fact, number, source or name.
 
 """
 
+from . import research_contract
+
 #: Porter's Five Forces ---------------------------------------------------------
 
 FIVE_FORCES = {
@@ -63,6 +65,27 @@ FIVE_FORCES = {
     "providers": ["brave", "deepseek", "firecrawl"],
 
     "gate": {"title_cue": True, "title_context": True, "require_geography": False},
+
+    #: How each force is researched.  Industry structure lives in industry data
+    #: and research rather than press, so the required tiers are data and
+    #: research; buyer power reaches the marketing registry and supplier power
+    #: the supply-chain one.
+    "research": {
+        "topics": {
+            "rivalry": "industry", "entrants": "industry", "substitutes": "industry",
+            "buyers": "marketing", "suppliers": "supply_chain",
+        },
+        "tiers": {key: ["data", "research", "official", "news"]
+                  for key in ("rivalry", "entrants", "substitutes", "buyers", "suppliers")},
+        "budget": 2,
+        "needs": {
+            "rivalry": ["industry_structure"], "entrants": ["industry_structure"],
+            "substitutes": ["industry_structure"], "buyers": ["customer"],
+            "suppliers": ["industry_structure"],
+        },
+        "required_tiers": {key: ["data", "research"]
+                           for key in ("rivalry", "entrants", "substitutes", "buyers", "suppliers")},
+    },
 
     "blocks": [
 
@@ -160,6 +183,47 @@ FIVE_FORCES = {
 
         "reference_heading": "References",
 
+    },
+
+    #: The writing module: what the guideline asks this framework to produce.
+    #: The engine reads these keys; the profile owns the words.  A profile
+    #: without `writing` keeps the old outline exactly.
+    "writing": {
+        "module": "five_forces",
+        "scope_heading": "Scope of the analysis",
+        "summary_heading": "Force ratings",
+        "synthesis_heading": "Synthesis and interactions",
+        "forward_heading": "Forward-looking shifts",
+        "audit_heading": "Evidence audit",
+        "sections": ["scope", "summary", "dimensions", "synthesis", "forward",
+                     "implications", "limitations", "conclusion", "audit"],
+        "summary_columns": ["Force", "Rating", "Trend", "Confidence", "One-line rationale"],
+        "audit_columns": ["#", "Claim", "Force", "Source", "Tier", "Recency",
+                          "Type", "Strength", "Notes"],
+        "conventions": ("Tiers and recency are the product's declared convention: A is a primary "
+                        "filing or official statistic, B a peer-reviewed or vetted industry source, "
+                        "C a press release, vendor page, blog or undated page, D no source. Evidence "
+                        "older than three years is stale. A claim without a quantified figure is "
+                        "capped at Moderate strength."),
+        "drivers": {
+            "rivalry": ["number and balance of competitors", "industry growth rate",
+                        "fixed-cost or storage intensity", "exit barriers",
+                        "product differentiation", "switching costs", "strategic stakes",
+                        "diversity of rivals' goals"],
+            "entrants": ["economies of scale", "network effects", "capital requirements",
+                         "switching costs", "access to distribution",
+                         "incumbency advantages independent of scale", "regulatory barriers",
+                         "expected retaliation"],
+            "substitutes": ["relative price and performance of substitutes",
+                            "buyers' switching costs", "buyers' propensity to substitute"],
+            "buyers": ["buyer concentration and volume", "price sensitivity",
+                       "product differentiation", "switching costs", "buyers' information",
+                       "threat of backward integration", "buyers' own profitability"],
+            "suppliers": ["supplier concentration against industry concentration",
+                          "availability of substitute inputs", "switching costs",
+                          "importance of the industry to suppliers",
+                          "supplier differentiation", "threat of forward integration"],
+        },
     },
 
     "notes": {
@@ -313,6 +377,31 @@ PESTEL = {
     "providers": None,
 
     "gate": {"title_context": False, "require_geography": True, "title_cue": False},
+
+    #: How each dimension is researched.  The topic routes the dimension to the
+    #: vetted registry (law, economics, people, technology, environment); the
+    #: tier order prefers official and data sources before research and press;
+    #: the budget keeps a dimension to two queries; and the required tiers make
+    #: a dimension a named gap rather than a weaker source.
+    "research": {
+        "topics": {
+            "political": "law", "economic": "economics", "social": "people",
+            "technological": "technology", "environmental": "environment",
+            "legal": "law",
+        },
+        "tiers": {key: ["official", "data", "research", "news"]
+                  for key in ("political", "economic", "social", "technological",
+                              "environmental", "legal")},
+        "budget": 2,
+        "needs": {
+            "political": ["regulation"], "economic": ["country_macro"],
+            "social": ["customer"], "technological": ["technology_trend"],
+            "environmental": ["sustainability"], "legal": ["regulation"],
+        },
+        "required_tiers": {key: ["official", "data"]
+                           for key in ("political", "economic", "social",
+                                       "technological", "environmental", "legal")},
+    },
 
     "blocks": [
 
@@ -2002,6 +2091,20 @@ FIVE_S = {
 
     "gate": {"title_context": False, "require_geography": False, "title_cue": False},
 
+    #: Quality evidence is method and standard, not market data.  The block is
+    #: routed to operations and prefers research and official sources; the
+    #: blocks are `auto`, so a sourced item is a supplement to the student's own
+    #: worksheet and no source type is required (nothing is graded away).
+    "research": {
+        "topics": {key: "operations"
+                   for key in ("sort", "set_in_order", "shine", "standardize", "sustain")},
+        "tiers": {key: ["research", "official", "data", "news"]
+                  for key in ("sort", "set_in_order", "shine", "standardize", "sustain")},
+        "budget": 2,
+        "needs": {key: ["methodology"]
+                  for key in ("sort", "set_in_order", "shine", "standardize", "sustain")},
+    },
+
     "blocks": [
 
         {"key": "sort", "label": "Sort", "prompt": "What is removed because it is not needed", "fill": "auto",
@@ -2201,6 +2304,19 @@ ROOT_CAUSE = {
     "providers": None,
 
     "gate": {"title_context": False, "require_geography": False, "title_cue": False},
+
+    "research": {
+        "topics": {key: "operations"
+                   for key in ("problem", "people", "process", "equipment",
+                               "materials", "measurement", "environment", "root_cause")},
+        "tiers": {key: ["research", "official", "data", "news"]
+                  for key in ("problem", "people", "process", "equipment",
+                              "materials", "measurement", "environment", "root_cause")},
+        "budget": 2,
+        "needs": {key: ["methodology"]
+                  for key in ("problem", "people", "process", "equipment",
+                              "materials", "measurement", "environment", "root_cause")},
+    },
 
     "blocks": [
 
@@ -2453,6 +2569,16 @@ FMEA = {
     "providers": None,
 
     "gate": {"title_context": False, "require_geography": False, "title_cue": False},
+
+    "research": {
+        "topics": {key: "operations"
+                   for key in ("failure_modes", "effects", "causes", "controls", "actions", "owners")},
+        "tiers": {key: ["research", "official", "data", "news"]
+                  for key in ("failure_modes", "effects", "causes", "controls", "actions", "owners")},
+        "budget": 2,
+        "needs": {key: ["methodology"]
+                  for key in ("failure_modes", "effects", "causes", "controls", "actions", "owners")},
+    },
 
     "blocks": [
 
@@ -3086,6 +3212,14 @@ PDCA = {
 
     "gate": {"title_context": False, "require_geography": False, "title_cue": False},
 
+    "research": {
+        "topics": {key: "operations" for key in ("plan", "do", "check", "act")},
+        "tiers": {key: ["research", "official", "data", "news"]
+                  for key in ("plan", "do", "check", "act")},
+        "budget": 2,
+        "needs": {key: ["methodology"] for key in ("plan", "do", "check", "act")},
+    },
+
     "blocks": [
 
         {"key": "plan", "label": "Plan", "prompt": "The problem, the target and the change you will try",
@@ -3261,6 +3395,13 @@ SWOT = {
     "providers": ["brave", "deepseek", "firecrawl"],
 
     "gate": {"title_cue": True, "title_context": True, "require_geography": False},
+
+    "research": {
+        "topics": {"O": "marketing", "T": "industry"},
+        "tiers": {key: ["official", "data", "research", "news"] for key in ("O", "T")},
+        "budget": 2,
+        "needs": {"O": ["market_size"], "T": ["industry_structure"]},
+    },
 
     "blocks": [
 
@@ -3441,6 +3582,41 @@ VALUE_CHAIN = {
     "providers": ["brave", "deepseek", "firecrawl"],
 
     "gate": {"title_cue": True, "title_context": True, "require_geography": False},
+
+    "research": {
+        "topics": {
+            "firm_infrastructure": "management", "human_resource_management": "people",
+            "technology_development": "technology", "procurement": "supply_chain",
+            "inbound_logistics": "operations", "operations": "operations",
+            "outbound_logistics": "operations", "marketing_and_sales": "marketing",
+            "service": "operations",
+        },
+        "tiers": {key: ["official", "data", "research", "news"]
+                  for key in ("firm_infrastructure", "human_resource_management",
+                              "technology_development", "procurement", "inbound_logistics",
+                              "operations", "outbound_logistics", "marketing_and_sales", "service")},
+        "budget": 2,
+        "needs": {
+            "firm_infrastructure": ["methodology"],
+            "human_resource_management": ["methodology"],
+            "technology_development": ["technology_trend"],
+            "procurement": ["cost_price"],
+            "inbound_logistics": ["cost_price"],
+            "operations": ["cost_price"],
+            "outbound_logistics": ["cost_price"],
+            "marketing_and_sales": ["customer"],
+            "service": ["customer"],
+        },
+        "required_tiers": {
+            "technology_development": ["official", "data", "research"],
+            "procurement": ["official", "data", "research"],
+            "inbound_logistics": ["official", "data", "research"],
+            "operations": ["official", "data", "research"],
+            "outbound_logistics": ["official", "data", "research"],
+            "marketing_and_sales": ["official", "data", "research"],
+            "service": ["official", "data", "research"],
+        },
+    },
 
     "blocks": [
 
@@ -3635,6 +3811,23 @@ ANSOFF = {
     "providers": ["brave", "deepseek", "firecrawl"],
 
     "gate": {"title_cue": True, "title_context": True, "require_geography": False},
+
+    "research": {
+        "topics": {key: "industry"
+                   for key in ("market_penetration", "market_development",
+                               "product_development", "diversification")},
+        "tiers": {key: ["official", "data", "research", "news"]
+                  for key in ("market_penetration", "market_development",
+                              "product_development", "diversification")},
+        "budget": 2,
+        "needs": {"market_penetration": ["market_size"],
+                  "market_development": ["market_size"],
+                  "product_development": ["customer"],
+                  "diversification": ["industry_structure"]},
+        "required_tiers": {key: ["official", "data", "research"]
+                           for key in ("market_penetration", "market_development",
+                                       "product_development", "diversification")},
+    },
 
     "blocks": [
 
@@ -4506,6 +4699,18 @@ GENERIC_STRATEGIES = {'assumption': 'probe',
              'prompt': 'Unique value within a narrow market segment',
              'queries': ['focused differentiation strategy in this industry']}],
  'gate': {'require_geography': False, 'title_context': True, 'title_cue': True},
+ 'research': {
+     'topics': {key: 'industry' for key in ('low_cost', 'differentiation',
+                                             'focus_low_cost', 'focus_differentiation')},
+     'tiers': {key: ['official', 'data', 'research', 'news']
+               for key in ('low_cost', 'differentiation', 'focus_low_cost', 'focus_differentiation')},
+     'budget': 2,
+     'needs': {'low_cost': ['cost_price'], 'differentiation': ['customer'],
+               'focus_low_cost': ['cost_price'], 'focus_differentiation': ['customer']},
+     'required_tiers': {key: ['official', 'data', 'research']
+                        for key in ('low_cost', 'differentiation',
+                                    'focus_low_cost', 'focus_differentiation')},
+ },
  'key': 'generic_strategies',
  'label': 'Generic Strategies',
  'notes': {'differentiation': {'analysis': 'Differentiation means the firm focuses on unique features customers value. '
@@ -4534,7 +4739,7 @@ GENERIC_STRATEGIES = {'assumption': 'probe',
                                    'rather than measured.',
                         'short': 'A firm that is cheapest only on price has an advantage, not a strategy.'}},
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The firm and its market',
              'discussion': 'What the evidence shows',
              'framework': 'Generic Strategies',
              'implications': 'Implications for the decision',
@@ -4547,21 +4752,26 @@ GENERIC_STRATEGIES = {'assumption': 'probe',
  'subject': 'strategy',
  'template': 'template_generic_strategies',
  'title_prefix': 'Generic Strategy Analysis',
- 'unit': {'field': 'industry',
-          'label': 'Industry or market',
-          'help': "Porter's generic strategies are chosen against a market. Name the industry or market.",
-          'example': 'smartphones, grocery retail, banking',
-          'refuse': "Porter's generic strategies are chosen against a market. Name the industry or market."},
+ 'unit': {'field': 'firm',
+          'label': 'Firm or business unit',
+          'rule': 'the firm or business unit in its market',
+          'help': ("Porter's generic strategies are chosen by a firm or business unit in a market. "
+                   "Name the firm or business unit, and its market in the next field."),
+          'example': 'Kestrel Retail',
+          'secondary': {'label': 'Its market',
+                        'help': 'The market the firm competes in, for example grocery retail.',
+                        'example': 'grocery retail'},
+          'refuse': ("Porter's generic strategies are chosen by a firm or business unit in a market. "
+                     "Name both, for example Kestrel Retail in grocery retail.")},
  'voice': {'thesis_question': 'whether the evidence supports the competitive range the decision depends on',
-           'unit_noun': 'market',
+           'unit_noun': 'firm or business unit',
            'block_plural': 'types',
            'lens': 'the four competitive types a firm can choose, and the trade-off each one makes',
            'closing': 'identifies the type the evidence supports and the trade-off the evidence cannot settle',
-           'intro_frame': 'The unit of analysis is the market rather than the firm, because a generic strategy is '
-                          'a choice made against the structure of a market rather than a description of one '
-                          'company.',
-           'context_frame': 'The relevant market is the one named in the brief; the types describe how a firm can '
-                            'position itself in that market rather than how one firm happens to operate.',
+           'intro_frame': 'The unit of analysis is the firm or business unit in its market, because a generic '
+                          'strategy is a choice made by a business unit rather than a description of an industry.',
+           'context_frame': 'The relevant firm is the one named in the brief and the relevant market is the one it '
+                            'competes in; the types describe how that business unit can position itself.',
            'interaction': 'Read together, the types describe choices that cannot all be held at once: the evidence '
                           'has to show where the firm sits, because a firm that claims both cost leadership and '
                           'differentiation has chosen neither.',
@@ -4604,6 +4814,16 @@ BCG = {'assumption': 'probe',
              'prompt': 'Low growth, low market share - divest or harvest',
              'queries': ['dogs and low-growth low-share businesses in this industry']}],
  'gate': {'require_geography': False, 'title_context': True, 'title_cue': True},
+ 'research': {
+     'topics': {key: 'industry' for key in ('stars', 'cash_cows', 'question_marks', 'dogs')},
+     'tiers': {key: ['official', 'data', 'research', 'news']
+               for key in ('stars', 'cash_cows', 'question_marks', 'dogs')},
+     'budget': 2,
+     'needs': {key: ['industry_structure']
+               for key in ('stars', 'cash_cows', 'question_marks', 'dogs')},
+     'required_tiers': {key: ['data', 'research']
+                        for key in ('stars', 'cash_cows', 'question_marks', 'dogs')},
+ },
  'key': 'bcg',
  'label': 'BCG Growth-Share Matrix',
  'notes': {'cash_cows': {'analysis': 'Cash cows are low-growth, high-market-share businesses. The relevant question is '
@@ -4743,6 +4963,24 @@ GE_MCKINSEY = {'assumption': 'probe',
              'prompt': 'Low industry attractiveness, low business strength - divest/liquidate',
              'queries': ['low attractiveness low strength businesses in this industry']}],
  'gate': {'require_geography': False, 'title_context': True, 'title_cue': True},
+ 'research': {
+     'topics': {key: 'industry' for key in ('high_high', 'high_medium', 'high_low',
+                                             'medium_high', 'medium_medium', 'medium_low',
+                                             'low_high', 'low_medium', 'low_low')},
+     'tiers': {key: ['official', 'data', 'research', 'news']
+               for key in ('high_high', 'high_medium', 'high_low',
+                           'medium_high', 'medium_medium', 'medium_low',
+                           'low_high', 'low_medium', 'low_low')},
+     'budget': 2,
+     'needs': {key: ['industry_structure']
+               for key in ('high_high', 'high_medium', 'high_low',
+                           'medium_high', 'medium_medium', 'medium_low',
+                           'low_high', 'low_medium', 'low_low')},
+     'required_tiers': {key: ['data', 'research']
+                        for key in ('high_high', 'high_medium', 'high_low',
+                                    'medium_high', 'medium_medium', 'medium_low',
+                                    'low_high', 'low_medium', 'low_low')},
+ },
  'key': 'ge_mckinsey',
  'label': 'GE-McKinsey Matrix',
  'notes': {'high_high': {'analysis': 'This quadrant describes a business position. The relevant question is whether '
@@ -5159,6 +5397,23 @@ PORTERS_DIAMOND = {'assumption': 'probe',
              'prompt': 'The role of chance events in shaping competitive advantage',
              'queries': ['chance events and their role in this industry']}],
  'gate': {'require_geography': False, 'title_context': True, 'title_cue': True},
+ 'research': {
+     'topics': {'factor_conditions': 'economics', 'demand_conditions': 'economics',
+                'related_industries': 'industry', 'firm_strategy': 'management',
+                'government': 'law', 'chance': 'economics'},
+     'tiers': {key: ['official', 'data', 'research', 'news']
+               for key in ('factor_conditions', 'demand_conditions', 'related_industries',
+                           'firm_strategy', 'government', 'chance')},
+     'budget': 2,
+     'needs': {'factor_conditions': ['country_macro'], 'demand_conditions': ['market_size'],
+               'related_industries': ['industry_structure'], 'firm_strategy': ['competitor'],
+               'government': ['regulation'], 'chance': ['country_macro']},
+     'required_tiers': {'factor_conditions': ['official', 'data'],
+                        'demand_conditions': ['official', 'data'],
+                        'related_industries': ['data', 'research'],
+                        'firm_strategy': ['data', 'research'],
+                        'government': ['official', 'data']},
+ },
  'key': 'porters_diamond',
  'label': 'Porters Diamond',
  'notes': {'chance': {'analysis': 'This element describes a factor in the diamond. The relevant question is whether '
@@ -5198,7 +5453,7 @@ PORTERS_DIAMOND = {'assumption': 'probe',
                                              'than measured.',
                                   'short': 'An element without evidence is a claim without support.'}},
  'outline': {'conclusion': 'Conclusion',
-             'context': 'The case and its industry',
+             'context': 'The nation, industry and time frame',
              'discussion': 'What the evidence shows',
              'framework': 'Porters Diamond',
              'implications': 'Implications for the decision',
@@ -5212,23 +5467,29 @@ PORTERS_DIAMOND = {'assumption': 'probe',
  'subject': 'strategy',
  'template': 'template_porters_diamond',
  'title_prefix': 'Porter Diamond Analysis',
- 'unit': {'field': 'industry',
-          'label': 'Industry or market',
-          'help': "Porter's Diamond analyses national or industry competitiveness. Name the industry or market.",
-          'example': 'smartphones, grocery retail, banking',
-          'refuse': "Porter's Diamond analyses national or industry competitiveness. Name the industry or market."},
+ 'unit': {'field': 'country_industry',
+          'label': 'Country or region',
+          'rule': 'the nation or region and its industry',
+          'help': ("Porter's Diamond explains why an industry in a nation or region is competitive. "
+                   "Name the country or region, and the industry in the next field."),
+          'example': 'Germany',
+          'secondary': {'label': 'Its industry',
+                        'help': 'The specific industry, for example machine tools.',
+                        'example': 'machine tools'},
+          'refuse': ("Porter's Diamond explains why an industry in a nation or region is competitive. "
+                     "Name the country or region and the industry, for example Germany in machine tools. "
+                     "Global is not a nation.")},
  'voice': {'thesis_question': 'whether the evidence supports the competitive position the decision depends on',
-           'unit_noun': 'market',
+           'unit_noun': 'country and industry',
            'block_plural': 'determinants',
            'lens': 'the determinants of national and industry competitiveness, from factor conditions to the role '
                    'of government and chance',
            'closing': 'identifies the determinant the position depends on and the determinant the evidence cannot '
                       'settle',
-           'intro_frame': 'The unit of analysis is the market rather than the firm, because the Diamond explains '
-                          'why an industry in a country is positioned as it is rather than how one company in it '
-                          'performs.',
-           'context_frame': 'The relevant market is the one named in the brief; the determinants belong to that '
-                            'industry in its country rather than to one participant.',
+           'intro_frame': 'The unit of analysis is the nation or region and its industry, because the Diamond '
+                          'explains why an industry in a place is competitive rather than how one company performs.',
+           'context_frame': 'The relevant country or region and industry are the ones named in the brief; the '
+                            'determinants belong to that industry in that place rather than to one participant.',
            'interaction': 'Read together, the determinants describe the conditions an industry develops in rather '
                           'than the advantages a firm has won: an industry with good factor conditions does not '
                           'give the advantage to any one of its firms.',
@@ -8366,6 +8627,17 @@ ERRC = {
 
     "gate": {"title_cue": True, "title_context": True, "require_geography": False},
 
+    "research": {
+        "topics": {key: "industry" for key in ("eliminate", "reduce", "raise", "create")},
+        "tiers": {key: ["official", "data", "research", "news"]
+                  for key in ("eliminate", "reduce", "raise", "create")},
+        "budget": 2,
+        "needs": {key: ["industry_structure"]
+                  for key in ("eliminate", "reduce", "raise", "create")},
+        "required_tiers": {key: ["official", "data", "research"]
+                           for key in ("eliminate", "reduce", "raise", "create")},
+    },
+
     "blocks": [
 
         {"key": "eliminate", "label": "Eliminate", "prompt": "Factors the industry competes on that should be eliminated",
@@ -8506,6 +8778,16 @@ ACTIVITY_SYSTEM = {
 
     "gate": {"title_cue": True, "title_context": True, "require_geography": False},
 
+    "research": {
+        "topics": {key: "management"
+                   for key in ("strategic_position", "activities", "reinforcing_choices", "boundaries")},
+        "tiers": {key: ["official", "data", "research", "news"]
+                  for key in ("strategic_position", "activities", "reinforcing_choices", "boundaries")},
+        "budget": 2,
+        "needs": {"strategic_position": ["competitor"], "activities": ["methodology"],
+                  "reinforcing_choices": ["methodology"], "boundaries": ["methodology"]},
+    },
+
     "blocks": [
 
         {"key": "strategic_position", "label": "Strategic position", "prompt": "The choice the activity system supports",
@@ -8642,6 +8924,19 @@ SCENARIO = {
 
     "gate": {"title_cue": True, "title_context": True, "require_geography": False},
 
+    "research": {
+        "topics": {"drivers": "industry", "scenarios": "industry",
+                   "implications": "management", "signposts": "industry"},
+        "tiers": {key: ["official", "data", "research", "news"]
+                  for key in ("drivers", "scenarios", "implications", "signposts")},
+        "budget": 2,
+        "needs": {"drivers": ["country_macro"], "scenarios": ["industry_structure"],
+                  "implications": ["methodology"], "signposts": ["industry_structure"]},
+        "required_tiers": {"drivers": ["official", "data", "research"],
+                           "scenarios": ["official", "data", "research"],
+                           "signposts": ["official", "data", "research"]},
+    },
+
     "blocks": [
 
         {"key": "drivers", "label": "Drivers", "prompt": "The forces that could move the market",
@@ -8777,6 +9072,17 @@ STRATEGIC_GROUP = {
     "providers": ["brave", "deepseek", "firecrawl"],
 
     "gate": {"title_cue": True, "title_context": True, "require_geography": False},
+
+    "research": {
+        "topics": {key: "industry" for key in ("axes", "competitors", "groups", "mobility")},
+        "tiers": {key: ["official", "data", "research", "news"]
+                  for key in ("axes", "competitors", "groups", "mobility")},
+        "budget": 2,
+        "needs": {"axes": ["industry_structure"], "competitors": ["competitor"],
+                  "groups": ["industry_structure"], "mobility": ["competitor"]},
+        "required_tiers": {key: ["official", "data", "research"]
+                           for key in ("axes", "competitors", "groups", "mobility")},
+    },
 
     "blocks": [
 
@@ -10126,6 +10432,21 @@ BMC = {'template': 'template_business_model_canvas',
  'sites': 'organization',
  'providers': ['brave', 'deepseek', 'firecrawl'],
  'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'research': {
+     'topics': {key: 'management' for key in ('key_partners', 'key_activities', 'key_resources',
+                                              'value_propositions', 'customer_relationships', 'channels',
+                                              'customer_segments', 'cost_structure', 'revenue_streams')},
+     'tiers': {key: ['official', 'data', 'research', 'news']
+               for key in ('key_partners', 'key_activities', 'key_resources',
+                           'value_propositions', 'customer_relationships', 'channels',
+                           'customer_segments', 'cost_structure', 'revenue_streams')},
+     'budget': 2,
+     'needs': {'key_partners': ['industry_structure'], 'key_activities': ['methodology'],
+               'key_resources': ['cost_price'], 'value_propositions': ['customer'],
+               'customer_relationships': ['customer'], 'channels': ['customer'],
+               'customer_segments': ['customer'], 'cost_structure': ['cost_price'],
+               'revenue_streams': ['market_size']},
+ },
  'blocks': [{'key': 'key_partners',
              'label': 'Key partners',
              'prompt': 'Who you depend on, and what each partner supplies',
@@ -10269,6 +10590,22 @@ LEAN_CANVAS = {'template': 'template_lean_canvas',
  'sites': 'organization',
  'providers': ['brave', 'deepseek', 'firecrawl'],
  'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'research': {
+     'topics': {key: 'entrepreneurship' for key in ('problem', 'customer_segments',
+                                                     'unique_value_proposition', 'solution', 'channels',
+                                                     'revenue_streams', 'cost_structure', 'key_metrics',
+                                                     'unfair_advantage')},
+     'tiers': {key: ['official', 'data', 'research', 'news']
+               for key in ('problem', 'customer_segments', 'unique_value_proposition', 'solution',
+                           'channels', 'revenue_streams', 'cost_structure', 'key_metrics',
+                           'unfair_advantage')},
+     'budget': 2,
+     'needs': {'problem': ['customer'], 'customer_segments': ['customer'],
+               'unique_value_proposition': ['customer'], 'solution': ['methodology'],
+               'channels': ['customer'], 'revenue_streams': ['market_size'],
+               'cost_structure': ['cost_price'], 'key_metrics': ['methodology'],
+               'unfair_advantage': ['competitor']},
+ },
  'blocks': [{'key': 'problem',
              'label': 'Problem',
              'prompt': 'The top problems you are solving',
@@ -10413,6 +10750,17 @@ VALUE_PROPOSITION_CANVAS = {'template': 'template_value_proposition_canvas',
  'sites': 'organization',
  'providers': ['brave', 'deepseek', 'firecrawl'],
  'gate': {'title_cue': True, 'title_context': True, 'require_geography': False},
+ 'research': {
+     'topics': {key: 'marketing' for key in ('customer_jobs', 'customer_pains', 'customer_gains',
+                                             'products_services', 'pain_relievers', 'gain_creators')},
+     'tiers': {key: ['official', 'data', 'research', 'news']
+               for key in ('customer_jobs', 'customer_pains', 'customer_gains',
+                           'products_services', 'pain_relievers', 'gain_creators')},
+     'budget': 2,
+     'needs': {'customer_jobs': ['customer'], 'customer_pains': ['customer'],
+               'customer_gains': ['customer'], 'products_services': ['methodology'],
+               'pain_relievers': ['customer'], 'gain_creators': ['customer']},
+ },
  'blocks': [{'key': 'customer_jobs',
              'label': 'Customer jobs',
              'prompt': 'What the customer is trying to get done',
@@ -11372,6 +11720,549 @@ OKRS = {'template': 'template_okrs',
                            'short': 'An initiative with no owner does not happen.',
                            'probe': 'state the evidence for these initiatives'}}}
 
+#: The two other Porter modules.  Their writing blocks are assigned here rather
+#: than inside the generated literals above, so the module data is in one place
+#: and a reader can compare the three modules at a glance.
+GENERIC_STRATEGIES["writing"] = {
+    "module": "generic_strategies",
+    "scale": "fit",
+    "rating_label": "Fit",
+    "sections": ["scope", "summary", "dimensions", "synthesis", "coherence",
+                 "stuck", "implications", "limitations", "conclusion", "audit"],
+    "section_heads": {
+        "scope": "Scope of the analysis",
+        "summary": "Strategy fit summary",
+        "synthesis": "Classification and reasoning",
+        "coherence": "Coherence and sustainability",
+        "stuck": "Stuck in the middle",
+        "implications": "Implications and recommendations",
+        "limitations": "Limitations",
+        "conclusion": "Conclusion",
+        "audit": "Evidence audit",
+    },
+    "extra_sections": ["coherence", "stuck"],
+    "areas": ["pricing", "cost", "operations", "marketing", "distribution", "service",
+              "product", "customer", "technology", "procurement", "brand"],
+    "summary_columns": ["Strategy", "Fit", "Confidence", "One-line rationale"],
+    "audit_columns": ["#", "Claim", "Strategy", "Source", "Tier", "Recency",
+                      "Type", "Strength", "Notes"],
+    "conventions": ("Tiers and recency are the product's declared convention: A is a primary "
+                    "filing or official statistic, B a peer-reviewed or vetted industry source, "
+                    "C a press release, vendor page, blog or undated page, D no source. Evidence "
+                    "older than three years is stale. A cost or differentiation claim without a "
+                    "quantified figure is capped at Moderate strength."),
+    "drivers": {
+        "low_cost": ["unit cost against peers", "scale", "process efficiency", "procurement",
+                     "asset utilisation", "price positioning", "margin against peers"],
+        "differentiation": ["price premium", "brand strength", "research and design intensity",
+                            "quality and service measures", "customer willingness to pay"],
+        "focus_low_cost": ["segment-specific cost advantage"],
+        "focus_differentiation": ["fit to the niche's distinct needs"],
+    },
+    "mid_directive": (
+        " In \"discussion\", name the primary strategy (cost leadership, differentiation, cost "
+        "focus or differentiation focus) or say \"unclear\" and why, naming the business unit and "
+        "its market. In \"coherence\", test whether the activities reinforce that choice and name "
+        "any contradiction. In \"stuck\", assess whether the evidence shows a firm pursuing two "
+        "strategies without commitment; conclude that only when the evidence supports it, and name "
+        "the mechanism if the firm legitimately combines them. In \"implications\", give two to four "
+        "specific actions tied to the chosen strategy; do not recommend whether to proceed. Return "
+        "the extra sections beside \"discussion\" and \"implications\" in the same JSON object."),
+}
+
+PORTERS_DIAMOND["writing"] = {
+    "module": "porters_diamond",
+    "scale": "condition",
+    "rating_label": "Condition",
+    "sections": ["scope", "outcome", "summary", "dimensions", "synthesis", "assessment",
+                 "implications", "limitations", "conclusion", "audit"],
+    "section_heads": {
+        "scope": "Scope of the analysis",
+        "outcome": "Competitiveness outcome evidence",
+        "summary": "Diamond summary table",
+        "synthesis": "Interaction analysis",
+        "assessment": "Overall assessment and sustainability",
+        "implications": "Implications",
+        "limitations": "Limitations",
+        "conclusion": "Conclusion",
+        "audit": "Evidence audit",
+    },
+    "extra_sections": ["outcome", "assessment"],
+    "summary_columns": ["Determinant", "Condition", "Confidence", "One-line rationale"],
+    "audit_columns": ["#", "Claim", "Determinant", "Source", "Tier", "Recency",
+                      "Type", "Strength", "Causal link", "Notes"],
+    "conventions": ("Tiers and recency are the product's declared convention: A is a primary "
+                    "filing or official statistic, B a peer-reviewed or vetted industry source, "
+                    "C a press release, vendor page, blog or undated page, D no source. Evidence "
+                    "older than three years is stale. A claim without a quantified figure is "
+                    "capped at Moderate strength."),
+    "drivers": {
+        "factor_conditions": ["skilled labour", "knowledge and research base", "capital",
+                              "infrastructure", "natural resources",
+                              "advanced versus basic factors"],
+        "demand_conditions": ["sophisticated home buyers", "size and growth of home demand",
+                              "home preferences anticipating global trends", "segment structure"],
+        "related_industries": ["internationally competitive suppliers", "related industries",
+                               "clusters", "knowledge spillovers"],
+        "firm_strategy": ["management norms", "capital market attitudes", "domestic rivalry",
+                          "new-firm formation"],
+        "government": ["policy", "regulation", "education", "standards", "subsidies",
+                       "procurement"],
+        "chance": ["technological breakthrough", "input-cost shock", "exchange-rate shift",
+                   "war", "demand surge"],
+    },
+    "mid_directive": (
+        " In \"discussion\", analyse how the determinants reinforce one another and name the "
+        "strongest and the missing links. In \"assessment\", state whether the diamond is strong, "
+        "partial or weak and whether the advantage is sustainable, distinguishing advanced created "
+        "factors from basic inherited ones. In \"implications\", tie each implication to a "
+        "determinant. Return the extra sections beside \"discussion\" and \"implications\" in the "
+        "same JSON object."),
+}
+
+FIVE_FORCES["writing"].update({"scale": "intensity", "rating_label": "Rating"})
+
+#: Portfolio, growth and canvas modules (owner instruction, 2026-11-09).  The
+#: units are corrected here for the same reason the first three were: Ansoff and
+#: ERRC are about one offering, the canvases about one business model or one
+#: segment, and BCG/GE about a portfolio.
+ANSOFF["unit"] = {
+    "field": "firm", "rule": "the firm or business unit in its market",
+    "label": "Firm or business unit", "example": "Kestrel Retail",
+    "help": ("Ansoff places one firm's growth options against its current products and markets. "
+             "Name the firm or business unit, and its market in the next field."),
+    "secondary": {"label": "Its market", "example": "grocery retail",
+                  "help": "The market the firm currently competes in."},
+    "refuse": ("Ansoff classifies growth options for one firm or business unit in its market. "
+               "Name both, for example Kestrel Retail in grocery retail."),
+}
+ANSOFF["writing"] = {
+    "module": "ansoff", "scale": "risk", "rating_label": "Risk",
+    "sections": ["scope", "summary", "dimensions", "synthesis", "forward", "register",
+                 "implications", "limitations", "conclusion"],
+    "section_heads": {
+        "scope": "Scope and baseline", "summary": "Matrix summary",
+        "synthesis": "Prioritisation", "forward": "Sequencing and interactions",
+        "register": "Assumptions and tests", "implications": "Implications for the decision",
+        "limitations": "Limitations", "conclusion": "Conclusion",
+    },
+    "summary_columns": ["Quadrant", "Risk", "Confidence", "One-line rationale"],
+    "audit_columns": [],
+    "conventions": ("Risk is the quadrant's general tendency, not a rule: a well-evidenced market "
+                    "development move can be safer than a poorly evidenced penetration push. "
+                    "A hypothesis (H) is a forward-looking claim; its test is in the register."),
+    "drivers": {
+        "market_penetration": ["growth logic", "current performance", "saturation",
+                               "competitor response", "cannibalisation"],
+        "market_development": ["new segment or geography", "channel economics",
+                               "capability to serve it", "competitive response"],
+        "product_development": ["new need or technology", "development cost",
+                                "cannibalisation", "adoption evidence"],
+        "diversification": ["related or unrelated", "capability fit", "entry cost",
+                            "risk profile", "synergy with the core"],
+    },
+    "mid_directive": (
+        " In \"discussion\", rank the options on stated criteria and show the scoring logic; do "
+        "not let the quadrant choose for the firm. In \"forward\", explain how the options combine "
+        "over time and where they cannibalise each other. In \"implications\", name the priorities, "
+        "the assumptions they rest on and the evidence that would change them. Return the extra "
+        "sections beside \"discussion\" and \"implications\" in the same JSON object."),
+}
+
+ERRC["unit"] = {
+    "field": "firm", "rule": "the focal offering in its industry",
+    "label": "Focal offering", "example": "a subscription grocery box",
+    "help": ("The four actions are written against one offering in one industry. Name the offering, "
+             "and its industry in the next field."),
+    "secondary": {"label": "Its industry", "example": "grocery retail",
+                  "help": "The industry whose conventions the offering breaks."},
+    "refuse": ("Blue Ocean's four actions are written against one offering in one industry. Name "
+               "both, for example a subscription grocery box in grocery retail."),
+}
+ERRC["writing"] = {
+    "module": "errc", "scale": "impact", "rating_label": "Buyer value impact",
+    "sections": ["scope", "summary", "dimensions", "synthesis", "forward", "register",
+                 "implications", "limitations", "conclusion"],
+    "section_heads": {
+        "scope": "Scope: industry, offering and buyers",
+        "summary": "Four actions summary",
+        "synthesis": "New value curve test",
+        "forward": "Economics and feasibility",
+        "register": "Assumption register",
+        "implications": "Implications for the decision",
+        "limitations": "Limitations", "conclusion": "Conclusion",
+    },
+    "summary_columns": ["Action", "Buyer value", "Confidence", "One-line rationale"],
+    "audit_columns": [],
+    "register_columns": ["Assumption", "Why it matters", "Evidence so far", "Test", "Confidence"],
+    "conventions": ("ERRC is largely a forward-looking design tool: a claim about future buyer "
+                    "response, cost saving or new demand is a hypothesis (H) with a test, never a "
+                    "fact. Current industry factors are cited or labelled."),
+    "drivers": {
+        "eliminate": ["factor the industry takes for granted", "cost removed", "buyer value"],
+        "reduce": ["factor over-designed", "cost removed", "buyer value"],
+        "raise": ["factor under-served", "buyer value lifted", "cost added"],
+        "create": ["factor never offered", "new demand", "cost added"],
+    },
+    "mid_directive": (
+        " In \"discussion\", test the new curve for focus, divergence and a compelling tagline. "
+        "In \"forward\", check the economics and feasibility: cost savings against added cost, the "
+        "buyer-response hypotheses, execution and imitation risk, and what would invalidate the "
+        "idea. In \"implications\", propose the cheapest validation tests. Return the extra "
+        "sections beside \"discussion\" and \"implications\" in the same JSON object."),
+}
+
+for _canvas, _label in ((BMC, "Business model canvas"), (LEAN_CANVAS, "Lean canvas"),
+                        (VALUE_PROPOSITION_CANVAS, "Value proposition canvas")):
+    _canvas["unit"] = {
+        "field": "business", "label": "Business, idea or segment",
+        "help": ("A canvas describes one business model, one idea or one customer segment. Name it "
+                 "in a few words."),
+        "example": "a subscription grocery box for small households",
+        "refuse": ("A canvas describes one business, idea or segment. Name it before filling the "
+                   "blocks."),
+    }
+
+BMC["writing"] = {
+    "module": "business_model_canvas", "scale": "evidence",
+    "rating_label": "Evidence strength",
+    "sections": ["scope", "summary", "dimensions", "synthesis", "register",
+                 "implications", "limitations", "conclusion"],
+    "section_heads": {
+        "scope": "Scope", "summary": "Block summary",
+        "synthesis": "Consistency checks", "register": "Assumption register",
+        "implications": "Strengths, weaknesses and recommendations",
+        "limitations": "Limitations", "conclusion": "Conclusion",
+    },
+    "summary_columns": ["Block", "Evidence", "Confidence", "One-line rationale"],
+    "audit_columns": [],
+    "drivers": {
+        "customer_segments": ["distinct need", "willingness to pay", "market type",
+                              "segment importance"],
+        "value_propositions": ["customer problem", "value type", "alternative it beats"],
+        "channels": ["awareness", "evaluation", "purchase", "delivery", "after-sales"],
+        "customer_relationships": ["relationship type", "acquisition or retention", "cost"],
+        "revenue_streams": ["pricing mechanism", "segment link", "share of revenue"],
+        "key_resources": ["physical", "intellectual", "human", "financial", "scarcity"],
+        "key_activities": ["production", "problem solving", "platform management"],
+        "key_partnerships": ["partner", "what they provide", "dependency risk"],
+        "cost_structure": ["fixed or variable", "cost driver", "scale or scope"],
+    },
+    "mid_directive": (
+        " In \"discussion\", run the consistency checks: every segment has a value proposition, a "
+        "channel path and a revenue stream; every proposition addresses a stated problem; resources "
+        "and activities deliver it; costs reflect them. In \"implications\", give two to four "
+        "recommendations tied to named blocks. Return the extra sections beside \"discussion\" and "
+        "\"implications\" in the same JSON object."),
+}
+
+LEAN_CANVAS["writing"] = {
+    "module": "lean_canvas", "scale": "evidence",
+    "rating_label": "Evidence strength",
+    "sections": ["scope", "summary", "dimensions", "synthesis", "fit", "risks", "register",
+                 "implications", "limitations", "conclusion"],
+    "section_heads": {
+        "scope": "Scope", "summary": "Block summary",
+        "synthesis": "Consistency checks", "fit": "Problem-solution fit",
+        "risks": "Ranked risks and experiments", "register": "Assumption register",
+        "implications": "Strengths, weaknesses and recommendations",
+        "limitations": "Limitations", "conclusion": "Conclusion",
+    },
+    "extra_sections": ["fit", "risks"],
+    "summary_columns": ["Block", "Evidence", "Confidence", "One-line rationale"],
+    "audit_columns": [],
+    "drivers": {
+        "problem": ["top problems", "existing alternatives", "severity"],
+        "customer_segments": ["target segment", "early adopters", "users versus buyers"],
+        "unique_value_proposition": ["outcome", "differentiator", "high-level concept"],
+        "solution": ["feature to problem map", "smallest proof"],
+        "channels": ["specific path", "cost to test", "proven or not"],
+        "revenue_streams": ["pricing model", "indicative price", "margin logic"],
+        "cost_structure": ["fixed", "variable", "burn or break-even"],
+        "key_metrics": ["acquisition", "activation", "retention", "revenue", "referral"],
+        "unfair_advantage": ["cannot be copied", "none yet", "what could become one"],
+    },
+    "mid_directive": (
+        " In \"discussion\", run the consistency checks: every problem has a segment and an existing "
+        "alternative; every solution item maps to a problem; the UVP speaks to the early adopter; "
+        "channels can reach them; price fits the alternatives and costs. In \"fit\", state which "
+        "problems are real, important and frequent, and whether the solution proves the value. In "
+        "\"risks\", rank the riskiest assumptions and give the cheapest experiment, its success "
+        "criterion and the decision that follows. In \"implications\", give two to four "
+        "recommendations tied to named blocks. Return the extra sections beside \"discussion\" and "
+        "\"implications\" in the same JSON object."),
+}
+
+VALUE_PROPOSITION_CANVAS["writing"] = {
+    "module": "value_proposition_canvas", "scale": "evidence",
+    "rating_label": "Evidence strength",
+    "sections": ["scope", "summary", "dimensions", "synthesis", "register",
+                 "implications", "limitations", "conclusion"],
+    "section_heads": {
+        "scope": "Scope: segment and offering", "summary": "Component summary",
+        "synthesis": "Fit assessment", "register": "Assumption register",
+        "implications": "Gaps, noise and recommended changes",
+        "limitations": "Limitations", "conclusion": "Conclusion",
+    },
+    "summary_columns": ["Component", "Evidence", "Confidence", "One-line rationale"],
+    "audit_columns": [],
+    "drivers": {
+        "customer_jobs": ["functional", "social", "emotional", "supporting", "context"],
+        "customer_pains": ["undesired outcome", "obstacle", "risk", "severity", "frequency"],
+        "customer_gains": ["required", "expected", "desired", "unexpected", "relevance"],
+        "products_services": ["what is offered", "importance to the customer"],
+        "pain_relievers": ["which pain", "how it relieves it"],
+        "gain_creators": ["which gain", "how it creates it"],
+    },
+    "mid_directive": (
+        " In \"discussion\", assess fit item by item: every pain reliever references a specific "
+        "pain, every gain creator a specific gain, and every top-priority job, pain or gain is "
+        "addressed or named as a gap. State which of problem-solution, product-market and "
+        "business-model fit has behavioural evidence and which is still a hypothesis. In "
+        "\"implications\", name the gaps, the noise and the changes to the value map or segment. "
+        "Return the extra sections beside \"discussion\" and \"implications\" in the same JSON "
+        "object."),
+}
+
+BCG["unit"] = {
+    "field": "business", "label": "Portfolio or corporation",
+    "help": ("BCG positions the units of one portfolio. Name the corporation or portfolio; the "
+             "unit table in the brief supplies each unit's market, growth and share."),
+    "example": "Kestrel Retail group",
+    "refuse": ("BCG positions the units of one portfolio. Name the corporation or portfolio, and "
+               "declare a unit table with market, growth and share."),
+}
+BCG["writing"] = {
+    "module": "bcg", "scale": "evidence", "rating_label": "Evidence strength",
+    "sections": ["scope", "metrics", "calculation", "chart", "dimensions", "synthesis",
+                 "hypotheses", "limitations", "audit", "conclusion"],
+    "section_heads": {
+        "scope": "Scope, portfolio and market definitions",
+        "metrics": "Metric definitions and thresholds",
+        "calculation": "Calculation table",
+        "synthesis": "Portfolio balance",
+        "hypotheses": "Strategic hypotheses",
+        "audit": "Evidence audit",
+    },
+    "summary_columns": [],
+    "audit_columns": ["#", "Claim", "Unit", "Source", "Tier", "Recency", "Type",
+                      "Strength", "Notes"],
+    "chart": "bar", "chart_caption": "Relative share by unit",
+    "chart_heading": "Relative share by unit",
+    "conventions": ("Relative share and market growth are the frozen core's outputs; the paper "
+                    "does not recompute them. A unit within 15% of a threshold is borderline. "
+                    "The quadrant is a starting hypothesis, not a command."),
+    "drivers": {
+        "stars": ["leadership", "cash consumption", "growth durability"],
+        "cash_cows": ["cash generation", "market decline", "under-investment"],
+        "question_marks": ["share gain evidence", "investment need", "exit option"],
+        "dogs": ["niche or synergy value", "harvest", "divest option"],
+    },
+    "mid_directive": (
+        " Use the calculation record verbatim: it holds each unit's relative share, growth and "
+        "quadrant from the frozen core. Do not recompute, re-round or invent a figure. In "
+        "\"discussion\", assess the portfolio balance: cash generation against growth bets, the "
+        "pipeline of future stars, and dependence on one cash cow. In \"implications\", present "
+        "build, hold, harvest and divest as hypotheses with conditions, never commands. Return "
+        "the extra sections beside \"discussion\" and \"implications\" in the same JSON object."),
+}
+
+GE_MCKINSEY["unit"] = {
+    "field": "business", "label": "Portfolio or corporation",
+    "help": ("GE-McKinsey assesses the units of one portfolio. Name the corporation or portfolio; "
+             "the unit table in the brief supplies the factor scores and weights."),
+    "example": "Kestrel Retail group",
+    "refuse": ("GE-McKinsey assesses the units of one portfolio. Name the corporation or "
+               "portfolio, and declare the factors, weights and scores."),
+}
+GE_MCKINSEY["writing"] = {
+    "module": "ge_mckinsey", "scale": "evidence", "rating_label": "Evidence strength",
+    "sections": ["scope", "metrics", "calculation", "chart", "dimensions", "synthesis",
+                 "hypotheses", "limitations", "audit", "conclusion"],
+    "section_heads": {
+        "scope": "Scope and portfolio",
+        "metrics": "Factors, weights and scoring anchors",
+        "calculation": "Weighted totals and grid placement",
+        "synthesis": "Portfolio view and resource prioritisation",
+        "hypotheses": "Per-unit posture",
+        "audit": "Evidence audit",
+    },
+    "summary_columns": [],
+    "audit_columns": ["#", "Claim", "Unit", "Source", "Tier", "Recency", "Type",
+                      "Strength", "Notes"],
+    "chart": "bar", "chart_caption": "Attractiveness by unit",
+    "chart_heading": "Attractiveness by unit",
+    "conventions": ("The axis totals are the frozen weighted_summary outputs; weights must sum to "
+                    "100 per axis and are set before scoring. A zone that changes under the "
+                    "sensitivity test is reported, not hidden."),
+    "drivers": {key: ["industry attractiveness", "business unit strength", "weight and score",
+                      "sensitivity", "evidence tier"]
+                for key in ("high_high", "high_medium", "high_low", "medium_high",
+                            "medium_medium", "medium_low", "low_high", "low_medium",
+                            "low_low")},
+    "mid_directive": (
+        " Use the calculation record verbatim: it holds each unit's weighted axis totals and zone "
+        "from the frozen core. Do not recompute, re-round or invent a score. In \"discussion\", "
+        "assess the portfolio balance and where attractive markets coincide with weak positions. "
+        "In \"implications\", state each unit's posture and the conditions that would change it. "
+        "Return the extra sections beside \"discussion\" and \"implications\" in the same JSON "
+        "object."),
+}
+
+#: Quality and workplace modules (owner instruction, 2026-11-09).  Their
+#: worksheets are returned as `tables`; their charts use the existing bar,
+#: pareto, line and tree modules through `framework_figures`.
+ROOT_CAUSE["writing"] = {
+    "module": "root_cause", "scale": "evidence", "rating_label": "Evidence strength",
+    "sections": ["scope", "tables", "dimensions", "synthesis", "chart", "forward",
+                 "register", "limitations", "audit", "conclusion"],
+    "section_heads": {
+        "scope": "Scope and problem statement",
+        "tables": "Containment, evidence and actions",
+        "synthesis": "Why-chains and root causes",
+        "forward": "Corrective and preventive actions",
+        "register": "Assumptions and tests",
+        "audit": "Verification audit",
+    },
+    "summary_columns": ["Branch", "Evidence", "Confidence", "One-line rationale"],
+    "audit_columns": ["#", "Cause or link", "Branch", "Source", "Tier", "Recency",
+                      "Type", "Strength", "Notes"],
+    "chart": "tree", "chart_caption": "Why chain",
+    "chart_heading": "Why-chain tree",
+    "conventions": ("A cause is Verified, Plausible or Unverified. No chain stops at "
+                    "human error; a root cause is a system cause with a forward and a "
+                    "reverse test. A hypothesis (H) names its test in the register."),
+    "drivers": {
+        "problem": ["what happened", "where", "when", "how often", "how big"],
+        "people": ["training", "staffing", "behaviour", "system that allowed it"],
+        "process": ["procedure", "sequence", "standard", "hand-off"],
+        "equipment": ["machine", "tool", "maintenance", "calibration"],
+        "materials": ["input", "specification", "supplier", "storage"],
+        "measurement": ["instrument", "gauge", "method", "data"],
+        "environment": ["layout", "light", "temperature", "housekeeping"],
+        "root_cause": ["forward test", "reverse test", "controllable", "system level"],
+    },
+    "mid_directive": (
+        " In \"discussion\", state the root causes and contributing causes, each with its "
+        "forward and reverse test. In \"forward\", give corrective and preventive actions with "
+        "what, who, when and the success measure. Return `tables` as a list of {heading, columns, "
+        "rows} for the containment/evidence table, the actions table and the verification audit, "
+        "and `chart` as a tree {kind, title, root, children} for the key why-chain. Use only the "
+        "record's values."),
+}
+
+FMEA["writing"] = {
+    "module": "fmea", "scale": "evidence", "rating_label": "Evidence strength",
+    "sections": ["scope", "calculation", "tables", "dimensions", "synthesis", "chart",
+                 "forward", "limitations", "audit", "conclusion"],
+    "section_heads": {
+        "scope": "Scope, type and boundaries",
+        "calculation": "RPN calculation",
+        "tables": "Rating scales and worksheet",
+        "synthesis": "Prioritisation",
+        "forward": "Recommended actions and re-scoring",
+        "audit": "Calculation audit",
+    },
+    "summary_columns": ["Part", "Evidence", "Confidence", "One-line rationale"],
+    "audit_columns": ["#", "Claim", "Part", "Source", "Tier", "Recency", "Type",
+                      "Strength", "Notes"],
+    "chart": "pareto", "chart_caption": "RPN by failure mode",
+    "chart_heading": "RPN Pareto",
+    "conventions": ("RPN is Severity x Occurrence x Detection, shown for every row. A severity "
+                    "of 9 or 10 is a priority regardless of RPN. A projected re-score is "
+                    "labelled Projected, never reported as achieved."),
+    "drivers": {
+        "failure_modes": ["function", "failure mode", "requirement"],
+        "effects": ["local effect", "next-level effect", "customer effect", "severity"],
+        "causes": ["cause", "occurrence", "basis for the score"],
+        "controls": ["prevention", "detection", "detection score"],
+        "actions": ["action", "targets S O or D", "owner and date"],
+        "owners": ["review", "status", "residual risk"],
+    },
+    "mid_directive": (
+        " In \"discussion\", rank the rows by RPN and by the severity override. In \"forward\", "
+        "give the recommended actions and label any re-score Projected unless the action was "
+        "implemented. Return `tables` for the rating scales and the FMEA worksheet (ID, function, "
+        "failure mode, effects, S, causes, O, controls, D, RPN, action, owner, basis), and "
+        "`chart` as a pareto {kind, title, points:[{label, value, cumulative}]} of RPN by failure "
+        "mode. Use only the record's values."),
+}
+
+PDCA["writing"] = {
+    "module": "pdca", "scale": "evidence", "rating_label": "Evidence strength",
+    "sections": ["scope", "dimensions", "tables", "synthesis", "chart", "forward",
+                 "register", "limitations", "audit", "conclusion"],
+    "section_heads": {
+        "scope": "Scope and cycle status",
+        "tables": "Cycle log",
+        "synthesis": "Check and Act",
+        "forward": "Next cycle and sustainment",
+        "register": "Assumption register",
+        "audit": "Required checks",
+    },
+    "summary_columns": ["Stage", "Evidence", "Confidence", "One-line rationale"],
+    "audit_columns": ["#", "Claim", "Stage", "Source", "Tier", "Recency", "Type",
+                      "Strength", "Notes"],
+    "chart": "line", "chart_caption": "Measure by stage",
+    "chart_heading": "Cycle measures",
+    "register_columns": ["Assumption or hypothesis", "Why it matters", "Evidence so far",
+                         "How it will be tested", "Success criterion", "Confidence"],
+    "conventions": ("Each stage is Completed, In progress or Planned from the record. No result "
+                    "is written for a step that did not run. Plan, Do and Check use the same "
+                    "measure, definition and unit."),
+    "drivers": {
+        "plan": ["problem", "baseline", "root cause", "SMART goal", "hypothesis",
+                 "countermeasure", "measures", "prediction"],
+        "do": ["what was done", "where", "when", "who", "data", "deviations"],
+        "check": ["result vs baseline vs goal", "causation", "balancing measure",
+                  "hypothesis supported"],
+        "act": ["adopt adapt or abandon", "standardisation", "next cycle", "lessons"],
+    },
+    "mid_directive": (
+        " In \"discussion\", compare the result with the baseline, the goal and the prediction, "
+        "and state whether the change caused it. In \"forward\", give the adopt/adapt/abandon "
+        "decision and the sustainment plan. Return `tables` for the cycle log (cycle, stage, "
+        "status, description, measure, baseline, target, result, decision, confidence) and the "
+        "assumption register, and `chart` as a line/bar {kind, title, points} of the measure by "
+        "stage. Use only the record's values; a stage that did not run is Planned."),
+}
+
+FIVE_S["writing"] = {
+    "module": "five_s", "scale": "evidence", "rating_label": "Evidence strength",
+    "sections": ["scope", "tables", "calculation", "dimensions", "synthesis", "chart",
+                 "forward", "limitations", "audit", "conclusion"],
+    "section_heads": {
+        "scope": "Scope, area and evidence",
+        "calculation": "Score calculation",
+        "tables": "Scorecard and findings",
+        "synthesis": "Score calculation and trend",
+        "forward": "Corrective actions and follow-up",
+        "audit": "Required checks",
+    },
+    "summary_columns": ["S", "Evidence", "Confidence", "One-line rationale"],
+    "audit_columns": ["#", "Claim", "S", "Source", "Tier", "Recency", "Type",
+                      "Strength", "Notes"],
+    "chart": "bar", "chart_caption": "Score by S",
+    "chart_heading": "Score by S",
+    "conventions": ("Scores use the declared 0-4 anchors. An unassessed criterion is excluded "
+                    "with a note. Safety is reported separately. Every finding has an action."),
+    "drivers": {
+        "sort": ["unneeded items", "excess inventory", "red tags", "rules"],
+        "set_in_order": ["locations", "labels", "visual controls", "access"],
+        "shine": ["cleanliness", "sources of dirt", "schedule", "abnormalities"],
+        "standardize": ["standard", "checklist", "reference photo", "roles"],
+        "sustain": ["audit", "trend", "training", "management", "closed actions"],
+    },
+    "mid_directive": (
+        " In \"discussion\", state each S score with its calculation and the trend against an "
+        "earlier audit where one is provided. In \"forward\", give the corrective actions, the "
+        "safety observations and the re-audit plan. Return `tables` for the scorecard (S, "
+        "criterion, score, maximum, evidence, source, not assessed, confidence) and the findings "
+        "(area, S, observation, severity, source, likely cause, action, owner, status), and "
+        "`chart` as a bar {kind, title, points:[{label, value}]} of the five S scores. Use only "
+        "the record's values."),
+}
+
 PROFILES = {profile["template"]: profile
 
             for profile in (FIVE_FORCES, PESTEL, VALUE_CHAIN, SWOT, ANSOFF, VRIO, ERRC, ACTIVITY_SYSTEM, SCENARIO, 
@@ -11621,6 +12512,317 @@ for _qp in (LDR_01_PROFILE, LDR_02_PROFILE, LDR_03_PROFILE, LDR_04_PROFILE,
     PROFILES[_qp["template"]] = _qp
 
 
+#: Marketing research blocks (B-258).  The marketing frameworks share one topic
+#: and one need vocabulary; a few dimensions are split out (positioning is
+#: competitive, the 7Ps split price and process, TAM/UTAUT are technology
+#: adoption, the measurement plan is research).  The blocks are attached to the
+#: profiles here so the twenty-two dict literals above do not each repeat the
+#: same table.
+def _marketing_research(keys, topic="marketing", needs=None, required=None):
+    keys = tuple(keys)
+    needs = needs or {}
+    block = {
+        "topics": {key: topic for key in keys},
+        "tiers": {key: ["official", "data", "research", "news"] for key in keys},
+        "budget": 2,
+        "needs": {key: needs.get(key, ["customer"]) for key in keys},
+    }
+    if required:
+        block["required_tiers"] = {key: list(required) for key in keys}
+    return block
+
+
+_MARKETING_RESEARCH = {
+    "template_stp": _marketing_research(
+        ("segmentation", "targeting", "positioning"),
+        needs={"segmentation": ["customer"], "targeting": ["customer"],
+               "positioning": ["competitor"]},
+        required=["official", "data", "research"]),
+    "template_stp_evidence": _marketing_research(
+        ("segmentation_evidence", "targeting_evidence", "positioning_evidence"),
+        needs={"segmentation_evidence": ["customer"],
+               "targeting_evidence": ["customer"],
+               "positioning_evidence": ["competitor"]},
+        required=["official", "data", "research"]),
+    "template_aida": _marketing_research(
+        ("attention", "interest", "desire", "action"),
+        required=["official", "data", "research"]),
+    "template_customer_journey": _marketing_research(
+        ("awareness", "consideration", "purchase", "retention", "advocacy"),
+        required=["official", "data", "research"]),
+    "template_funnel": _marketing_research(
+        ("awareness", "interest", "consideration", "intent", "evaluation", "purchase"),
+        required=["official", "data", "research"]),
+    "template_servqual": _marketing_research(
+        ("tangibles", "reliability", "responsiveness", "assurance", "empathy"),
+        required=["official", "data", "research"]),
+    "template_rfm": _marketing_research(
+        ("recency", "frequency", "monetary"),
+        required=["official", "data", "research"]),
+    "template_tam": _marketing_research(
+        ("perceived_usefulness", "perceived_ease_of_use", "attitude",
+         "behavioral_intention"),
+        topic="technology",
+        needs={key: ["technology_trend"] for key in
+               ("perceived_usefulness", "perceived_ease_of_use", "attitude",
+                "behavioral_intention")},
+        required=["data", "research"]),
+    "template_utaut": _marketing_research(
+        ("performance_expectancy", "effort_expectancy", "social_influence",
+         "facilitating_conditions"),
+        topic="technology",
+        needs={key: ["technology_trend"] for key in
+               ("performance_expectancy", "effort_expectancy", "social_influence",
+                "facilitating_conditions")},
+        required=["data", "research"]),
+    "template_brand_equity": _marketing_research(
+        ("awareness", "associations", "perceived_quality", "loyalty"),
+        required=["official", "data", "research"]),
+    "template_digital_mix": _marketing_research(
+        ("owned", "earned", "paid"),
+        required=["official", "data", "research"]),
+    "template_seo_content": _marketing_research(
+        ("keywords", "content", "technical", "links"),
+        required=["official", "data", "research"]),
+    "template_email_crm": _marketing_research(
+        ("list", "segments", "campaigns", "automation"),
+        required=["official", "data", "research"]),
+    "template_social_media": _marketing_research(
+        ("platforms", "content", "engagement", "influencers"),
+        required=["official", "data", "research"]),
+    "template_attribution": _marketing_research(
+        ("touchpoints", "model", "credit", "reporting"),
+        required=["official", "data", "research"]),
+    "template_cro": _marketing_research(
+        ("hypothesis", "variants", "metrics", "results")),
+    "template_marketing_automation": _marketing_research(
+        ("triggers", "flows", "scoring", "nurture")),
+    "template_kano": _marketing_research(
+        ("must_be", "performance", "attractive", "indifferent", "reverse")),
+    "template_paid_media_plan": _marketing_research(
+        ("objective", "audience", "channels_placements", "budget_bid",
+         "creative_variants", "conversion_definition", "measurement"),
+        needs={"objective": ["customer"], "audience": ["customer"],
+               "channels_placements": ["customer"], "budget_bid": ["cost_price"],
+               "creative_variants": ["customer"], "conversion_definition": ["customer"],
+               "measurement": ["methodology"]},
+        required=["official", "data", "research"]),
+    "template_measurement_plan": _marketing_research(
+        ("questions", "metrics", "events_dimensions", "data_quality", "governance"),
+        topic="research",
+        needs={key: ["methodology"] for key in
+               ("questions", "metrics", "events_dimensions", "data_quality", "governance")}),
+    "template_marketing_plan": _marketing_research(
+        ("segmentation", "targeting", "positioning", "product", "price", "place",
+         "promotion", "people", "process", "physical_evidence"),
+        needs={"segmentation": ["customer"], "targeting": ["customer"],
+               "positioning": ["competitor"], "product": ["customer"],
+               "price": ["cost_price"], "place": ["customer"],
+               "promotion": ["customer"], "people": ["methodology"],
+               "process": ["methodology"], "physical_evidence": ["customer"]},
+        required=["official", "data", "research"]),
+    "template_kpi_tree": _marketing_research(
+        ("outcome", "drivers", "inputs"),
+        topic="project",
+        needs={key: ["methodology"] for key in ("outcome", "drivers", "inputs")}),
+}
+
+for _template, _block in _MARKETING_RESEARCH.items():
+    if _template in PROFILES:
+        PROFILES[_template]["research"] = _block
+
+
+#: People and change research blocks (B-258).  These are organisation
+#: frameworks: the evidence is usually the student's own organisation, so the
+#: block routes the dimension to the people registry and names the methodology
+#: need, but requires no source tier (nothing is graded away).  A few
+#: dimensions read the wider environment and are routed accordingly.
+def _people_research(keys, topics=None, needs=None, budget=2):
+    keys = tuple(keys)
+    topics = topics or {}
+    needs = needs or {}
+    return {
+        "topics": {key: topics.get(key, "people") for key in keys},
+        "tiers": {key: ["official", "data", "research", "news"] for key in keys},
+        "budget": budget,
+        "needs": {key: needs.get(key, ["methodology"]) for key in keys},
+    }
+
+
+_PEOPLE_RESEARCH = {
+    "template_adkar": _people_research(
+        ("awareness", "desire", "knowledge", "ability", "reinforcement")),
+    "template_kotter": _people_research(
+        ("urgency", "coalition", "vision", "communicate", "empower", "wins",
+         "consolidate", "institutionalize")),
+    "template_lewin": _people_research(("unfreeze", "change", "refreeze")),
+    "template_tuckman": _people_research(
+        ("forming", "storming", "norming", "performing", "adjourning")),
+    "template_amo": _people_research(("ability", "motivation", "opportunity")),
+    "template_burke_litwin": _people_research(
+        ("external_environment", "mission_strategy", "leadership", "culture",
+         "structure", "management_practices", "systems", "work_unit_climate",
+         "task_requirements", "motivation", "individual_values", "performance"),
+        topics={"external_environment": "economics", "mission_strategy": "management",
+                "structure": "management", "task_requirements": "operations",
+                "individual_values": "culture"},
+        needs={"external_environment": ["country_macro"],
+               "mission_strategy": ["industry_structure"]}),
+    "template_competing_values": _people_research(
+        ("clan", "adhocracy", "market", "hierarchy")),
+    "template_job_characteristics": _people_research(
+        ("skill_variety", "task_identity", "task_significance", "autonomy", "feedback")),
+    "template_kirkpatrick": _people_research(
+        ("reaction", "learning", "behavior", "results")),
+    "template_nine_box": _people_research(
+        ("performance_criteria", "potential_criteria", "placements",
+         "development_actions")),
+    "template_org_design": _people_research(
+        ("strategy", "decision_rights", "structure", "processes",
+         "people_capability", "incentives"),
+        topics={"strategy": "management", "decision_rights": "management",
+                "structure": "management", "processes": "operations"},
+        needs={"strategy": ["industry_structure"]}),
+    "template_mckinsey_7s": _people_research(
+        ("strategy", "structure", "systems", "shared_values", "style", "staff", "skills"),
+        topics={"strategy": "management", "structure": "management",
+                "systems": "management"}),
+    "template_galbraith_star": _people_research(
+        ("strategy", "structure", "processes", "rewards", "people"),
+        topics={"strategy": "management", "structure": "management",
+                "processes": "operations"}),
+    "template_mintzberg": _people_research(
+        ("strategic_apex", "middle_line", "operating_core", "technostructure",
+         "support_staff"),
+        topics={key: "management" for key in
+                ("strategic_apex", "middle_line", "operating_core",
+                 "technostructure", "support_staff")}),
+}
+
+for _template, _block in _PEOPLE_RESEARCH.items():
+    if _template in PROFILES:
+        PROFILES[_template]["research"] = _block
+
+
+#: Project and operations research blocks (B-258).  A project plan's evidence is
+#: its own record, so most project dimensions route to `project` with a
+#: methodology need and require no tier; the operations frameworks route to
+#: operations (or supply chain) and the balanced scorecard / strategy map split
+#: finance, marketing, operations and people.  VRIO is deliberately absent:
+#: it retrieves no external evidence by design, and the value stream map is
+#: quote/gap only.
+def _batch_research(keys, default_topic, topics=None, needs=None, required=None):
+    keys = tuple(keys)
+    topics = topics or {}
+    needs = needs or {}
+    block = {
+        "topics": {key: topics.get(key, default_topic) for key in keys},
+        "tiers": {key: ["official", "data", "research", "news"] for key in keys},
+        "budget": 2,
+        "needs": {key: needs.get(key, ["methodology"]) for key in keys},
+    }
+    if required:
+        block["required_tiers"] = {key: list(required) for key in keys}
+    return block
+
+
+_PROJECT_OPS_RESEARCH = {
+    "template_balanced_scorecard": _batch_research(
+        ("financial", "customer", "internal_process", "organisational_capacity"),
+        default_topic="management",
+        topics={"financial": "finance", "customer": "marketing",
+                "internal_process": "operations", "organisational_capacity": "people"},
+        needs={"financial": ["cost_price"], "customer": ["customer"]},
+        required=None),
+    "template_lessons_learned": _batch_research(
+        ("went_well", "went_poorly", "causes", "changes", "actions", "share", "evidence"),
+        default_topic="project"),
+    "template_okrs": _batch_research(
+        ("objectives", "key_results", "initiatives"), default_topic="project"),
+    "template_project_charter": _batch_research(
+        ("objective", "scope_in", "scope_out", "deliverables", "governance", "budget",
+         "milestones", "success_measures", "assumptions", "constraints"),
+        default_topic="project"),
+    "template_raci": _batch_research(
+        ("responsible", "accountable", "consulted", "informed"), default_topic="project"),
+    "template_risk_register": _batch_research(
+        ("risk", "response"), default_topic="project"),
+    "template_stakeholder_plan": _batch_research(
+        ("stakeholders", "interests", "influence", "engagement", "messages",
+         "channels", "frequency", "owners", "risks"), default_topic="project"),
+    "template_strategy_map": _batch_research(
+        ("outcome", "customer", "process", "capability"), default_topic="management"),
+    "template_wbs": _batch_research(
+        ("deliverables", "work_packages", "acceptance", "exclusions"),
+        default_topic="project"),
+    "template_a3": _batch_research(
+        ("problem", "current_condition", "target", "causes", "countermeasures",
+         "plan", "follow_up"), default_topic="operations"),
+    "template_dmaic": _batch_research(
+        ("define", "measure", "analyze", "improve", "control"),
+        default_topic="operations"),
+    "template_kraljic": _batch_research(
+        ("criteria", "strategic", "leverage", "bottleneck", "non_critical"),
+        default_topic="supply_chain", needs={"criteria": ["cost_price"]}),
+    "template_pdsa": _batch_research(
+        ("plan", "do", "study", "act"), default_topic="operations"),
+    "template_scor": _batch_research(
+        ("plan", "source", "make", "deliver", "return", "enable"),
+        default_topic="supply_chain"),
+    "template_sipoc": _batch_research(
+        ("suppliers", "inputs", "process", "outputs", "customers"),
+        default_topic="operations"),
+    "template_sop": _batch_research(
+        ("demand_plan", "supply_plan", "inventory_plan", "capacity_plan",
+         "financial_plan", "decisions"), default_topic="operations"),
+    "template_toc": _batch_research(
+        ("identify", "exploit", "subordinate", "elevate", "reassess"),
+        default_topic="operations"),
+    "template_strategic_positioning": _batch_research(
+        ("position", "differentiation", "value_proposition", "target_segment"),
+        default_topic="industry", needs={"target_segment": ["customer"]},
+        required=["official", "data", "research"]),
+}
+
+for _template, _block in _PROJECT_OPS_RESEARCH.items():
+    if _template in PROFILES:
+        PROFILES[_template]["research"] = _block
+
+
+#: Leadership, culture and ethics research blocks (B-258).  These profiles are
+#: mostly the student's own argument (`quote`/`gap`); only the `auto` blocks and
+#: the logic-model / theory-of-change rows are researched, so the block lists
+#: exactly those dimensions.  The quote-only profiles (ethical decision process,
+#: leader effectiveness, leadership development, organisational culture) are
+#: deliberately left without a block.
+_LEADERSHIP_RESEARCH = {
+    "template_change_organization": _batch_research(
+        ("change_type", "readiness", "resistance", "support"), default_topic="people"),
+    "template_cross_cultural_leadership": _batch_research(
+        ("framework",), default_topic="culture"),
+    "template_culture_framework_comparison": _batch_research(
+        ("framework_a", "framework_b"), default_topic="culture"),
+    "template_ethical_dilemma": _batch_research(
+        ("theory_a", "theory_b"), default_topic="ethics"),
+    "template_leadership_theory_comparison": _batch_research(
+        ("starting_theory",), default_topic="people"),
+    "template_logic_model": _batch_research(
+        ("inputs", "activities", "outputs", "outcomes", "impact"),
+        default_topic="people"),
+    "template_situational_leadership": _batch_research(
+        ("model",), default_topic="people"),
+    "template_stakeholder_csr": _batch_research(
+        ("shareholder", "stakeholder_theory", "csr"), default_topic="ethics"),
+    "template_theory_of_change": _batch_research(
+        ("inputs", "activities", "outputs", "outcomes", "impact", "assumptions"),
+        default_topic="people"),
+}
+
+for _template, _block in _LEADERSHIP_RESEARCH.items():
+    if _template in PROFILES:
+        PROFILES[_template]["research"] = _block
+
+
 #: The default profile for a payload that predates the template field.
 
 DEFAULT = "template_five_forces"
@@ -11708,6 +12910,28 @@ def profile_for(template):
     if missing:
 
         raise ValueError("incomplete framework profile: " + "; ".join(missing))
+
+    # A profile may declare how its dimensions are researched.  The block is
+    # optional; when present it is checked against the closed vocabularies so an
+    # unknown need, tier or topic is refused here rather than silently ignored.
+    research = profile.get("research")
+
+    problems = research_contract.validate_research(research)
+
+    if research and not problems:
+
+        from . import sources as source_finder
+
+        for dimension, topic in (research.get("topics") or {}).items():
+
+            if str(topic) not in source_finder.TOPICS:
+
+                problems.append("research: topics[%s] names unknown topic %r"
+                                % (dimension, topic))
+
+    if problems:
+
+        raise ValueError("incomplete framework profile: " + "; ".join(problems))
 
     return profile
 

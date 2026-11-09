@@ -22,7 +22,7 @@ import re
 
 from concurrent.futures import ThreadPoolExecutor, wait
 
-from . import docx, framework_profiles, guard, length as length_mod, matrix, paper, prose, retrieval, writing
+from . import docx, framework_calc, framework_figures, framework_profiles, framework_writing, guard, length as length_mod, matrix, paper, prose, retrieval, research_contract, writing
 from . import rubric as rubric_reader
 
 #: The provider factory, attached by `bp.server` through `api.attach_models`.
@@ -34,6 +34,11 @@ def set_model_factory(factory):
     """Attach the provider factory: a callable returning a model set, or None."""
     global MODEL_FACTORY
     MODEL_FACTORY = factory
+
+
+def set_method_compute(run, describe=None):
+    """Attach the frozen core's run/describe callables for the portfolio modules."""
+    framework_calc.set_method_compute(run, describe)
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?%?")
 from .framework_registry import WORDS as FRAMEWORK_WORDS
@@ -156,15 +161,48 @@ def _source_cite(item):
 
 # -- completion ----------------------------------------------------------------
 
-def _unit(profile, instruction, unit_value):
-    """The declared or detected unit of analysis, and the message when it is missing."""
+def _unit(profile, instruction, unit_value, market=None):
+    """The declared or detected unit of analysis, and the message when it is missing.
+
+    Five Forces analyses an industry; Generic Strategies analyses a firm or
+    business unit in its market; the Diamond analyses a nation or region and its
+    industry.  A two-part unit is never guessed from one part: the paper asks for
+    both rather than inventing the missing half.
+    """
     field = (profile.get("unit") or {}).get("field") or "industry"
     value = _clean(unit_value, 120)
+    market = _clean(market, 120)
+    if field == "firm":
+        if not value or not market:
+            raise ValueError(profile["unit"]["refuse"])
+        return {"field": field, "value": value, "firm": value, "market": market,
+                "context": " ".join((value, market))}
+    if field == "country_industry":
+        country = value or _country(instruction)
+        if not country or not market:
+            raise ValueError(profile["unit"]["refuse"])
+        if str(country).strip().lower() in ("global", "world", "international"):
+            raise ValueError(profile["unit"]["refuse"])
+        country = _country(country) or country
+        return {"field": field, "value": country + ": " + market,
+                "country": country, "industry": market, "region": _region(country),
+                "context": " ".join((country, market))}
     if field == "industry":
         ok, industry = guard.five_forces_fit(instruction, value)
         if not ok:
             raise ValueError(profile["unit"]["refuse"])
         return {"field": field, "value": industry, "context": industry}
+    # A canvas or a single business model: one named unit, never guessed.
+    if field in ("unit", "business"):
+        if not value:
+            raise ValueError(profile["unit"]["refuse"])
+        # A portfolio still needs its market in the context: the portfolio name
+        # alone would not tell the retriever which industry to search.
+        context = " ".join(part for part in (market, value,
+                                             " ".join(retrieval.topic_words(instruction)[:3]))
+                           if part)
+        return {"field": field, "value": value, "market": market, "context": context,
+                "region": _region(_country(instruction))}
     # A process: named by the student, never detected and never guessed.  The
     # context is the process plus the words the brief uses about it, because a
     # search for supplier or input evidence has to know what it is about.
@@ -276,7 +314,8 @@ def _one_block(profile, block, context, region, year_from, country="", corpus_do
             category=block.get("category"), gate=profile.get("gate"),
             sites=_sites(profile), providers=profile.get("providers"),
             corpus_doc_cap=3, corpus_doc_counts=corpus_doc_counts,
-            topic=context or profile.get("subject") or "")
+            topic=context or profile.get("subject") or "",
+            research=profile.get("research"), block_key=block["key"])
     except Exception as error:
         found = {"items": [], "queries": _queries(block, context, region, country), "dropped": 0,
                  "errors": [{"database": "retrieval", "error": str(error)[:160]}],
@@ -286,9 +325,18 @@ def _one_block(profile, block, context, region, year_from, country="", corpus_do
         quote = retrieval.first_sentence(source, sentences=2)
         if not quote:
             continue
-        items.append({"text": quote, "provenance": "sourced", "source": _source_text(source),
-                      "citation": _source_cite(source), "title": _clean(source.get("title"), 200),
-                      "database": source.get("database")})
+        item = {"text": quote, "provenance": "sourced", "source": _source_text(source),
+                "citation": _source_cite(source), "title": _clean(source.get("title"), 200),
+                "database": source.get("database"),
+                # The source tier and the audit tier are different vocabularies;
+                # keep the source tier under its own key before metadata_for
+                # writes the audit tier into `tier`.
+                "source_tier": source.get("tier")}
+        # The audit needs the date, the database and the link the item came from;
+        # the tier and recency are read here, once, so every surface grades the
+        # same source the same way.
+        item.update(framework_writing.metadata_for(source))
+        items.append(item)
     return {"block": block, "items": items, "found": found}
 
 
@@ -297,6 +345,28 @@ def _sites(profile):
         from . import sources as source_finder
         return source_finder.INDUSTRY_SITES
     return None
+
+
+def _block_ledger(profile, block, result, items, gap, tier_rejected=None):
+    """One dimension's evidence ledger, with the profile's grading verdict.
+
+    The ledger is run-state: it records what the retriever saw and why a
+    candidate was refused, so the review can show it.  It is not part of the
+    frozen plan record and never changes a citation.
+    """
+    found = result.get("found") or {}
+    ledger = dict(found.get("ledger") or {})
+    ledger.setdefault("dimension", block["key"])
+    ledger["accepted"] = list(items)
+    ledger["background"] = list(found.get("orientation") or [])
+    rejected = list(ledger.get("rejected") or [])
+    for item in tier_rejected or []:
+        rejected.append({"candidate": item, "reason": "tier_missing"})
+    ledger["rejected"] = rejected
+    required = ((profile.get("research") or {}).get("required_tiers") or {}).get(block["key"]) or []
+    ledger["grading"] = research_contract.grade_dimension(items, required)
+    ledger["gaps"] = [gap] if gap else []
+    return ledger
 
 
 #: The analysis lane: it drafts the parts that are the student's reading, from the
@@ -401,6 +471,10 @@ def complete(template, instruction, region=None, student_items=None, industry=No
                          + " and ".join(sorted(p["label"] for p in framework_profiles.PROFILES.values()))
                          + ".")
     profile = framework_profiles.profile_for(template)
+    # A pasted portfolio table is a set of lines.  The prompt's copy is cleaned
+    # to one line, but the table reader must see the original line breaks, or
+    # the table disappears before it is read.
+    raw_instruction = str(instruction or "")[:20000]
     instruction = _clean(instruction, 2000)
     if len(instruction) < 15:
         raise ValueError("Describe the case in at least one sentence.")
@@ -411,9 +485,15 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     # be read must cost a sentence, not a full run whose paper silently ignores it.
     attached = _read_rubric(rubric) if rubric is not None else None
     unit_field = (profile["unit"] or {}).get("field") or "industry"
-    declared = unit_value if unit_value not in (None, "") else (
-        industry if unit_field == "industry" else country)
-    unit = _unit(profile, instruction, declared)
+    if unit_value not in (None, ""):
+        declared = unit_value
+    elif unit_field == "industry":
+        declared = industry
+    elif unit_field == "firm":
+        declared = ""
+    else:
+        declared = country
+    unit = _unit(profile, instruction, declared, market=industry)
     region = region or unit.get("region") or _region(_country(instruction))
     context = unit.get("context") or ""
     if not context:
@@ -432,7 +512,8 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     year_from = datetime.datetime.now(datetime.timezone.utc).year - 10
     jobs, notes = {}, []
     started = datetime.datetime.now(datetime.timezone.utc)
-    country = _country(instruction)
+    # The unit may name the country (the Diamond does); the brief is the fallback.
+    country = unit.get("country") or _country(instruction)
     # Only a `research` block is sent to the databases.  A `quote` block takes
     # the student's own words and a `gap` block is stated only by the student:
     # searching outside evidence for either would dress a process the pipeline
@@ -514,10 +595,26 @@ def complete(template, instruction, region=None, student_items=None, industry=No
         if (not background and framework_profiles.fill_of(block) in ("research", "auto")
                 and profile.get("assumption") == "probe" and gap):
             gap = gap + " " + _probe(profile, block)
+        # Source-type grading: when the profile requires a tier this dimension
+        # did not get, the weaker sourced items become background and the
+        # dimension is a named gap.  A student item is never dropped, and a
+        # sourced item with no tier metadata is not graded (the old behaviour).
+        required = ((profile.get("research") or {}).get("required_tiers") or {}).get(block["key"]) or []
+        tier_rejected = []
+        sourced = [item for item in items if item.get("provenance") == "sourced"]
+        if required and sourced:
+            verdict = research_contract.grade_dimension(sourced, required)
+            if not verdict["ok"]:
+                _kept, tier_rejected = research_contract.filter_by_grade(sourced, required)
+                items = [item for item in items if item not in tier_rejected]
+                gap = _gap_note(profile, block)
+                if profile.get("assumption") == "probe":
+                    gap = gap + " " + _probe(profile, block)
         blocks.append({"key": block["key"], "label": block["label"], "items": items, "gap": gap,
                        "fill": framework_profiles.fill_of(block),
                        "query": (found.get("queries") or [""])[0],
-                       "dropped": found.get("dropped") or 0})
+                       "dropped": found.get("dropped") or 0,
+                       "ledger": _block_ledger(profile, block, result, items, gap, tier_rejected)})
         if result["items"]:
             notes.append(block["label"] + ": " + str(len(result["items"])) + " sourced item(s).")
         if block["key"] in timed_out:
@@ -592,6 +689,31 @@ def complete(template, instruction, region=None, student_items=None, industry=No
         notes.append("Authoring questions were reworded for your case by the model lane; "
                      "they are prompts, not evidence.")
 
+    # The evidence audit names a source by a stable id, so the same study keeps
+    # one id across dimensions and a reader can follow a claim to its source.
+    framework_writing.assign_source_ids(blocks)
+    # Portfolio arithmetic is the frozen core's: run it once, here, and store its
+    # record.  The model reads the record; it never divides or scores.
+    calculation = None
+    chart = None
+    module = (profile.get("writing") or {}).get("module")
+    if module in ("bcg", "ge_mckinsey"):
+        calculation = framework_calc.for_template(template, raw_instruction)
+        rows = (calculation or {}).get("rows") or []
+        if module == "bcg":
+            points = [{"label": str(row[0]), "value": str(row[3])}
+                      for row in rows if len(row) > 3 and str(row[3]) not in ("", "not computed")]
+            title = "Relative share by unit"
+        else:
+            points = [{"label": str(row[0]), "value": str(row[1])}
+                      for row in rows if len(row) > 1 and str(row[1]) not in ("", "not computed")]
+            title = "Attractiveness by unit"
+        if len(points) >= 2:
+            chart = {"kind": "bar", "title": title, "points": points}
+    elif module in ("fmea", "five_s"):
+        calculation = framework_calc.for_quality(module, raw_instruction)
+        if calculation and calculation.get("chart"):
+            chart = calculation["chart"]
     # The counts the page shows are computed here, on the server: the client
     # never counts, sums or works out a progress figure of its own.
     filled = [block for block in blocks if block["items"]]
@@ -601,6 +723,7 @@ def complete(template, instruction, region=None, student_items=None, industry=No
                  "blocks": blocks, "notes": notes, "elapsed_s": round(elapsed, 2),
                  "summary": {"parts": len(blocks), "filled": len(filled),
                              "gaps": len(blocks) - len(filled)},
+                 "research": [block.get("ledger") or {} for block in blocks],
                  "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
     # V-20: the title page carries the student's OWN lines, or nothing at all.  A
     # name is never invented and never defaulted: an empty byline is a paper with
@@ -608,9 +731,59 @@ def complete(template, instruction, region=None, student_items=None, industry=No
     lines = [str(line).strip() for line in (byline or []) if str(line or "").strip()]
     if lines:
         completed["byline"] = lines[:6]
+    if calculation is not None:
+        completed["calculation"] = calculation
+    if chart is not None:
+        completed["chart"] = chart
     if attached is not None:
         completed["rubric"] = attached
     return completed
+
+
+def confirm_readings(completion, decisions):
+    """Record the student's decision on each proposed reading.
+
+    A reading is the system's proposal until the student confirms, overrides or
+    drops it.  The decision is recorded on the reading and the completion is
+    returned; nothing is silently adopted, and an unknown part, status or scale
+    value is refused with a sentence.
+    """
+    if not isinstance(completion, dict) or not isinstance(decisions, dict):
+        raise ValueError("a completion object and a decisions object are required")
+    blocks = []
+    for original in completion.get("blocks") or []:
+        block = dict(original)
+        if isinstance(block.get("reading"), dict):
+            block["reading"] = dict(block["reading"])
+        blocks.append(block)
+    by_key = {block.get("key"): block for block in blocks}
+    for key, decision in decisions.items():
+        block = by_key.get(key)
+        if block is None:
+            raise ValueError("there is no part called '%s' in this run" % key)
+        reading = block.get("reading")
+        if not reading or reading.get("status") == "absent":
+            raise ValueError("the part '%s' has no proposed reading to confirm" % key)
+        status = str((decision or {}).get("status") or "").strip().lower()
+        if status not in ("confirmed", "overridden", "dropped"):
+            raise ValueError("the decision for '%s' must be confirmed, overridden or dropped" % key)
+        if status == "overridden":
+            rating = str((decision or {}).get("rating") or "").strip()
+            scale = reading.get("rating_scale") or list(framework_writing.RATINGS)
+            if rating not in scale:
+                raise ValueError("the override for '%s' must be one of: %s"
+                                 % (key, ", ".join(scale)))
+            reading["override"] = {"rating": rating,
+                                   "reason": _clean((decision or {}).get("reason"), 300)}
+            reading["rating"] = rating
+        elif status == "confirmed":
+            reading["override"] = None
+        reading["status"] = status
+        reading["confirmed_by"] = "student"
+    out = dict(completion)
+    out["blocks"] = blocks
+    out["readings_confirmed_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    return out
 
 
 def _read_rubric(value):
@@ -850,6 +1023,15 @@ LAYOUT = {
         "it in {lens}; the third qualifies the reading by what the evidence does not establish."),
 }
 
+#: The fallback mid-call directive for a writing module that does not declare its
+#: own.  The reading directive is built from the profile's scale and label by
+#: `framework_writing.reading_directive`, so one scale cannot be hard-coded here.
+MODULE_MID = (
+    " Also return \"forward\": one or two paragraphs naming two to four structural shifts (technology, "
+    "regulation, consolidation or demand) and the direction each would move a part. Do not invent a "
+    "shift the items do not support; if the items do not evidence a trend, say that plainly. Return "
+    "\"forward\" beside \"discussion\" and \"implications\" in the same JSON object.")
+
 MID_SYSTEM = (
     "You are writing the discussion of a {name} analysis. Use only the case instruction, the thesis and the "
     "{block_plural} items. Formal academic English, third person, no contractions, no first or second person, no "
@@ -906,6 +1088,9 @@ def _unit_noun(framework):
     first letter only, so nothing is invented here.
     """
     unit = framework.get("unit") or {}
+    rule = _clean(unit.get("rule") or "", 120)
+    if rule:
+        return rule
     noun = _clean(unit.get("label") or unit.get("field") or "market", 60)
     return (noun[:1].lower() + noun[1:]) if noun else "market"
 
@@ -988,6 +1173,15 @@ def _shape(raw, keys):
     return {"introduction": _as_list(raw.get("introduction")),
             "context": _as_list(raw.get("context")),
             "lead": str(raw.get("lead") or "").strip(),
+            "forward": _as_list(raw.get("forward")),
+            "coherence": _as_list(raw.get("coherence")),
+            "stuck": _as_list(raw.get("stuck")),
+            "outcome": _as_list(raw.get("outcome")),
+            "assessment": _as_list(raw.get("assessment")),
+            "fit": _as_list(raw.get("fit")),
+            "risks": _as_list(raw.get("risks")),
+            "tables": framework_writing.clean_tables(raw.get("tables")),
+            "chart": raw.get("chart") if isinstance(raw.get("chart"), dict) else None,
             "groups": {key: _as_list(merged.get(key)) for key in keys},
             "discussion": _as_list(raw.get("discussion")),
             "implications": _as_list(raw.get("implications")),
@@ -1011,7 +1205,9 @@ def _without_names(data, result, length, problems):
     names = [problem.split(" ", 1)[1] for problem in problems if problem.startswith("name ")]
     fallback = _draft_data(result, length)
     out = dict(data)
-    for field in ("introduction", "context", "discussion", "implications", "limitations", "conclusion"):
+    for field in ("introduction", "context", "discussion", "forward", "coherence", "stuck",
+                  "outcome", "assessment", "fit", "risks", "implications", "limitations",
+                  "conclusion"):
         if any(_has_name(part, names) for part in data.get(field) or []):
             out[field] = list(fallback.get(field) or [])
     out["groups"] = {}
@@ -1023,6 +1219,30 @@ def _without_names(data, result, length, problems):
     return out
 
 
+def _attach_reading(block, reply, unit, allowed_names=None, scale=None, label="Rating"):
+    """Store the model's structured reading beside its paragraphs, or drop it.
+
+    The reading is a judgment, not a fact: it is validated against the accepted
+    items and stored as ``proposed`` until the student confirms it.  A refused
+    reading is named on the block, never printed.  A reply without a reading
+    leaves the block exactly as it was, so profiles that do not declare a
+    writing module are unchanged.
+    """
+    reading = (reply or {}).get("reading") if isinstance(reply, dict) else None
+    if reading is None:
+        return None
+    try:
+        clean = framework_writing.validate_reading(
+            reading, block.get("items") or [], unit=unit, allowed_names=allowed_names,
+            scale=scale, label=label)
+    except framework_writing.ReadingError as error:
+        block["reading"] = {"status": "absent", "reason": str(error)}
+        return None
+    clean.update({"key": block.get("key"), "label": block.get("label"), "status": "proposed"})
+    block["reading"] = clean
+    return clean
+
+
 def _model_sections(result, style="apa", attempt=0, length="mid", note="", target_words=None):
     """A thesis call, then one call per dimension and two more, in parallel."""
     global LAST_REJECT
@@ -1030,6 +1250,7 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note="", targe
         LAST_REJECT = None
     profile = _scaled_profile(length, target_words)
     framework = _profile(result.get("template"))
+    writing = framework.get("writing") or {}
     keys = [block["key"] for block in framework["blocks"]]
     voice = framework.get("voice") or {}
     try:
@@ -1043,6 +1264,8 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note="", targe
         return _reject("no items")
     instruction = _clean(result.get("instruction"), 500)
     base = {"instruction": instruction, "blocks": facts}
+    if result.get("calculation"):
+        base["calculation"] = result["calculation"]
     hint = ""
     if note:
         hint = (" The previous attempt was rejected for this reason: " + note[:300] +
@@ -1058,17 +1281,27 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note="", targe
     thesis = ("The analysis examines " +
               (voice.get("thesis_question") or "whether the evidence supports the decision") + ".")
     payload = dict(base, thesis=thesis)
+    mid_directive = _clean(writing.get("mid_directive"), 900) if writing else ""
+    if writing and not mid_directive:
+        mid_directive = MODULE_MID
+    mid_system = _system(MID_SYSTEM, profile, framework) + mid_directive
     jobs = {"head": lambda: _ask(_system(HEAD_SYSTEM, profile, framework) + hint, base),
-            "mid": lambda: _ask(_system(MID_SYSTEM, profile, framework) + hint, payload),
+            "mid": lambda: _ask(mid_system + hint, payload),
             "tail": lambda: _ask(_system(TAIL_SYSTEM, profile, framework) + hint, payload)}
     for block in blocks:
         label = block.get("label") or block.get("key")
         items = [{"text": _clean(item.get("text"), 600), "kind": _kind(item)}
                  for item in block.get("items") or []]
         section_payload = {"instruction": instruction, "thesis": thesis, "label": label, "items": items}
+        section_system = _system(SECTION_SYSTEM, profile, framework).replace("{label}", label)
+        if writing:
+            section_payload["drivers"] = (writing.get("drivers") or {}).get(block.get("key")) or []
+            section_payload["areas"] = writing.get("areas") or []
+            section_payload["unit"] = (result.get("unit") or {}).get("value") or ""
+            section_system += framework_writing.reading_directive(scale, rating_label)
         jobs[block.get("key")] = (
-            lambda label=label, sp=section_payload:
-            _ask_section(label, sp, _system(SECTION_SYSTEM, profile, framework).replace("{label}", label), attempt))
+            lambda label=label, sp=section_payload, system=section_system:
+            _ask_section(label, sp, system, attempt))
     answers = {}
     with ThreadPoolExecutor(max_workers=len(jobs)) as pool:
         running = {pool.submit(job): name for name, job in jobs.items()}
@@ -1080,11 +1313,29 @@ def _model_sections(result, style="apa", attempt=0, length="mid", note="", targe
                 # One failed part must not cancel the others; the validator
                 # decides whether the paper is complete.
                 answers[name] = {}
+    # A reading rides in the same per-dimension reply as the paragraphs, so the
+    # audit costs no extra call.  It is attached before any section is shaped.
+    scale = framework_writing.scale_for(writing)
+    rating_label = _clean(writing.get("rating_label"), 40) or "Rating"
+    for block in blocks:
+        _attach_reading(block, answers.get(block.get("key")), result.get("unit"),
+                        _allowed_names(framework, result), scale=scale, label=rating_label)
     head = answers.get("head") or {}
     merged = {"introduction": (head or {}).get("introduction") or [],
               "thesis": thesis,
               "context": (head or {}).get("context") or [],
               "lead": _lead_of(framework.get("outline") or {}),
+              "forward": (answers.get("mid") or {}).get("forward") or [],
+              "coherence": (answers.get("mid") or {}).get("coherence") or [],
+              "stuck": (answers.get("mid") or {}).get("stuck") or [],
+              "outcome": (answers.get("mid") or {}).get("outcome") or [],
+              "assessment": (answers.get("mid") or {}).get("assessment") or [],
+              "fit": (answers.get("mid") or {}).get("fit") or [],
+              "risks": (answers.get("mid") or {}).get("risks") or [],
+              "tables": framework_writing.clean_tables(
+                  (answers.get("mid") or {}).get("tables")),
+              "chart": (answers.get("mid") or {}).get("chart")
+              if isinstance((answers.get("mid") or {}).get("chart"), dict) else None,
 
               "groups": {block.get("key"): (answers.get(block.get("key")) or {}).get("paragraphs") or []
                          for block in blocks},
@@ -1390,6 +1641,22 @@ def _draft_data(result, length="mid"):
              "recommendation is produced."),
         ],
         "lead": _lead_of(outline),
+        "forward": framework_writing.forward_lines(blocks),
+        "coherence": ["The record does not establish whether the firm's activities reinforce one "
+                      "strategy; the evidence describes the strategy, not the activity system."],
+        "stuck": ["The record does not show a firm pursuing two strategies at once, so no "
+                  "stuck-in-the-middle conclusion is drawn."],
+        "outcome": ["No competitiveness outcome evidence was recorded; the analysis is an "
+                    "explanatory hypothesis, not a demonstrated outcome."],
+        "tables": [],
+        "chart": None,
+        "assessment": ["The record does not support a conclusion about the strength or "
+                       "sustainability of the diamond; the audit names the determinants without "
+                       "a Tier A or B source."],
+        "fit": ["The record does not establish problem-solution fit without behavioural evidence "
+                "such as purchase, usage or retention."],
+        "risks": ["No risk or experiment was recorded; the riskiest assumptions remain to be "
+                  "named and tested."],
 
         "groups": {},
         "discussion": [
@@ -1497,8 +1764,204 @@ def _figure_cells(blocks):
     return cells
 
 
+def _audit_cells(columns, row, index):
+    """One audit row in the declared column order; no column is invented."""
+    values = {"#": str(index + 1), "Claim": row.get("claim"),
+              "Force": row.get("dimension"), "Strategy": row.get("dimension"),
+              "Determinant": row.get("dimension"), "Unit": row.get("dimension"),
+              "Source": row.get("source_id"),
+              "Tier": row.get("tier"), "Recency": row.get("recency"),
+              "Type": row.get("type"), "Strength": row.get("strength"),
+              "Causal link": row.get("causal"), "Notes": row.get("notes")}
+    return [str(values.get(str(column), "") or "") for column in columns]
+
+
+def _extra_fallback(part):
+    """An honest sentence for an extra section the model did not write."""
+    return {
+        "coherence": ("No coherence assessment was recorded; the evidence does not support a "
+                      "statement about how the activities fit together."),
+        "stuck": ("No stuck-in-the-middle assessment was recorded; the evidence does not support "
+                  "the conclusion that the firm pursues two strategies at once."),
+        "outcome": ("No competitiveness outcome evidence was recorded; the analysis is an "
+                    "explanatory hypothesis, not a demonstrated outcome."),
+        "assessment": ("No overall assessment was recorded; the evidence does not support a "
+                       "conclusion about the strength or sustainability of the diamond."),
+        "fit": ("No problem-solution fit was recorded; behavioural evidence such as purchase, "
+                "usage or retention is still missing."),
+        "risks": ("No ranked risks were recorded; the riskiest assumptions remain to be named and "
+                  "tested."),
+        "metrics": ("The calculation table states the metric definitions and thresholds: growth is "
+                    "the market's, relative share is measured against the largest competitor, and a "
+                    "weighted total uses weights that sum to 100. The paper reads those figures; it "
+                    "does not recompute them."),
+    }.get(part, "No assessment was recorded for this section.")
+
+
+def _module_sections(data, blocks, style, citations, result, profile):
+    """The guideline's paper shape for a profile that declares a writing module.
+
+    The order is the profile's `writing.sections`; the words are the model's or
+    the deterministic record's.  The summary and audit tables are built here from
+    the stored readings and items, so they cannot carry a fact the paper does not.
+    """
+    writing = profile.get("writing") or {}
+    outline = profile.get("outline") or {}
+    references, seen = [], set()
+    for block in blocks:
+        for item in block.get("items") or []:
+            if _kind(item) == "sourced" and item.get("source"):
+                if item["source"] not in seen:
+                    seen.add(item["source"])
+                    references.append(item["source"])
+    figure = matrix.build(result.get("template"), _figure_cells(blocks),
+                          caption=profile.get("label"))
+    sections = [
+        paper.section("Introduction", 1, list(data["introduction"])),
+        paper.section(outline.get("context") or "Case and context", 2, list(data["context"])),
+        paper.section(outline.get("framework") or profile["label"], 1,
+                      [data["lead"]] if data.get("lead") else [], figure=figure),
+    ]
+    singular = _singular((profile.get("voice") or {}).get("block_plural") or "dimensions")
+    heads = writing.get("section_heads") or {}
+    def heading(part, default):
+        return heads.get(part) or writing.get(part + "_heading") or default
+    extras = set(writing.get("extra_sections") or [])
+    discussion_parts = {"synthesis", "forward", "coherence", "stuck", "assessment",
+                        "fit", "risks", "hypotheses", "implications", "limitations"}
+    discussion_open = False
+    for part in writing.get("sections") or []:
+        if part == "scope":
+            sections.append(paper.section(
+                heading("scope", "Scope of the analysis"), 2,
+                framework_writing.scope_lines(profile, result)))
+        elif part == "summary":
+            sections.append(paper.section(
+                heading("summary", "Summary"), 2, [],
+                table=framework_writing.summary_table(profile, blocks)))
+        elif part == "dimensions":
+            for block in blocks:
+                key = block.get("key")
+                paragraphs = list(data["groups"].get(key) or [])
+                if not paragraphs:
+                    paragraphs = [block.get("gap") or
+                                  "No evidence was found for this " + singular + "."]
+                reading_line = framework_writing.reading_paragraph(block)
+                if reading_line:
+                    paragraphs = [reading_line] + paragraphs
+                cites = citations.get(key) or []
+                if not cites:
+                    cites = [item.get("citation") or _cite_from_source(item.get("source"))
+                             for item in block.get("items") or []
+                             if _kind(item) == "sourced" and item.get("source")]
+                cites = list(dict.fromkeys(cite for cite in cites if cite))
+                if cites and paragraphs:
+                    # The first paragraph after the reading line is the evidence
+                    # paragraph; the reading line is a judgment and never carries
+                    # a citation.
+                    index = 1 if reading_line and len(paragraphs) > 1 else 0
+                    head = paragraphs[index].rstrip()
+                    missing = [cite for cite in cites if cite not in head]
+                    if missing:
+                        paragraphs[index] = head + " " + " ".join(missing)
+                sections.append(paper.section(block.get("label") or key, 2, paragraphs))
+        elif part in discussion_parts or part in extras:
+            # The Discussion H1 holds the module's analytical sections as H2s,
+            # the hierarchy the paper has always used.  An extra section may sit
+            # outside that wrapper (the Diamond's outcome evidence does).
+            if part in discussion_parts and not discussion_open:
+                sections.append(paper.section("Discussion", 1))
+                discussion_open = True
+            if part == "synthesis":
+                lines = list(data.get("discussion") or [])
+            elif part == "forward":
+                lines = list(data.get("forward") or framework_writing.forward_lines(blocks))
+            elif part == "hypotheses":
+                # The portfolio modules state their postures as hypotheses; the
+                # implications prose is their home, so the paper does not repeat
+                # the same paragraph under two headings.
+                lines = list(data["implications"] or [])
+            elif part == "implications":
+                lines = list(data["implications"] or [])
+            elif part == "limitations":
+                lines = list(data["limitations"] or [])
+            else:
+                lines = list(data.get(part) or [])
+                if not lines:
+                    lines = [_extra_fallback(part)]
+            sections.append(paper.section(
+                heading(part, outline.get(part) or part.replace("_", " ").title()), 2, lines))
+        elif part == "metrics":
+            sections.append(paper.section(
+                heading("metrics", "Metric definitions and thresholds"), 2,
+                list(data.get("metrics") or [_extra_fallback("metrics")])))
+        elif part == "calculation":
+            calc = result.get("calculation") or {}
+            if calc.get("rows"):
+                sections.append(paper.section(
+                    heading("calculation", "Calculation table"), 2,
+                    list(calc.get("lines") or []),
+                    table=framework_writing.table(calc.get("columns") or [],
+                                                  calc.get("rows") or [])))
+            else:
+                sections.append(paper.section(
+                    heading("calculation", "Calculation table"), 2,
+                    [calc.get("error") or "No calculation was recorded."]))
+        elif part == "tables":
+            for entry in data.get("tables") or result.get("tables") or []:
+                sections.append(paper.section(
+                    entry["heading"], 2, [],
+                    table=framework_writing.table(entry["columns"], entry["rows"])))
+        elif part == "chart":
+            chart = data.get("chart") or result.get("chart")
+            if not chart:
+                sections.append(paper.section(
+                    heading("chart", "Framework chart"), 2,
+                    ["No chart was recorded for this framework."]))
+            else:
+                caption = (writing.get("chart_caption") or "Framework chart")
+                try:
+                    figure = framework_figures.build(chart, caption)
+                    sections.append(paper.section(
+                        heading("chart", "Framework chart"), 2,
+                        list(chart.get("note") or []) if isinstance(chart.get("note"), list)
+                        else [], figure=figure))
+                except framework_figures.ChartError as error:
+                    sections.append(paper.section(
+                        heading("chart", "Framework chart"), 2, [str(error)]))
+        elif part == "register":
+            register = framework_writing.assumption_register(
+                blocks, writing.get("register_columns"))
+            sections.append(paper.section(
+                heading("register", "Assumption register"), 2,
+                [] if register["rows"] else
+                ["No hypothesis was recorded, so the register is empty."],
+                table=register if register["rows"] else None))
+        elif part == "conclusion":
+            sections.append(paper.section(
+                heading("conclusion", outline.get("conclusion") or "Conclusion"), 1,
+                list(data["conclusion"])))
+        elif part == "audit":
+            report = framework_writing.audit(profile, result,
+                                             outcome_evidenced=bool(data.get("outcome")))
+            columns = report.get("columns") or []
+            rows = [_audit_cells(columns, row, index)
+                    for index, row in enumerate(report.get("rows") or [])]
+            sections.append(paper.section(
+                heading("audit", "Evidence audit"), 1,
+                framework_writing.audit_lines(profile, result, report,
+                                              outcome_evidenced=bool(data.get("outcome"))),
+                table=framework_writing.table(columns, rows)))
+    sections.append(paper.section(
+        outline.get("reference_heading") or ("References" if style == "apa" else "Bibliography"),
+        1, references or ["No sources were used."]))
+    return [dict(section, heading=_apa_title(section.get("heading"))) for section in sections]
+
+
 def _sections(data, blocks, style, citations, result):
     profile = _profile(result.get("template"))
+    if profile.get("writing"):
+        return _module_sections(data, blocks, style, citations, result, profile)
     outline = profile.get("outline") or {}
     references, seen = [], set()
     for block in blocks:

@@ -126,3 +126,23 @@ These are requirements the manual already flags as [OPEN](sources/business_pipel
   vocabulary does not know is shown rather than dropped.
 - **Refused rather than merged (B-212):** two sets of balances, more than one period, a comparative
   column or a consolidation mention. Each refusal names the cause and what to do instead.
+
+## Research routing (B-258, 2026-11-10)
+- **Built:** every profile that retrieves evidence declares a research block (topic, tier order,
+  query budget, needs, required tiers): PESTEL, Five Forces, the business plan, the quality modules,
+  the portfolio/canvas modules, the strategy/management batch, the marketing batch, the people/change
+  batch, the project/operations batch and the leadership/culture/ethics batch. The retriever routes,
+  ranks and records a ledger; completion and chat grade identically.
+- **Deliberate exceptions:** VRIO (no external evidence by design), the value stream map
+  (quote/gap only), and four quote-only leadership profiles (ethical decision process, leader
+  effectiveness, leadership development, organisational culture).
+- **Not a gap:** a profile without a research block keeps the old behaviour. The block is optional
+  so an untuned framework is never refused or silently given another framework's words.
+
+
+
+
+
+
+
+

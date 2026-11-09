@@ -76,6 +76,24 @@ class ProfileTest(unittest.TestCase):
                 framework_profiles.profile_for("template_pestel")
         self.assertIn("political", str(refused.exception))
 
+    def test_a_profile_with_an_unknown_research_need_is_refused(self):
+        profile = copy.deepcopy(framework_profiles.get("template_pestel"))
+        profile["research"] = {"needs": {"political": ["made_up"]}}
+        with unittest.mock.patch.dict(framework_profiles.PROFILES,
+                                      {"template_pestel": profile}):
+            with self.assertRaises(ValueError) as refused:
+                framework_profiles.profile_for("template_pestel")
+        self.assertIn("made_up", str(refused.exception))
+
+    def test_a_profile_with_an_unknown_research_topic_is_refused(self):
+        profile = copy.deepcopy(framework_profiles.get("template_pestel"))
+        profile["research"] = {"topics": {"political": "not_a_topic"}}
+        with unittest.mock.patch.dict(framework_profiles.PROFILES,
+                                      {"template_pestel": profile}):
+            with self.assertRaises(ValueError) as refused:
+                framework_profiles.profile_for("template_pestel")
+        self.assertIn("not_a_topic", str(refused.exception))
+
     def test_a_framework_without_a_profile_has_no_extension(self):
         # A template with no profile: case_decision is the one template the completion
         # engine refuses (the customer journey gained a profile), so it must fall back to

@@ -25,6 +25,8 @@ import urllib.request
 
 from . import sources as source_finder
 
+from . import research_contract
+
 #: The academic databases every dimension is searched in.
 DATABASES = ["openalex", "semanticscholar", "doaj"]
 
@@ -414,36 +416,52 @@ def gate_of(profile_gate=None):
     return gate
 
 
-def _accept(item, cue_words, context_set, geography, gate):
-    """The score for an accepted candidate, or None."""
+def _gate(item, cue_words, context_set, geography, gate):
+    """The score for an accepted candidate, or the reason it was refused.
+
+    One function, one order of rules: `_accept` reads the score and
+    `_reject_reason` reads the reason, so the two can never disagree.
+    """
     seen = relevance(item, cue_words, context_set, geography)
+    full_text = item.get("database") == "Proprietary corpus"
     if not seen["cue_hits"]:
-        return None
+        return None, ("full_text_cue_missing" if full_text else "no_cue")
     # Trap 1: a full-text source (the corpus) is judged on the passage it
     # quotes, not on the book's title.  One cue hit in the body is enough, and
     # the title alone is never sufficient.  Abstract-only sources keep the
     # title rule exactly as it is (D-10 / B-168).
-    full_text = item.get("database") == "Proprietary corpus"
     if not full_text and gate["title_cue"] and not seen["title_cues"] and seen["cue_hits"] < 3:
-        return None
+        return None, "no_cue"
     if context_set:
         if gate["title_context"] and not seen["title_context"]:
-            return None
+            return None, "no_cue"
         if not gate["title_context"] and not seen["context_hits"]:
-            return None
+            return None, "no_cue"
     if gate["require_geography"] and geography not in ("Global", "") and not seen["geo_hits"]:
-        return None
+        return None, "no_geography"
     title = clean(item.get("title"), 400).lower()
     blocked = gate.get("blocked") or ()
     if (any(word in title for word in blocked)
             and not _is_health_context(context_set)):
-        return None
+        return None, "blocked_domain"
     score = (2 * seen["cue_hits"] + 2 * (1 if seen["geo_hits"] else 0) + seen["context_hits"]
              + 2 * seen["title_cues"] + 2 * seen["title_context"])
     score = rank_item(item, score, cue_words, context_set)
     if score < gate["min_score"]:
-        return None
+        return None, "below_floor"
+    return score, None
+
+
+def _accept(item, cue_words, context_set, geography, gate):
+    """The score for an accepted candidate, or None."""
+    score, _reason = _gate(item, cue_words, context_set, geography, gate)
     return score
+
+
+def _reject_reason(item, cue_words, context_set, geography, gate):
+    """Why `_gate` refused a candidate, in the ledger's closed vocabulary."""
+    _score, reason = _gate(item, cue_words, context_set, geography, gate)
+    return reason or "no_cue"
 
 
 def key_of(item):
@@ -544,7 +562,7 @@ def _web_item(item):
 def retrieve(key, cues, queries, context, geography="Global", year_from=None, category=None,
              sites=None, providers=None, gate=None, exclude=None, max_items=MAX_ITEMS,
              academic_limit=4, corpus_limit=4, web_limit=3, corpus_doc_cap=3,
-             corpus_doc_counts=None, topic=None):
+             corpus_doc_counts=None, topic=None, research=None, block_key=None):
     """Retrieve, gate and rank the evidence for one dimension.
 
     The order is fixed and cheap first:
@@ -570,6 +588,20 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     exclude = exclude if exclude is not None else set()
     corpus_doc_counts = corpus_doc_counts if corpus_doc_counts is not None else {}
     cue_words = cue_words_of(cues)
+    # The profile may route this dimension to one topic and cap how many
+    # queries it may spend.  Absent a research block the behaviour is exactly
+    # the old one: the caller's topic, every query.
+    research = research or {}
+    dimension = block_key or key
+    declared_topic = (research.get("topics") or {}).get(dimension)
+    if declared_topic:
+        topic = declared_topic
+    budget = research.get("budget")
+    if budget:
+        try:
+            budget = max(1, int(budget))
+        except (TypeError, ValueError):
+            budget = None
     if topic and key == "evidence":
         # A no-framework paper has only the generic dimension.  Its cues are
         # "market industry evidence", which a correct ethics or culture page
@@ -578,6 +610,8 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     context_set = {word for word in context or [] if word}
     started = time.perf_counter()
     queries = [query for query in queries or [] if query]
+    if budget:
+        queries = queries[:budget]
     errors, skipped, notices = [], [], []
     academic_cached, web_cached, timings = False, False, {}
     layers = {"corpus": 0, "web": 0, "api": 0}
@@ -654,15 +688,21 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
     scored, seen = [], set()
     orientation = []
     orientation_seen = set()
+    rejected = []
     dropped = 0
+    tier_preference = list((research.get("tiers") or {}).get(dimension) or [])
     for item in found:
         item_key = _key(item)
         if not item_key or item_key in seen or item_key in exclude:
+            rejected.append({"candidate": item, "reason": "duplicate"})
             dropped += 1
             continue
         seen.add(item_key)
         score = _accept(item, cue_words, context_set, geography, gate)
         if score is None:
+            rejected.append({"candidate": item,
+                             "reason": _reject_reason(item, cue_words, context_set,
+                                                      geography, gate)})
             dropped += 1
             continue
         # A source that clears the relevance gate but is weakly relevant is
@@ -673,7 +713,16 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
                 orientation.append(item)
             continue
         scored.append((score, item))
-    scored.sort(key=lambda pair: -pair[0])
+    if tier_preference:
+        # A profile may prefer a source tier (official and data before research
+        # before news).  The tier is a ranking hint, not a second gate: an item
+        # outside the list still ranks, below every preferred one.
+        scored.sort(key=lambda pair: (
+            tier_preference.index(pair[1].get("tier"))
+            if pair[1].get("tier") in tier_preference else len(tier_preference),
+            -pair[0]))
+    else:
+        scored.sort(key=lambda pair: -pair[0])
     items = []
     for _score, item in scored[:max(1, int(max_items))]:
         # Q-16: one document may not supply every dimension of a paper.
@@ -729,6 +778,8 @@ def retrieve(key, cues, queries, context, geography="Global", year_from=None, ca
             "dropped": dropped, "errors": errors, "skipped": skipped, "notices": notices,
             "academic_cached": academic_cached, "web_cached": web_cached,
             "database_timings": timings, "layers": layers, "source_plan": source_plan,
+            "ledger": research_contract.build_ledger(key, accepted=items, rejected=rejected,
+                                                     background=orientation),
             "elapsed": round(time.perf_counter() - started, 2)}
 
 

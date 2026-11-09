@@ -396,6 +396,32 @@ least one `ingested` or a named `needs_decision` / `rejected` with a reason. A r
 only `rejected` with the reason "no open full text at the API content endpoint" is a correct
 result, not a failure — it means the literature for that question is not open.
 
+### 10a. Research the journal API into the corpus (the framework-aware harvest)
+
+`corpus-db/build/research_framework_topics.py` is the direct harvest for the research layer:
+it reads the phrases in `SEARCH_KEYWORDS_BY_SUBJECT.md`, adds the framework-aware phrases the
+pipeline now routes to (PESTEL, Five Forces, the business plan, quality, portfolio/canvas,
+strategy, marketing, people, project/operations and leadership/culture/ethics), asks the journal
+API for each one, downloads the open-access PDF, ingests it with `added_by="harvest"`, indexes
+Meilisearch, and optionally copies the PDFs to Cloudflare R2.
+
+```powershell
+# preview: list the phrases, download nothing
+python "D:\SMART BUSINESSWRITER\corpus-db\build\research_framework_topics.py" --dry-run
+
+# run: 5 results per phrase, stop at 6 GB, then copy the PDFs to R2
+python "D:\SMART BUSINESSWRITER\corpus-db\build\research_framework_topics.py" --limit 5 --sync-r2
+
+# one phrase only
+python "D:\SMART BUSINESSWRITER\corpus-db\build\research_framework_topics.py" --query "porter five forces industry analysis"
+```
+
+The journal API is `JOURNAL_API_URL`, default `http://localhost:4001/api/sources/search`; the
+request is `POST {"topic": phrase, "maxResults": N}` and the reply is `{"sources": [...]}`. The
+script refuses a URL that does not return a PDF, never guesses a missing DOI, licence or year,
+and the corpus refuses a duplicate before anything is written. R2 is the off-site copy of the
+bytes; the SQLite record and the Meilisearch index are the searchable truth.
+
 **The one database.** Every build tool reads `BP_CORPUS_DB` and falls back to
 `corpus-db/corpus.sqlite`. This machine's canonical database is
 `corpus-state/corpus.sqlite` (set in the environment), and it holds the documents, the search
