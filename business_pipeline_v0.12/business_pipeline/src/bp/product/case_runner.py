@@ -214,6 +214,13 @@ def _check(case, result):
             method_id = ""
     problems.extend(case_invariants.check(method_id, case.get("inputs") or {}, computed))
     text = _docx_text(result.get("bytes") or b"")
+    # A case's contract names the sections the paper must carry.  The phrase check
+    # below is the older, looser form; the contract is explicit and optional, so
+    # cases written before it keep working.
+    contract = expected.get("contract") or {}
+    for section in (contract.get("sections") or []):
+        if section and section not in text:
+            problems.append("the paper does not carry the '%s' section" % section)
     # A case written before the paper became the computation record may still ask
     # for the old framework phrases.  Map them onto the headings the paper now
     # carries, and never demand a reference list the paper deliberately omits.
@@ -305,6 +312,19 @@ def run_case(case_id, style="apa", length=1200, log=True):
                                           instruction=case.get("instruction"))
     except Exception as error:
         result = {"status": "error", "error": str(error)[:500]}
+        try:
+            text = str(error).lower()
+            if ("not in the frozen core" in text or "unknown capability" in text
+                    or "no method" in text or "not supported" in text):
+                ops_log.log_finding(
+                    rule="capability_gap",
+                    subject=str(case.get("subject") or ""),
+                    feature=str(case.get("tile") or ""),
+                    section="case_runner:" + str(case_id),
+                    source="capability_gap",
+                    message=str(error)[:400])
+        except Exception:
+            pass
     problems = _check(case, result)
     elapsed = int((time.perf_counter() - started) * 1000)
     if problems:

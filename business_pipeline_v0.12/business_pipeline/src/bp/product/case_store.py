@@ -106,6 +106,8 @@ def seed(subject=None, tile=None, overwrite=False, limit=None):
                         "status": "ok",
                         "result": expected,
                         "contains": [row.get("label") or row["key"], "What you declared", "How the figures were checked"],
+                        "contract": {"sections": ["Result", "Inputs and results",
+                                                  "How the figures were checked"]},
                         "xlsx_sheets": ["Summary", "Inputs", "Results", "Record"],
                     },
                     "created_at": _now(),

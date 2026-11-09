@@ -40,6 +40,20 @@ def _fix_models():
             os.environ.get("BP_FIX_ESCALATION_MODEL", ESCALATION_MODEL))
 
 
+#: The verifier lives in `verifier.py` so both the repair loop and the problem
+#: solver use the same independent check.  These names are kept here for callers
+#: that already import them from this module.
+from . import verifier as _verifier
+
+
+def _verifier_models():
+    return _verifier.verifier_models()
+
+
+def _verify_fix(problem, result):
+    return _verifier.verify_fix(problem, result)
+
+
 def diagnose(error_text):
     """Classify one error message into a failure class."""
     low = str(error_text or "").lower()
@@ -449,16 +463,28 @@ def _resolve_inner(error_id):
         if status != "ok":
             continue
 
+        # The solver's replay is a proposal.  An independent model, seeing only the
+        # problem and the answer, must agree before the fix is called verified.
+        verdict = _verify_fix(problem, first)
+        steps.append({"strategy": "independent verification",
+                      "model": verdict.get("model") or "none",
+                      "outcome": ("pass" if verdict.get("ok") is True else
+                                  "unchecked" if verdict.get("ok") is None else "rejected"),
+                      "detail": verdict.get("reason") or ""})
+        if verdict.get("ok") is False:
+            continue
+
         from . import regression_cases
         regression_cases.record_case(
             error_id, category, problem, normalized, notes, model,
             deterministic_ok=_deterministic_ok(normalized))
-        # A normalized replay that passes is a durable fix only when the normalizer
-        # actually changed the text (the recorded golden case pins that change).  A
-        # bare replay pass is an instance close; the ledger must not call it a fix.
-        artifact = "golden_case" if notes else ""
+        # A normalized replay that passes *and* a verifier that agrees is a durable
+        # fix; the recorded golden case pins the change.  A replay no verifier could
+        # check, or one with no normalizer change, is an instance close.
+        artifact = "golden_case" if (notes and verdict.get("ok") is True) else ""
+        verified_by = verdict.get("model") or "no verifier"
         _ops_log.mark_error_verified(
-            error_id, "pipeline replayed the problem on %s and it passed" % model,
+            error_id, "pipeline replayed the problem on %s and %s agreed" % (model, verified_by),
             cause="pipeline.parser_shape", artifact=artifact)
 
         closed, sib_steps = 0, []

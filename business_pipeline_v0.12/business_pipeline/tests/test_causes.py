@@ -374,7 +374,10 @@ class LearningFromErrorsTest(unittest.TestCase):
 
         with mock.patch.object(auto_resolve, "_replay_on", return_value={"status": "ok"}), \
                 mock.patch.object(auto_resolve, "normalize_problem",
-                                  return_value=("normalized problem", ["split inline list"])):
+                                  return_value=("normalized problem", ["split inline list"])), \
+                mock.patch.object(auto_resolve, "_verify_fix",
+                                  return_value={"ok": True, "model": "beam-free",
+                                                "reason": "the answer matches"}):
             fixed = auto_resolve.resolve(first)
         self.assertTrue(fixed["resolved"])
         self.assertEqual(fixed["cause"], "pipeline.parser_shape")

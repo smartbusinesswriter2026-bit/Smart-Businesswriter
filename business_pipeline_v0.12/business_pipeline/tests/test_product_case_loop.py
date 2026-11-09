@@ -477,5 +477,30 @@ class InvalidFixtureTest(unittest.TestCase):
         self.assertEqual([e["error_id"] for e in ops_log.list_errors(limit=10)], [])
 
 
+class ContractTest(unittest.TestCase):
+    """The paper's sections are a contract a case can name and check."""
+
+    def test_a_paper_missing_a_contract_section_fails(self):
+        from bp.product import docx as product_docx
+        data = product_docx.render_bytes("t", [("Result", ["x"]),
+                                               ("How the figures were checked", ["y"])])
+        case = {"expected": {"status": "ok", "result": {"a": "1"},
+                             "contract": {"sections": ["Result", "Inputs and results"]}}}
+        result = {"status": "ok", "computation": {"a": "1"}, "bytes": data}
+        problems = case_runner._check(case, result)
+        self.assertTrue(any("Inputs and results" in problem for problem in problems), problems)
+
+    def test_a_paper_carrying_every_contract_section_passes_that_check(self):
+        from bp.product import docx as product_docx
+        data = product_docx.render_bytes("t", [("Result", ["x"]),
+                                               ("Inputs and results", ["y"]),
+                                               ("How the figures were checked", ["z"])])
+        case = {"expected": {"status": "ok", "result": {"a": "1"},
+                             "contract": {"sections": ["Result", "Inputs and results"]}}}
+        result = {"status": "ok", "computation": {"a": "1"}, "bytes": data}
+        problems = case_runner._check(case, result)
+        self.assertFalse(any("does not carry the" in problem for problem in problems), problems)
+
+
 if __name__ == "__main__":
     unittest.main()

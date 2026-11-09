@@ -30,6 +30,9 @@ from . import business_plan_sections
 from . import business_plan_paper as plan_paper
 from . import business_plan_workbook
 from . import profile_writer
+from . import profile_figures
+from . import profile_reader
+from . import method_catalogue
 from . import spreadsheets
 from . import declared as declared_reader
 
@@ -1074,12 +1077,32 @@ PROFILE_FINANCE_SECTION = {
 }
 
 
-def _profile_financials(brief):
+def _apply_tax(state, reading):
+    fields = reading.setdefault("fields", {})
+    stated = fields.get("financial.tax_rate")
+    if stated:
+        fields["financial.tax_rate_basis"] = (
+            "Declared effective tax rate from the brief; it overrides the jurisdiction preset; "
+            "state tax excluded; not a tax return")
+        return reading
+    jurisdiction = str((state or {}).get("tax_jurisdiction") or "US").upper()
+    if jurisdiction == "US":
+        fields["financial.tax_rate"] = "0.21"
+        fields["financial.tax_rate_basis"] = (
+            "US federal corporate rate 21%; state tax excluded; not a tax return")
+    else:
+        fields["financial.tax_rate_basis"] = (
+            "No tax rate is stated; no tax is computed; jurisdiction not modelled; not a tax return")
+    return reading
+
+
+def _profile_financials(state):
     """A plan record when the brief carries the tables the core can compute."""
     try:
-        reading = declared_reader.read(brief)
-        if not declared_reader.is_business_plan(brief, reading):
+        reading = declared_reader.read(state.get("brief") or "")
+        if not declared_reader.is_business_plan(state.get("brief") or "", reading):
             return None
+        reading = _apply_tax(state, reading)
         record = plan_builder.solve(reading, "")
         return record if record.get("statements") else None
     except Exception:
@@ -1092,6 +1115,9 @@ def _finance_lines(record):
     for heading in ("Financial summary", "Sales forecast", "Pro forma (Years 1-3)",
                     "Break-even", "Returns", "Sensitivity"):
         lines.extend(sections.get(heading) or [])
+    for row in record.get("assumptions") or []:
+        if str(row.get("assumption") or "") == "Tax basis":
+            lines.append("Tax basis: " + str(row.get("value") or ""))
     return lines[:80]
 
 
@@ -1109,10 +1135,11 @@ def silent(state, framework=None, words=None, style=None):
                   style=(state.get("answers") or {}).get("style"))
     profile = state.get("profile") or ""
     if profile in profile_writer.PROFILES:
+        state["profile_facts"] = profile_reader.read(state.get("brief") or "")
         expanded = profile_writer.write(state, state.get("brief"), profile)
         if expanded:
             state["draft"] = expanded
-        record = _profile_financials(state.get("brief") or "")
+        record = _profile_financials(state)
         if record:
             name = ((record.get("reading") or {}).get("fields") or {}).get("business.name")
             if name and state.get("draft"):
@@ -1132,6 +1159,26 @@ def silent(state, framework=None, words=None, style=None):
                     state["draft"]["sections"] = sections
                     state["draft"]["outline"] = [{"heading": h, "level": 1, "lines": l}
                                                  for h, l in sections]
+        if profile == "marketing_plan":
+            figures = profile_figures.marketing(state.get("brief") or "", METHOD_RUN)
+            if figures.get("lines") or figures.get("funnel_lines"):
+                state.setdefault("computations", {}).update(figures.get("computations") or {})
+                sections = state["draft"].get("sections") or []
+                order = list(profile_writer.PROFILES[profile]["sections"])
+                for target, added in (("Budget and Projections", figures.get("lines") or []),
+                                      ("Funnel, Conversion and Retention", figures.get("funnel_lines") or [])):
+                    if not added:
+                        continue
+                    for pair in sections:
+                        if pair[0] == target:
+                            pair[1] = list(pair[1]) + added
+                            break
+                    else:
+                        position = order.index(target) if target in order else len(sections)
+                        sections.insert(min(position, len(sections)), [target, added])
+                state["draft"]["sections"] = sections
+                state["draft"]["outline"] = [{"heading": h, "level": 1, "lines": l}
+                                             for h, l in sections]
     state["paper"] = paper_view(state)
     state["silent"] = True
     return state
@@ -1571,6 +1618,21 @@ def start(brief, subject=None, framework=None, profile=None, level="shs", mode="
         # a journal-entry or npv brief to PESTEL.  Fail closed, with the reason.
         state.update({"stage": "not_supported", "message": message, "questions": [],
                       "question_index": 0})
+        # A refusal that is not a routing hint is a capability gap: the student asked
+        # for something the system has no tile or method for.  It becomes a finding
+        # the growth loop can triage, never an error the repair loop would chase.
+        try:
+            from . import ops_log as _ops_log
+            if "shelf" not in str(message or "").lower():
+                _ops_log.log_finding(
+                    rule="capability_gap",
+                    subject=str(state.get("subject") or ""),
+                    feature=str(state.get("brief") or "")[:120],
+                    section="chat.start",
+                    source="capability_gap",
+                    message=str(message or ""))
+        except Exception:
+            pass
     return _with_rubric(state, attached)
 
 
@@ -2382,8 +2444,8 @@ def run_capability(state, key, values):
         # and runs the core in the guide's order.  It needs no declared figures.
         store = state.setdefault("computations", {})
         try:
-            record = plan_builder.solve(declared_reader.read(state.get("brief") or ""),
-                                        state.get("objective") or "")
+            reading = _apply_tax(state, declared_reader.read(state.get("brief") or ""))
+            record = plan_builder.solve(reading, state.get("objective") or "")
         except Exception as error:
             store["business_plan"] = {"ok": False, "method": "business_plan", "inputs": {},
                                       "error": str(error)[:400]}
@@ -2988,11 +3050,17 @@ def _plan_profile(state):
 
 def _schema_for(method):
     if METHOD_DESCRIBE is None:
-        return {}
+        try:
+            return dict(method_catalogue.schema_for(method) or {})
+        except Exception:
+            return {}
     try:
         return dict(METHOD_DESCRIBE(method).get("input_schema") or {})
     except (KeyError, ValueError, TypeError):
-        return {}
+        try:
+            return dict(method_catalogue.schema_for(method) or {})
+        except Exception:
+            return {}
 
 
 def customise(state, changes):

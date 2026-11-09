@@ -181,6 +181,8 @@ def upload_bundle(subject, tile_key, filename, raw):
             if recorded is not None:
                 expected = {"status": "ok", "result": case_store._recorded(recorded),
                             "contains": [tile.get("label") or tile_key, "What you declared", "How the figures were checked"],
+                            "contract": {"sections": ["Result", "Inputs and results",
+                                                      "How the figures were checked"]},
                             "xlsx_sheets": ["Summary", "Inputs", "Results", "Record"]}
         else:
             try:
@@ -207,6 +209,8 @@ def upload_bundle(subject, tile_key, filename, raw):
                         pass
             expected = {"status": "ok", "result": mapped,
                         "contains": [tile.get("label") or tile_key, "What you declared", "How the figures were checked"],
+                        "contract": {"sections": ["Result", "Inputs and results",
+                                                  "How the figures were checked"]},
                         "xlsx_sheets": ["Summary", "Inputs", "Results", "Record"]}
 
         try:

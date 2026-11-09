@@ -395,7 +395,7 @@
         <div class="card">
           <div class="card-body">
             <div class="row">
-              <label>Source <select id="valSource"><option value="">all</option><option value="validation-harness">validation-harness</option><option value="manual">manual</option></select></label>
+              <label>Source <select id="valSource"><option value="">all</option><option value="capability_gap">capability_gap</option><option value="validation-harness">validation-harness</option><option value="manual">manual</option></select></label>
               <label>Status <select id="valStatus"><option value="open" selected>open</option><option value="resolved">resolved</option><option value="">all</option></select></label>
               <button class="btn primary" id="valRefresh">Refresh</button>
               <button class="btn" id="valIngest">Ingest manifest</button>
@@ -821,18 +821,21 @@ async function loadFindings() {
     container.innerHTML = '<div class="empty">' + escapeHtml(r.data.error || 'No data') + '</div>';
   }
 }
+let findingMap = {};
 function renderFindingsTable(findings, total, container) {
   if (!findings.length) { container.innerHTML = '<div class="empty">No findings for this filter.</div>'; return; }
   let html = '<table><thead><tr><th>Rule</th><th>Subject</th><th>Feature</th><th>Section</th><th>Source</th><th>Severity</th><th>Seen</th><th>Status</th><th>Action</th></tr></thead><tbody>';
   findings.forEach(f => {
     const fk = f.finding_key || '';
+    findingMap[fk] = f;
     const sev = f.severity || 'moderate';
     const sevPill = f.resolved ? pill('resolved', 'ok') : pill(sev, sev === 'severe' ? 'err' : (sev === 'moderate' ? 'warn' : 'info'));
     const resolveBtn = f.resolved ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="resolveFinding(\'' + escapeHtml(fk) + '\')">Resolve</button>';
     const improveBtn = f.resolved ? '' : '<button class="btn primary" style="font-size:10px;padding:3px 8px;" onclick="improveFinding(\'' + escapeHtml(fk) + '\')">Improve</button>';
     const codeBtn = f.resolved ? '' : '<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="proposeCodeFix(\'' + escapeHtml(fk) + '\')">Propose code fix</button>';
+    const scaffoldBtn = (!f.resolved && f.rule === 'capability_gap') ? '<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="scaffoldFinding(\'' + escapeHtml(fk) + '\')">Scaffold</button>' : '';
     const msg = f.message ? '<div style="font-size:10.2px;color:var(--muted);">' + escapeHtml(f.message.slice(0, 100)) + '</div>' : '';
-    html += '<tr><td><b>' + escapeHtml(f.rule) + '</b></td><td>' + escapeHtml(f.subject || '—') + '</td><td>' + escapeHtml(f.feature || '—') + '</td><td style="font-size:10.2px;">' + escapeHtml(f.section || '—') + msg + '</td><td>' + escapeHtml(f.source) + '</td><td>' + sevPill + '</td><td>' + (f.occurrences || 1) + '×</td><td>' + fmtTs(f.ts) + '</td><td>' + improveBtn + ' ' + codeBtn + ' ' + resolveBtn + '</td></tr>';
+    html += '<tr><td><b>' + escapeHtml(f.rule) + '</b></td><td>' + escapeHtml(f.subject || '—') + '</td><td>' + escapeHtml(f.feature || '—') + '</td><td style="font-size:10.2px;">' + escapeHtml(f.section || '—') + msg + '</td><td>' + escapeHtml(f.source) + '</td><td>' + sevPill + '</td><td>' + (f.occurrences || 1) + '×</td><td>' + fmtTs(f.ts) + '</td><td>' + improveBtn + ' ' + codeBtn + ' ' + scaffoldBtn + ' ' + resolveBtn + '</td></tr>';
   });
   html += '</tbody></table><div style="font-size:10.2px;color:var(--muted);margin-top:6px;">Distinct findings ever recorded: ' + (total || findings.length) + '</div>';
   container.innerHTML = html;
@@ -919,6 +922,25 @@ async function proposeCodeFix(findingKey) {
     log.textContent = '[Error: ' + (r.data.error || 'failed') + ']';
   }
 }
+async function scaffoldFinding(findingKey) {
+  const f = findingMap[findingKey] || {};
+  const subject = f.subject || '';
+  const tile = f.feature || '';
+  const instruction = f.message || f.section || '';
+  const r = await apiFetch('/api/ops/findings/scaffold', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ subject: subject, tile: tile, instruction: instruction })
+  });
+  if (r.status === 200) {
+    toast('Scaffold written to ' + (r.data.folder || 'qa/scaffolds'));
+    openModal('<h2>Scaffold: ' + escapeHtml(subject + '/' + tile) + '</h2>' +
+      '<p style="font-size:11px;color:var(--muted);">Review these files, write the logic, run the suite, then promote. Nothing is wired in.</p>' +
+      '<pre style="font-size:11px;white-space:pre-wrap;">' + escapeHtml((r.data.paths || []).join('\n')) + '</pre>');
+  } else {
+    toast('Scaffold failed: ' + (r.data.error || r.status));
+  }
+}
+
 async function loadProposals(findingKey) {
   const url = findingKey ? ('/api/ops/findings/proposals?finding_key=' + encodeURIComponent(findingKey)) : '/api/ops/findings/proposals';
   const r = await apiFetch(url);

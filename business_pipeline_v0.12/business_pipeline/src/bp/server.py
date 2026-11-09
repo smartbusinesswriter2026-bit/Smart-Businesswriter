@@ -7,7 +7,7 @@ from urllib.parse import urlparse, parse_qs, quote, unquote
 import uuid
 from . import methods, registry, templates, assist, llm, literature, accounts, ingest, currency
 from . import finance_methods  # registers additional computation methods into methods.LIBRARY
-from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, session_paper as product_session_paper, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments
+from .product import api as product_api, ops as product_ops, intake as product_intake, sources_file as product_sources, session_paper as product_session_paper, marketdata as product_marketdata, portfolios as product_portfolios, portfolio_docx as product_portfolio_docx, instruments as product_instruments, visual_input as product_visual_input
 from .product import ops_log as product_ops_log
 from .product import test_runner as product_test_runner
 from .product import chat_heal as product_chat_heal
@@ -57,6 +57,7 @@ def _record_calculator_run(session):
 
 product_api.attach_methods(_plan_method, methods.describe)
 product_api.attach_models(llm.from_env)
+product_visual_input.set_table_reader(ingest.read_table)
 from .product import statements as product_statements, statements_council as product_statement_council
 from . import statement_extract, statement_plan, schedule_math
 
@@ -1076,6 +1077,11 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, _error_db.rebuild())
             if self.path.startswith(product_api.BILLING_ROUTE):
                 return self._send(*product_api.handle("POST", self.path, self._body()))
+            if self.path.split("?")[0] == "/api/cases/visuals/read":
+                # A chart file is base64-encoded in the body; it needs the same
+                # headroom as /api/ingest, not the 100 KB JSON limit.
+                return self._send(*product_api.handle("POST", self.path,
+                                                      self._body(INGEST_MAXBODY)))
             if self.path.startswith(product_api.CASE_ROUTE):
                 n = int(self.headers.get("Content-Length") or 0)
                 if n > MAXBODY: raise ValueError("body too large")
@@ -1350,6 +1356,21 @@ class H(BaseHTTPRequestHandler):
                 if errs:
                     return self._send(422, {"error": "; ".join(errs[:3]), "opened": opened, "resolved": resolved})
                 return self._send(200, {"opened": opened, "resolved": resolved})
+            if self.path == "/api/ops/findings/scaffold":
+                body = self._body()
+                if not isinstance(body, dict):
+                    return self._send(422, {"error": "a scaffold needs {subject, tile, instruction}"})
+                subject = str(body.get("subject") or "").strip()
+                tile = str(body.get("tile") or "").strip()
+                if not subject or not tile:
+                    return self._send(422, {"error": "a scaffold needs a subject and a tile"})
+                from .product import scaffold as _scaffold
+                try:
+                    result = _scaffold.generate(subject, tile,
+                                                str(body.get("instruction") or ""))
+                except Exception as error:
+                    return self._send(422, {"error": str(error)[:300]})
+                return self._send(200, result)
             if self.path == "/api/ops/findings/resolve":
                 body = self._body()
                 finding_key = body.get("finding_key", "") if isinstance(body, dict) else ""
@@ -1512,6 +1533,8 @@ class H(BaseHTTPRequestHandler):
                 return self._send(200, product_portfolios.snapshot(portfolio_id, parts[4]))
             if action == "snapshot" and verb == "POST":
                 return self._portfolio_snapshot(portfolio_id, body or {})
+            if action == "evidence" and verb == "POST":
+                return self._portfolio_evidence(portfolio_id, body or {})
             if action == "export" and verb == "POST":
                 return self._portfolio_export(portfolio_id, body or {})
             return self._send(404, {"error": "not found"})
@@ -1658,7 +1681,32 @@ class H(BaseHTTPRequestHandler):
             "checks": [{"name": name, "ok": bool(ok)} for name, ok in results],
             "method": "portfolio_valuation", "version": method.version,
         }
+        evidence = body.get("evidence")
+        if evidence is not None:
+            snapshot["evidence"] = evidence
         return self._send(201, product_portfolios.save_snapshot(portfolio_id, snapshot))
+
+    def _portfolio_evidence(self, portfolio_id, body):
+        if not isinstance(body, dict):
+            raise ValueError("body must be an object")
+        date = str(body.get("date") or "").strip()
+        if not date:
+            raise ValueError("a date is required (YYYY-MM-DD)")
+        filename = str(body.get("filename") or "").strip()
+        if not filename:
+            raise ValueError("a file name is required")
+        mime = str(body.get("mime") or "").strip()
+        content = body.get("content")
+        if not isinstance(content, str) or not content.strip():
+            raise ValueError("content (base64) is required")
+        if "," in content and content.strip().lower().startswith("data:"):
+            content = content.split(",", 1)[1]
+        try:
+            raw = base64.b64decode(content, validate=False)
+        except Exception:
+            raise ValueError("the file content is not valid base64")
+        metadata = product_portfolios.save_evidence(portfolio_id, date, filename, mime, raw)
+        return self._send(200, metadata)
 
     def _portfolio_export(self, portfolio_id, body):
         bundle = product_portfolios.load(portfolio_id)

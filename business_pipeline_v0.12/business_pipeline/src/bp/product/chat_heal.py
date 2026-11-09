@@ -27,6 +27,7 @@ from pathlib import Path
 
 from . import causes as _causes
 from . import ops_log as _ops_log
+from . import verifier as _verifier
 
 # ── Model helpers ──────────────────────────────────────────────────────────
 
@@ -437,9 +438,21 @@ def solve_problems(problems, log_failures=True):
                     raise
             if isinstance(record, dict):
                 if record.get("solved"):
-                    result["status"] = "ok"
-                    result["answer"] = "Solved"
-                    result["gaps"] = record.get("working", {}).get("missing", []) or []
+                    # The solver's answer is a proposal; an independent model must
+                    # agree before the problem is reported solved.  The verifier sees
+                    # the problem and the answer, never the solver's reasoning.
+                    verdict = _verifier.verify_fix(problem, record)
+                    result["verification"] = verdict
+                    if verdict.get("ok") is False:
+                        result["status"] = "error"
+                        result["error"] = ("the independent verifier rejected the answer: "
+                                           + (verdict.get("reason") or "no reason given"))
+                    else:
+                        result["status"] = "ok"
+                        result["answer"] = "Solved"
+                        result["gaps"] = record.get("working", {}).get("missing", []) or []
+                        if verdict.get("ok") is None:
+                            result["unverified"] = True
                 else:
                     refusal = str(record.get("refusal") or record.get("error") or "not solved")
                     result["error"] = refusal[:200]

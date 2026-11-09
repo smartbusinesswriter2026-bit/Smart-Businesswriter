@@ -1,3 +1,70 @@
+## 2026-11-09 - [product] Multi-agent verifier, paper contracts, capability scaffolds
+
+**Ask.** Make the fix robust for any issue: detect accurately, fix structurally, learn from
+the mistake, and grow capabilities from out-of-scope topics (semi-autonomous, human review).
+
+**Did.**
+
+- **`src/bp/product/verifier.py`**: an independent verifier.  The solver's replay is a
+  proposal; a **different model** that sees only the problem and the answer must agree before
+  a fix is called verified.  Tiers run beam-free -> minimax-m2 -> deepseek-v4-pro (env
+  `BP_VERIFY_MODEL_TIER1/2/3`) and stop when two agree; no verifier answer is an instance
+  close, not a durable fix.
+- **`auto_resolve`**: wired the verifier into the replay loop; a rejected answer keeps the
+  error open and tries the escalation model.
+- **`chat_heal`**: a solved problem is now an error when the verifier rejects it, so a wrong
+  answer cannot pass its own check.
+- **Paper contracts**: a case can declare `contract.sections`; `case_runner._check` fails a
+  paper that does not carry them.  New seeded/uploaded cases get the standard contract.
+- **Capability gaps**: `chat.start`'s `not_supported` path (non-routing refusals) and the
+  case runner's "no method" path write a `capability_gap` finding; the Validation source
+  filter now offers `capability_gap`, and a gap row has a **Scaffold** button.
+- **`src/bp/product/scaffold.py`**: writes five PROVISIONAL files into
+  `qa/scaffolds/<subject>/<tile>/` (method stub, capability entry, preset, test sketch,
+  README).  It calls `error_db.growth_brief` first and puts the known mistakes and the
+  local-first research order at the top; nothing is wired into the running system.
+- **Routes**: `POST /api/ops/findings/scaffold`.
+- **Tests**: `tests/test_verifier.py`, `tests/test_scaffold.py`, contract tests in
+  `tests/test_product_case_loop.py`.
+
+**Measured.** A verifier rejection keeps the error open; an agreement writes the
+golden_case artifact; no verifier is an instance close.  A capability_gap finding shows the
+Scaffold button, and clicking it writes the five files (verified in the browser).
+
+## 2026-11-09 - [product] Chart window: one reader, a visible field, and an honest report
+
+**Ask.** The Chart window asked students to know a `label, value` format; a bare
+number was refused, a space separator was refused, and the caret could be painted
+outside the box at a fractional Windows zoom. The owner asked for a forgiving
+input, an instruction-file upload that says what it understood, a guard against
+invalid figures, and a chart window a student can use without learning a format.
+
+**Did.**
+
+- **One reader.** `src/bp/product/visual_input.py` reads lines and tables. It
+  accepts comma/tab/semicolon/colon/pipe/spaces, currency, thousands, decimal
+  commas, parentheses negatives and `%`; it auto-labels a bare number and marks
+  it; it skips a header with its line number; it refuses two values without a
+  label; a pareto needs a supplied running total and is never summed.
+- **One route.** `POST /api/cases/visuals/read` returns the points, columns,
+  skipped lines, warnings, needs and a "what I will do" plan. It reads
+  CSV/TSV/XLSX/XLSM/TXT through the frozen `bp.ingest` and PDF/DOCX/DOCM/TXT/MD
+  through `documents`; Word tables are read structurally, a headerless file keeps
+  its first row, and a scanned PDF or a file with no figures is refused.
+- **Provenance.** `visuals._declared(points, source_file)` labels a file-backed
+  series "Figures read from <file>", keeps the name/hash/columns and records
+  "edited after reading" when the student changed the text.
+- **The window.** Upload data, upload instruction, try an example, sample files,
+  a live "I understood this" table, a plan and column dropdowns.
+- **The caret.** The chart fields get a visible white box; the global `zoom:.9`
+  is removed and the rail heights use `100vh - 56px`.
+
+**Measured.** `tests/test_visual_input.py` 29; `tests/test_product_visuals.py`
+31; the inline script parses and the static snapshot matches. The live workbench
+was checked in the browser: typed separators, the example, a CSV upload, a DOCX
+instruction upload, a blocked no-figures input, a calculation and a created
+visual. The caret now sits inside the field.
+
 ## 2026-11-09 - [product] Capability fallback, stale cases refreshed, and the error database
 
 **Ask.** Close the remaining open errors, then create a database of mistakes and fixes so

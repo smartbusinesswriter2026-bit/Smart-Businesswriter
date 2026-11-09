@@ -188,6 +188,7 @@ def _store(subject, tile_key, filename, instruction, inputs, recorded, expected=
             "status": "ok",
             "result": case_store._recorded(recorded),
             "contains": [tile.get("label") or tile_key, "What you declared", "How the figures were checked"],
+            "contract": {"sections": ["Result", "Inputs and results", "How the figures were checked"]},
             "xlsx_sheets": ["Summary", "Inputs", "Results", "Record"],
         },
         "created_at": case_store._now(),
