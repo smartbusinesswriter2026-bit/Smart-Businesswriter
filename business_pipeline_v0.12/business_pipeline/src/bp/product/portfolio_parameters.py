@@ -9,7 +9,8 @@ student must type it from their own source.  A missing value stays a named gap.
 FORMAT = "bp-portfolio-parameters/1"
 
 
-def _param(pid, label, sets, definition, formula, unit, source, screener_field=None):
+def _param(pid, label, sets, definition, formula, unit, source, screener_field=None,
+           requires_statement=False):
     return {
         "id": pid,
         "label": label,
@@ -19,6 +20,7 @@ def _param(pid, label, sets, definition, formula, unit, source, screener_field=N
         "unit": unit,
         "source": source,
         "screener_field": screener_field,
+        "requires_statement": bool(requires_statement),
     }
 
 
@@ -71,44 +73,44 @@ _PARAMETERS = [
     _param("gross_margin", "Gross profit margin", ["accounting", "both"],
            "Share of revenue left after the cost of goods sold. Higher means stronger pricing or lower "
            "direct costs.",
-           "gross profit / revenue", "percent", "manual"),
+           "gross profit / revenue", "percent", "manual", None, True),
     _param("net_margin", "Net profit margin", ["accounting", "both"],
            "Share of revenue that becomes net income. Higher is better and less easily distorted.",
-           "net income / revenue", "percent", "manual"),
+           "net income / revenue", "percent", "manual", None, True),
     _param("current_ratio", "Current ratio", ["accounting", "both"],
            "Short-term liquidity: can current assets cover current liabilities? Above 1 is generally "
            "safe; far above 1 may mean idle assets.",
-           "current assets / current liabilities", "x", "manual"),
+           "current assets / current liabilities", "x", "manual", None, True),
     _param("quick_ratio", "Quick ratio", ["accounting", "both"],
            "A stricter liquidity test that excludes inventory. Above 1 means the firm can pay short-term "
            "debts without selling stock.",
-           "(current assets - inventory) / current liabilities", "x", "manual"),
+           "(current assets - inventory) / current liabilities", "x", "manual", None, True),
     _param("debt_to_equity", "Debt-to-equity", ["accounting", "both"],
            "How much of the firm is financed by debt. Higher means more leverage and more risk.",
-           "total liabilities / shareholders' equity", "x", "manual"),
+           "total liabilities / shareholders' equity", "x", "manual", None, True),
     _param("asset_turnover", "Asset turnover", ["accounting", "both"],
            "How much revenue each dollar of assets generates. Higher means more efficient use of assets.",
-           "revenue / total assets", "x", "manual"),
+           "revenue / total assets", "x", "manual", None, True),
     _param("inventory_turnover", "Inventory turnover", ["accounting", "both"],
            "How often inventory is sold and replaced. Higher is usually better, but too high may mean "
            "stock-outs.",
-           "cost of goods sold / average inventory", "x", "manual"),
+           "cost of goods sold / average inventory", "x", "manual", None, True),
     # ---- composite scores ----
     _param("altman_z", "Altman Z-score", ["composite", "both"],
            "A bankruptcy-prediction score built from five financial ratios. Above 2.99 is generally "
            "safe, below 1.81 is distress. A classroom tool, not a guarantee.",
-           "1.2(WC/TA) + 1.4(RE/TA) + 3.3(EBIT/TA) + 0.6(MVE/TL) + 1.0(S/TA)", "x", "manual"),
+           "1.2(WC/TA) + 1.4(RE/TA) + 3.3(EBIT/TA) + 0.6(MVE/TL) + 1.0(S/TA)", "x", "manual", None, True),
     _param("piotroski_f", "Piotroski F-score", ["composite", "both"],
            "Nine binary accounting tests summed (0-9). Higher means stronger financial health and "
            "improving fundamentals.",
-           "sum of nine pass/fail accounting tests", "0-9", "manual"),
+           "sum of nine pass/fail accounting tests", "0-9", "manual", None, True),
     _param("dupont_roe", "DuPont ROE", ["composite", "both"],
            "Breaks ROE into profitability, efficiency and leverage, so you can see why ROE moved.",
-           "net margin x asset turnover x equity multiplier", "percent", "manual"),
+           "net margin x asset turnover x equity multiplier", "percent", "manual", None, True),
     _param("graham_number", "Graham number", ["composite", "both"],
            "Benjamin Graham's estimate of a stock's fair value from earnings and book value. A value "
            "screen, not a buy signal.",
-           "sqrt(22.5 x EPS x book value per share)", "currency", "manual"),
+           "sqrt(22.5 x EPS x book value per share)", "currency", "manual", None, True),
 ]
 
 _SETS = [

@@ -1717,6 +1717,31 @@ class H(BaseHTTPRequestHandler):
             if action == "selection" and verb == "POST" and len(parts) == 4:
                 if not isinstance(body, dict): raise ValueError("body must be an object")
                 return self._send(200, product_portfolios.save_selection(portfolio_id, body))
+            if action == "statements" and verb == "GET" and len(parts) == 4:
+                return self._send(200, {"statements": product_portfolios.statements(portfolio_id)})
+            if action == "statements" and verb == "GET" and len(parts) == 5:
+                return self._send(200, {"statements": product_portfolios.statements(portfolio_id, parts[4])})
+            if action == "statements" and verb == "POST" and len(parts) == 4:
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                date = None
+                symbol = str(body.get("symbol") or "").strip()
+                if not symbol:
+                    raise ValueError("a symbol is required")
+                filename = str(body.get("filename") or "").strip()
+                if not filename:
+                    raise ValueError("a file name is required")
+                mime = str(body.get("mime") or "").strip()
+                content = body.get("content")
+                if not isinstance(content, str) or not content.strip():
+                    raise ValueError("content (base64) is required")
+                if "," in content and content.strip().lower().startswith("data:"):
+                    content = content.split(",", 1)[1]
+                try:
+                    raw = base64.b64decode(content, validate=False)
+                except Exception:
+                    raise ValueError("the file content is not valid base64")
+                metadata = product_portfolios.save_statement(portfolio_id, symbol, filename, mime, raw)
+                return self._send(200, metadata)
             if action == "export" and verb == "POST":
                 return self._portfolio_export(portfolio_id, body or {})
             return self._send(404, {"error": "not found"})

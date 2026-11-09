@@ -164,7 +164,7 @@ def create(name, base_currency="USD", benchmark="", mode="paper", constraints=No
     if mode not in MODES: raise ValueError("mode must be paper or fund")
     portfolio_id = uuid.uuid4().hex[:12]
     root = _root(portfolio_id)
-    for part in ("prices", "snapshots", "journal", "exports"):
+    for part in ("prices", "snapshots", "journal", "exports", "statements"):
         (root / part).mkdir(parents=True, exist_ok=True)
     now = _now()
     document = {
@@ -817,6 +817,86 @@ def save_selection(portfolio_id, selection):
 def selection(portfolio_id):
     portfolio = _portfolio(portfolio_id)
     return portfolio.get("selection")
+
+
+def save_statement(portfolio_id, symbol, filename, mime, raw):
+    """Store one financial statement (PDF/CSV/XLSX) for a symbol in a book.
+
+    Returns metadata.  The file is written under ``statements/<symbol>/``.
+    Does not block a snapshot; statements only flip parameters from greyed-out
+    to available.
+    """
+    _portfolio(portfolio_id)
+    symbol = _symbol(symbol)
+    held = {str(row["symbol"]).upper() for row in _holdings_document(portfolio_id)["holdings"]}
+    if symbol not in held:
+        raise ValueError("add %s as a holding before attaching a statement" % symbol)
+    mime = str(mime or "").strip().lower()
+    allowed = {"application/pdf", "text/csv", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+               "application/vnd.ms-excel", "text/plain"}
+    if mime not in allowed:
+        raise ValueError("statement must be a PDF, CSV or spreadsheet")
+    if not isinstance(raw, (bytes, bytearray)):
+        raise ValueError("statement content must be bytes")
+    raw = bytes(raw)
+    if not raw:
+        raise ValueError("the statement file is empty")
+    if len(raw) > 5 * 1024 * 1024:
+        raise ValueError("the statement file must be 5 MB or smaller")
+    safe = _safe_evidence_name(filename)
+    stmt_dir = _path(portfolio_id, "statements", symbol)
+    stmt_dir.mkdir(parents=True, exist_ok=True)
+    target = (stmt_dir / safe).resolve()
+    try:
+        target.relative_to(_root(portfolio_id))
+    except ValueError:
+        raise ValueError("the statement path resolves outside the portfolio directory")
+    if target.exists():
+        stem = target.stem
+        suffix = target.suffix
+        i = 2
+        while (stmt_dir / ("%s-%d%s" % (stem, i, suffix))).exists():
+            i += 1
+        target = stmt_dir / ("%s-%d%s" % (stem, i, suffix))
+        safe = target.name
+    target.write_bytes(raw)
+    digest = hashlib.sha256(raw).hexdigest()
+    metadata = {
+        "symbol": symbol,
+        "filename": safe,
+        "mime": mime,
+        "size_bytes": len(raw),
+        "sha256": digest,
+        "captured_at": _now(),
+        "relative_path": "statements/%s/%s" % (symbol, safe),
+    }
+    # record in portfolio.json
+    portfolio = _portfolio(portfolio_id)
+    stmts = portfolio.get("statements")
+    if not isinstance(stmts, list):
+        stmts = []
+    stmts = [s for s in stmts if not (str(s.get("symbol", "")).upper() == symbol
+                                       and s.get("filename") == safe)]
+    stmts.append(metadata)
+    portfolio["statements"] = stmts
+    portfolio["updated_at"] = _now()
+    _write(_path(portfolio_id, "portfolio.json"), portfolio)
+    return metadata
+
+
+def statements(portfolio_id, symbol=None):
+    portfolio = _portfolio(portfolio_id)
+    rows = portfolio.get("statements") or []
+    if not isinstance(rows, list):
+        return []
+    if symbol:
+        sym = _symbol(symbol)
+        return [r for r in rows if str(r.get("symbol", "")).upper() == sym]
+    return list(rows)
+
+
+def has_statement(portfolio_id, symbol):
+    return bool(statements(portfolio_id, symbol))
 
 
 def portfolio_fit(portfolio_id, candidate_symbol, candidate_weight):
