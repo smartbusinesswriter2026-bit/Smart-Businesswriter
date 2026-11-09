@@ -1742,6 +1742,15 @@ class H(BaseHTTPRequestHandler):
                     raise ValueError("the file content is not valid base64")
                 metadata = product_portfolios.save_statement(portfolio_id, symbol, filename, mime, raw)
                 return self._send(200, metadata)
+            if action == "statements" and verb == "POST" and len(parts) == 5 and parts[4] == "extract":
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                symbol = str(body.get("symbol") or (parts[3] if False else "")).strip()
+                if not symbol:
+                    symbol = str(body.get("symbol") or "").strip()
+                if not symbol:
+                    raise ValueError("a symbol is required")
+                extracted = product_portfolios.extract_statement(portfolio_id, symbol)
+                return self._send(200, {"symbol": symbol.upper(), "extracted": extracted})
             if action == "export" and verb == "POST":
                 return self._portfolio_export(portfolio_id, body or {})
             return self._send(404, {"error": "not found"})

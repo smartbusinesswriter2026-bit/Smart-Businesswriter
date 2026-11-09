@@ -2166,6 +2166,7 @@ function renderPortfolioWorkspace() {
   if (!Array.isArray(state.pfEvidence)) state.pfEvidence = [];
   const evidenceBtn = $("#pfevidencebtn"); if (evidenceBtn) evidenceBtn.onclick = attachEvidence;
   const stmtBtn = $("#pfstmtbtn"); if (stmtBtn) stmtBtn.onclick = attachStatement;
+  $$("[data-pfstmtextract]").forEach((button) => { button.onclick = () => extractStatement(button.dataset.pfstmtextract); });
   $$("[data-pfcapture]").forEach((button) => { button.onclick = () => captureEvidence(button.dataset.pfcapture, button); });
   $$("[data-pfevidenceremove]").forEach((button) => { button.onclick = () => {
     const index = Number(button.dataset.pfevidenceremove);
@@ -2247,9 +2248,19 @@ function pfTone(value) {
 function pfStatementList() {
   const items = (state.portfolioBundle && state.portfolioBundle.portfolio && state.portfolioBundle.portfolio.statements) || state.pfStatements || [];
   if (!items.length) return '<p class="muted" style="margin:0">No statements uploaded yet.</p>';
-  return '<ul style="margin:0;padding-left:18px">' + items.map((item) =>
-    '<li><strong>' + esc(item.symbol) + '</strong> — ' + esc(item.filename) +
-    ' <span class="muted">(' + esc(Math.round((item.size_bytes || 0) / 1024)) + ' KB)</span></li>').join("") + '</ul>';
+  return items.map((item) => {
+    const ext = item.extracted;
+    let extra = '';
+    if (ext && ext.ratios && Object.keys(ext.ratios).length) {
+      extra = ' <span class="muted">extracted: ' +
+        Object.keys(ext.ratios).map((k) => esc(k) + '=' + esc(Number(ext.ratios[k]).toFixed(4))).join(', ') + '</span>';
+    } else if (ext && ext.gaps && ext.gaps.length) {
+      extra = ' <span class="muted">(no ratios extracted — ' + esc(ext.gaps.join(', ')) + ')</span>';
+    }
+    return '<div style="margin-bottom:6px"><strong>' + esc(item.symbol) + '</strong> — ' + esc(item.filename) +
+      ' <span class="muted">(' + esc(Math.round((item.size_bytes || 0) / 1024)) + ' KB)</span>' + extra +
+      ' <button class="btn sm" type="button" data-pfstmtextract="' + esc(item.symbol) + '" data-pfstmtfile="' + esc(item.filename) + '">Re-extract</button></div>';
+  }).join("");
 }
 
 function pfEvidenceList() {
@@ -2848,6 +2859,29 @@ async function attachStatement() {
   };
   reader.onerror = () => toast("That file could not be read.");
   reader.readAsDataURL(file);
+}
+
+async function extractStatement(symbol) {
+  const message = $("#pfmsg");
+  try {
+    const res = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/statements/extract",
+      { symbol: symbol });
+    // update bundle
+    if (state.portfolioBundle && state.portfolioBundle.portfolio && Array.isArray(state.portfolioBundle.portfolio.statements)) {
+      state.portfolioBundle.portfolio.statements.forEach((s) => {
+        if (String(s.symbol || "").toUpperCase() === String(symbol).toUpperCase()) s.extracted = res.extracted;
+      });
+    }
+    if (Array.isArray(state.pfStatements)) {
+      state.pfStatements.forEach((s) => {
+        if (String(s.symbol || "").toUpperCase() === String(symbol).toUpperCase()) s.extracted = res.extracted;
+      });
+    }
+    renderPortfolioWorkspace();
+    toast("Extracted: " + (res.extracted && res.extracted.ratios ? Object.keys(res.extracted.ratios).length : 0) + " ratio(s).");
+  } catch (error) {
+    message.innerHTML = errorBanner(error);
+  }
 }
 
 async function createSnapshot() {
@@ -7321,10 +7355,20 @@ function plCheckedParams() {
 
 function plValueFor(row, param) {
   const field = param.screener_field;
-  if (!field) return null; // manual: student types
-  const v = row[field];
-  if (v === null || v === undefined || v === "") return null;
-  return v;
+  if (field) {
+    const v = row[field];
+    if (v === null || v === undefined || v === "") return null;
+    return v;
+  }
+  // manual parameter: try an extracted value from an uploaded statement
+  if (param.requires_statement) {
+    const stmts = state.pfStatements || [];
+    const st = stmts.find((s) => String(s.symbol || "").toUpperCase() === String(row.symbol || "").toUpperCase());
+    if (st && st.extracted && st.extracted.ratios && st.extracted.ratios[param.id] !== undefined) {
+      return st.extracted.ratios[param.id];
+    }
+  }
+  return null;
 }
 
 function plRenderScreen(data) {

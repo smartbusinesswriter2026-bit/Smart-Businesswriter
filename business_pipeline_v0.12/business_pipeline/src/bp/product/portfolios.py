@@ -861,6 +861,13 @@ def save_statement(portfolio_id, symbol, filename, mime, raw):
         safe = target.name
     target.write_bytes(raw)
     digest = hashlib.sha256(raw).hexdigest()
+    extracted = None
+    if mime in ("text/csv", "text/plain"):
+        try:
+            from . import statement_reader as _sr
+            extracted = _sr.read(raw.decode("utf-8", errors="replace"))
+        except Exception:
+            extracted = None
     metadata = {
         "symbol": symbol,
         "filename": safe,
@@ -869,6 +876,7 @@ def save_statement(portfolio_id, symbol, filename, mime, raw):
         "sha256": digest,
         "captured_at": _now(),
         "relative_path": "statements/%s/%s" % (symbol, safe),
+        "extracted": extracted,
     }
     # record in portfolio.json
     portfolio = _portfolio(portfolio_id)
@@ -897,6 +905,45 @@ def statements(portfolio_id, symbol=None):
 
 def has_statement(portfolio_id, symbol):
     return bool(statements(portfolio_id, symbol))
+
+
+def extract_statement(portfolio_id, symbol):
+    """Re-extract a stored statement.  Returns the extracted dict or None."""
+    _portfolio(portfolio_id)
+    symbol = _symbol(symbol)
+    rows = statements(portfolio_id, symbol)
+    if not rows:
+        raise ValueError("no statement stored for %s" % symbol)
+    latest = rows[-1]
+    full = _path(portfolio_id, latest["relative_path"])
+    if not full.exists():
+        raise ValueError("the statement file is missing")
+    mime = str(latest.get("mime") or "").lower()
+    extracted = None
+    if mime in ("text/csv", "text/plain"):
+        try:
+            from . import statement_reader as _sr
+            extracted = _sr.read(full.read_text(encoding="utf-8", errors="replace"))
+        except Exception:
+            extracted = None
+    # update the stored record
+    portfolio = _portfolio(portfolio_id)
+    stmts = portfolio.get("statements") or []
+    for s in stmts:
+        if (str(s.get("symbol", "")).upper() == symbol
+                and s.get("filename") == latest.get("filename")):
+            s["extracted"] = extracted
+    portfolio["statements"] = stmts
+    portfolio["updated_at"] = _now()
+    _write(_path(portfolio_id, "portfolio.json"), portfolio)
+    return extracted
+
+
+def statement_extracted(portfolio_id, symbol):
+    rows = statements(portfolio_id, symbol)
+    if not rows:
+        return None
+    return rows[-1].get("extracted")
 
 
 def portfolio_fit(portfolio_id, candidate_symbol, candidate_weight):
