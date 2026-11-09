@@ -11,7 +11,7 @@ agree.
 """
 
 #: The verifier ladder, deliberately different models from the solver.
-VERIFIER_MODELS = ("beam-free", "minimax-m2", "deepseek-v4-pro")
+VERIFIER_MODELS = ("beam-free", "minimax-flash", "deepseek-v4-pro")
 
 
 def verifier_models():

@@ -7,7 +7,7 @@ the mistake, and grow capabilities from out-of-scope topics (semi-autonomous, hu
 
 - **`src/bp/product/verifier.py`**: an independent verifier.  The solver's replay is a
   proposal; a **different model** that sees only the problem and the answer must agree before
-  a fix is called verified.  Tiers run beam-free -> minimax-m2 -> deepseek-v4-pro (env
+  a fix is called verified.  Tiers run beam-free -> minimax-flash -> deepseek-v4-pro (env
   `BP_VERIFY_MODEL_TIER1/2/3`) and stop when two agree; no verifier answer is an instance
   close, not a durable fix.
 - **`auto_resolve`**: wired the verifier into the replay loop; a rejected answer keeps the

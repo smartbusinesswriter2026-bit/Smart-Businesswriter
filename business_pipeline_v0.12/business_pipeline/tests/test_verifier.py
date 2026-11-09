@@ -88,6 +88,8 @@ class VerifierTest(unittest.TestCase):
         self.assertTrue(models)
         self.assertNotIn(auto_resolve.FIX_MODEL, models,
                          "the verifier must not be the solver's model")
+        self.assertIn("minimax-flash", models,
+                      "the middle tier is minimax flash")
 
     def test_the_problem_solver_rejects_an_answer_the_verifier_rejects(self):
         from bp.product import chat_heal
