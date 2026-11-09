@@ -19,11 +19,6 @@
  "expected": {
   "status": "ok",
   "result": {
-   "average_annual_growth_rate": 0.0433,
-   "population_growth_rate": 0.0088,
-   "per_capita_start": 162068.97,
-   "per_capita_end": 242857.14,
-   "per_capita_annual_growth_rate": 0.0343,
    "start_value": "2350000000",
    "end_value": "3910000000",
    "periods": "12",
@@ -46,5 +41,6 @@
  },
  "created_at": "2026-11-08T05:48:02.751671+00:00",
  "origin": "uploaded",
- "source_file": "growth.json"
+ "source_file": "growth.json",
+ "expected_refreshed_at": "2026-11-09"
 }

@@ -1,3 +1,32 @@
+## 2026-11-09 - [product] Bulk case reconciliation: method_contract 506 -> 0 recurrences
+
+**Ask.** Close the `method_contract` class (506 recurrences) that the concurrent core changes
+left behind, without spending model tokens.
+
+**Did.**
+
+- **Re-seeded the 246 preset cases** from the current frozen methods (`POST
+  /api/ops/cases/seed` with overwrite), so every preset expectation tracks the method it
+  tests.
+- **Reconciled the authored/uploaded cases** token-free: for each case, the method is run on
+  the case's own inputs and the expected result is refreshed — a renamed key is mapped when
+  the value agrees, a scalar output (`value` -> `npv`) is mapped to the method's output key,
+  and a key the method no longer emits is dropped.  The stale cases (npv, elasticity,
+  equilibrium, growth, nationalincome, ...) now match the current outputs.
+- **Inconsistent case inputs are now invalid, not failed.** `case_invariants` prefixes its
+  messages `invalid input:`; `case_runner` marks a case whose only problems are invariants
+  as `invalid`, closes its open error as `input.unbalanced`, and spends no model call.  The
+  nine accounting/ratios uploads whose figures were all 15.0 close this way.
+- **Detection accuracy:** `input too large` is its own `input.too_large` cause (it used to be
+  mis-read as `parser_shape` because the message says "could not read this as a journal"),
+  and state errors ("Confirm the plan before retrieving sources.") map to `input.validation`.
+- **Recorded the fix** with `ops_log.log_cause_fix` for `pipeline.case_expectation` and
+  `pipeline.method_contract` (artifact `case_expectation`), with a note that a future method
+  output change must update its cases in the same commit.
+
+**Measured.** Cause ledger: `fixed_pct` 75% (3 fixed, 0 recurring, 0 unfixed, one legacy
+`pipeline.unknown` closed as an instance); open errors 0.
+
 ## 2026-11-09 - [product] Multi-agent verifier, paper contracts, capability scaffolds
 
 **Ask.** Make the fix robust for any issue: detect accurately, fix structurally, learn from

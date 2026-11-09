@@ -21,13 +21,20 @@
  "expected": {
   "status": "ok",
   "result": {
-   "npv": "-5.2592036063110443275732532"
+   "npv": "-5.25920360631104432757325319308790383170548459805"
   },
   "contains": [
    "Net present value",
    "What you declared",
    "How the figures were checked"
   ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
   "xlsx_sheets": [
    "Summary",
    "Inputs",
@@ -35,6 +42,7 @@
    "Record"
   ]
  },
- "created_at": "2026-11-08T06:09:36.649786+00:00",
- "origin": "preset"
+ "created_at": "2026-11-09T04:20:58.231297+00:00",
+ "origin": "preset",
+ "expected_refreshed_at": "2026-11-09"
 }

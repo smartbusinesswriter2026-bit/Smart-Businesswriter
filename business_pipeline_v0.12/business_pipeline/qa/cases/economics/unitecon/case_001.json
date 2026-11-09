@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/unitecon/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "unitecon",
+ "method": "unit_economics",
+ "tile_label": "Unit economics",
+ "group": "Managerial economics",
+ "objective": "What does a customer cost and return?",
+ "instruction": "A business is preparing a economics analysis. The question is: What does a customer cost and return. The tile covers The margin per customer, the cost to win one, its payback and lifetime value. The declared figures are: price 49; variable cost 12; acquisition cost 80; churn rate 0.04. Use unit economics in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "price": "49",
+  "variable_cost": "12",
+  "acquisition_cost": "80",
+  "churn_rate": "0.04"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "unit_margin": "37",
+   "margin_pct": "0.7551020408163265306122448980",
+   "payback_periods": "2.162162162162162162162162162",
+   "price": "49",
+   "variable_cost": "12",
+   "acquisition_cost": "80",
+   "churn_rate": "0.04",
+   "ltv": "925",
+   "ltv_cac": "11.5625"
+  },
+  "contains": [
+   "Unit economics",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-09T04:20:58.230385+00:00",
+ "origin": "preset"
+}

@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/sroi/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "sroi",
+ "method": "sroi",
+ "tile_label": "Social return on investment",
+ "group": "Managerial economics",
+ "objective": "What is the social return on the investment?",
+ "instruction": "A business is preparing a economics analysis. The question is: What is the social return on the investment. The tile covers Record the SROI ratio from declared social value, investment and attribution assumptions. The declared figures are: investment 60000; benefits 20000, 25000, 30000; discount rate 0.04. Use social return on investment in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "investment": "60000",
+  "benefits": [
+   "20000",
+   "25000",
+   "30000"
+  ],
+  "discount_rate": "0.04"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "pv_benefits": "69014.56531634046426945835230",
+   "investment": "60000",
+   "sroi_ratio": "1.150242755272341071157639205",
+   "net_value": "9014.56531634046426945835230",
+   "n_periods": "3",
+   "discount_rate": "0.04"
+  },
+  "contains": [
+   "Social return on investment",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-09T04:20:58.227597+00:00",
+ "origin": "preset"
+}

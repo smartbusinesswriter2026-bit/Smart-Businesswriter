@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/pricediscrimination/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "pricediscrimination",
+ "method": "price_discrimination",
+ "tile_label": "Price discrimination",
+ "group": "Microeconomics",
+ "objective": "What prices does third-degree discrimination set?",
+ "instruction": "A business is preparing a economics analysis. The question is: What prices does third-degree discrimination set. The tile covers Set third-degree prices and quantities in two separated markets. The declared figures are: demand intercept 1 100; demand slope 1 2; demand intercept 2 80; demand slope 2 1; marginal cost 10. Use price discrimination in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "demand_intercept_1": "100",
+  "demand_slope_1": "2",
+  "demand_intercept_2": "80",
+  "demand_slope_2": "1",
+  "marginal_cost": "10"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "quantity_1": "22.5",
+   "price_1": "55.0",
+   "quantity_2": "35",
+   "price_2": "45",
+   "revenue_1": "1237.50",
+   "revenue_2": "1575",
+   "total_revenue": "2812.50",
+   "total_profit": "2237.50"
+  },
+  "contains": [
+   "Price discrimination",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-09T04:20:58.103174+00:00",
+ "origin": "preset"
+}

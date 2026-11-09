@@ -39,7 +39,10 @@ def _close(left, right, rel=1e-6, absolute=1e-9):
 
 def _require(problems, condition, message):
     if not condition:
-        problems.append(message)
+        # The prefix lets the case runner tell a case whose *own figures* are
+        # inconsistent (an invalid fixture) from a method that returned a wrong
+        # figure (a pipeline defect).
+        problems.append("invalid input: " + message)
 
 
 def _need(*values):

@@ -41,8 +41,11 @@ class CauseClassificationTest(unittest.TestCase):
              "input.closing_balances"),
             ("the statements tile is not attached to the frozen core", "input.environment"),
             ("case id must be 12 lowercase hex characters", "input.validation"),
+            ("Confirm the plan before retrieving sources.", "input.validation"),
             ("this mentions 'consolidated', so it reads as consolidated accounts",
              "input.unsupported_group"),
+            ("the model could not read this as a journal: input exceeds 20000 characters",
+             "input.too_large"),
             ("the instruction does not state: household consumption", "input.incomplete"),
             ("breakeven_units is 100, expected 80", "pipeline.case_expectation"),
             ("this puts two figures on one line ('During the year it earned $42,000'), "

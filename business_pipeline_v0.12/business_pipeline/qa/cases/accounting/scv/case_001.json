@@ -8,48 +8,55 @@
  "tile_label": "Standard-cost variances",
  "group": "Cost and variance analysis",
  "objective": "Compute the material, labour and overhead variances for the period",
- "instruction": "An accounting standard-cost variances problem. Declared figures: actual_units=1000; standard_material_per_unit=10; standard_material_price=50; actual_material_quantity=1000; actual_material_price=50; standard_hours_per_unit=10.",
+ "instruction": "A business is preparing a accounting analysis. The question is: Compute the material, labour and overhead variances for the period. The tile covers Material price and usage, labour rate and efficiency, and overhead variances for the output produced. The declared figures are: actual units 4800; standard material per unit 2; standard material price 15; actual material quantity 9800; actual material price 15.5; standard hours per unit 1.5; standard labour rate 40; actual hours 7300; actual labour rate 41; standard variable overhead rate 10; actual variable overhead 70000; budgeted fixed overhead 240000; actual fixed overhead 245000; denominator hours 8000. Use standard-cost variances in a competitive market and industry context, and report the method's result.",
  "inputs": {
-  "actual_units": "1000",
-  "standard_material_per_unit": "10",
-  "standard_material_price": "50",
-  "actual_material_quantity": "1000",
-  "actual_material_price": "50",
-  "standard_hours_per_unit": "10",
-  "standard_labour_rate": "0.1",
-  "actual_hours": "10",
-  "actual_labour_rate": "0.1",
-  "standard_variable_overhead_rate": "0.1",
-  "actual_variable_overhead": "10",
-  "budgeted_fixed_overhead": "100000",
-  "actual_fixed_overhead": "100000",
-  "denominator_hours": "10"
+  "actual_units": "4800",
+  "standard_material_per_unit": "2",
+  "standard_material_price": "15",
+  "actual_material_quantity": "9800",
+  "actual_material_price": "15.5",
+  "standard_hours_per_unit": "1.5",
+  "standard_labour_rate": "40",
+  "actual_hours": "7300",
+  "actual_labour_rate": "41",
+  "standard_variable_overhead_rate": "10",
+  "actual_variable_overhead": "70000",
+  "budgeted_fixed_overhead": "240000",
+  "actual_fixed_overhead": "245000",
+  "denominator_hours": "8000"
  },
  "expected": {
   "status": "ok",
   "result": {
-   "actual_units": "1000",
-   "standard_material_quantity": "10000",
-   "standard_hours": "10000",
-   "material_price_variance": "0",
-   "material_usage_variance": "-450000",
-   "labour_rate_variance": "0.0",
-   "labour_efficiency_variance": "-999.0",
-   "material_variance": "-450000",
-   "labour_variance": "-999.0",
-   "standard_variable_overhead_rate": "0.1",
-   "variable_overhead_spending_variance": "9.0",
-   "variable_overhead_efficiency_variance": "-999.0",
-   "standard_fixed_overhead_rate": "10000",
-   "fixed_overhead_spending_variance": "0",
-   "fixed_overhead_volume_variance": "-99900000",
-   "total_variance": "-100351989.0"
+   "actual_units": "4800",
+   "standard_material_quantity": "9600",
+   "standard_hours": "7200.0",
+   "material_price_variance": "4900.0",
+   "material_usage_variance": "3000",
+   "labour_rate_variance": "7300",
+   "labour_efficiency_variance": "4000.0",
+   "material_variance": "7900.0",
+   "labour_variance": "11300.0",
+   "standard_variable_overhead_rate": "10",
+   "variable_overhead_spending_variance": "-3000",
+   "variable_overhead_efficiency_variance": "1000.0",
+   "standard_fixed_overhead_rate": "30",
+   "fixed_overhead_spending_variance": "5000",
+   "fixed_overhead_volume_variance": "24000.0",
+   "total_variance": "46200.0"
   },
   "contains": [
    "Standard-cost variances",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
   "xlsx_sheets": [
    "Summary",
    "Inputs",
@@ -57,7 +64,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-08T06:12:55.825916+00:00",
- "origin": "uploaded",
- "source_file": "scv-cases.json"
+ "created_at": "2026-11-09T04:20:57.954996+00:00",
+ "origin": "preset"
 }

@@ -65,6 +65,13 @@
    "What you declared",
    "How the figures were checked"
   ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
   "xlsx_sheets": [
    "Summary",
    "Inputs",
@@ -72,6 +79,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-08T06:09:36.677845+00:00",
+ "created_at": "2026-11-09T04:20:58.259891+00:00",
  "origin": "preset"
 }

@@ -62,6 +62,26 @@ def _open_case_error(case_id, error_text):
     return False
 
 
+def _case_error_id(case_id):
+    """The first open error for a case, or None."""
+    rows = ops_log.merge_resolved(ops_log.list_errors(limit=500))
+    for row in rows:
+        if row.get("case_id") != case_id:
+            continue
+        if row.get("resolved") or row.get("attended") or row.get("invalid") or row.get("dismissed"):
+            continue
+        return row.get("error_id")
+    return None
+
+
+INPUT_PREFIX = "invalid input: "
+
+
+def _input_only(problems):
+    """True when every problem is the case's own figures, not a pipeline defect."""
+    return bool(problems) and all(str(problem).startswith(INPUT_PREFIX) for problem in problems)
+
+
 def _same_number(actual, expected):
     """Numeric equality with a tolerance for Decimal trailing-digit noise.
 
@@ -327,6 +347,21 @@ def run_case(case_id, style="apa", length=1200, log=True):
             pass
     problems = _check(case, result)
     elapsed = int((time.perf_counter() - started) * 1000)
+    if _input_only(problems):
+        # The case's own figures are inconsistent (e.g. assets != liabilities + equity).
+        # That is an invalid fixture, not a defect the pipeline can fix: close it as
+        # invalid input and never spend a model call on it.
+        reason = ("the case's own figures are inconsistent: "
+                  + problems[0][len(INPUT_PREFIX):][:220])
+        error_id = _case_error_id(case_id)
+        if error_id:
+            ops_log.mark_error_invalid(error_id, reason, cause="input.unbalanced",
+                                       artifact="")
+        return {"case_id": case_id, "status": "invalid", "invalid": True,
+                "problems": problems, "error": reason, "duration_ms": elapsed,
+                "bytes": result.get("bytes") or b"", "xlsx": result.get("xlsx") or b"",
+                "explainer": _explainer_sections(case, result, problems, {"status": "invalid"}),
+                "tile": case.get("tile"), "tile_label": case.get("tile_label")}
     if problems:
         error_text = "; ".join(problems)[:500]
         if log and not _open_case_error(case_id, error_text):

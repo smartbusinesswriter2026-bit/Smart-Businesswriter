@@ -1,0 +1,102 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/panel/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "panel",
+ "method": "panel_regression",
+ "tile_label": "Panel fixed effects",
+ "group": "Econometrics",
+ "objective": "What is the within-entity effect?",
+ "instruction": "A business is preparing a economics analysis. The question is: What is the within-entity effect. The tile covers Estimate the within-entity slope from a balanced panel with entity fixed effects. The declared figures are: data row 1: entity A, period 1, y 2, x 1; row 2: entity A, period 2, y 4, x 2; row 3: entity A, period 3, y 6, x 3; row 4: entity B, period 1, y 5, x 2; row 5: entity B, period 2, y 7, x 3; 4 further rows. Use panel fixed effects in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "data": [
+   {
+    "entity": "A",
+    "period": "1",
+    "y": "2",
+    "x": "1"
+   },
+   {
+    "entity": "A",
+    "period": "2",
+    "y": "4",
+    "x": "2"
+   },
+   {
+    "entity": "A",
+    "period": "3",
+    "y": "6",
+    "x": "3"
+   },
+   {
+    "entity": "B",
+    "period": "1",
+    "y": "5",
+    "x": "2"
+   },
+   {
+    "entity": "B",
+    "period": "2",
+    "y": "7",
+    "x": "3"
+   },
+   {
+    "entity": "B",
+    "period": "3",
+    "y": "9",
+    "x": "4"
+   },
+   {
+    "entity": "C",
+    "period": "1",
+    "y": "1",
+    "x": "1"
+   },
+   {
+    "entity": "C",
+    "period": "2",
+    "y": "5",
+    "x": "3"
+   },
+   {
+    "entity": "C",
+    "period": "3",
+    "y": "9",
+    "x": "5"
+   }
+  ]
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "slope": "2",
+   "intercept": "-1E-27",
+   "within_r2": "1",
+   "n_obs": "9",
+   "n_entities": "3",
+   "n_periods": "3",
+   "df": "5"
+  },
+  "contains": [
+   "Panel fixed effects",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-09T04:20:58.107735+00:00",
+ "origin": "preset"
+}

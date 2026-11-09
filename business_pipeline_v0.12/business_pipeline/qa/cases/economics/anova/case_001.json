@@ -1,0 +1,91 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/anova/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "anova",
+ "method": "anova",
+ "tile_label": "One-way ANOVA",
+ "group": "Quantitative core",
+ "objective": "Do the three teaching formats differ in exam scores?",
+ "instruction": "A business is preparing a economics analysis. The question is: Do the three teaching formats differ in exam scores. The tile covers Compare three or more group means and record the effect size and checks. The declared figures are: groups lecture ['62', '70', '68', '75', '66', '71', '64', '73'], workshop ['72', '78', '74', '85', '80', '77', '69', '83', '79'], online ['60', '63', '58', '66', '61', '65', '60']; missing codes . Use one-way anova in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "groups": {
+   "lecture": [
+    "62",
+    "70",
+    "68",
+    "75",
+    "66",
+    "71",
+    "64",
+    "73"
+   ],
+   "workshop": [
+    "72",
+    "78",
+    "74",
+    "85",
+    "80",
+    "77",
+    "69",
+    "83",
+    "79"
+   ],
+   "online": [
+    "60",
+    "63",
+    "58",
+    "66",
+    "61",
+    "65",
+    "60"
+   ]
+  },
+  "missing_codes": []
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "f_stat": "25.61149736986653866518871142",
+   "df_between": "2",
+   "df_within": "21",
+   "p_value": "0.0000023292168476478213",
+   "eta_squared": "0.7092338793804271973179663159",
+   "n_groups": "3",
+   "n_total": "24",
+   "n_excluded": "0",
+   "grand_mean": "69.95833333333333333333333333",
+   "alpha": "0.05",
+   "n_lecture": "8",
+   "mean_lecture": "68.625",
+   "sd_lecture": "4.470139019889969500640389049",
+   "n_workshop": "9",
+   "mean_workshop": "77.44444444444444444444444444",
+   "sd_workshop": "5.126185499743232836356765514",
+   "n_online": "7",
+   "mean_online": "61.85714285714285714285714286",
+   "sd_online": "2.911389784311004308720804867"
+  },
+  "contains": [
+   "One-way ANOVA",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-09T04:20:58.219495+00:00",
+ "origin": "preset"
+}

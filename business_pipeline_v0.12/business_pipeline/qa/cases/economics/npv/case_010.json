@@ -20,7 +20,7 @@
  "expected": {
   "status": "ok",
   "result": {
-   "value": "183.33333333333333333333333333333333333333333333334"
+   "npv": "183.33333333333333333333333333333333333333333333334"
   },
   "contains": [
    "Net present value",
@@ -36,5 +36,6 @@
  },
  "created_at": "2026-11-08T06:10:19.814870+00:00",
  "origin": "uploaded",
- "source_file": "npv.json"
+ "source_file": "npv.json",
+ "expected_refreshed_at": "2026-11-09"
 }

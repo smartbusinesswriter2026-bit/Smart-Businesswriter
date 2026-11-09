@@ -1,0 +1,52 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/labour/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "labour",
+ "method": "labour_market",
+ "tile_label": "Real wage and labour market",
+ "group": "Behavioural economics",
+ "objective": "What are the real wage and the wage share?",
+ "instruction": "A business is preparing a economics analysis. The question is: What are the real wage and the wage share. The tile covers Compute the real wage, wage share of productivity and labour-market tightness. The declared figures are: nominal wage 100; cpi 105; labour productivity 120; vacancies 10; unemployed 50. Use real wage and labour market in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "nominal_wage": "100",
+  "cpi": "105",
+  "labour_productivity": "120",
+  "vacancies": "10",
+  "unemployed": "50"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "nominal_wage": "100",
+   "cpi": "105",
+   "labour_productivity": "120",
+   "real_wage": "95.23809523809523809523809524",
+   "wage_share_of_productivity": "0.7936507936507936507936507937",
+   "vacancies": "10",
+   "unemployed": "50",
+   "labour_market_tightness": "0.2"
+  },
+  "contains": [
+   "Real wage and labour market",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-09T04:20:58.165649+00:00",
+ "origin": "preset"
+}

@@ -5,7 +5,7 @@ import unittest
 
 sys.path.insert(0, "src")
 
-from bp.product import case_invariants  # noqa: E402
+from bp.product import case_invariants, case_runner  # noqa: E402
 
 RATIO_INPUTS = {
     "total_assets": "12000", "total_liabilities": "7000", "equity": "5000",
@@ -32,6 +32,8 @@ class CaseInvariantTest(unittest.TestCase):
         broken = dict(RATIO_INPUTS, equity="4000")
         problems = case_invariants.check("ratio_analysis", broken, RATIO_RESULT)
         self.assertTrue(any("accounting equation" in problem for problem in problems))
+        self.assertTrue(case_runner._input_only(problems),
+                        "the case's own figures are invalid input, not a pipeline defect")
 
     def test_the_dupont_identity_is_caught_when_it_breaks(self):
         result = {"net_margin": "0.09",

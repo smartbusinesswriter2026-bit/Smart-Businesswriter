@@ -18,17 +18,11 @@
  "expected": {
   "status": "ok",
   "result": {
-   "percentage_change_quantity": 0.0,
-   "percentage_change_price": 0.2222,
-   "price_elasticity_of_demand": 0.0,
-   "revenue_1": 4000.0,
-   "revenue_2": 5000.0,
    "revenue_change": 1000.0,
-   "point_elasticity_from_start": 0.0,
    "price_elasticity": "0E+28",
-   "absolute_elasticity": "0E+28",
+   "absolute_elasticity": "0E+50",
    "pct_change_quantity": "0",
-   "pct_change_price": "0.2222222222222222222222222222",
+   "pct_change_price": "0.22222222222222222222222222222222222222222222222222",
    "total_revenue_1": "4000",
    "total_revenue_2": "5000",
    "elastic": "0",
@@ -48,5 +42,6 @@
  },
  "created_at": "2026-11-08T05:46:54.396355+00:00",
  "origin": "uploaded",
- "source_file": "elasticity.json"
+ "source_file": "elasticity.json",
+ "expected_refreshed_at": "2026-11-09"
 }

@@ -8,70 +8,77 @@
  "tile_label": "Activity-based costing",
  "group": "Cost and variance analysis",
  "objective": "What does each product really cost once activities are traced?",
- "instruction": "An accounting activity-based costing problem. Declared figures: activities=[{'name': 'Setup', 'pool_cost': 50000}, {'name': 'Assembly', 'pool_cost': 80000}]; products=[{'name': 'A', 'units': 1000}, {'name': 'B', 'units': 2000}]; allocations=[{'activity': 'Setup', 'product': 'A', 'driver_quantity': 100}, {'activity': 'Setup', 'product': 'B', 'driver_quantity': 200}, {'activity': 'Assembly', 'product': 'A', 'driver_quantity': 300}, {'activity': 'Assembly', 'product': 'B', 'driver_quantity': 400}].",
+ "instruction": "A business is preparing a accounting analysis. The question is: What does each product really cost once activities are traced. The tile covers Activity rates, each product's allocation and its unit cost from the drivers it consumes. The declared figures are: activities row 1: name Machining, pool cost 120000; row 2: name Assembly, pool cost 80000; products row 1: name Widget A, units 1000; row 2: name Widget B, units 2000; allocations row 1: activity Machining, product Widget A, driver quantity 600; row 2: activity Machining, product Widget B, driver quantity 1400; row 3: activity Assembly, product Widget A, driver quantity 400; row 4: activity Assembly, product Widget B, driver quantity 1600. Use activity-based costing in a competitive market and industry context, and report the method's result.",
  "inputs": {
   "activities": [
    {
-    "name": "Setup",
-    "pool_cost": 50000
+    "name": "Machining",
+    "pool_cost": "120000"
    },
    {
     "name": "Assembly",
-    "pool_cost": 80000
+    "pool_cost": "80000"
    }
   ],
   "products": [
    {
-    "name": "A",
-    "units": 1000
+    "name": "Widget A",
+    "units": "1000"
    },
    {
-    "name": "B",
-    "units": 2000
+    "name": "Widget B",
+    "units": "2000"
    }
   ],
   "allocations": [
    {
-    "activity": "Setup",
-    "product": "A",
-    "driver_quantity": 100
+    "activity": "Machining",
+    "product": "Widget A",
+    "driver_quantity": "600"
    },
    {
-    "activity": "Setup",
-    "product": "B",
-    "driver_quantity": 200
-   },
-   {
-    "activity": "Assembly",
-    "product": "A",
-    "driver_quantity": 300
+    "activity": "Machining",
+    "product": "Widget B",
+    "driver_quantity": "1400"
    },
    {
     "activity": "Assembly",
-    "product": "B",
-    "driver_quantity": 400
+    "product": "Widget A",
+    "driver_quantity": "400"
+   },
+   {
+    "activity": "Assembly",
+    "product": "Widget B",
+    "driver_quantity": "1600"
    }
   ]
  },
  "expected": {
   "status": "ok",
   "result": {
-   "total_pool_cost": "130000",
-   "total_allocated": "130000.00000000000000000000000000000000000000000000",
-   "rate_Setup": "166.66666666666666666666666666666666666666666666667",
-   "driver_Setup": "300",
-   "rate_Assembly": "114.28571428571428571428571428571428571428571428571",
-   "driver_Assembly": "700",
-   "allocated_A": "50952.380952380952380952380952380952380952380952380",
-   "unit_cost_A": "50.95238095238095238095238095238095238095238095238",
-   "allocated_B": "79047.619047619047619047619047619047619047619047618",
-   "unit_cost_B": "39.523809523809523809523809523809523809523809523809"
+   "total_pool_cost": "200000",
+   "total_allocated": "200000",
+   "rate_Machining": "60",
+   "driver_Machining": "2000",
+   "rate_Assembly": "40",
+   "driver_Assembly": "2000",
+   "allocated_Widget A": "52000",
+   "unit_cost_Widget A": "52",
+   "allocated_Widget B": "148000",
+   "unit_cost_Widget B": "74"
   },
   "contains": [
    "Activity-based costing",
-   "Declared inputs",
-   "References"
+   "What you declared",
+   "How the figures were checked"
   ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
   "xlsx_sheets": [
    "Summary",
    "Inputs",
@@ -79,7 +86,6 @@
    "Record"
   ]
  },
- "created_at": "2026-11-08T06:12:55.843304+00:00",
- "origin": "uploaded",
- "source_file": "abc-cases.json"
+ "created_at": "2026-11-09T04:20:57.956355+00:00",
+ "origin": "preset"
 }

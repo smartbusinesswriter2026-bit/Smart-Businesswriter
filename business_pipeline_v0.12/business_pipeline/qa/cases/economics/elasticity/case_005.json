@@ -18,17 +18,11 @@
  "expected": {
   "status": "ok",
   "result": {
-   "percentage_change_quantity": -0.0513,
-   "percentage_change_price": 0.0488,
-   "price_elasticity_of_demand": 1.0513,
-   "revenue_1": 80000.0,
-   "revenue_2": 79800.0,
    "revenue_change": -200.0,
-   "point_elasticity_from_start": 1.0,
    "price_elasticity": "-1.051282051282051282051282051",
-   "absolute_elasticity": "1.051282051282051282051282051",
-   "pct_change_quantity": "-0.05128205128205128205128205128",
-   "pct_change_price": "0.04878048780487804878048780488",
+   "absolute_elasticity": "1.0512820512820512820512820512820512820512820512821",
+   "pct_change_quantity": "-0.051282051282051282051282051282051282051282051282051",
+   "pct_change_price": "0.048780487804878048780487804878048780487804878048780",
    "total_revenue_1": "80000",
    "total_revenue_2": "79800",
    "elastic": "1",
@@ -48,5 +42,6 @@
  },
  "created_at": "2026-11-08T05:46:54.399976+00:00",
  "origin": "uploaded",
- "source_file": "elasticity.json"
+ "source_file": "elasticity.json",
+ "expected_refreshed_at": "2026-11-09"
 }

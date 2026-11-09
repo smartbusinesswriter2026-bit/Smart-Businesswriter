@@ -54,6 +54,11 @@ REMEDIES = {
         "artifact": "",
         "title": "Instruction omits the figures the method needs",
     },
+    "input.too_large": {
+        "scope": INPUT, "remedy": "truncate",
+        "artifact": "",
+        "title": "Input exceeds the model's size limit",
+    },
     "input.unsupported_group": {
         "scope": INPUT, "remedy": "refuse",
         "artifact": "",
@@ -115,9 +120,12 @@ _RULES = (
         "declares no figure", "omits the figures", "declare the ",
     )),
     ("input.unsupported_group", ("consolidated", "group accounts")),
+    ("input.too_large", ("input exceeds", "exceeds 20000 characters",
+                         "input is too large", "character limit")),
     ("input.validation", (
         "case id must be", "unknown deliverable", "unknown route", "not allowed",
         "is required", "must be one of", "unknown method", "unknown subject",
+        "confirm the plan before", "before retrieving", "finish the questions",
         "a request object is required", "no sourced price", "no price was stored",
         "the symbol must be", "must be numbers",
     )),

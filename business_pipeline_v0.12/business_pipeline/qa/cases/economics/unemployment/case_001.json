@@ -1,0 +1,48 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/unemployment/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "unemployment",
+ "method": "unemployment_rate",
+ "tile_label": "Unemployment and participation",
+ "group": "Macroeconomics",
+ "objective": "What are the unemployment and participation rates?",
+ "instruction": "A business is preparing a economics analysis. The question is: What are the unemployment and participation rates. The tile covers Compute the unemployment rate, labour-force participation rate and employment-population ratio. The declared figures are: labour force 1000; employed 920; working age population 1500. Use unemployment and participation in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "labour_force": "1000",
+  "employed": "920",
+  "working_age_population": "1500"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "labour_force": "1000",
+   "employed": "920",
+   "unemployed": "80",
+   "unemployment_rate": "0.08",
+   "labour_force_participation_rate": "0.6666666666666666666666666667",
+   "employment_population_ratio": "0.6133333333333333333333333333"
+  },
+  "contains": [
+   "Unemployment and participation",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-09T04:20:58.119037+00:00",
+ "origin": "preset"
+}

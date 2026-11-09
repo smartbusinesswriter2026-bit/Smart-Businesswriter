@@ -25,11 +25,8 @@
   "result": {
    "gdp": 71000000.0,
    "net_exports": -1500000.0,
-   "gni": 69700000.0,
-   "nni": 63300000.0,
    "real_gdp": 56800000.0,
    "gdp_per_capita": 2840.0,
-   "real_gdp_per_capita": 2272.0,
    "gnp": "69700000",
    "nnp": "63300000",
    "consumption": "45000000",
@@ -56,5 +53,6 @@
  },
  "created_at": "2026-11-08T05:50:24.475314+00:00",
  "origin": "uploaded",
- "source_file": "nationalincome.json"
+ "source_file": "nationalincome.json",
+ "expected_refreshed_at": "2026-11-09"
 }

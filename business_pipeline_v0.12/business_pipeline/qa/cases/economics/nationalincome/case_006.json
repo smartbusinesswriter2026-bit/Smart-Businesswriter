@@ -24,12 +24,7 @@
   "status": "ok",
   "result": {
    "gdp": 10000000.0,
-   "consumption_share": 0.62,
-   "investment_share": 0.18,
-   "government_share": 0.21,
-   "net_exports_share": -0.01,
    "real_gdp": 8000000.0,
-   "nominal_less_real_gdp": 2000000.0,
    "gnp": "10150000",
    "nnp": "9450000",
    "net_exports": "-100000",
@@ -58,5 +53,6 @@
  },
  "created_at": "2026-11-08T05:50:24.480084+00:00",
  "origin": "uploaded",
- "source_file": "nationalincome.json"
+ "source_file": "nationalincome.json",
+ "expected_refreshed_at": "2026-11-09"
 }

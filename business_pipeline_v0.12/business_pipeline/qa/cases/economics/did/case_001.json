@@ -1,0 +1,46 @@
+{
+ "format": "bp-tile-case/1",
+ "id": "economics/did/001",
+ "subject": "economics",
+ "subject_label": "Economics",
+ "tile": "did",
+ "method": "difference_in_differences",
+ "tile_label": "Difference-in-differences",
+ "group": "Econometrics",
+ "objective": "What is the difference-in-differences estimate?",
+ "instruction": "A business is preparing a economics analysis. The question is: What is the difference-in-differences estimate. The tile covers Estimate a two-group, two-period treatment effect from four declared means. The declared figures are: treated pre 50; treated post 70; control pre 40; control post 45. Use difference-in-differences in a competitive market and industry context, and report the method's result.",
+ "inputs": {
+  "treated_pre": "50",
+  "treated_post": "70",
+  "control_pre": "40",
+  "control_post": "45"
+ },
+ "expected": {
+  "status": "ok",
+  "result": {
+   "treated_change": "20",
+   "control_change": "5",
+   "did_estimate": "15"
+  },
+  "contains": [
+   "Difference-in-differences",
+   "What you declared",
+   "How the figures were checked"
+  ],
+  "contract": {
+   "sections": [
+    "Result",
+    "Inputs and results",
+    "How the figures were checked"
+   ]
+  },
+  "xlsx_sheets": [
+   "Summary",
+   "Inputs",
+   "Results",
+   "Record"
+  ]
+ },
+ "created_at": "2026-11-09T04:20:58.114316+00:00",
+ "origin": "preset"
+}
