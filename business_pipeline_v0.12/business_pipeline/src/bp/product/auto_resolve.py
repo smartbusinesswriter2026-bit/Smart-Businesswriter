@@ -87,18 +87,29 @@ def _replay_on(problem, model):
     The replay is **silent**: the failure it is replaying is already in the error
     log, so a second record would grow the queue every time the repair loop
     tried to fix it.  A pass still proves the fix.
+
+    The tokens this replay spent are recorded with the result.  They were
+    always known - the model logs its own usage - but nothing copied them
+    into the record, so the cost of a repair could not be measured.
     """
     import os
     from . import chat_heal
+    from . import usage as _usage
     saved = (os.environ.get("BP_LLM_MODEL"),
              os.environ.get("BP_LLM_MODEL_TIER2"),
              os.environ.get("BP_LLM_MODEL_TIER3"))
+    before = len(getattr(getattr(chat_heal, "models", None), "log", []) or [])
     try:
         os.environ["BP_LLM_MODEL"] = model
         os.environ["BP_LLM_MODEL_TIER2"] = model
         os.environ["BP_LLM_MODEL_TIER3"] = model
         results, _err = chat_heal.solve_problems([problem], log_failures=False)
-        return results[0] if results else {}
+        out = results[0] if results else {}
+        spent = _usage.usage_since(getattr(getattr(chat_heal, "models", None), "log", []), before)
+        if spent.get("calls"):
+            out["usage"] = spent
+            out["cost_usd"] = _usage.cost_of(spent)
+        return out
     finally:
         for name, value in zip(("BP_LLM_MODEL", "BP_LLM_MODEL_TIER2", "BP_LLM_MODEL_TIER3"), saved):
             if value is None:
@@ -458,8 +469,11 @@ def _resolve_inner(error_id):
     for model in (fix_model, escalation_model):
         first = _replay_on(problem, model)
         status = first.get("status") or "error"
-        steps.append({"strategy": strategy, "model": model, "outcome": status,
-                      "detail": (first.get("error") or "")[:200]})
+        step = {"strategy": strategy, "model": model, "outcome": status,
+                "detail": (first.get("error") or "")[:200]}
+        if first.get("usage"):
+            step["usage"] = first["usage"]
+        steps.append(step)
         if status != "ok":
             continue
 
@@ -491,9 +505,12 @@ def _resolve_inner(error_id):
         for sibling in _siblings(record):
             again = _replay_on(sibling.get("problem"), model)
             ok = (again.get("status") == "ok")
-            sib_steps.append({"strategy": "close sibling", "model": model,
-                              "outcome": again.get("status") or "error",
-                              "detail": (sibling.get("error_id") or "")[:40]})
+            sibling_step = {"strategy": "close sibling", "model": model,
+                            "outcome": again.get("status") or "error",
+                            "detail": (sibling.get("error_id") or "")[:40]}
+            if again.get("usage"):
+                sibling_step["usage"] = again["usage"]
+            sib_steps.append(sibling_step)
             if ok:
                 _ops_log.mark_error_verified(
                     sibling.get("error_id"),
@@ -513,6 +530,26 @@ def _resolve_inner(error_id):
     return {"resolved": False, "verified": False, "attempted": True, "invalid": False,
             "steps": steps, "siblings_resolved": 0, "category": category,
             "reason": steps[-1]["detail"] if steps else "no remediation applied"}
+
+
+def cost_of_steps(steps):
+    """What a fix ladder spent.  ``usd`` is None when the model is not priced.
+
+    A price this product does not know is an unknown cost, not a free one.
+    """
+    from . import usage as _usage
+    total = {"calls": 0, "input_tokens": 0, "output_tokens": 0, "seconds": 0.0, "models": {}}
+    for step in steps or []:
+        total = _usage.add(total, (step or {}).get("usage"))
+    return {
+        "model_calls": total["calls"],
+        "input_tokens": total["input_tokens"],
+        "output_tokens": total["output_tokens"],
+        "seconds": round(total["seconds"], 2),
+        "usd": _usage.cost_of(total),
+        "models": total["models"],
+        "usage": total,
+    }
 
 
 def resolve(error_id):
@@ -535,6 +572,8 @@ def resolve(error_id):
     result["cause"] = cause["cause"]
     result["remedy"] = cause["remedy"]
     result["scope"] = cause["scope"]
+    result["cost"] = cost_of_steps(result.get("steps"))
+    result["usage"] = result["cost"].get("usage") or {}
     result.setdefault("artifact", "")
     if not (result.get("resolved") or result.get("invalid") or result.get("dismissed")):
         if cause["scope"] == causes.INPUT:

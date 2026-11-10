@@ -372,6 +372,83 @@
       "tier": "T1",
       "type": "school",
       "notes": "School site."
+    },
+    {
+      "domain": "catalog.mit.edu",
+      "label": "MIT course catalog",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Undergraduate subject list (e.g. 15.x finance courses)."
+    },
+    {
+      "domain": "live.ocw.mit.edu",
+      "label": "MIT OCW (live)",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Course materials (e.g. 14.01 Fall 2023)."
+    },
+    {
+      "domain": "oyc.yale.edu",
+      "label": "Yale Open Courses",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Free recorded courses with syllabi (e.g. ECON 252 Financial Markets)."
+    },
+    {
+      "domain": "coursera.org",
+      "label": "Coursera",
+      "tier": "T3",
+      "type": "research",
+      "notes": "Self-paced course versions; paywalled content flagged, not bypassed."
+    },
+    {
+      "domain": "lse.ac.uk",
+      "label": "LSE",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Programme regulations and course guides (BSc Management, Accounting and Finance)."
+    },
+    {
+      "domain": "london.ac.uk",
+      "label": "University of London",
+      "tier": "T1",
+      "type": "school",
+      "notes": "LSE-designed distance degrees (BSc Management and Digital Innovation)."
+    },
+    {
+      "domain": "ox.ac.uk",
+      "label": "University of Oxford",
+      "tier": "T1",
+      "type": "school",
+      "notes": "BA Economics and Management degree outline, CIS, student handbook."
+    },
+    {
+      "domain": "assets-oxweb.admin.ox.ac.uk",
+      "label": "Oxford assets",
+      "tier": "T2",
+      "type": "school",
+      "notes": "Entry-year course information sheets (PDF)."
+    },
+    {
+      "domain": "economics.ox.ac.uk",
+      "label": "Oxford Economics",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Student handbook (programme structure)."
+    },
+    {
+      "domain": "warwick.ac.uk",
+      "label": "University of Warwick",
+      "tier": "T1",
+      "type": "school",
+      "notes": "BSc Economics and Management regulations and module hub."
+    },
+    {
+      "domain": "apply.unibocconi.it",
+      "label": "Bocconi apply",
+      "tier": "T2",
+      "type": "school",
+      "notes": "Program details (BIEM)."
     }
   ],
   "tier_rules": {

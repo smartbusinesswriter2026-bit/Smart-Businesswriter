@@ -261,6 +261,10 @@ def _run_experiment(error):
     exp["verified"] = bool(result.get("verified"))
     exp["problems_solved"] = 1 if result.get("verified") else 0
     exp["problems_failed"] = 0 if result.get("verified") else 1
+    # What the attempt spent.  The tokens are the provider's own counts; the
+    # dollar figure is None when the model is not priced, never zero.
+    exp["usage"] = result.get("usage") or {}
+    exp["cost"] = result.get("cost") or {}
     exp["outcome"] = "kept" if result.get("verified") else "still_failing"
     exp["reason"] = result.get("reason") or ""
     exp["after_metric"] = _measure_metric()

@@ -324,6 +324,20 @@ def run_case(case_id, style="apa", length=1200, log=True):
     if case is None:
         return {"case_id": case_id, "status": "missing", "problems": ["no such case"],
                 "error": "no such case", "bytes": b""}
+    return run_case_object(case, style=style, length=length, log=log)
+
+
+def run_case_object(case, style="apa", length=1200, log=True):
+    """Replay a case that is already loaded.
+
+    The same replay as `run_case`, without the store lookup.  `run_case`
+    re-reads the whole case store for every case it replays, so a full sweep
+    of 915 cases read the store 915 times; this function takes the case the
+    caller already has.  The check itself is the same `_check`, so a case that
+    passes here passes there.
+    """
+    case = case or {}
+    case_id = case.get("id")
     started = time.perf_counter()
     try:
         result = paper_batch.generate_one(case["subject"], case["tile"],

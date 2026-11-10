@@ -29,6 +29,15 @@ FORMAT = "bp-tile-case/1"
 
 
 def _root():
+    """Where the stored cases live.
+
+    `BP_CASE_ROOT` redirects it.  The fault-injection harness runs on a copy
+    so a seeded fault can never reach the owner's cases; unset, the path is
+    the one this project has always used.
+    """
+    configured = os.environ.get("BP_CASE_ROOT")
+    if configured:
+        return os.path.normpath(os.path.abspath(os.path.expanduser(str(configured))))
     return os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                          "..", "..", "..", "qa", "cases"))
 

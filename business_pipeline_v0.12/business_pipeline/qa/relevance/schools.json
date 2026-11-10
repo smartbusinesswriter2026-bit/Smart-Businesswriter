@@ -18,7 +18,7 @@
       {
         "name": "MIT Sloan School of Management",
         "level": "MBA",
-        "notes": "Finance Theory I (15.401, Prof. Andrew Lo) syllabus: https://www.ocw.mit.edu/courses/15-401-finance-theory-i-fall-2008/pages/syllabus/ ; Finance Theory I full materials (lectures, problem sets, exams with solutions): https://ocw.mit.edu/courses/15-401-finance-theory-i-fall-2008/resources ; Finance Theory II (15.402) materials: https://ocw.mit.edu/courses/15-402-finance-theory-ii-spring-2003/resources ; Corporate Finance (15.434, Paul Asquith): https://web.mit.edu/15.434/syllabus.html ; Sloan list of finance course syllabi: https://alo.mit.edu/teaching/",
+        "notes": "Finance Theory I (15.401, Prof. Andrew Lo) syllabus: https://www.ocw.mit.edu/courses/15-401-finance-theory-i-fall-2008/pages/syllabus/ ; Finance Theory I full materials (lectures, problem sets, exams with solutions): https://ocw.mit.edu/courses/15-401-finance-theory-i-fall-2008/resources ; Finance Theory II (15.402) materials: https://ocw.mit.edu/courses/15-402-finance-theory-ii-spring-2003/resources ; Corporate Finance (15.434, Paul Asquith): https://web.mit.edu/15.434/syllabus.html ; Sloan list of finance course syllabi: https://alo.mit.edu/teaching/ Undergraduate: Principles of Microeconomics (14.01, Jonathan Gruber, Fall 2018): https://ocw.mit.edu/14-01F18 ; 14.01SC self-study (Fall 2011) syllabus/exams/recitations: https://ocw.mit.edu/courses/14-01sc-principles-of-microeconomics-fall-2011/pages/syllabus/syllabus/ ; 14.01 (Fall 2023) lecture notes, videos, problem sets, exams with solutions: https://live.ocw.mit.edu/courses/14-01-principles-of-microeconomics-fall-2023/lists/exams ; Sloan undergraduate subject list (e.g. 15.0111 Economic Analysis for Business Decisions): https://catalog.mit.edu/subjects/15",
         "domain": "mitsloan.mit.edu"
       },
       {
@@ -48,7 +48,7 @@
       {
         "name": "Yale School of Management",
         "level": "MBA",
-        "notes": "",
+        "notes": " Undergraduate: Financial Markets (ECON 252, Robert Shiller, 2011) free recorded course with syllabus/lectures/transcripts (behavioral finance, banking, options markets, investment banks, regulation): https://oyc.yale.edu/node/963 ; self-paced Coursera version: https://www.coursera.org/learn/financial-markets-global/paidmedia",
         "domain": "som.yale.edu"
       },
       {
@@ -122,7 +122,7 @@
       {
         "name": "Bocconi",
         "level": "MBA",
-        "notes": "",
+        "notes": "BIEM (BSc in International Economics and Management), 3-year 180 ECTS English-taught: https://apply.unibocconi.it/en_US/courses/course/44-biem-bsc-international-economics-and-management",
         "domain": "unibocconi.it"
       },
       {
@@ -168,6 +168,32 @@
         "level": "MBA",
         "notes": "Corporate Finance (BAFI 502) full syllabus PDF: https://blogs.ubc.ca/2023fulltimeubcmba/files/2021/12/Syllabus_BAFI_502_MBA_2021W-1.pdf",
         "domain": "sauder.ubc.ca"
+      }
+    ],
+    "UK": [
+      {
+        "name": "London School of Economics and Political Science (LSE)",
+        "level": "UG/MSc",
+        "notes": "BSc Management: Finance (FM101), Elements of Financial/Management Accounting (AC102/AC103), economics, quantitative methods, LSE100; later options Principles of Finance (FM210/211), Financial Statement Analysis and Valuation (AC332), Corporate Finance, Investments and Financial Markets (FM310/311). Management programme regulations: https://www.lse.ac.uk/resources/calendar2025-2026/programmeRegulations/undergraduate/2025/BScManagement.htm ; Accounting and Finance (2024/25): https://lse.ac.uk/resources/calendar2024-2025/programmeRegulations/undergraduate/2024/BScAccountingAndFinance.htm ; individual course guides (detailed syllabi) linked from LSE course pages.",
+        "domain": "lse.ac.uk"
+      },
+      {
+        "name": "University of London (LSE-designed distance degrees)",
+        "level": "UG",
+        "notes": "BSc Management and Digital Innovation syllabus-level courses (Principles of Accounting, Introduction to Finance, Principles of Corporate Finance): https://london.ac.uk/courses/management-and-digital-innovation",
+        "domain": "london.ac.uk"
+      },
+      {
+        "name": "University of Oxford",
+        "level": "UG",
+        "notes": "BA Economics and Management: first year compulsory Introductory Economics, General Management, Financial Management; Prelims then finals; degree outline: https://sbs.ox.ac.uk/programmes/degrees/bahons-economics-and-management/degree-outline ; 2026 entry course information sheet: https://assets-oxweb.admin.ox.ac.uk/2026-02/Economics%20and%20Management%20CIS%202026-entry.pdf ; student handbook: https://www.economics.ox.ac.uk/sitefiles/prog-0592-ba-in-economics-and-management-student-handbook-25-access-1.pdf",
+        "domain": "ox.ac.uk"
+      },
+      {
+        "name": "University of Warwick",
+        "level": "UG",
+        "notes": "BSc Economics and Management: year 1 all compulsory; year 2 core EC204, EC226, IB249, IB2B1 plus WBS options; final year EC347 + options. Full regulations: https://warwick.ac.uk/fac/soc/economics/current/ug/handbook/bsc_economics_and_management_l1n2_regulations-updated_14-10-2025.pdf ; module hub: https://warwick.ac.uk/fac/soc/economics/current/ug/modules",
+        "domain": "warwick.ac.uk"
       }
     ]
   },
