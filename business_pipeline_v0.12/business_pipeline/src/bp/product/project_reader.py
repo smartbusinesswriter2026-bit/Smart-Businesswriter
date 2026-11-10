@@ -20,6 +20,8 @@ The record shape is the one `project_plan.normalise` documents.
 
 import re
 
+from . import declared_sources
+
 FORMAT = "bp-project-read/1"
 
 #: A header cell, normalised: "(USD)" dropped, punctuation to spaces.
@@ -318,6 +320,7 @@ def read(brief):
         "raci": raci,
         "risks": risks,
         "options": options,
+        "sources": declared_sources.read(text),
     }
 
 

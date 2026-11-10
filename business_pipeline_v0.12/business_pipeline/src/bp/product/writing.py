@@ -48,7 +48,8 @@ ORG_WORDS = {"bank", "commission", "institute", "bureau", "department", "agency"
              "review", "press", "times", "magazine", "research", "intelligence", "media", "news",
              "group", "partners", "consulting", "consultants", "analytics", "insights", "wire",
              "journal", "publishing", "publishers", "books", "reports", "data", "statista", "idc",
-             "gartner", "forrester", "mckinsey", "canalys", "counterpoint", "gsma"}
+             "gartner", "forrester", "mckinsey", "canalys", "counterpoint", "gsma",
+             "trust", "foundation", "charity", "society", "cooperative", "alliance"}
 
 
 def _split_name(name):

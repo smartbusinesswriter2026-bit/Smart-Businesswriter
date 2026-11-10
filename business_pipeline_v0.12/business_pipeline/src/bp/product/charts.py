@@ -493,7 +493,7 @@ def _gantt(payload, rows, title):
         body.append('<line x1="%s" y1="%d" x2="%s" y2="%d" stroke="#e6e6e1"/>'
                     % (_fmt(x), top, _fmt(x), bottom))
         body.append('<text x="%s" y="%d" text-anchor="middle" font-family="Consolas, monospace" font-size="11" '
-                    'fill="#555550">%d</text>' % (_fmt(x), bottom + 18, tick))
+                    'fill="#555550">%d</text>' % (_fmt(x), bottom + 12, tick))
     for index, item in enumerate(resolved):
         y = top + row_height * index + row_height * 0.18
         height = row_height * 0.52
@@ -536,7 +536,7 @@ def _gantt(payload, rows, title):
     body.append('<text x="24" y="%d" font-family="Georgia, serif" font-size="11" fill="#555550">'
                 'Bars are the stored early dates; red marks the critical path, the thin line is float and '
                 'arrows are the declared dependencies.</text>'
-                % (HEIGHT - 34))
+                % (HEIGHT - 30))
     return _frame(title, "".join(body))
 
 
@@ -557,8 +557,12 @@ def _network(payload, title):
         columns.setdefault(layer[node["id"]], []).append(node)
     deepest = max(columns) if columns else 0
     positions = {}
+    #: The frame keeps room for a whole box at either end, so the first and the
+    #: last column are not cut off by the edge of the drawing.
+    margin, half = 80, 62
+    span = WIDTH - 2 * margin
     for place, members in columns.items():
-        x = 40 + Decimal(WIDTH - 200) * Decimal(place) / Decimal(max(1, deepest))
+        x = Decimal(margin) + Decimal(span) * Decimal(place) / Decimal(max(1, deepest))
         for index, node in enumerate(members):
             y = Decimal(70) + Decimal(HEIGHT - 150) * Decimal(index + 0.5) / Decimal(len(members))
             positions[node["id"]] = (x, y)
@@ -569,11 +573,11 @@ def _network(payload, title):
         x2, y2 = positions[edge["to"]]
         body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#7c828b" stroke-width="1.5" '
                     'marker-end="url(#network-arrow)"/>'
-                    % (_fmt(x1 + 62), _fmt(y1), _fmt(x2 - 62), _fmt(y2)))
+                    % (_fmt(x1 + half), _fmt(y1), _fmt(x2 - half), _fmt(y2)))
     for node in nodes:
         x, y = positions[node["id"]]
         body.append('<rect x="%s" y="%s" width="124" height="34" rx="4" fill="#f1f4f8" '
-                    'stroke="#4a5568"/>' % (_fmt(x - 62), _fmt(y - 17)))
+                    'stroke="#4a5568"/>' % (_fmt(x - half), _fmt(y - 17)))
         body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Georgia, serif" '
                     'font-size="11" fill="#1b1b1b">%s</text>'
                     % (_fmt(x), _fmt(y + 4), html.escape(node["label"], quote=False)))

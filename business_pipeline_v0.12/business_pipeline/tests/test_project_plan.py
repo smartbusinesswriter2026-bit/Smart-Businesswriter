@@ -192,6 +192,16 @@ class LevellingTest(unittest.TestCase):
         self.assertEqual(rows[0][2], "2026-01-05")
         self.assertTrue(all(row[3] for row in rows), rows)
 
+    def test_the_completion_curve_has_one_point_for_each_finish(self):
+        data = project_plan.normalise(self.demand_record())
+        outcome = project_plan.level(data, _run)
+        self.assertTrue(outcome["ok"], outcome)
+        series = project_plan.completion_series(data, outcome["result"])
+        self.assertEqual(len(series), len(data["activities"]))
+        self.assertEqual(series[-1][1], 100.0)
+        self.assertEqual([period for period, _value in series],
+                         sorted(period for period, _value in series))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -26,6 +26,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import zlib
 
 from . import charts, diagrams, theme
 from . import export as case_export
@@ -233,7 +234,7 @@ def _plotly_png(spec, bundle, scale):
     except Exception:
         return None
     kind = spec.get("kind")
-    if kind in ("gantt", "table", "sparkline"):
+    if kind in ("gantt", "table", "sparkline", "network"):
         return None  # the builtin renderer owns these shapes
     rows = case_export.artifact_rows(bundle)
     charts.verify_labels(spec, rows)
@@ -252,19 +253,30 @@ def _plotly_png(spec, bundle, scale):
     labels, values, stored = resolved
     palette = theme.TOKENS["palette"]
     kind_type = theme.TOKENS["type"]
+    # A dense chart prints no value on every point: the labels overlap and the
+    # picture stops being readable.  The values are still in the document.
+    dense = len(labels) > 12
     if kind == "bar":
-        trace = go.Bar(x=labels, y=values, text=stored, textposition="outside",
+        trace = go.Bar(x=labels, y=values,
+                       text=None if dense else stored,
+                       textposition=None if dense else "outside",
                        marker_color=palette["accent"], textfont=dict(color=palette["ink"]))
     elif kind == "stacked_bar":
-        trace = go.Bar(x=labels, y=values, text=stored, textposition="inside",
+        trace = go.Bar(x=labels, y=values,
+                       text=None if dense else stored,
+                       textposition=None if dense else "inside",
                        marker_color=palette["accent"], textfont=dict(color=palette["ink"]))
     elif kind == "waterfall":
-        trace = go.Waterfall(x=labels, y=values, text=stored, textposition="outside")
+        trace = go.Waterfall(x=labels, y=values,
+                             text=None if dense else stored,
+                             textposition=None if dense else "outside")
     elif kind == "pie":
         trace = go.Pie(labels=labels, values=values, text=stored, textinfo="label+text")
     else:
-        trace = go.Scatter(x=labels, y=values, mode="lines+markers+text",
-                           text=stored, textposition="top center",
+        trace = go.Scatter(x=labels, y=values,
+                           mode="lines+markers" if dense else "lines+markers+text",
+                           text=None if dense else stored,
+                           textposition=None if dense else "top center",
                            line=dict(color=palette["accent"], width=theme.TOKENS["stroke"]["series"]),
                            marker=dict(size=9, color=palette["accent"]))
     figure = go.Figure(data=[trace])
@@ -434,12 +446,24 @@ def _svg_size(markup, fallback=(720, 300)):
     return int(float(match.group(1))), int(float(match.group(2)))
 
 
+#: The headless window is taller than the drawing it takes, so the viewport can
+#: hold the whole figure.  The surplus rows are cut off the screenshot after it.
+WINDOW_HEADROOM = 200
+
+
 def _chrome_svg_to_png(markup, scale=3):
-    """Rasterize the builtin SVG with the headless Chrome kaleido already carries."""
+    """Rasterize the builtin SVG with the headless Chrome kaleido already carries.
+
+    The headless window reserves room for its own frame, so its viewport is
+    shorter than the window: the drawing is asked for in a taller window and the
+    extra rows are cut off afterwards.  Without that, the bottom of every figure
+    is lost - a Gantt loses its last activity.
+    """
     chrome = _chrome()
     if not chrome:
         return None
     width, height = _svg_size(markup)
+    window_height = height + WINDOW_HEADROOM
     directory = tempfile.mkdtemp(prefix="bp-chrome-")
     page = os.path.join(directory, "figure.html")
     target = os.path.join(directory, "figure.png")
@@ -455,18 +479,123 @@ def _chrome_svg_to_png(markup, scale=3):
              "--disable-background-networking", "--disable-sync", "--disable-dev-shm-usage",
              "--user-data-dir=" + profile,
              "--force-device-scale-factor=%d" % scale,
-             "--window-size=%d,%d" % (width, height),
+             "--window-size=%d,%d" % (width, window_height),
              "--screenshot=" + target,
              "file:///" + page.replace("\\", "/")],
             timeout=120, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        if os.path.exists(target):
-            with open(target, "rb") as stream:
-                return stream.read()
-        return None
+        if not os.path.exists(target):
+            return None
+        with open(target, "rb") as stream:
+            data = stream.read()
+        cropped = _crop_png_rows(data, int(round(height * scale)))
+        return cropped if cropped else data
     except Exception:
         return None
     finally:
         shutil.rmtree(directory, ignore_errors=True)
+
+
+def _chunk(chunk_type, payload):
+    """One PNG chunk: length, type, data, CRC."""
+    return (len(payload).to_bytes(4, "big") + chunk_type + payload
+            + zlib.crc32(chunk_type + payload).to_bytes(4, "big"))
+
+
+def _unfilter(kind, line, previous, channels):
+    """Undo one PNG scanline filter, in place (the PNG specification's five)."""
+    if kind == 0:
+        return
+    for index in range(len(line)):
+        left = line[index - channels] if index >= channels else 0
+        up = previous[index]
+        corner = previous[index - channels] if index >= channels else 0
+        if kind == 1:
+            line[index] = (line[index] + left) & 0xFF
+        elif kind == 2:
+            line[index] = (line[index] + up) & 0xFF
+        elif kind == 3:
+            line[index] = (line[index] + (left + up) // 2) & 0xFF
+        elif kind == 4:
+            estimate = left + up - corner
+            da, db, dc = abs(estimate - left), abs(estimate - up), abs(estimate - corner)
+            if da <= db and da <= dc:
+                predictor = left
+            elif db <= dc:
+                predictor = up
+            else:
+                predictor = corner
+            line[index] = (line[index] + predictor) & 0xFF
+
+
+def _crop_png_rows(data, rows):
+    """The first `rows` scanlines of a PNG, as a new PNG.
+
+    The standard library only: the bytes are decoded, the wanted rows are kept
+    and the picture is written again.  A picture this code cannot read is
+    returned unchanged, so a crop never breaks a figure.
+    """
+    if not data or rows <= 0:
+        return None
+    try:
+        if data[:8] != b"\x89PNG\r\n\x1a\n":
+            return None
+        offset = 8
+        header = None
+        idat = []
+        palette = []
+        while offset + 8 <= len(data):
+            length = int.from_bytes(data[offset:offset + 4], "big")
+            chunk_type = data[offset + 4:offset + 8]
+            payload = data[offset + 8:offset + 8 + length]
+            offset += 12 + length
+            if chunk_type == b"IHDR":
+                header = payload
+            elif chunk_type == b"IDAT":
+                idat.append(payload)
+            elif chunk_type == b"IEND":
+                break
+            elif chunk_type in (b"PLTE", b"tRNS"):
+                palette.append((chunk_type, payload))
+        if header is None or not idat:
+            return None
+        width = int.from_bytes(header[0:4], "big")
+        height = int.from_bytes(header[4:8], "big")
+        depth, colour, interlace = header[8], header[9], header[12]
+        if depth != 8 or interlace != 0 or colour not in (0, 2, 6):
+            return None
+        channels = {0: 1, 2: 3, 6: 4}[colour]
+        stride = width * channels
+        raw = zlib.decompress(b"".join(idat))
+        kept = []
+        previous = bytearray(stride)
+        position = 0
+        for _ in range(height):
+            if position + 1 + stride > len(raw):
+                return None
+            kind = raw[position]
+            position += 1
+            line = bytearray(raw[position:position + stride])
+            position += stride
+            _unfilter(kind, line, previous, channels)
+            kept.append(bytes(line))
+            previous = line
+            if len(kept) >= rows:
+                break
+        if not kept:
+            return None
+        body = bytearray()
+        for line in kept:
+            body.append(0)
+            body.extend(line)
+        out = bytearray(b"\x89PNG\r\n\x1a\n")
+        out.extend(_chunk(b"IHDR", header[:4] + len(kept).to_bytes(4, "big") + header[8:]))
+        for chunk_type, payload in palette:
+            out.extend(_chunk(chunk_type, payload))
+        out.extend(_chunk(b"IDAT", zlib.compress(bytes(body), 9)))
+        out.extend(_chunk(b"IEND", b""))
+        return bytes(out)
+    except Exception:
+        return None
 
 
 def _binary_raster(name, markup, scale):

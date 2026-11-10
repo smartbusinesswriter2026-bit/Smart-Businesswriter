@@ -42,7 +42,9 @@ from . import profile_figures
 from . import profile_reader
 from . import method_catalogue
 from . import spreadsheets
+from . import citation_choice
 from . import declared as declared_reader
+from . import declared_sources
 from . import project_reader
 
 FORMAT = "bp-chat/1"
@@ -1020,7 +1022,9 @@ def accept_plan(state, framework=None, words=None, style=None):
     answers["decision"] = decision
     answers.setdefault("geography", "Global")
     answers.setdefault("period", "10")
-    answers["style"] = str(style or answers.get("style") or "apa").strip().lower()
+    answers["style"] = str(style or answers.get("style")
+                         or citation_choice.read(state.get("brief") or "")
+                         or "apa").strip().lower()
     if words not in (None, ""):
         answers["length"] = str(check_word_target(words))
     if framework != "none" and FRAMEWORKS[framework].get("internal"):
@@ -1258,7 +1262,17 @@ def silent(state, framework=None, words=None, style=None):
         state["profile_facts"] = profile_reader.read(state.get("brief") or "")
         expanded = profile_writer.write(state, state.get("brief"), profile)
         if expanded:
+            # The guide sections carry no reference list of their own, so the
+            # deterministic draft's references are the paper's references and
+            # they are carried across.
+            references = [item for item in (state.get("draft") or {}).get("sections") or []
+                          if _is_reference_section(item)]
             state["draft"] = expanded
+            if references:
+                sections = state["draft"].get("sections") or []
+                if not any(_is_reference_section(row) for row in sections):
+                    sections.append(references[0])
+                    state["draft"]["sections"] = sections
         record = _profile_financials(state)
         if record:
             name = ((record.get("reading") or {}).get("fields") or {}).get("business.name")
@@ -1571,39 +1585,26 @@ def _with_figures(state):
     return placed
 
 
-def _value_bundle(prefix, values):
+def _value_bundle(prefix, values, periods=None):
     """A figure bundle whose artifacts are the derived period values.
 
     The values are arithmetic on the record's own inputs and the frozen
-    method's own offsets; the bundle says so through the figure's reason.
+    method's own offsets; the bundle says so through the figure's reason.  The
+    period itself is stored as an artifact too, so a label may carry the period
+    number: the chart rule allows a digit in a label only when the label is the
+    recorded value of an artifact.
     """
     artifacts = [{"id": prefix + str(index), "metric": prefix + str(index),
                   "unit": "", "precision": "", "value": str(value)}
                  for index, value in enumerate(values, 1)]
+    if periods is not None:
+        for index, period in enumerate(periods, 1):
+            artifacts.append({"id": prefix + "period" + str(index),
+                              "metric": prefix + "period" + str(index),
+                              "unit": "", "precision": "", "value": str(int(period))})
     return {"format": "bp-project-values/1",
             "delivery": {"appendix": {"artifacts": artifacts}},
             "reperform": {"outputs": {item["id"]: item["value"] for item in artifacts}}}
-
-
-_PERIOD_ONES = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-                "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
-                "seventeen", "eighteen", "nineteen")
-_PERIOD_TENS = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty",
-                "ninety")
-
-
-def _period_word(number):
-    """A period label without digits; the chart rule allows words only."""
-    try:
-        value = int(float(number))
-    except (TypeError, ValueError):
-        return "period"
-    if 0 <= value < 20:
-        return _PERIOD_ONES[value] or "zero"
-    if 20 <= value < 100:
-        tens, ones = divmod(value, 10)
-        return _PERIOD_TENS[tens] + ("" if not ones else "-" + _PERIOD_ONES[ones])
-    return "period"
 
 
 def _network_figure(state):
@@ -1646,9 +1647,11 @@ def _load_figure(state):
     series = project_plan_mod.load_series(record, levelled.get("result") or {})
     if len(series) < 2:
         return None
-    bundle = _value_bundle("load", [value for _period, value in series])
+    periods = [period for period, _value in series]
+    bundle = _value_bundle("load", [value for _period, value in series], periods)
     spec = {"format": "bp-chart/1", "kind": "bar", "title": "Resource load by period",
-            "series": [{"label": _period_word(period), "artifact": "load" + str(index)}
+            "series": [{"label": str(int(period)), "artifact": "load" + str(index),
+                        "label_artifact": "loadperiod" + str(index)}
                        for index, (period, _value) in enumerate(series, 1)]}
     return _rendered_figure(state, spec, "Resource load by period",
                             "the levelled schedule assigns declared demand for %d periods"
@@ -1669,13 +1672,15 @@ def _completion_figure(state):
     series = project_plan_mod.completion_series(record, result)
     if len(series) < 2:
         return None
-    bundle = _value_bundle("done", ["%.4f" % value for _period, value in series])
+    periods = [period for period, _value in series]
+    bundle = _value_bundle("done", ["%g" % value for _period, value in series], periods)
     spec = {"format": "bp-chart/1", "kind": "line", "title": "Planned completion",
-            "series": [{"label": _period_word(period), "artifact": "done" + str(index)}
+            "series": [{"label": str(int(period)), "artifact": "done" + str(index),
+                        "label_artifact": "doneperiod" + str(index)}
                        for index, (period, _value) in enumerate(series, 1)]}
     return _rendered_figure(state, spec, "Planned completion curve",
                             "the stored finishes place %d activities over %d periods"
-                            % (len(record.get("activities") or []), len(series)),
+                            % (len(record.get("activities") or []), periods[-1]),
                             place="Schedule", bundle=bundle)
 
 
@@ -6138,6 +6143,58 @@ def _plan_reference_section(state, evidence, style, numbers=None):
     return paper.section(heading, paper.H1, references or ["No sources were used."])
 
 
+def _declared_reference_lines(declared, style):
+    """The references the student declared, written in the paper's citation style.
+
+    A declared source is the student's own fact, so it belongs in the reference
+    list; it is written in the paper's citation style from the words the student
+    wrote, and nothing is fetched, resolved or verified.  The author and the year
+    are the ones the student wrote; a source with no year keeps the product's
+    "n.d."
+    """
+    from . import writing
+    lines = []
+    for item in declared or []:
+        source = declared_sources.as_source(item)
+        if not source.get("title"):
+            continue
+        lines.append(writing.reference(source, style))
+    return lines
+
+
+def _declared_title_in(line, titles):
+    """True when a formatted declared reference repeats a title already listed."""
+    body = str(line or "").lower()
+    return any(title and title in body for title in titles if title)
+
+
+def _reference_section(state, evidence, style, declared=None):
+    """The reference list: the accepted evidence, then the student's own sources.
+
+    The declared sources are written in the same style and carry one closing
+    line that says where they came from, because a source the product did not
+    fetch must never read as one it did.
+    """
+    section = _plan_reference_section(state, evidence, style)
+    lines = list(section.get("lines") or [])
+    retrieved = {str(source.get("title") or "").strip().lower()
+                 for source in state.get("sources") or []
+                 if len(str(source.get("title") or "").strip()) >= 12}
+    extra = [line for line in _declared_reference_lines(declared, style)
+             if not _declared_title_in(line, retrieved)]
+    if extra:
+        if lines == ["No sources were used."]:
+            lines = list(extra)
+        else:
+            lines = lines + extra
+        lines.append("The last " + str(len(extra)) + " source"
+                     + ("" if len(extra) == 1 else "s")
+                     + " above " + ("was" if len(extra) == 1 else "were")
+                     + " declared in the brief; the product neither fetched "
+                       "nor verified " + ("it." if len(extra) == 1 else "them."))
+    return paper.section(section.get("heading") or "References", paper.H1, lines)
+
+
 def _store_plan_draft(state, sections, style, accepted, title, profile):
     """Store a plan draft the way every plan profile must.
 
@@ -6174,10 +6231,14 @@ def _draft_plan(state, accepted_ids=None, style=None):
                   if row.get("dimension")}
     style = style or state["answers"].get("style") or "apa"
     sections = []
-    name = _plan_input(state, "business_name")
-    product = _plan_input(state, "product")
-    customers = _plan_input(state, "customers")
-    location = _plan_input(state, "location")
+    # The quiet lane asks no questions, so the brief's own labelled facts are
+    # what the plan says: the name, the offer, the customers, the place, the
+    # budget and the channels.  A field the brief does not state stays missing.
+    facts = profile_reader.read(state.get("brief") or "")
+    name = _plan_input(state, "business_name") or str(facts.get("name") or "")
+    product = _plan_input(state, "product") or str(facts.get("product") or "")
+    customers = _plan_input(state, "customers") or str(facts.get("customers") or "")
+    location = _plan_input(state, "location") or str(facts.get("location") or "")
 
     # -- executive summary (integration, from supplied facts and stored results)
     intro = ["This plan sets out " + (name or "the business") + "."]
@@ -6312,8 +6373,9 @@ def _draft_plan(state, accepted_ids=None, style=None):
                       "input or a core computation, not a forecast.")
     sections.append(paper.section("Conclusion", paper.H1, [paper.paragraph(conclusion)]))
 
-    # -- one reference list
-    sections.append(_plan_reference_section(state, evidence, style))
+    # -- one reference list: the retrieved evidence and the student's own sources
+    sections.append(_reference_section(state, evidence, style,
+                                       declared_sources.read(state.get("brief") or "")))
 
     return _store_plan_draft(state, sections, style, accepted,
                              "Business plan: " + (name or _clean(plan.get("decision"), 180)),
@@ -6569,8 +6631,8 @@ def _draft_feasibility_study(state, accepted_ids=None, style=None):
     verdict = "The feasibility of this project depends on the evidence and figures above."
     sections.append(paper.section("Conclusion", paper.H1, [verdict]))
 
-    # -- references
-    sections.append(_plan_reference_section(state, evidence, style))
+    # -- references: the retrieved evidence, then the student's own sources
+    sections.append(_reference_section(state, evidence, style, _proposal_sources(state)))
 
     return _store_plan_draft(state, sections, style, accepted,
                              "Feasibility study: " + (name or _clean(plan.get("decision"), 180)),
@@ -6587,10 +6649,14 @@ def _draft_marketing_plan(state, accepted_ids=None, style=None):
     by_id = {source["id"]: source for source in state["sources"]}
     style = style or state["answers"].get("style") or "apa"
     sections = []
-    name = _plan_input(state, "business_name")
-    product = _plan_input(state, "product")
-    customers = _plan_input(state, "customers")
-    location = _plan_input(state, "location")
+    # The quiet lane asks no questions, so the brief's own labelled facts are
+    # what the plan says: the name, the offer, the customers, the place, the
+    # budget and the channels.  A field the brief does not state stays missing.
+    facts = profile_reader.read(state.get("brief") or "")
+    name = _plan_input(state, "business_name") or str(facts.get("name") or "")
+    product = _plan_input(state, "product") or str(facts.get("product") or "")
+    customers = _plan_input(state, "customers") or str(facts.get("customers") or "")
+    location = _plan_input(state, "location") or str(facts.get("location") or "")
 
     # -- executive summary
     intro = ["This marketing plan sets out how " + (name or "the business") + " will reach its customers."]
@@ -6634,7 +6700,7 @@ def _draft_marketing_plan(state, accepted_ids=None, style=None):
     sections.append(paper.section("Audience and Positioning", paper.H1, [paper.paragraph(lines or ["Not supplied."])]))
 
     # -- channels and tactics
-    channels = _plan_input(state, "channels")
+    channels = _plan_input(state, "channels") or str(facts.get("channels") or "")
     tactics = _plan_input(state, "tactics")
     content_plan = _plan_input(state, "content_plan")
     lines = []
@@ -6664,7 +6730,7 @@ def _draft_marketing_plan(state, accepted_ids=None, style=None):
                        [paper.paragraph(_capability_lines(block, data))]
         sections.append(paper.section(block["label"], paper.H2, result_lines))
 
-    budget = _plan_input(state, "budget")
+    budget = _plan_input(state, "budget") or str(facts.get("budget") or "")
     kpis = _plan_input(state, "kpis")
     measurement = _plan_input(state, "measurement_plan")
     lines = []
@@ -6685,8 +6751,9 @@ def _draft_marketing_plan(state, accepted_ids=None, style=None):
     # -- conclusion
     sections.append(paper.section("Conclusion", paper.H1, ["The marketing plan above is based on the declared inputs and computations."]))
 
-    # -- references
-    sections.append(_plan_reference_section(state, evidence, style))
+    # -- references: the retrieved evidence and the student's own sources
+    sections.append(_reference_section(state, evidence, style,
+                                       declared_sources.read(state.get("brief") or "")))
 
     return _store_plan_draft(state, sections, style, accepted,
                              "Marketing plan: " + (name or _clean(plan.get("decision"), 180)),
@@ -6835,7 +6902,7 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
         dated_rows = project_plan_mod.dated_rows(record, dated.get("result") or {},
                                                  charter.get("start_date"))
         if dated_rows:
-            sections.append(paper.section("Dated Schedule", paper.H2,
+            sections.append(paper.section("Dated Schedule", paper.H1,
                                           [paper.paragraph([
                                               "Dates count one declared period as one working day, "
                                               "Monday to Friday, from the declared start date of "
@@ -6988,8 +7055,9 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
                           + ("" if len(problems) == 1 else "s") + "; the export gate lists them.")
     sections.append(paper.section("Conclusion", paper.H1, [paper.paragraph(conclusion)]))
 
-    # -- references
-    sections.append(_plan_reference_section(state, evidence, style))
+    # -- references: the record's own declared sources, in the citation style
+    sections.append(_reference_section(state, evidence, style,
+                                       record.get("sources") or []))
     return _store_plan_draft(state, sections, style, accepted,
                              "Project plan: " + (title or _clean(state.get("brief"), 180)),
                              PROFILE_PROJECT_PLAN)
@@ -7050,7 +7118,51 @@ def _proposal_deck(state):
                                  "Progress is reported against the declared indicators."),
             bullets=[line for line in monitor.split(". ") if line.strip()][:3],
             notes=monitor))
+    reference = _reference_slide(deck, blocks)
+    if reference:
+        slides.append(reference)
     return {"format": deck.DECK_FORMAT, "title": title, "slides": slides}, figures
+
+
+def _reference_heading(item):
+    """The heading of a draft section, whichever shape it is in."""
+    if isinstance(item, (list, tuple)):
+        return str(item[0]) if item else ""
+    if isinstance(item, dict):
+        return str(item.get("heading") or "")
+    return ""
+
+
+def _is_reference_section(item):
+    """True for the section that carries the paper's reference list."""
+    return _reference_heading(item) in ("References", "Bibliography", "Works Cited")
+
+
+def _reference_slide(deck, blocks):
+    """A closing slide with the paper's own reference list, when it has one.
+
+    The deck is the same paper argued, so a paper that lists its sources gets a
+    slide that lists them; a paper with no sources gets no slide and says so
+    on the page instead.
+    """
+    lines = []
+    for item in blocks:
+        heading = str(item.get("heading") or "")
+        if heading in ("References", "Bibliography", "Works Cited"):
+            lines = [str(line).strip() for line in item.get("lines") or []
+                     if str(line).strip()]
+            break
+    if not lines or lines == ["No sources were used."]:
+        return None
+    claim, bullets = lines[0], lines[1:]
+    return deck.slide("claim", claim=claim, bullets=bullets[:6],
+                      note="The references the paper lists, in the paper's citation style.")
+
+
+def _proposal_sources(state):
+    """The sources the proposal brief declared, read from its own record."""
+    record = proposal_plan_mod.normalise(state.get("proposal_record") or {}) or {}
+    return record.get("sources") or []
 
 
 def _draft_proposal_simple(state, accepted_ids=None, style=None):
@@ -7150,7 +7262,7 @@ def _draft_proposal_simple(state, accepted_ids=None, style=None):
                           + ("" if len(problems) == 1 else "s")
                           + "; they are open questions, not conditions already met.")
     sections.append(paper.section("Conclusion", paper.H1, [paper.paragraph(conclusion)]))
-    sections.append(_plan_reference_section(state, evidence, style))
+    sections.append(_reference_section(state, evidence, style, _proposal_sources(state)))
     return _store_plan_draft(state, sections, style, accepted,
                              "Project proposal: " + title, PROFILE_PROJECT_PROPOSAL)
 
@@ -7967,6 +8079,16 @@ def _draft_business_plan(state, accepted_ids=None, implications="", style=None):
     if not record:
         raise ChatError("The business plan has not been solved.")
     pairs = plan_paper.sections(record)
+    # The plan tile carries no reference list of its own: the paper's references
+    # are the retrieved evidence and the sources the student declared.
+    accepted = set(accepted_ids) if accepted_ids is not None else {
+        item["id"] for item in state.get("evidence") or []}
+    evidence = [item for item in state.get("evidence") or [] if item.get("id") in accepted]
+    references = _reference_section(state, evidence, style or state["answers"].get("style"),
+                                    declared_sources.read(state.get("brief") or ""))
+    if references:
+        pairs.append([references.get("heading") or "References",
+                      list(references.get("lines") or [])])
     outline = [{"heading": heading, "level": 1, "lines": list(lines)}
                for heading, lines in pairs]
     fields = (record.get("reading") or {}).get("fields") or {}
@@ -8908,6 +9030,35 @@ def _project_deck(state):
             note="Bars are the frozen schedule's stored early start and finish.",
             notes=section_text("Schedule")))
 
+    record = project_plan_mod.normalise(state.get("project") or {})
+    activities = record.get("activities") or []
+    identifiers = {str(row.get("id")) for row in activities}
+    links = sum(1 for row in activities
+                for predecessor in (row.get("predecessors") or [])
+                if str(predecessor) in identifiers)
+    levelled = state.get("project_levelled") or {}
+    levelled_result = (levelled.get("result") or {}) if levelled.get("ok") else {}
+    scheduled_result = (state.get("project_schedule") or {}).get("result") or {}
+    load = project_plan_mod.load_series(record, levelled_result) if levelled_result else []
+    peak = max([value for _period, value in load], default=0)
+    completion = project_plan_mod.completion_series(
+        record, levelled_result or scheduled_result)
+    claims = {
+        "Activity network": ("Activity network: the record declares " + str(links)
+                             + " dependencies among " + str(len(activities)) + " activities."),
+        "Planned completion": ("Planned completion: the stored finishes place "
+                                + str(len(activities)) + " activities over "
+                                + _periods(completion[-1][0] if completion else 0) + " periods."),
+        "Resource load": ("Resource load: declared demand sums to " + _periods(peak)
+                          + " in the busiest period after levelling."),
+    }
+    notes = {
+        "Activity network": "Boxes are the activities; arrows are the declared dependencies.",
+        "Planned completion": "The curve is the cumulative per cent of activities finished: "
+                              "it is progress, not cost.",
+        "Resource load": "Bars are the declared demand per period after levelling; "
+                         "capacities stay per resource.",
+    }
     for heading, name in (("Activity network", "Activity network"),
                           ("Planned completion", "Planned completion"),
                           ("Resource load", "Resource load")):
@@ -8916,8 +9067,9 @@ def _project_deck(state):
         if not figure or not figure.get("id"):
             continue
         figures[figure["id"]] = figure
-        slides.append(deck.slide("figure", claim=first_sentence(heading, name),
-                                 figure=figure["id"], notes=section_text(heading)))
+        slides.append(deck.slide("figure", claim=claims.get(heading, name),
+                                 figure=figure["id"], note=notes.get(heading, ""),
+                                 notes=section_text(heading)))
 
     table_sections = (
         ("Work Breakdown Structure", "WBS"),
@@ -8940,6 +9092,9 @@ def _project_deck(state):
                               "table": table, "rows": []}
         slides.append(deck.slide("table", claim=first_sentence(heading, name), table=figure_id,
                                  notes=section_text(heading)))
+    reference = _reference_slide(deck, blocks)
+    if reference:
+        slides.append(reference)
     return {"format": deck.DECK_FORMAT, "title": title, "slides": slides}, figures
 
 

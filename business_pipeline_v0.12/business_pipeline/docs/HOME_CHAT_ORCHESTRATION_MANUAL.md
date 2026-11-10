@@ -832,26 +832,96 @@ prints as the empty cell the record declares, because the table is the record, n
 sentence. The browser pane renders a `|` line as monospace. There is no Gaps section and
 no checks summary.
 
-**The chart is an export-only figure.** `chat._schedule_figure` builds a Gantt from the
-stored early start/finish/float/critical artifacts of the frozen schedule. Chart labels
-must be digit-free (`charts.validate_spec` refuses a digit as a stored value), so the
-activity name is used, or a lettered "Activity A/B…" fallback. The Schedule section
-already carries its table figure, so the chart is a separate level-2 **Schedule chart**
-block after it; Word embeds the PNG, the PDF embeds the inline SVG, and the browser pane
-never shows it. A plan whose schedule did not run has no chart.
+**A source the brief declares is a source the paper lists.** The project lane fetches
+nothing, so its reference list holds only what the student declared. `declared_sources.py`
+reads a `Sources:` line (or a `References:` or `Bibliography:` line) and a sources table
+out of the brief; the labels are matched exactly, so `Funding source:` is still a funding
+source. The text is copied, never parsed into an author and a year the student did not
+write, and each source is written in the paper's citation style - APA, Harvard, MLA, IEEE -
+through the same `writing.reference` builder every lane uses. The section closes with one
+line saying the sources were declared in the brief and that the product neither fetched nor
+verified them. A brief that declares no source still says "No sources were used."
+The deck follows the paper: a paper that lists its sources gets a closing reference
+slide, and a paper with no sources gets none.
+
+**The citation style is the student's choice, and every lane lists its references.**
+`citation_choice.py` reads the style out of the brief ("in Harvard style", "use APA 7
+for the references"), because the quiet lanes ask no questions and the brief is the
+only place the choice can be written. Only the styles the product carries are
+recognised; a name it cannot render is ignored, and a style named in passing is not a
+choice. The guide route's style select still wins. Every document lane writes one
+reference list the same way: the retrieved evidence first, then the sources the student
+declared, in the paper's citation style, with one closing line saying the declared ones
+were neither fetched nor verified. The business-plan tile appends that list, and the
+guide expansion keeps the deterministic draft's references rather than dropping them.
+
+**A declared demand earns a levelled and a dated schedule.** Two frozen methods run beside
+CPM, and each refuses rather than guesses:
+
+- **Levelling.** `project_plan.level_inputs` builds the rows the frozen
+  `resource_leveling` method accepts. An activity needs a declared whole `Demand` and a
+  declared resource that names a resource with a **positive** capacity. A missing demand,
+  a missing capacity, a demand above capacity or a resource that is not declared stops the
+  run with the activity named; nothing is defaulted to one. Resource names may carry
+  spaces, which the core refuses, so the product maps them to `R1…` codes at the boundary
+  and keeps the record's own names in the paper. The **Resource-Levelled Schedule** section
+  prints the core's levelled start, finish and delay, and its paragraph states the
+  levelling delay, the levelled and unlevelled durations, the over-capacity periods and the
+  peak demand, all read from the result.
+- **Dates.** `project_plan.dated_inputs` treats **one declared period as one working day,
+  Monday to Friday**, counted from the charter's declared ISO `Start date`. The working
+  periods handed to the frozen `calendar_schedule` are the weekday offsets from that date;
+  weekends are a gap, and no holiday, shutdown or time zone is inferred. The **Dated
+  Schedule** section prints each activity's ISO start and finish and its working days, with
+  a finish on the last working day of the activity.
+
+A plan that declares no start date, no demand or no capacity keeps its CPM schedule and
+carries one **Limitations** line naming the run that did not happen.
+
+**The charts are export-only figures.** Four figures are drawn from the stored record and
+the stored results, and each sits in its own level-2 block:
+
+- the **Schedule chart** is a Gantt of the frozen early start/finish/float/critical
+  artifacts;
+- the **Activity network** is an activity-on-node diagram (`charts` kind `"network"`) from
+  the record's own predecessor edges, layered by dependency depth;
+- the **Planned completion** curve is cumulative per cent of activities finished by each
+  period, computed from the stored finishes and labelled as **progress, not cost**;
+- the **Resource load** histogram is the declared demand summed per period after levelling;
+  capacities stay per resource and are not summed.
+
+Chart labels must be digit-free (`charts.validate_spec` refuses a digit as a stored value),
+so an activity name is used or a lettered "Activity A/B?" fallback. The derived period
+values are supplied to the chart engine as artifacts, so a bar or a point still traces to
+a stored value, and the **period itself is stored as an artifact of its own**: a label may
+then carry the period number, because the rule allows a digit in a label when the label is
+the recorded value of an artifact. The completion curve carries one point per finishing
+period ? the shape the finishes make ? and a chart with more than twelve points prints no
+value on every point.
+
+**The picture is the figure.** A kind the builtin renderer owns (the Gantt, the network,
+the table) is never handed to Plotly, which would draw an empty axis for a spec it does
+not know. The headless window is taller than the drawing it takes, so the drawing is asked
+for in a window with headroom and the surplus rows are cut off the screenshot afterwards
+(`renderers._crop_png_rows`, standard library only). Word embeds the PNG, the PDF embeds
+the inline SVG, the deck gives each figure a slide, and the browser pane never shows them.
+A plan whose schedule did not run has no chart; a plan without a successful levelling has
+no load histogram.
 
 **One download.** `paper_bytes(state, "bundle")` returns one ZIP holding the paper's own
 `.docx`, its `-workbook.xlsx`, its `-deck.pptx` and, when Chrome is present, a `.pdf` of
-the same paper. `project_workbook.py` writes the Charter, WBS, Schedule, Cost, RACI and
-Risks sheets with the product's xlsx writer; no figure is recomputed there.
-`paper_bytes(state, "pptx")` returns the deck alone.
+the same paper. `project_workbook.py` writes the Charter, WBS, Schedule, Dated schedule,
+Levelled schedule, Cost, RACI and Risks sheets with the product's xlsx writer; no figure is
+recomputed there. `paper_bytes(state, "pptx")` returns the deck alone.
 
 **The deck is the same paper, argued.** `chat._project_deck` builds a title slide, the
-executive-summary sentence, the **Schedule chart** slide (the stored Gantt PNG), then one
-native table slide each for the WBS, schedule, cost, RACI and risk register. A slide's
-claim is the paper's own first sentence (or the critical-path result), and a table slide
-names the same figure id the paper holds; `deck.render` writes the package. PowerPoint is
-a fourth file of the one download, never a second paper.
+executive-summary sentence, the **Schedule chart** slide (the stored Gantt PNG), a figure
+slide each for the **Activity network**, **Planned completion** and **Resource load**, then
+one native table slide each for the WBS, schedule, dated schedule, levelled schedule, cost,
+RACI and risk register. A slide's claim is the paper's own first sentence (or the
+critical-path result), and a table slide names the same figure id the paper holds;
+`deck.render` writes the package. PowerPoint is a fourth file of the one download, never a
+second paper.
 
 **A table-shaped feasibility brief takes the three-table route.** `feasibility_reader.py`
 reads a labelled project, a market table (`Item | Value`: target market, demand, price)
@@ -880,7 +950,14 @@ paper — executive summary, problem and need, objectives, work plan and timelin
 monitoring, risks, conclusion, references — and skips the research round, because the
 record is the source. The budget total is the sum of the declared lines, not a break-even
 or a forecast; a narrative proposal keeps the guide route. The one download holds the
-docx, the workbook and the PDF.
+docx, the workbook, the deck and the PDF.
+
+**The proposal gets its own deck.** `chat._proposal_deck` builds six slides from the same
+paper: title, the executive-summary claim, and one native table slide each for the work
+plan, the budget and the risks, and — when the paper carries it — the monitoring sentence
+as the closing slide. Each table slide names a figure id that carries the paper's own
+grid, so the deck cannot disagree with the paper; a section with fewer than two rows earns
+no slide rather than an empty one.
 
 **A revision cannot drop a table.** `revise` stores `{paper, outline}` per history entry.
 `_rebuild_outline` reattaches each section's stored figure and strips table rows the
@@ -888,15 +965,20 @@ model echoed back, so a changed sentence keeps the WBS, schedule, cost, RACI and
 tables byte-for-byte. `undo` restores the recorded outline, not a flattened paper. An
 older case that recorded a plain paper still undoes.
 
-Tests: `tests/test_project_reader.py` (11), `tests/test_project_plan.py` (14),
+Tests: `tests/test_project_reader.py` (13), `tests/test_project_plan.py` (17),
 `tests/test_feasibility_reader.py` (5), `tests/test_feasibility_plan.py` (6),
 `tests/test_proposal_reader.py` (5), `tests/test_proposal_plan.py` (5),
-`tests/test_silent_home.py` (`SilentProjectPlanTest` 8: detection, tables, schedule and
+`tests/test_product_charts.py` (`NetworkChartTest` 3: boxes and arrows, an unknown edge
+refused, a digit in a label refused),
+`tests/test_silent_home.py` (`SilentProjectPlanTest` 10: detection, tables, schedule and
 cost, one ZIP, a real Word table with the chart, the deck, a revision that keeps the
-tables; `SilentFeasibilityTest` 6: detection, three tables, the frozen values, the
-workbook, the deck, a revision that keeps the tables; `SilentProposalTest` 5: detection,
-work plan and budget, the summed total, the workbook, a revision that keeps the work
-plan), and `tests/test_document_profile_doors.py` (the door posts its profile once).
+tables; `SilentProjectScheduleTest` 5: a levelled and dated schedule, four figures in the
+Word file and not the pane, the dated and levelled workbook sheets, the deck's figures, a
+plan without demand named in Limitations; `SilentFeasibilityTest` 6: detection, three
+tables, the frozen values, the workbook, the deck, a revision that keeps the tables;
+`SilentProposalTest` 7: detection, work plan and budget, the summed total, the workbook,
+the proposal deck, a revision that keeps the work plan), and
+`tests/test_document_profile_doors.py` (the door posts its profile once).
 
 ---
 

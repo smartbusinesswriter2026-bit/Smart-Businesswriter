@@ -12,6 +12,8 @@ id is known by the activity it states.
 
 import re
 
+from . import declared_sources
+
 FORMAT = "bp-proposal-read/1"
 
 
@@ -231,7 +233,7 @@ def read(brief):
         risks = [{"description": item, "response": "", "owner": ""}
                  for item in values.get("risks") or []]
     return {"format": FORMAT, "project": project, "work_plan": work_plan,
-            "budget": budget, "risks": risks}
+            "budget": budget, "risks": risks, "sources": declared_sources.read(text)}
 
 
 def has_tables(record):

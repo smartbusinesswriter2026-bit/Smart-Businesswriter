@@ -117,7 +117,10 @@ class SilentHomeTest(unittest.TestCase):
                 state = chat.silent(chat.start(brief, subject="any"))
                 self.assertEqual(state["profile"], profile, brief)
                 headings = [heading for heading, _lines in state["paper"]["sections"]]
-                self.assertEqual(len(headings), 13, brief)
+                # The guide sections carry no reference list of their own, so the
+                # deterministic draft's references are kept: thirteen guide
+                # sections and the paper's own reference list.
+                self.assertEqual(len(headings), 14, brief)
                 self.assertEqual(headings[1], second, brief)
         finally:
             chat.research = original
@@ -461,6 +464,22 @@ class SilentProjectScheduleTest(unittest.TestCase):
         self.assertTrue(any("Resource levelling was not run" in line for line in limits), limits)
 
 
+MARKETING = """
+Marketing plan for the Riverside Community Kitchen.
+Business name: Riverside Community Kitchen
+Product: Shared kitchen hire for local food businesses
+Customers: Local food businesses and community groups
+Location: Riverside
+Target audience: Small food businesses within two kilometres
+Positioning statement: A shared, licensed kitchen a new food business can rent by the hour
+Value proposition: Kitchen space without the fit-out cost
+Channels: Social media; Local business network
+Tactics: Open kitchen tours; Partnerships with the food market
+Budget: 12000
+KPIs: Enquiries per month; Kitchen hours booked
+Risks: Permit delay
+"""
+
 FEASIBILITY = """
 Feasibility study for the Riverside Community Kitchen.
 Project: Riverside Community Kitchen
@@ -485,6 +504,130 @@ Working capital | 6000
 Fixed cost a year | 24000
 Variable cost per unit | 3
 """
+
+
+class SilentDeclaredSourcesTest(unittest.TestCase):
+    """The sources the brief declares are written in the paper's citation style."""
+
+    @classmethod
+    def setUpClass(cls):
+        business_plan.set_runner(_run)
+        chat.set_method_compute(_run, methods.describe)
+
+    def references(self, brief, style="apa"):
+        state = chat.start(brief, subject="any")
+        state["answers"]["style"] = style
+        return next((lines for heading, lines in chat.silent(state)["paper"]["sections"]
+                     if heading in ("References", "Bibliography")), [])
+
+    def test_a_declared_source_is_written_in_apa(self):
+        brief = PROJECT + ("\nSources: City Health Department (2025). "
+                           "Community Kitchen Guidelines\n")
+        lines = self.references(brief)
+        self.assertIn("City Health Department (2025). Community Kitchen Guidelines.", lines)
+
+    def test_a_declared_source_is_written_in_harvard(self):
+        brief = PROJECT + ("\nSources: City Health Department (2025). "
+                           "Community Kitchen Guidelines\n")
+        lines = self.references(brief, style="harvard")
+        self.assertTrue(any("Community Kitchen Guidelines" in line and "(" in line
+                            for line in lines), lines)
+
+    def test_the_paper_says_the_source_was_declared_not_fetched(self):
+        brief = PROJECT + ("\nSources: City Health Department (2025). "
+                           "Community Kitchen Guidelines\n")
+        lines = self.references(brief)
+        self.assertTrue(any("declared in the brief" in line for line in lines), lines)
+
+    def test_a_brief_with_no_sources_still_says_so(self):
+        lines = self.references(PROJECT)
+        self.assertEqual(lines, ["No sources were used."])
+
+    def test_the_proposal_carries_its_declared_sources(self):
+        brief = PROPOSAL + "\nReferences: Riverside Trust (2024). Needs assessment\n"
+        state = chat.silent(chat.start(brief, subject="any"))
+        lines = next(lines for heading, lines in state["paper"]["sections"]
+                     if heading == "References")
+        self.assertIn("Riverside Trust (2024). Needs assessment.", lines)
+
+    def test_the_deck_carries_the_declared_sources(self):
+        brief = PROJECT + ("\nSources: City Health Department (2025). "
+                           "Community Kitchen Guidelines\n")
+        state = chat.silent(chat.start(brief, subject="any"))
+        data = chat.pptx_bytes(state)
+        with zipfile.ZipFile(io.BytesIO(data)) as deck:
+            slides = [name for name in deck.namelist()
+                      if name.startswith("ppt/slides/slide") and name.endswith(".xml")]
+            texts = " ".join(deck.read(name).decode("utf-8") for name in slides)
+        self.assertIn("City Health Department (2025)", texts)
+
+    def test_a_deck_without_sources_has_no_reference_slide(self):
+        state = chat.silent(chat.start(PROJECT, subject="any"))
+        data = chat.pptx_bytes(state)
+        with zipfile.ZipFile(io.BytesIO(data)) as deck:
+            slides = [name for name in deck.namelist()
+                      if name.startswith("ppt/slides/slide") and name.endswith(".xml")]
+            texts = " ".join(deck.read(name).decode("utf-8") for name in slides)
+        self.assertEqual(len(slides), 11, slides)
+        self.assertNotIn("No sources were used", texts)
+
+
+class SilentBusinessAndMarketingReferencesTest(unittest.TestCase):
+    """The business plan and the marketing plan both list references, in the style asked for."""
+
+    @classmethod
+    def setUpClass(cls):
+        business_plan.set_runner(_run)
+        chat.set_method_compute(_run, methods.describe)
+
+    def references(self, brief):
+        state = chat.silent(chat.start(brief, subject="any"))
+        paper = state["paper"]
+        lines = []
+        for heading, section in paper["sections"]:
+            if heading in ("References", "Bibliography", "Works Cited"):
+                lines.extend(section)
+        return paper, lines
+
+    def test_the_business_plan_lists_its_references(self):
+        brief = CASE + "\nSources: City Health Department (2025). Community Kitchen Guidelines\n"
+        _paper, lines = self.references(brief)
+        self.assertTrue(lines, "the business plan has no reference list")
+        self.assertIn("City Health Department (2025). Community Kitchen Guidelines.", lines)
+
+    def test_the_business_plan_renders_harvard_when_the_brief_asks_for_it(self):
+        brief = ("Write this business plan in Harvard style.\n\n" + CASE
+                 + "\nSources: City Health Department (2025). Community Kitchen Guidelines\n")
+        paper, lines = self.references(brief)
+        self.assertEqual(paper["style"], "harvard")
+        self.assertTrue(any("‘Community Kitchen Guidelines’" in line for line in lines), lines)
+
+    def test_the_business_plan_renders_apa_when_the_brief_asks_for_it(self):
+        brief = ("Write this business plan in APA 7 style.\n\n" + CASE
+                 + "\nSources: City Health Department (2025). Community Kitchen Guidelines\n")
+        paper, lines = self.references(brief)
+        self.assertEqual(paper["style"], "apa")
+        self.assertTrue(any(line.startswith("City Health Department (2025).")
+                            for line in lines), lines)
+
+    def test_the_marketing_plan_lists_its_references(self):
+        brief = MARKETING + "\nSources: City Health Department (2025). Community Kitchen Guidelines\n"
+        _paper, lines = self.references(brief)
+        self.assertTrue(lines, "the marketing plan has no reference list")
+        self.assertIn("City Health Department (2025). Community Kitchen Guidelines.", lines)
+
+    def test_the_marketing_plan_renders_harvard_when_the_brief_asks_for_it(self):
+        brief = MARKETING.replace(
+            "Marketing plan for the Riverside Community Kitchen.",
+            "Marketing plan for the Riverside Community Kitchen. Cite the references in Harvard style.")
+        brief += "\nSources: City Health Department (2025). Community Kitchen Guidelines\n"
+        paper, lines = self.references(brief)
+        self.assertEqual(paper["style"], "harvard")
+        self.assertTrue(any("‘Community Kitchen Guidelines’" in line for line in lines), lines)
+
+    def test_a_brief_with_no_sources_still_says_no_sources_were_used(self):
+        _paper, lines = self.references(CASE)
+        self.assertEqual(lines, ["No sources were used."])
 
 
 class SilentFeasibilityTest(unittest.TestCase):

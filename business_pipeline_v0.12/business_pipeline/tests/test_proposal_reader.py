@@ -73,6 +73,15 @@ class ReaderTest(unittest.TestCase):
         self.assertFalse(proposal_reader.has_tables(
             proposal_reader.read("Project proposal for a community garden.")))
 
+    def test_the_sources_the_brief_declares_reach_the_record(self):
+        brief = BRIEF + "\nReferences: Riverside Trust (2024). Needs assessment\n"
+        record = proposal_plan.normalise(proposal_reader.read(brief))
+        self.assertEqual(record["sources"], ["Riverside Trust (2024). Needs assessment"])
+
+    def test_a_funding_source_is_not_a_source_list(self):
+        record = proposal_plan.normalise(proposal_reader.read(BRIEF))
+        self.assertEqual(record["sources"], [])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -46,6 +46,7 @@ def empty():
                     "constraints": [], "governance": "", "change_control": ""},
         "wbs": [], "activities": [], "resources": [], "raci": [], "risks": [],
         "options": {"pert": False, "crash_target": None, "contingency_pct": None},
+        "sources": [],
     }
 
 
@@ -140,6 +141,8 @@ def normalise(record):
                      "role": _text(row.get("role"), 120),
                      "letter": _text(row.get("letter"), 1).upper()}
                     for row in source.get("raci") or [] if isinstance(row, dict)]
+    base["sources"] = [_text(row, 300) for row in source.get("sources") or []
+                       if isinstance(row, str) and row.strip()]
     base["risks"] = []
     for row in source.get("risks") or []:
         if not isinstance(row, dict):
@@ -353,8 +356,8 @@ def schedule(record, run):
 
 
 def _whole(value):
-    """A declared whole number, or None.  The core refused fractions are its call."""
-    number = _number(value)
+    """A declared whole number, or None.  A blank stays missing; a fraction is refused."""
+    number = _declared(value)
     if number is None or number < 0 or int(number) != number:
         return None
     return int(number)
@@ -550,7 +553,12 @@ def load_series(record, result):
 
 
 def completion_series(record, result):
-    """Cumulative per cent of activities finished by each period, from stored finishes."""
+    """Cumulative per cent of activities finished, one point per finish.
+
+    The curve is a step: it moves when an activity finishes, so one point per
+    finishing period is the honest shape.  A point for every period would draw
+    the same line with fifty copies of the same value on it.
+    """
     activities = (record or {}).get("activities") or []
     if not activities:
         return []
@@ -568,7 +576,7 @@ def completion_series(record, result):
         return []
     total = len(finishes)
     series = []
-    for period in range(0, max(finishes) + 1):
+    for period in sorted(set(finishes)):
         done = sum(1 for finish in finishes if finish <= period)
         series.append((period, 100.0 * done / total))
     return series

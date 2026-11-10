@@ -168,5 +168,37 @@ class DemandTest(unittest.TestCase):
         self.assertIsNone(record["activities"][0]["demand"])
 
 
+class DeclaredSourcesTest(unittest.TestCase):
+    """The sources the brief declares reach the record, as the student wrote them."""
+
+    def test_a_sources_line_reaches_the_record(self):
+        brief = BRIEF + "\nSources: City Health Department (2025). Community Kitchen Guidelines\n"
+        record = project_plan.normalise(project_reader.read(brief))
+        self.assertEqual(record["sources"],
+                         ["City Health Department (2025). Community Kitchen Guidelines"])
+
+    def test_several_sources_on_one_line_are_separate_entries(self):
+        brief = BRIEF + ("\nSources: City Health Department (2025). Guidelines; "
+                         "Ministry of Health (2024). Food Safety Code\n")
+        record = project_plan.normalise(project_reader.read(brief))
+        self.assertEqual(len(record["sources"]), 2)
+
+    def test_a_funding_source_is_not_a_source_list(self):
+        brief = BRIEF.replace("Budget: 48000", "Budget: 48000\nFunding source: Community grant")
+        record = project_plan.normalise(project_reader.read(brief))
+        self.assertEqual(record["sources"], [])
+
+    def test_a_sources_table_becomes_one_entry_per_row(self):
+        brief = BRIEF + "\nSources\nSource | Author | Year\n"
+        brief += "Community Kitchen Guidelines | City Health Department | 2025\n"
+        record = project_plan.normalise(project_reader.read(brief))
+        self.assertEqual(len(record["sources"]), 1)
+        self.assertIn("Community Kitchen Guidelines", record["sources"][0])
+
+    def test_a_brief_with_no_sources_declares_none(self):
+        record = project_plan.normalise(project_reader.read(BRIEF))
+        self.assertEqual(record["sources"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

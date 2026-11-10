@@ -24,6 +24,7 @@ def empty():
         "work_plan": [],
         "budget": [],
         "risks": [],
+        "sources": [],
     }
 
 
@@ -73,6 +74,8 @@ def normalise(record):
         "response": _text(row.get("response"), 500),
         "owner": _text(row.get("owner"), 120),
     } for row in source.get("risks") or [] if isinstance(row, dict)]
+    base["sources"] = [_text(row, 300) for row in source.get("sources") or []
+                       if isinstance(row, str) and row.strip()]
     return base
 
 
