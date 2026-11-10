@@ -62,6 +62,25 @@ class ManifestTest(EvalRunnerTestCase):
         self.assertEqual(len(loaded["cases"]), 1)
 
 
+class RunIdTest(EvalRunnerTestCase):
+    """A run id names a folder under the state directory, and nothing else."""
+
+    def test_a_run_id_that_walks_out_of_the_state_is_refused(self):
+        for bad in ("../escape", "..\\escape", "a/b", "a\\b", "state/../../x"):
+            with self.assertRaises(ValueError):
+                eval_runner.save_manifest(bad, eval_runner.new_manifest("direction1"))
+
+    def test_a_run_id_with_a_separator_is_refused(self):
+        with self.assertRaises(ValueError) as caught:
+            eval_runner.save_manifest("run/../../etc", eval_runner.new_manifest("direction1"))
+        self.assertIn("letters", str(caught.exception))
+
+    def test_an_ordinary_run_id_is_accepted(self):
+        manifest = eval_runner.new_manifest("direction1")
+        path = eval_runner.save_manifest(manifest["run_id"], manifest)
+        self.assertTrue(os.path.isfile(path))
+
+
 class ScopeTest(EvalRunnerTestCase):
     def test_the_scopes_are_read_from_the_runner_verdict(self):
         self.assertEqual(eval_runner.scope_of("pass"), "pass")

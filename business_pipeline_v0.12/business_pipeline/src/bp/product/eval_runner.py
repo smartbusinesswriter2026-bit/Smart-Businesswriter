@@ -39,6 +39,7 @@ it, so a test never writes into the real state.
 
 import json
 import os
+import re
 import time
 import urllib.request
 import uuid
@@ -136,9 +137,24 @@ def new_manifest(direction, run_id=None, env=None):
     }
 
 
+def _safe_run_id(run_id):
+    """A run id that cannot walk out of the state directory.
+
+    The run id names a folder under `state/eval_runs/`.  It is generated here,
+    but a caller may pass one, so the name is checked: no separator, no
+    parent reference, nothing that could leave the directory.
+    """
+    value = str(run_id or "").strip()
+    if not value or len(value) > 64:
+        raise ValueError("a run id must be between 1 and 64 characters")
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", value):
+        raise ValueError("a run id may hold only letters, digits, '-' and '_'")
+    return value
+
+
 def save_manifest(run_id, manifest):
     """Write the manifest atomically.  Returns its path."""
-    run_dir = os.path.join(str(_state_root()), str(run_id))
+    run_dir = os.path.join(str(_state_root()), _safe_run_id(run_id))
     os.makedirs(run_dir, exist_ok=True)
     path = os.path.join(run_dir, "manifest.json")
     temp = path + ".tmp"
@@ -150,7 +166,7 @@ def save_manifest(run_id, manifest):
 
 def load_manifest(run_id):
     """The stored manifest of one run.  Raises KeyError when there is none."""
-    path = os.path.join(str(_state_root()), str(run_id), "manifest.json")
+    path = os.path.join(str(_state_root()), _safe_run_id(run_id), "manifest.json")
     if not os.path.isfile(path):
         raise KeyError("no such eval run")
     with open(path, "r", encoding="utf-8") as handle:
@@ -245,8 +261,8 @@ def regressions(run_id):
         return []
     before = {}
     try:
-        with open(os.path.join(str(_state_root()), str(previous.get("run_id")), "manifest.json"),
-                  "r", encoding="utf-8") as handle:
+        with open(os.path.join(str(_state_root()), _safe_run_id(previous.get("run_id")),
+                               "manifest.json"), "r", encoding="utf-8") as handle:
             earlier = json.load(handle)
     except Exception:
         return []
@@ -411,6 +427,14 @@ def _tile_inputs(subject, tile_key, declared=None):
     return {}, "none"
 
 
+def _checkpoint(manifest, rows):
+    """Write the rows so far, so a killed run still shows what it reached."""
+    manifest["cases"] = list(rows)
+    manifest["counts"] = _count_direction2(rows)
+    save_manifest(manifest["run_id"], manifest)
+    return manifest
+
+
 def run_direction2(tiles=None, budget=None, style="apa", length=1200, use_rag=True,
                    inputs=None):
     """Direction 2: build each tile's paper from declared figures and score it
@@ -446,8 +470,7 @@ def run_direction2(tiles=None, budget=None, style="apa", length=1200, use_rag=Tr
                              "inputs_source": source,
                              "reason": "the tile has no declared figures to build it from",
                              "duration_ms": 0})
-            manifest["cases"] = rows_out
-            save_manifest(manifest["run_id"], manifest)
+            _checkpoint(manifest, rows_out)
             continue
         try:
             result = paper_batch.generate_one(row["subject"], row["tile"], style=style,
@@ -459,8 +482,7 @@ def run_direction2(tiles=None, budget=None, style="apa", length=1200, use_rag=Tr
                              "inputs_source": source,
                              "error": str(error)[:300],
                              "duration_ms": int((time.perf_counter() - started_tile) * 1000)})
-            manifest["cases"] = rows_out
-            save_manifest(manifest["run_id"], manifest)
+            _checkpoint(manifest, rows_out)
             continue
 
         status = result.get("status")
@@ -474,8 +496,7 @@ def run_direction2(tiles=None, budget=None, style="apa", length=1200, use_rag=Tr
                              "inputs_source": source,
                              "reason": str(result.get("error") or "")[:200],
                              "duration_ms": duration})
-            manifest["cases"] = rows_out
-            save_manifest(manifest["run_id"], manifest)
+            _checkpoint(manifest, rows_out)
             continue
 
         if use_rag:
@@ -503,9 +524,7 @@ def run_direction2(tiles=None, budget=None, style="apa", length=1200, use_rag=Tr
             "rag_measured": bool((rag or {}).get("measured")),
             "model_calls": 0,
         })
-        manifest["cases"] = rows_out
-        manifest["counts"] = _count_direction2(rows_out)
-        save_manifest(manifest["run_id"], manifest)
+        _checkpoint(manifest, rows_out)
 
     manifest["cases"] = rows_out
     manifest["counts"] = _count_direction2(rows_out)
@@ -714,7 +733,7 @@ def write_explainer(manifest):
     """
     try:
         from . import docx as _docx
-        run_dir = os.path.join(str(_state_root()), str(manifest.get("run_id")))
+        run_dir = os.path.join(str(_state_root()), _safe_run_id(manifest.get("run_id")))
         os.makedirs(run_dir, exist_ok=True)
         path = os.path.join(run_dir, "explainer.docx")
         with open(path, "wb") as handle:
