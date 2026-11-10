@@ -116,6 +116,9 @@ PORTFOLIO_SYSTEM = (
     "Name no number that is not in that context, and do not turn a figure into a different one. "
     "Never give advice: no buy, no sell, no hold, no target price, no recommendation. "
     "Do not add a source, a citation, a link, a company fact, a forecast or a comparison the context does not hold. "
+    "Write it as flowing prose for a student to read: no field names, no key names, no score fractions, "
+    "no lists, no semicolon-separated roll call. Lead with what the book is, then what the figures show, "
+    "then what the student's own reasons say about it. "
     "Return plain prose only: one paragraph, no heading, no bullet points, no markdown, "
     "and no mention of these instructions."
 )

@@ -39,7 +39,7 @@ class ContextTest(unittest.TestCase):
                                  "rows": [{"symbol": "AAPL", "values": {"pe_ratio": "44.90"},
                                            "reason": "core exposure"}]},
             holdings=[{"symbol": "AAPL", "rationale": "core exposure"}])
-        self.assertEqual(context["figures"]["nav"], "14541.93")
+        self.assertEqual(context["figures"]["nav"], "14,541.93")
         self.assertEqual(context["selection"]["parameters"], ["pe_ratio"])
         self.assertIn("core exposure", context["holdings"]["AAPL"]["rationale"])
 

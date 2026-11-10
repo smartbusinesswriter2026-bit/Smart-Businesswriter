@@ -39,7 +39,7 @@ class CommentaryRejected(ValueError):
 # ---------------------------------------------------------------- context
 
 def _numbers_in(value):
-    """Every number a stored figure carries, as plain decimal strings."""
+    """Every number a stored figure carries, at the precisions a writer uses."""
     out = set()
     text = str(value if value is not None else "")
     for token in NUMBER.findall(text):
@@ -50,11 +50,10 @@ def _numbers_in(value):
             number = float(plain)
         except ValueError:
             continue
-        out.add(_key(number))
+        out |= _keys(number)
         # the same figure may be written as a percentage
         if number == number and abs(number) <= 1:
-            out.add(_key(number * 100.0))
-            out.add(_key(round(number * 100.0, 2)))
+            out |= _keys(number * 100.0)
     return out
 
 
@@ -63,6 +62,36 @@ def _key(number):
         return "%.6f" % float(number)
     except (TypeError, ValueError):
         return ""
+
+
+def _keys(number):
+    """The same figure at the precisions a writer would use.
+
+    A stored weight of 0.473981 may be quoted as 0.473981, 0.4740 or 47.40 %.
+    """
+    out = set()
+    for places in (6, 4, 2):
+        try:
+            out.add("%.*f" % (places, float(number)))
+        except (TypeError, ValueError):
+            continue
+    return out
+
+
+def _display(value, places=4):
+    """A stored figure as a reader would see it: 14541.93, 0.4740."""
+    text = str(value if value is not None else "").strip()
+    if not text:
+        return ""
+    try:
+        number = float(text)
+    except ValueError:
+        return text
+    if number == int(number) and abs(number) < 1e15 and "." not in text:
+        return str(int(number))
+    if abs(number) >= 1000:
+        return "{:,.2f}".format(number)
+    return ("%." + str(places) + "f") % number
 
 
 def build_context(snapshot, selection=None, holdings=None):
@@ -78,13 +107,13 @@ def build_context(snapshot, selection=None, holdings=None):
     prices = snapshot.get("prices") or {}
     figures = {}
     for key, value in outputs.items():
-        figures[str(key)] = str(value)
+        figures[str(key)] = _display(value)
     rows = []
     for position in positions:
-        rows.append({str(key): str(value) for key, value in position.items()})
+        rows.append({str(key): _display(value) for key, value in position.items()})
     price_rows = {}
     for symbol, point in (prices or {}).items():
-        price_rows[str(symbol)] = {str(k): str(v) for k, v in (point or {}).items()}
+        price_rows[str(symbol)] = {str(k): _display(v) for k, v in (point or {}).items()}
     held = {}
     for row in holdings or []:
         symbol = str(row.get("symbol") or "").upper()
@@ -120,6 +149,9 @@ def allowed_numbers(context):
         for value in (row.get("values") or {}).values():
             allowed |= _numbers_in(value)
         allowed |= _numbers_in(row.get("reason"))
+        allowed |= _numbers_in(row.get("score"))
+    for value in ((context.get("selection") or {}).get("thresholds") or {}).values():
+        allowed |= _numbers_in(value)
     for value in (context.get("holdings") or {}).values():
         allowed |= _numbers_in(value.get("rationale"))
     # the date and its parts are stored, so a year is not an invented number

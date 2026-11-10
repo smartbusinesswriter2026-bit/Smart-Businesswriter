@@ -34,8 +34,12 @@ def render(portfolio, snapshot, holdings=(), performance=None, journal=(), portf
     title = portfolio.get("name", "Portfolio")
     mode = str(portfolio.get("mode", "paper")).title()
     subtitle = "%s portfolio · snapshot %s · %s" % (mode, snapshot.get("date", ""), currency)
-    rationale = {str(row.get("symbol", "")).upper(): str(row.get("rationale", "") or "")
-                 for row in holdings}
+    rationale = {}
+    for row in holdings:
+        value = row.get("rationale", "")
+        if isinstance(value, dict):
+            value = value.get("thesis") or ""
+        rationale[str(row.get("symbol", "")).upper()] = str(value or "")
     sections = [
         {"heading": "Objective and mandate", "paragraphs": _objective_lines(portfolio)},
         {"heading": "Portfolio summary", "paragraphs": [
