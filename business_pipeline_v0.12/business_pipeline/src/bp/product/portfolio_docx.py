@@ -100,6 +100,17 @@ def render(portfolio, snapshot, holdings=(), performance=None, journal=(), portf
         sections.append({"heading": "Selection criteria and shortlist", "paragraphs": [
             "No selection record was stored for this book. This is a named gap, not an omission.",
         ]})
+    commentary = portfolio.get("commentary") or {}
+    if str(commentary.get("status")) == "confirmed" and str(commentary.get("text") or "").strip():
+        sections.append({"heading": "Commentary", "paragraphs": [
+            str(commentary.get("text") or "").strip(),
+            "This commentary is the student's own reading of the figures above. It adds no "
+            "figure, source or recommendation.",
+        ]})
+    else:
+        sections.append({"heading": "Commentary", "paragraphs": [
+            "No commentary was confirmed for this book. This is a named gap, not an omission.",
+        ]})
     if performance:
         sections.append(_performance_section(performance, currency))
     elif str(portfolio.get("mode")) == "fund":

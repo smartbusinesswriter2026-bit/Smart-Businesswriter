@@ -406,6 +406,58 @@ class RoutesTest(unittest.TestCase):
         self.assertIn("Price-to-earnings", xml)
         self.assertIn("cheap quality", xml)
 
+    def test_the_commentary_route_saves_and_the_report_prints_it(self):
+        from unittest import mock
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Commentary route"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid,
+              {"symbol": "AAPL", "shares": "10", "cost_basis": "150"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-11-09", "price": "150", "source": "user"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+              {"date": "2026-11-09", "cash": "0", "prices": {"AAPL": {"price": "150"}}})
+        status, saved = _post(self.base, "/api/portfolios/%s/commentary" % pid,
+                              {"action": "save",
+                               "text": "The book holds one position valued at 150, and the student "
+                                       "declared it as a core holding."})
+        self.assertEqual(status, 200)
+        self.assertEqual(saved["status"], "confirmed")
+        status, exported = _post(self.base, "/api/portfolios/%s/export" % pid, {"format": "docx"})
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(io.BytesIO(base64.b64decode(exported["data"]))) as archive:
+            xml = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("Commentary", xml)
+        self.assertIn("core holding", xml)
+
+    def test_a_commentary_that_advises_is_refused(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "Advising route"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-11-09", "price": "150", "source": "user"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+              {"date": "2026-11-09", "cash": "0", "prices": {"AAPL": {"price": "150"}}})
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            _post(self.base, "/api/portfolios/%s/commentary" % pid,
+                  {"action": "save", "text": "The student should buy more of this position."})
+        self.assertEqual(caught.exception.code, 422)
+        body = json.loads(caught.exception.read())
+        self.assertIn("advice", body["error"])
+
+    def test_a_book_without_a_commentary_prints_a_named_gap(self):
+        _, portfolio = _post(self.base, "/api/portfolios", {"name": "No commentary"})
+        pid = portfolio["id"]
+        _post(self.base, "/api/portfolios/%s/holdings" % pid, {"symbol": "AAPL", "shares": "10"})
+        _post(self.base, "/api/portfolios/%s/prices" % pid,
+              {"symbol": "AAPL", "date": "2026-11-09", "price": "150", "source": "user"})
+        _post(self.base, "/api/portfolios/%s/snapshot" % pid,
+              {"date": "2026-11-09", "cash": "0", "prices": {"AAPL": {"price": "150"}}})
+        status, exported = _post(self.base, "/api/portfolios/%s/export" % pid, {"format": "docx"})
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(io.BytesIO(base64.b64decode(exported["data"]))) as archive:
+            xml = archive.read("word/document.xml").decode("utf-8")
+        self.assertIn("No commentary was confirmed", xml)
+
     def test_a_book_without_a_selection_prints_a_named_gap(self):
         _, portfolio = _post(self.base, "/api/portfolios", {"name": "No selection"})
         pid = portfolio["id"]

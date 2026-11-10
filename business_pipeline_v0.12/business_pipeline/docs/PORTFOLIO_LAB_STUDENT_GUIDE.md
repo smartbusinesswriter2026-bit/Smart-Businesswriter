@@ -48,7 +48,9 @@ The method conventions (rates as decimals, returns per period) are in
 **Inside a book** the tabs are **Overview**, **Find candidates**, **Holdings**,
 **Prices and snapshot**, and — for a fund — **Journal and return**. The hero shows the latest
 snapshot's **Net asset value**, **Invested**, **Cash**, **Top three** concentration and, for a fund,
-the **Time-weighted return**. *Export the report* is on the hero.
+the **Time-weighted return**. *Export the report* is on the hero. The **Overview** tab also carries
+the **Commentary** box: one paragraph of your own reading of the figures, with an optional model
+draft.
 
 ---
 
@@ -261,6 +263,26 @@ longer match: that mismatch is the evidence that the record was altered.
 What evidence does **not** do: it does not make a price "official", it does not prove a trade, and it
 is not a recommendation. It is a dated record you can defend.
 
+## Commentary: one paragraph of your own reading
+
+The **Overview** tab has a **Commentary** box. It holds one paragraph that interprets the figures in
+the report — the NAV, the weights, the concentration, your criteria and your reasons for holding each
+name.
+
+- **Optional.** A book without one says so in the report; that is a named gap, not a mark against you.
+- **The model may draft, you decide.** Press **Draft with the model** and it writes a paragraph from
+  the numbers and reasons already in the book. Read it, edit it, then press **Save the commentary**.
+  If no model is connected, the button explains that and you simply write your own.
+- **The guard is strict.** A paragraph that adds a figure the book does not hold, tells the reader
+  what to do, or carries a link is refused with the reason. The percentages you may quote are
+  the ones in the record.
+- **It is yours.** The saved text is printed in the report under *Commentary*, as your reading of the
+  figures above it.
+
+**Write this in your paper.** One paragraph that says what the book shows, which number carries the
+argument, and what the concentration means for the risk you are taking — without telling the reader
+what to buy.
+
 ## How to read a gap (never a zero)
 
 | What you see | What it means | What to do |
@@ -294,6 +316,8 @@ is not a recommendation. It is a dated record you can defend.
 | Report will not export | a snapshot is required first; the button is disabled until one exists |
 | **Capture** says automatic screenshots are not available | the optional browser is not installed on this machine; use **Open quote page ↗** and **Attach evidence** instead (the snapshot is not blocked) |
 | **Screen these symbols** refuses with "No criteria selected" | tick at least one criterion in the checklist above |
+| **Draft with the model** says the model could not write a draft | no model is connected, or the gateway is busy; write the paragraph yourself and press **Save the commentary** |
+| Saving the commentary is refused | the paragraph used a figure the book does not hold, gave advice, or carried a link; the message names the reason |
 | Evidence will not attach | the file must be PNG, JPEG or PDF and 2 MB or smaller; evidence can only be added before the snapshot for that date |
 
 ## What the lab cannot do
@@ -333,4 +357,5 @@ need a statement are `manual` until a statement is uploaded or researched, then 
 - **TWR** — time-weighted return: the chained product of period returns, printed as a ratio.
 - **Named gap** — a value the app will not invent, printed with the reason it is missing.
 - **Evidence** — an optional screenshot or PDF of the quote page, stored with a hash and capture time.
+- **Commentary** — one paragraph of the student's own reading of the figures; optional, guarded, and printed in the report.
 - **Prefill** — the exact calculator inputs built from your recorded series; it never runs the method.

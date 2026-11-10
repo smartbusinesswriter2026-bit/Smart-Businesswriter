@@ -2167,6 +2167,8 @@ function renderPortfolioWorkspace() {
   const evidenceBtn = $("#pfevidencebtn"); if (evidenceBtn) evidenceBtn.onclick = attachEvidence;
   const stmtBtn = $("#pfstmtbtn"); if (stmtBtn) stmtBtn.onclick = attachStatement;
   const resBtn = $("#pfstmtresearchbtn"); if (resBtn) resBtn.onclick = researchStatement;
+  const commDraft = $("#pfcommentarydraft"); if (commDraft) commDraft.onclick = draftCommentary;
+  const commSave = $("#pfcommentarysave"); if (commSave) commSave.onclick = saveCommentary;
   $$("[data-pfstmtextract]").forEach((button) => { button.onclick = () => extractStatement(button.dataset.pfstmtextract); });
   $$("[data-pfcapture]").forEach((button) => { button.onclick = () => captureEvidence(button.dataset.pfcapture, button); });
   $$("[data-pfevidenceremove]").forEach((button) => { button.onclick = () => {
@@ -2304,8 +2306,27 @@ function pfOverview(p, holdings, latest, snapshot, nSnapshots) {
       pfNum(snapshot.outputs.top3_concentration, 4) + "</p></div>";
   }
   html += '<div class="pflimit"><strong>What this does not do.</strong> No FX, fees, tax, dividends, forecast or recommendation. One base currency; long-only; the snapshot is a valuation, not a sale price.</div>';
+  html += pfCommentaryCard();
   html += "</div>";
   return html;
+}
+
+/* The commentary is the student's own reading of the figures.  The model may
+   propose one; it may not add a number, a fact or advice, and the student
+   confirms the text before it reaches the report. */
+function pfCommentaryCard() {
+  const saved = (state.portfolioBundle && state.portfolioBundle.portfolio && state.portfolioBundle.portfolio.commentary) || null;
+  const text = saved && saved.status === "confirmed" ? (saved.text || "") : "";
+  return '<div class="card" style="margin-top:14px"><h3>Commentary (optional)</h3>' +
+    '<p class="muted">Write one paragraph that interprets the figures above. You may ask the model for a ' +
+    'draft: it may use only the numbers, criteria and reasons already in this book — no new figure, no source, ' +
+    'no advice. Edit it, then save it. A book with no commentary says so; it is a named gap, not an omission.</p>' +
+    '<textarea id="pfcommentary" rows="5" style="width:100%" placeholder="Your reading of the book">' + esc(text) + '</textarea>' +
+    '<div class="row" style="margin-top:8px"><button class="btn" type="button" id="pfcommentarydraft">Draft with the model</button>' +
+    '<button class="btn primary" type="button" id="pfcommentarysave">Save the commentary</button>' +
+    '<span class="muted" id="pfcommentarystatus">' +
+    (saved && saved.status === "confirmed" ? "A commentary is saved in this book." : "No commentary saved yet.") +
+    '</span></div></div>';
 }
 
 /* Four worked cases. A student should not have to read a manual to start: each card is
@@ -2911,6 +2932,42 @@ async function researchStatement() {
           "<p>" + esc(pfPlainError(error)) + "</p><p>This is a named gap, not an estimate. Upload a statement or type the value yourself.</p>")
       : errorBanner(error);
     if (btn) { btn.disabled = false; btn.textContent = "Research online (US)"; }
+  }
+}
+
+async function draftCommentary() {
+  const status = $("#pfcommentarystatus");
+  const field = $("#pfcommentary");
+  const btn = $("#pfcommentarydraft");
+  if (btn) { btn.disabled = true; btn.textContent = "Drafting…"; }
+  try {
+    const res = await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/commentary",
+      { action: "draft" });
+    if (field) field.value = res.text || "";
+    if (status) status.textContent = "A draft is in the box. Edit it, then save it.";
+    toast("Draft written. Read it before you save it.");
+  } catch (error) {
+    const text = String(error.message || error);
+    if (status) status.textContent = pfPlainError(error);
+    toast(text.slice(0, 160));
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "Draft with the model"; }
+  }
+}
+
+async function saveCommentary() {
+  const status = $("#pfcommentarystatus");
+  const field = $("#pfcommentary");
+  const text = field ? field.value.trim() : "";
+  if (!text) { if (status) status.textContent = "Write or draft a paragraph first."; return; }
+  try {
+    await post("/api/portfolios/" + encodeURIComponent(state.portfolioId) + "/commentary",
+      { action: "save", text: text });
+    if (status) status.textContent = "Saved. The report will print it under Commentary.";
+    toast("Commentary saved.");
+  } catch (error) {
+    if (status) status.textContent = pfPlainError(error);
+    toast(String(error.message || error).slice(0, 200));
   }
 }
 
@@ -5202,13 +5259,14 @@ const PLAN_PROFILES = {
     heading: "Build the project proposal", start: "Start the project proposal",
     blurb: "A project proposal states the problem, the objectives, the work plan and its timeline, the budget, " +
       "monitoring and the risks. A brief with a work-plan table and a budget table runs as one silent proposal; " +
-      "one download holds the paper, its workbook and a PDF.",
+      "one download holds the paper, its workbook, its slide deck and a PDF.",
   },
   project_plan: {
     label: "Complete project plan", subject: "project-management", convention: "Project-plan convention",
     heading: "Build the complete project plan", start: "Start the project plan",
-    blurb: "Charter, scope, WBS, CPM schedule, cost roll-up, RACI and risk register in one document, with the " +
-      "schedule chart in the Word file and PDF and a slide deck in the same download.",
+    blurb: "Charter, scope, WBS, CPM schedule, dated and levelled schedules, cost roll-up, RACI and risk register " +
+      "in one document, with the schedule chart, the activity network, the planned-completion curve and the " +
+      "resource-load histogram in the Word file, the PDF and the slide deck in the same download.",
   },
 };
 

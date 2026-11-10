@@ -1712,6 +1712,11 @@ class H(BaseHTTPRequestHandler):
                 return self._portfolio_evidence_capture(portfolio_id, body or {})
             if action == "evidence" and verb == "POST":
                 return self._portfolio_evidence(portfolio_id, body or {})
+            if action == "commentary" and verb == "GET" and len(parts) == 4:
+                return self._send(200, {"commentary": product_portfolios.commentary(portfolio_id)})
+            if action == "commentary" and verb == "POST" and len(parts) == 4:
+                if not isinstance(body, dict): raise ValueError("body must be an object")
+                return self._portfolio_commentary(portfolio_id, body)
             if action == "selection" and verb == "GET" and len(parts) == 4:
                 return self._send(200, {"selection": product_portfolios.selection(portfolio_id)})
             if action == "selection" and verb == "POST" and len(parts) == 4:
@@ -1956,6 +1961,39 @@ class H(BaseHTTPRequestHandler):
         filename = "%s-%s.png" % (symbol.replace("/", "-"), date)
         metadata = product_portfolios.save_evidence(portfolio_id, date, filename, mime, png)
         return self._send(200, metadata)
+
+    def _portfolio_commentary(self, portfolio_id, body):
+        """Draft or store the book's commentary.  The student owns the text."""
+        from .product import portfolio_prose
+        bundle = product_portfolios.load(portfolio_id)
+        snapshots = bundle["snapshots"]
+        if not snapshots:
+            raise ValueError("create a snapshot before writing a commentary")
+        date = str(body.get("date") or max(row["date"] for row in snapshots))
+        snapshot = product_portfolios.snapshot(portfolio_id, date)
+        context = portfolio_prose.build_context(
+            snapshot, selection=bundle["portfolio"].get("selection"),
+            holdings=bundle.get("holdings", []))
+        action = str(body.get("action") or "draft").strip().lower()
+        if action == "save":
+            text = str(body.get("text") or "")
+            try:
+                confirmed = portfolio_prose.confirm(text, context)
+            except portfolio_prose.CommentaryRejected as error:
+                return self._send(422, {"error": str(error)})
+            stored = product_portfolios.save_commentary(
+                portfolio_id, confirmed["text"], status="confirmed",
+                model=confirmed.get("model") or body.get("model") or "")
+            return self._send(200, stored)
+        if action == "dismiss":
+            stored = product_portfolios.save_commentary(portfolio_id, "(dismissed)",
+                                                       status="dismissed")
+            return self._send(200, stored)
+        try:
+            proposal = portfolio_prose.draft(context)
+        except portfolio_prose.CommentaryRejected as error:
+            return self._send(422, {"error": str(error), "unavailable": True})
+        return self._send(200, proposal)
 
     def _portfolio_export(self, portfolio_id, body):
         bundle = product_portfolios.load(portfolio_id)

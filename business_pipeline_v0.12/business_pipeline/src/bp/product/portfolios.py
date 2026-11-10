@@ -956,6 +956,33 @@ def statement_extracted(portfolio_id, symbol):
     return rows[-1].get("extracted")
 
 
+def save_commentary(portfolio_id, text, status="confirmed", model=""):
+    """Store the student's confirmed commentary for the book.
+
+    The text is the student's own (or a proposal they accepted and edited).
+    Nothing is computed here; the guard lives in `portfolio_prose`.
+    """
+    portfolio = _portfolio(portfolio_id)
+    body = str(text or "").strip()
+    if not body:
+        raise ValueError("the commentary cannot be empty")
+    if len(body) > 4000:
+        raise ValueError("the commentary must be at most 4000 characters")
+    state = str(status or "confirmed").strip().lower()
+    if state not in ("proposed", "confirmed", "dismissed"):
+        raise ValueError("status must be proposed, confirmed or dismissed")
+    portfolio["commentary"] = {"text": body, "status": state, "model": str(model or "")[:80],
+                               "updated_at": _now()}
+    portfolio["updated_at"] = _now()
+    _write(_path(portfolio_id, "portfolio.json"), portfolio)
+    return portfolio["commentary"]
+
+
+def commentary(portfolio_id):
+    portfolio = _portfolio(portfolio_id)
+    return portfolio.get("commentary")
+
+
 def portfolio_fit(portfolio_id, candidate_symbol, candidate_weight):
     """Show what adding a candidate does to concentration, sector, and risk contribution.
 

@@ -1,3 +1,87 @@
+## 2026-11-10 - [project] The picture is checked, not just the spec: three rendering faults
+
+**Ask.** The owner asked for a downloadable sample of the finished project plan.
+Writing the sample out of the live server and looking at the figures found three
+faults that every test had passed straight over.
+
+**Did.**
+
+1. **The Activity network was an empty picture.** `renderers._plotly_png` refuses
+   the kinds the builtin renderer owns (`gantt`, `table`, `sparkline`) but not
+   `network`; the network spec reached Plotly, which has no such chart and drew
+   an empty axis with a title on it. `network` is now refused too, so the builtin
+   SVG owns the picture.
+2. **The headless window is taller than the drawing it takes.** Chrome's headless
+   viewport is shorter than `--window-size`, so every builtin figure was cut at
+   about two thirds of its height: the project Gantt lost its last activity and
+   the note under the chart with it. The drawing is now asked for in a window with
+   headroom and the surplus rows are cut off the screenshot afterwards, with a
+   standard-library PNG row crop that leaves a picture it cannot read alone.
+3. **A dense chart printed a value on every point.** The completion curve drew one
+   point per period with its value on each, and the histogram drew a label on each
+   of fifty bars. A chart with more than twelve points now prints no value on
+   every point; the completion curve carries one point per finishing period, which
+   is the shape the finishes actually make, and the period is stored as an
+   artifact so a label may carry the number.
+
+**Measured.** The sample in `samples/project-plan-riverside-kitchen` is produced
+by the live server (silent Home call, then the one bundle download) and holds the
+Word file, the PDF, the deck, the workbook and the four figures. The network now
+draws its boxes and arrows, the Gantt draws all four activities, the curve reads
+25 to 50 to 75 to 100 per cent, and the histogram reads without overlapping
+numbers. Tests: `tests/test_product_renderers.py` (5), `tests/test_project_plan.py`
+(the completion curve has one point per finish); suite 5101.
+
+## 2026-11-10 - [project] The project plan can date its work, level its people and draw the four pictures
+
+**Ask.** Close the three open project-management items: a dated schedule and resource
+levelling, the network, S-curve and histogram charts, and the proposal deck. The
+owner chose all six closings, in order, and the Home lane stays silent and
+one-shot.
+
+**Did.**
+
+1. **A dated schedule.** `project_plan.dated_inputs` counts one declared period as
+   one working day, Monday to Friday, from the charter's declared ISO start date,
+   and hands the weekday offsets to the frozen `calendar_schedule`. The paper
+   gains a **Dated Schedule** table (start, finish, working days); the workbook
+   gains a **Dated schedule** sheet. A weekend is a gap; no holiday, shutdown or
+   time zone is inferred, and a plan with no start date says so in Limitations.
+2. **Resource levelling.** `project_plan.level_inputs` sends the frozen
+   `resource_leveling` method only whole, declared demands and positive whole
+   capacities. A blank demand cell stays **missing** (`_declared`, not `_number`),
+   so a missing demand is named rather than read as zero or defaulted to one. The
+   core refuses a resource name with a space, so the product maps names to `R1...`
+   codes at the boundary and keeps the brief's names on the page. The paper gains
+   a **Resource-Levelled Schedule** table and a paragraph that states the delay,
+   the two durations, the over-capacity periods and the peak demand, all read
+   from the core's result. The reader gained a `Demand` column.
+3. **Four figures, export-only.** The chart engine gained a `network` kind
+   (activity-on-node boxes in dependency layers, arrows for the declared edges).
+   Beside the Gantt the paper now earns an **Activity network**, a **Planned
+   completion** curve (cumulative per cent of activities finished, labelled
+   progress and not cost) and a **Resource load** histogram (declared demand per
+   period after levelling). Each sits in its own level-2 block; the derived period
+   values travel as artifacts so a bar or a point traces to a stored value; labels
+   stay digit-free and a period is written as a word. The browser pane shows none
+   of them.
+4. **The proposal deck.** `chat._proposal_deck` builds six slides from the same
+   paper by figure id, and the proposal ZIP now holds the `.pptx` beside the docx,
+   the workbook and the PDF.
+
+**Measured.** A demand-bearing plan brief on 8021 returns the dated and levelled
+tables, four figures in the Word file, a 13-slide deck with 4 media, and a ZIP of
+four files; a plan with no demand keeps its CPM schedule, refuses levelling and
+names it in the Limitations; a proposal returns a 6-slide deck and the same
+four-file ZIP. Tests: `NetworkChartTest` (3), `DemandTest` (2), `LevellingTest`
+(3), `SilentProjectScheduleTest` (5), the proposal-deck assertion; suite 5101.
+
+**Noted, not fixed (other lane).** A project plan whose brief states no
+`Governance` line is blocked at the API export gate with "Governance" missing.
+That gate is the shared export contract, not the project lane, and the block is
+the designed behaviour for an incomplete plan; it is reported here rather than
+changed on the way past.
+
 ## 2026-11-10 - [research] The RRA can see the frameworks: the read path is repaired
 
 **Ask.** The growth loop was mid-build and out of credits. The Relevance Research
@@ -293,6 +377,26 @@ the digit refusal, Gantt build/export, the end-before-start refusal, and the
 area/scatter/candlestick builds and refusals), `test_visual_input.py` 43,
 `test_product_charts.py` 23. Live browser check of the SWOT 2x2, the business
 model board and the dated Gantt.
+
+## 2026-11-10 - [product] The Portfolio Lab carries a guarded commentary
+
+**Ask.** The Portfolio Lab report was numbers only. Add prose that explains why a book looks the way
+it does, without letting a model invent a figure or give advice.
+
+**Did.**
+
+- `src/bp/product/portfolio_prose.py` (new): `build_context` gives the model only the frozen figures,
+  the prices with their source and date, the selection record and the student's reasons;
+  `allowed_numbers` + `audit` refuse a number the record does not hold, advice, a link or template
+  text; `draft` calls the model and re-audits; `confirm` audits the student's edited text.
+- `portfolios.save_commentary` / `commentary` store the confirmed paragraph on the book.
+- Route `POST /api/portfolios/{id}/commentary` with `action=draft|save|dismiss`; the guard's reason
+  comes back as a 422 the page prints.
+- Page: the **Commentary** box on the Overview tab, with *Draft with the model* and *Save the
+  commentary*.
+- Report: a **Commentary** section holds the confirmed paragraph, or a named gap.
+- Manual: `docs/PORTFOLIO_LAB_STUDENT_GUIDE.md` gains the section, two troubleshooting rows and the
+  glossary term. Tests: `tests/test_portfolio_prose.py` (11), `tests/test_product_portfolios.py` (24).
 
 ## 2026-11-10 - [product] The Portfolio Lab researches US statements online
 
