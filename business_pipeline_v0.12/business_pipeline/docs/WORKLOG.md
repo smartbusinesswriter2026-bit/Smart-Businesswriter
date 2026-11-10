@@ -1,3 +1,35 @@
+## 2026-11-10 - [project] The business plan and the marketing plan list their references, in the style the brief asks for
+
+**Ask.** The same treatment in the other two document lanes: the business plan
+and the marketing plan must be able to render in APA and in Harvard, and both
+must have references.
+
+**Did.**
+
+1. **The style is read from the brief.** `citation_choice.py` recognises the
+   styles the product carries and only when the brief states the style to use
+   ("in Harvard style", "use APA 7", "Cite in MLA style"). A style named in
+   passing is not a choice, and a style the product cannot render is ignored.
+   The guide route's style select still wins.
+2. **The business plan had no reference list at all.** The plan tile composes
+   the paper from its recorded tables; it now appends the same reference list
+   every other lane writes - the retrieved evidence first, then the declared
+   sources, in the paper's citation style.
+3. **The guide expansion no longer loses the references.** The marketing plan,
+   the feasibility study and the project proposal write a reference list in
+   their deterministic draft; when the guide sections replace that draft, the
+   reference list is carried across instead of dropped.
+4. **The declared sources reach these lanes.** A `Sources:` line in a
+   business-plan or marketing-plan brief is listed with the retrieved evidence,
+   and a source the evidence already lists is not repeated.
+
+**Measured.** A live business-plan brief asking for Harvard renders its declared
+source as `City Health Department (2025) 'Community Kitchen Guidelines'`; the
+same brief in APA 7 renders it as `City Health Department (2025). Community
+Kitchen Guidelines.` The marketing plan carries the same list. Tests:
+`tests/test_product_citation_choice.py` (8),
+`tests/test_silent_home.py` `SilentBusinessAndMarketingReferencesTest` (6).
+
 ## 2026-11-10 - [eval] The eval program: three measured directions, and what the spec got wrong
 
 **Ask.** The owner asked for the eval program (`plans/eval-spec.md`) to be
@@ -42,8 +74,12 @@ the retrieval is sound, and whether the self-healing loop actually works.
 7. **A fix is three consecutive green replays.**  One passing replay closes an
    instance; it does not prove the class.
 
-**Measured.**  Direction 1's baseline on this tree: 906 pass, 9 invalid, 0
-pipeline failures.  73 new tests; suite 5188.
+**Measured.**  Direction 1 over the whole store (run `0df1b1608bfe`): 915
+cases - **906 pass, 0 pipeline failures, 9 invalid, 0 errors, 0 regressions**.
+Direction 2 over five tiles: 4 pass, 1 skipped (the statements tile has no
+declared figures).  The fault harness: each fault came back with the scope the
+cause rules say, and the live error log was byte-identical before and after.
+73 new tests; suite 5188.
 
 **Left.**  The styled report and the admin tab are the design lane's; the
 computation lane emits the manifest and an explainer .docx.  The RRA sweep

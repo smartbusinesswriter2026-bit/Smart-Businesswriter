@@ -32,9 +32,11 @@ Three questions, one manifest:
 | Direction 2 spends model calls | the tile path is **model-free**: `generate_one` makes no provider call, so Direction 2 costs **0 tokens** and the manifest says so |
 | a missing corpus is a run with no evidence | the corpus adapter **fails open**, so the eval probes the index itself: a down index is `corpus_available: false` and the RAG score is **`not_measured`**, never a green |
 
-The baseline on the current tree: **906 pass, 9 invalid, 0 pipeline failures**.
-The nine are `accounting/ratios/002–010`, whose own figures break the
-accounting identity — invalid fixtures, not defects.
+The baseline, measured by Direction 1 over the whole store (run `0df1b1608bfe`,
+2026-11-10): **915 cases - 906 pass, 0 pipeline failures, 9 invalid, 0 errors,
+0 regressions**.  The nine are the `accounting/ratios` cases 002 to 010, whose
+own figures break the accounting identity - invalid fixtures, not defects.
+The budget of 2 pipeline failures is met with two to spare.
 
 ## The count is split by scope
 
@@ -163,6 +165,51 @@ experiment. The dollar figure needs the owner's price table.
 an *instance*; it does not prove the class. `eval_runner.durability` counts
 the run of verified replays per pipeline cause, resets it on a failure, and
 calls a cause durable only when it also has a durable artifact.
+
+## What the design lane builds over this
+
+The computation lane owns the measurement; the design lane owns the surface.
+These are the contracts it builds over:
+
+**The manifest is the data.**  `state/eval_runs/<run_id>/manifest.json`,
+format `bp-eval-run/1`:
+
+```json
+{
+  "run_id": "0df1b1608bfe",
+  "direction": "direction1 | direction2 | direction3",
+  "created_at": "...", "started_at": "...", "finished_at": "...",
+  "status": "running | done",
+  "counts": {"pass": 0, "fail": 0, "invalid": 0, "error": 0, "skipped": 0, "total": 0},
+  "cases": [{"case_id": "...", "scope": "...", "error": "...", "inputs_source": "..."}],
+  "cost": {"model_calls": 0, "tokens_in": 0, "tokens_out": 0, "usd": null, "seconds": 0},
+  "environment": {"build": "1.153", "corpus_available": false},
+  "regressions": [{"case_id": "...", "blocker": true}]
+}
+```
+
+**Four read/write calls exist today**, and they are all in
+`src/bp/product/eval_runner.py`:
+
+| call | what it does |
+|---|---|
+| `run_direction1(case_ids=None, subject=None, tile=None, limit=None)` | replays the stored cases; `log=False` keeps the case runner from writing to the live error log |
+| `run_direction2(tiles=None, budget=None, use_rag=True, inputs=None)` | builds each tile's paper and scores it; `budget` is a number, `"all"`, or nothing for one tile per subject |
+| `run_direction3(limit=200, green_runs=3)` | the repair loop's causes, cost, durability and recurrence |
+| `runs(limit=20, direction=None)` / `trend(limit=20)` / `regressions(run_id)` | the history, for the trend panel |
+
+`eval_faults.run_faults(case_id=None)` returns the four faults' scopes and
+whether the live error log was untouched; it is the panel's "prove the loop
+sees a fault" button.
+
+**What the panel must show, and must not do.**  It shows the count by scope,
+the budget line (`fail` against the budget of 2, `invalid` and `error` below
+it), the regression list, the cost line, and the corpus state.  It must not
+offer a button that applies a gap: nothing here approves anything, and the
+approval queue is the Relevance panel's.
+
+**`usd` is `null` until the owner supplies a price table.**  The panel prints
+"not priced" for `null`.  It must never print `0.00` for an unknown price.
 
 ## What the eval does not do
 
