@@ -8,8 +8,10 @@ Three directions, one manifest:
   recorded result, do the invariants hold, and does the paper carry the
   sections and the computed values the case names?
 * **Direction 2** - live end-to-end over the tiles with a code-only rubric.
-  It answers: does the delivered paper hold up when it is built from the
-  tile's own defaults rather than from a stored case?
+  It answers: does the delivered paper hold up when it is built through the
+  real paper path and scored by code?  The figures come from the first source
+  that has them - what the caller declared, the tile's published defaults, or
+  the tile's first stored case - and the manifest records which one was used.
 * **Direction 3** - the self-heal loop: which causes were closed, what the
   repair cost, and whether the fix held.
 
@@ -28,6 +30,8 @@ meanings the repair loop already distinguishes (``docs/CAUSE_LOOP.md``):
                  invalid fixture, not a defect the pipeline can fix, and it
                  is never counted against the pipeline.
 ``error``        the case could not be replayed at all.
+``skipped``      (Direction 2) a tile with no declared figures to build it
+                 from.  There is no computation to disagree with.
 ===============  =========================================================
 
 The budget in the spec counts ``fail`` only.  A case that turns from ``pass``
