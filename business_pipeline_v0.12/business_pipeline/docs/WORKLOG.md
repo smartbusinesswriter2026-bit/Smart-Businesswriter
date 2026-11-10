@@ -1,3 +1,95 @@
+## 2026-11-10 - [eval] The eval program: three measured directions, and what the spec got wrong
+
+**Ask.** The owner asked for the eval program (`plans/eval-spec.md`) to be
+built: measure whether the pipeline delivers the right paper per tile, whether
+the retrieval is sound, and whether the self-healing loop actually works.
+
+**Did.**
+
+1. **Measured the spec before building it.**  The spec said 246 cases; the tree
+   holds **915 cases over 246 tiles**.  It said "at most 2 failures"; the
+   stored run's 9 non-passes are all `invalid` - `accounting/ratios/002-010`,
+   whose own figures break the accounting identity - not defects.  It assumed
+   the paper renders citations (it does not) and that Direction 2 spends model
+   calls (the tile path is model-free).  The corrections are in
+   `docs/EVAL_PROGRAM.md`.
+2. **The count is split by scope.**  `pass`, `fail` (pipeline), `invalid`
+   (the case's own figures) and `error` (could not be measured).  The budget
+   counts `fail` only; `case_runner`'s own counter is not inherited.  A case
+   that passed before and fails now is a **regression** and a blocker.
+3. **The rubric is code.**  `eval_rubric.py` reuses the product's readers: the
+   .docx/.xlsx text, the value matcher, `paper.META`.  It scores the sections,
+   the computed values in the paper and the workbook, the template
+   instructions, the length (an observation, not a verdict - a tile paper is
+   the computation record and is short by design) and the retrieval.
+4. **The RAG is scored corpus-side.**  The tile paper renders no reference
+   list, so the rubric scores what the corpus returned for the tile's own
+   words: a cited page carries the corpus's title, a quote is a complete
+   sentence carrying the tile's vocabulary, a weak page is background and is
+   never cited, and no evidence means a named gap.  A down corpus is
+   `not_measured`, never a green - the corpus adapter fails open, so the eval
+   asks the index itself.
+5. **The fault harness works on a copy.**  `BP_CASE_ROOT` redirects the case
+   store; `BP_OPS_LOG` redirects the error log.  Four faults are seeded and
+   each must come back with the scope the cause rules say: broken figures
+   `invalid`, a tampered expectation `fail`, a missing phrase `fail`, and a
+   silent corpus `not_measured`.  The live log is fingerprinted before and
+   after.
+6. **The repair loop's cost is recorded.**  `usage.py` sums the model's own
+   token log; `auto_resolve` and `autoresearch` carry it into the record.  The
+   dollar figure is `null` until the owner supplies a price table - an unknown
+   price is an unknown cost, never zero.
+7. **A fix is three consecutive green replays.**  One passing replay closes an
+   instance; it does not prove the class.
+
+**Measured.**  Direction 1's baseline on this tree: 906 pass, 9 invalid, 0
+pipeline failures.  73 new tests; suite 5188.
+
+**Left.**  The styled report and the admin tab are the design lane's; the
+computation lane emits the manifest and an explainer .docx.  The RRA sweep
+over the new syllabus sources is still to be run (it is stalled at discovery).
+
+## 2026-11-10 - [project] A source the student declares is a source the paper lists
+
+**Ask.** The owner looked at the sample and asked why it had no references, and
+whether the Home chat would include them. The answer was that the quiet project
+lanes fetch nothing, so they had nothing to cite - and that a source the student
+names in the brief was dropped on the floor while the paper still said "No
+sources were used." The owner chose to carry the declared sources, and to follow
+the APA and Harvard formats.
+
+**Did.**
+
+1. **`declared_sources.py`** reads a `Sources:` line (or `References:` or
+   `Bibliography:`) and a sources table out of a brief. The labels are matched
+   exactly, so `Funding source: Community grant` is still a funding source and not
+   a bibliography entry.
+2. **The text is copied, never parsed.** The author and the year are the ones the
+   student wrote; a source with no year keeps the product's "n.d." convention. No
+   metadata is invented and nothing is fetched, resolved or verified.
+3. **Each declared source is written in the paper's citation style** through the
+   product's own `writing.reference` builder, so APA, Harvard, MLA, IEEE and the
+   numbered styles all work the same way and one formatter serves every lane.
+4. **The section says where the sources came from.** It closes with one line: the
+   last N sources were declared in the brief and the product neither fetched nor
+   verified them. A brief that declares no source still says "No sources were
+   used."
+5. **`writing.ORG_WORDS` gained the organisation words a brief uses most** - trust,
+   foundation, charity, society, cooperative, alliance - so "Riverside Trust" is
+   written as an organisation and not as a person named Trust.
+6. **The deck follows the paper.** A paper that lists its sources gets a closing
+   reference slide; a paper with no sources gets none, so the slide count says
+   what the paper says.
+
+**Measured.** A plan brief with `Sources: City Health Department (2025). Community
+Kitchen Guidelines; Ministry of Health (2024). Food Safety Code` prints both
+sources in APA ("City Health Department (2025). Community Kitchen Guidelines.") and
+in Harvard ("City Health Department (2025) 'Community Kitchen Guidelines'"), and the
+section says they were declared. The proposal lane carries its declared sources the
+same way. Tests: `tests/test_project_reader.py` `DeclaredSourcesTest` (5),
+`tests/test_proposal_reader.py` (2), `tests/test_silent_home.py`
+`SilentDeclaredSourcesTest` (5).
+
 ## 2026-11-10 - [project] The picture is checked, not just the spec: three rendering faults
 
 **Ask.** The owner asked for a downloadable sample of the finished project plan.
@@ -30,7 +122,7 @@ Word file, the PDF, the deck, the workbook and the four figures. The network now
 draws its boxes and arrows, the Gantt draws all four activities, the curve reads
 25 to 50 to 75 to 100 per cent, and the histogram reads without overlapping
 numbers. Tests: `tests/test_product_renderers.py` (5), `tests/test_project_plan.py`
-(the completion curve has one point per finish); suite 5101.
+(the completion curve has one point per finish); suite 5130.
 
 ## 2026-11-10 - [project] The project plan can date its work, level its people and draw the four pictures
 
@@ -74,7 +166,7 @@ tables, four figures in the Word file, a 13-slide deck with 4 media, and a ZIP o
 four files; a plan with no demand keeps its CPM schedule, refuses levelling and
 names it in the Limitations; a proposal returns a 6-slide deck and the same
 four-file ZIP. Tests: `NetworkChartTest` (3), `DemandTest` (2), `LevellingTest`
-(3), `SilentProjectScheduleTest` (5), the proposal-deck assertion; suite 5101.
+(3), `SilentProjectScheduleTest` (5), the proposal-deck assertion; suite 5130.
 
 **Noted, not fixed (other lane).** A project plan whose brief states no
 `Governance` line is blocked at the API export gate with "Governance" missing.
