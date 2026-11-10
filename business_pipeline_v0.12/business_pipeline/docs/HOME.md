@@ -1,6 +1,6 @@
 # Home ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.155**, **5252 tests**, 2026-11-10. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.156**, **5260 tests**, 2026-11-10. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -118,6 +118,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`RRA_FINDINGS_PHASE1.md`](RRA_FINDINGS_PHASE1.md) | Research findings — the RRA phase-1 manual sweep | Read before changing the RRA scope or the gap taxonomy; it records evidence, not a build order |
 | [`RRA_HANDOFF.md`](RRA_HANDOFF.md) | Handoff — where the RRA and the growth loop stand, what was broken in the read path, and what is left | **Read first** when picking the Relevance Research Agent up again |
 | [`EVAL_PROGRAM.md`](EVAL_PROGRAM.md) | The eval program - the three measured directions, the scope-split count, the rubric and the fault harness | Read before changing `eval_runner.py`, `eval_rubric.py`, `eval_faults.py` or `usage.py`; it records what the spec got wrong |
+| [`HEALTH_PROGRAM.md`](HEALTH_PROGRAM.md) | The health program - twelve named checks, one overall bit, and what the health check never does | Read before changing `health.py` or the Health panel; it records what a signal means and why a missing one is never a green |
 | [`HOME.md`](HOME.md) | Living ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â this map | Add a row when you add a module/document |
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |
 | [`PARKED_QUEUE.md`](PARKED_QUEUE.md) | Living ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â parked frontier-model computation queue | Remove an item only when the owner un-parks it and it ships |

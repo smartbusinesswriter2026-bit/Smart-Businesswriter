@@ -1,3 +1,45 @@
+## 2026-11-10 - [health] The pipeline's health: twelve named checks and one overall bit
+
+**Ask.** The owner asked how the admin's Health panel could assess the
+*overall* health of the pipeline, and then asked for it to be built: accurate
+diagnostics that always say what is wrong, log the issues, and never act on
+their own. The interview locked the shape (a list of named checks plus one
+overall bit), the cadence (on demand), the logging (the ops log, its own
+lane, once each), the remediation (never automatic), the freshness (per
+signal, with the age shown), the corpus (a hard gate) and the ownership (the
+checks are the computation lane's, the panel and the route the design lane's).
+
+**Did.**
+
+1. **The shape is a list, not a score.** `health()` returns twelve named
+   checks, each with its own verdict, and one overall bit that is the
+   conjunction of the required rows. Two kinds of "not ok" are kept apart:
+   `required` (the signal is missing or wrong) and `advisory` (the model is
+   off, the relevance sweep has never run, the suites have never been run
+   here). A missing signal is never a green.
+2. **The corpus is a hard gate.** The corpus adapter fails open, so a down
+   index looks exactly like a tile with no evidence; the check asks the index
+   itself and degrades the pipeline when it is down.
+3. **Freshness is per signal.** Every stored signal carries when it was taken
+   and how old it is. A measurement taken before the code changed says nothing
+   about the code that is there now, so the eval baseline and the suite
+   results are stale - and *required* - when they are older than the build.
+4. **A finding is logged once.** The ops log's new `pipeline-health` lane
+   holds one issue per failing check; a second failure is the same issue, and
+   a recovery is a resolved record rather than a deletion. The findings are
+   attended, so the repair loop leaves them alone and the cause ledger does
+   not count them as defects.
+5. **Nothing acts.** The check reads. It never starts a loop, never repairs,
+   never applies a gap.
+
+**Measured.**  On this tree: **degraded** - the corpus index is down, one
+cause has come back after a fix, and the last suite run predates the build.
+The other nine checks hold: 915 stored cases, 0 pipeline failures open, no
+regressions, the eval baseline is 906 pass / 0 fail / 9 invalid / 0
+regressions, and nothing waits for the repair loop.
+
+**Left.** The panel and the route are the design lane's (build 1.157).
+
 ## 2026-11-10 - [project] The business plan and the marketing plan list their references, in the style the brief asks for
 
 **Ask.** The same treatment in the other two document lanes: the business plan
