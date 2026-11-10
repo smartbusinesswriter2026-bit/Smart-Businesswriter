@@ -800,15 +800,7 @@ async function refreshOverview() {
         ? (errors.data.errors || []).length : 0;
       if (!loop.data.running && openCount > 0) {
         document.getElementById('overviewLoop').textContent =
-          'idle - ' + openCount + ' open error(s), not running';
-        // The owner's report: a queue of open errors beside an idle loop.  Start it
-        // once per page load so the repair work actually happens.
-        if (!window.__autoStartedLoop) {
-          window.__autoStartedLoop = true;
-          apiFetch('/api/ops/autoresearch/start', { method: 'POST' })
-            .then(() => setTimeout(refreshOverview, 800))
-            .catch(() => {});
-        }
+          'idle - ' + openCount + ' open error(s), not running (switch on the Loops tab to start)';
       } else {
         document.getElementById('overviewLoop').textContent = loop.data.status_message || 'idle';
       }
@@ -1855,9 +1847,13 @@ document.getElementById('atSections').addEventListener('click', (event) => {
 
 document.getElementById('atRefresh').addEventListener('click', () => loadPaperTesting(true));
 
+// Keys selected for the in-flight run, so they can be unticked when it finishes.
+const atRunKeys = {};
+
 async function atGenerate(subject, button) {
   const keys = atSelected(subject);
   if (!keys.length) { toast('Tick at least one tile first'); return; }
+  atRunKeys[subject] = keys.slice();
   const source = document.getElementById('atSource').value;
   if (source === 'system' || source === 'both') {
     await atRunPapers(subject, keys, button);
@@ -1949,8 +1945,22 @@ async function atPollRun(subject, runId, button) {
     return;
   }
   if (button) button.disabled = false;
-  if (r.data.status === 'done') atRenderDownloads(subject, runId, r.data);
-  else toast('Paper run ended: ' + (r.data.error || r.data.status));
+  if (r.data.status === 'done') {
+    // Untick the tiles that just ran so a re-run requires an explicit re-selection.
+    const ran = atRunKeys[subject] || [];
+    if (ran.length) {
+      const ticks = atTicks();
+      ran.forEach(k => { delete ticks[atKey(subject, k)]; });
+      atSaveTicks(ticks);
+      ran.forEach(k => {
+        const cb = document.querySelector('input[data-at-sub="' + subject + '"][data-at-tile="' + k + '"]');
+        if (cb) cb.checked = false;
+      });
+      atUpdateCount(subject);
+      delete atRunKeys[subject];
+    }
+    atRenderDownloads(subject, runId, r.data);
+  } else toast('Paper run ended: ' + (r.data.error || r.data.status));
 }
 
 function atRenderResults(subject, state) {
@@ -2639,12 +2649,44 @@ document.getElementById('chatRunTests').addEventListener('click', async () => {
 });
 
 /* ── Health ── */
+/* The pipeline's health: one row per named check, each with its own verdict,
+   the reason it holds, and how old the signal behind it is.  A signal that was
+   never measured says so; it is never a green.  The check starts nothing. */
+function renderPipelineHealth(report) {
+  const rows = (report.checks || []).map(function (c) {
+    const badge = c.ok ? pill('ok', 'ok')
+      : (c.severity === 'required' ? pill('degraded', 'warn') : pill('not measured', 'info'));
+    const age = c.age ? ' <span style="color:#667;font-size:11px;">(' + escapeHtml(c.age) + ')</span>' : '';
+    return '<tr><td><strong>' + escapeHtml(c.name) + '</strong></td><td>' + badge +
+      '</td><td>' + escapeHtml(c.reason || '') + age + '</td></tr>';
+  }).join('');
+  const failing = (report.failing || []).length;
+  const advisory = (report.advisory || []).length;
+  const summary = report.overall
+    ? pill('healthy', 'ok')
+    : pill(failing + ' check' + (failing === 1 ? '' : 's') + ' degraded', 'warn');
+  const note = report.overall
+    ? 'Every required check holds.'
+    : 'Degraded: ' + escapeHtml((report.failing || []).join(', '));
+  return '<div class="card"><div class="card-head"><div><h2>Pipeline health</h2>' +
+    '<p>Each check reads a signal the product already produces. A missing signal is ' +
+    'named, never green. The check reads only — it starts nothing.</p></div>' + summary +
+    '</div><div class="card-body">' +
+    (advisory ? '<p style="margin:0 0 10px;color:#667;font-size:12px;">Not measured: ' +
+      escapeHtml((report.advisory || []).join(', ')) + '</p>' : '') +
+    '<table><thead><tr><th>Check</th><th>Verdict</th><th>Why</th></tr></thead><tbody>' +
+    rows + '</tbody></table>' +
+    '<p style="margin:12px 0 0;color:#667;font-size:12px;">' + note + '</p>' +
+    '</div></div>';
+}
+
 async function loadHealth() {
-  const r = await apiFetch('/api/health');
   const container = document.getElementById('healthInfo');
+  const r = await apiFetch('/api/health');
+  let html = '';
   if (r.status === 200) {
     const d = r.data;
-    container.innerHTML = '<div class="card"><h2>System health</h2>' +
+    html += '<div class="card"><h2>System health</h2>' +
       '<table><tbody>' +
       '<tr><td>Build</td><td>' + escapeHtml(d.build) + '</td></tr>' +
       '<tr><td>Status</td><td>' + pill(d.status, d.status === 'ok' ? 'ok' : 'warn') + '</td></tr>' +
@@ -2656,8 +2698,16 @@ async function loadHealth() {
     document.getElementById('buildInfo').textContent = 'Build: ' + d.build;
     document.getElementById('statusBadge').textContent = d.status;
   } else {
-    container.innerHTML = '<div class="empty">Health endpoint not available.</div>';
+    html += '<div class="empty">Health endpoint not available.</div>';
   }
+  const p = await apiFetch('/api/ops/health');
+  if (p.status === 200 && p.data && p.data.checks) {
+    html += renderPipelineHealth(p.data);
+  } else {
+    html += '<div class="card"><div class="card-body"><div class="empty">' +
+      'The pipeline health check is not available.</div></div></div>';
+  }
+  container.innerHTML = html;
 }
 
 /* ── Hallucination checker ── */
