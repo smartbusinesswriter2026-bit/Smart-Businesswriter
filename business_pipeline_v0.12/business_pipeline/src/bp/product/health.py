@@ -45,16 +45,17 @@ CHECKS = (
     "model_assistance", "switches",
 )
 
-#: The checks whose verdict the overall bit depends on **when they have a
-#: signal**.  The rest are reported and explained, but a pipeline that is
-#: otherwise sound is not degraded by a switch the owner turned off.
+#: The checks that are **required** when they have a signal.  The rest are
+#: reported and explained, but a pipeline that is otherwise sound is not
+#: degraded by a switch the owner turned off.
 #:
-#: The verdict is taken from each row's own ``severity``, not from this list:
-#: a check that has never been measured is advisory (the pipeline is not
-#: broken by a measurement nobody took), while a check that was measured and
-#: is now stale is required (the measurement says nothing about this build).
-REQUIRED = ("case_store", "case_pass_rate", "regressions", "corpus",
-            "repair_loop", "causes", "eval_baseline", "test_suite")
+#: The verdict is taken from each row's own ``severity`` and not from this
+#: list, because a check that has never been measured is advisory (the
+#: pipeline is not broken by a measurement nobody took) while a check that was
+#: measured and is now stale is required (the measurement says nothing about
+#: this build).
+REQUIRED_CHECKS = ("case_store", "case_pass_rate", "regressions", "corpus",
+                   "repair_loop", "causes", "eval_baseline", "test_suite")
 
 #: The pipeline-failure budget.  The same number the eval program counts
 #: against: pipeline failures only, never an invalid fixture.
@@ -85,10 +86,8 @@ def _advisory(name, reason, **extra):
 def check_server(extra=None):
     """The server answered.  It is ok by the fact that this ran."""
     extra = extra or {}
-    model = bool(extra.get("model_assistance"))
     return _check("server", True, "the server answered", "advisory",
                   build=str(getattr(build_info, "VERSION", "") or ""),
-                  model_assistance=model,
                   sandbox=str(extra.get("sandbox") or ""))
 
 
@@ -452,22 +451,27 @@ def check_test_suite(results=None, tree_date=None):
 
 
 # ── H10 relevance ─────────────────────────────────────────────────────────
-def check_relevance(run=None):
+def check_relevance(run=None, runs=None):
     """The relevance sweep: did its controls hold?
 
     A sweep that has never run is not measured (advisory).  A sweep that ran
     and whose **controls failed** is a degraded measurement: it cannot be
     trusted to propose a capability gap, and the pipeline's sense of what it
     should know is stale.
+
+    The **newest** run is the one that counts.  The store is append-only and
+    its reader returns the file in order, so the last row is the latest
+    record - and a capped read would have returned the *oldest* rows.
     """
     if run is None:
-        try:
-            from .relevance import storage as _storage
-            runs = _storage.read_runs(limit=5)
-            run = runs[-1] if runs else None
-        except Exception as error:
-            return _advisory("relevance", "the relevance runs could not be read: %s"
-                             % str(error)[:160])
+        if runs is None:
+            try:
+                from .relevance import storage as _storage
+                runs = _storage.read_runs(limit=100000)
+            except Exception as error:
+                return _advisory("relevance", "the relevance runs could not be read: %s"
+                                 % str(error)[:160])
+        run = runs[-1] if runs else None
     if not run:
         return _advisory("relevance", "the relevance sweep has never run here")
     controls = run.get("controls") or {}

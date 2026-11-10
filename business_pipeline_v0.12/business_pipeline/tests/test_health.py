@@ -219,6 +219,18 @@ class RelevanceTest(HealthTestCase):
         row = health_mod.check_relevance(run)
         self.assertTrue(row["ok"])
 
+    def test_the_newest_run_is_the_one_that_counts(self):
+        """The store is append-only; a capped read returns the oldest rows."""
+        runs = [
+            {"run_id": "old", "status": "completed",
+             "controls": {"held": 10, "total": 12, "min_held": 0.75}},
+            {"run_id": "new", "status": "completed",
+             "controls": {"held": 5, "total": 12, "min_held": 0.75}},
+        ]
+        row = health_mod.check_relevance(runs=runs)
+        self.assertEqual(row["run_id"], "new")
+        self.assertFalse(row["ok"])
+
 
 class OverallTest(HealthTestCase):
     def _sources(self, **over):
