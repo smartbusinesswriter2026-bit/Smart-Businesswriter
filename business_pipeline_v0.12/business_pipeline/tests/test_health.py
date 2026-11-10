@@ -359,6 +359,44 @@ class BareProcessTest(HealthTestCase):
         json.dumps(health_mod.health())
 
 
+class BrokenSiblingTest(HealthTestCase):
+    """A sibling module that will not import must not take the health down.
+
+    A half-written file anywhere in the product used to make the whole check
+    raise, which is the opposite of what a health check is for: the owner
+    would see a blank panel instead of the reason.
+    """
+
+    def test_a_broken_module_makes_its_check_degraded_not_an_exception(self):
+        import sys
+        from unittest import mock
+        import bp.product as product
+        with mock.patch.dict(sys.modules, {"bp.product.autoresearch": None}):
+            with mock.patch.object(product, "autoresearch", None, create=True):
+                row = health_mod.check_repair_loop()
+        self.assertFalse(row["ok"])
+        self.assertTrue(row["reason"])
+
+    def test_the_whole_report_still_comes_back(self):
+        import contextlib
+        import sys
+        from unittest import mock
+        import bp.product as product
+        names = ("autoresearch", "ops_log", "cause_ledger", "eval_runner",
+                 "test_runner", "ops_switches")
+        broken = {"bp.product.%s" % name: None for name in names}
+        with mock.patch.dict(sys.modules, broken):
+            with contextlib.ExitStack() as stack:
+                for name in names:
+                    stack.enter_context(mock.patch.object(product, name, None, create=True))
+                report = health_mod.health()
+        self.assertIn("overall", report)
+        self.assertEqual(len(report["checks"]), len(health_mod.CHECKS))
+        for row in report["checks"]:
+            if not row["ok"]:
+                self.assertTrue(row["reason"], "%s failed without a reason" % row["name"])
+
+
 class IssueTest(HealthTestCase):
     """A failing check is logged once, and a recovery is a record, not a deletion."""
 

@@ -120,8 +120,8 @@ def check_case_pass_rate(errors=None, budget=FAIL_BUDGET):
     the pipeline, exactly as the eval program counts it.
     """
     if errors is None:
-        from . import ops_log
         try:
+            from . import ops_log
             errors = ops_log.list_errors(limit=1000, status="open")
         except Exception as error:
             return _degraded("case_pass_rate", "the error log could not be read: %s"
@@ -184,8 +184,12 @@ def check_corpus(probe=None):
     retrieval is then *not measured* rather than empty.
     """
     if probe is None:
-        from . import eval_runner
-        probe = eval_runner.corpus_available
+        try:
+            from . import eval_runner
+            probe = eval_runner.corpus_available
+        except Exception as error:
+            return _degraded("corpus", "the corpus index could not be asked: %s"
+                             % str(error)[:160])
     try:
         up = bool(probe())
     except Exception as error:
@@ -225,8 +229,8 @@ def check_repair_loop(status=None, ledger=None, switches=None):
     **switched off** is a reason, not a failure: the owner turned it off.
     """
     if status is None:
-        from . import autoresearch
         try:
+            from . import autoresearch
             status = autoresearch.status()
         except Exception as error:
             return _degraded("repair_loop", "the repair loop's status could not be read: %s"
@@ -241,8 +245,8 @@ def check_repair_loop(status=None, ledger=None, switches=None):
     open_causes = int(totals.get("unfixed", 0)) + int(totals.get("recurring", 0))
     running = bool((status or {}).get("running"))
     if switches is None:
-        from . import ops_switches
         try:
+            from . import ops_switches
             switches = ops_switches.all_switches()
         except Exception:
             switches = {}
@@ -266,8 +270,8 @@ def check_repair_loop(status=None, ledger=None, switches=None):
 def check_causes(ledger=None):
     """Is any cause coming back?"""
     if ledger is None:
-        from . import cause_ledger
         try:
+            from . import cause_ledger
             ledger = cause_ledger.summary()
         except Exception as error:
             return _degraded("causes", "the cause ledger could not be read: %s"
@@ -353,8 +357,8 @@ def _signal(signal_date):
 def check_eval_baseline(manifest=None, tree_date=None):
     """The last Direction 1 run: within budget, no regressions, and current."""
     if manifest is None:
-        from . import eval_runner
         try:
+            from . import eval_runner
             runs = eval_runner.runs(limit=5, direction="direction1")
             manifest = runs[0] if runs else None
         except Exception as error:
@@ -408,8 +412,8 @@ def check_test_suite(results=None, tree_date=None):
     about the code that is there now.
     """
     if results is None:
-        from . import test_runner
         try:
+            from . import test_runner
             results = test_runner.list_results(limit=50)
         except Exception as error:
             return _degraded("test_suite", "the stored results could not be read: %s"
@@ -505,8 +509,8 @@ def check_model_assistance(extra=None):
 def check_switches(switches=None):
     """The owner's own switches.  Reported, never a failure."""
     if switches is None:
-        from . import ops_switches
         try:
+            from . import ops_switches
             switches = ops_switches.all_switches()
         except Exception as error:
             return _advisory("switches", "the switches could not be read: %s"
