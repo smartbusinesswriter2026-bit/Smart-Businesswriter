@@ -34,7 +34,6 @@ Every number in the paper, the workbook and the deck comes from the brief or
 from the frozen computation core; nothing is invented.  The declared sources are
 the student's own words, copied; the product neither fetched nor verified them.
 
-Note: the .docx and the .pdf were open while this sample was written, so the
-current copies were written beside the first ones.  The .docx now carries the
-plain name; the .pdf may still carry "-new" if a reader has it open.  The ZIP
-always holds the current files.
+Both files were open in a reader while this sample was written, so the current
+copies were written beside the first ones and have taken their names back now
+that the readers are closed.  The ZIP always holds the current files.
