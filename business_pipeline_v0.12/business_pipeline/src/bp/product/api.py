@@ -94,6 +94,7 @@ from . import deliverables
 from . import documents
 from . import paper_store
 from . import visuals as visual_store
+from . import visual_input
 from . import proposals
 from . import drafting
 from . import mapsheet
@@ -130,6 +131,7 @@ def attach_methods(run, describe=None):
     global _DESCRIBE
     _DESCRIBE = describe
     chat_conductor.set_method_compute(run, describe)
+    framework_completion.set_method_compute(run, describe)
     visual_store.set_method_compute(run)
     economics_service.set_runner(run, describe)
     plan_builder.set_runner(run)
@@ -158,6 +160,27 @@ _MIME = {"docx": "application/vnd.openxmlformats-officedocument.wordprocessingml
          "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
          "pdf": "application/pdf",
          "zip": "application/zip"}
+
+
+def _json_safe(value):
+    """A report the JSON encoder can carry: a figure's bytes stay in the DOCX.
+
+    A rendered chart carries its PNG as bytes for the Word exporter.  The report
+    is also returned to the browser, and a bytes value cannot be JSON-encoded;
+    the binary asset is dropped from the view, never from the document.  A
+    Decimal from a chart series is printed as its exact string.
+    """
+    from decimal import Decimal
+
+    if isinstance(value, dict):
+        return {key: _json_safe(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_json_safe(item) for item in value]
+    if isinstance(value, bytes):
+        return None
+    if isinstance(value, Decimal):
+        return str(value)
+    return value
 
 
 def _clean_path(path):
@@ -635,6 +658,13 @@ def handle(method, path, body=None):
                 return 200, visual_store.propose(data.get("source"), data.get("words") or "")
             except visual_store.VisualError as error:
                 return _error(error)
+        if segments == ["visuals", "read"]:
+            if verb != "POST":
+                return 405, {"error": "method %s is not allowed on a visual read" % verb}
+            try:
+                return 200, visual_input.interpret(body if isinstance(body, dict) else {})
+            except visual_input.VisualInputError as error:
+                return 422, {"error": str(error)}
         if segments == ["visuals", "sheet"]:
             if verb != "POST":
                 return 405, {"error": "method %s is not allowed on a figure sheet" % verb}
@@ -918,6 +948,7 @@ def handle(method, path, body=None):
                 state["attached_files"] = attached
                 state["priority_sources"] = attached["sources"]
                 state["data_files"] = attached["data"]
+                state["tax_jurisdiction"] = str(body.get("tax_jurisdiction") or "US").strip()
                 if isinstance(state.get("proposal"), dict):
                     state["proposal"]["attachments"] = {
                         key: len(value) for key, value in attached.items()
@@ -1122,6 +1153,17 @@ def handle(method, path, body=None):
         except ValueError as error:
             return _error(error)
 
+    if segments == ["frameworks", "readings"]:
+        if verb != "POST":
+            return 405, {"error": "method %s is not allowed on framework readings" % verb}
+        if not isinstance(body, dict):
+            return _error("a completion object and a decisions object are required")
+        try:
+            return 200, framework_completion.confirm_readings(body.get("completion"),
+                                                              body.get("decisions"))
+        except ValueError as error:
+            return _error(error)
+
     if segments == ["frameworks", "report"]:
         if verb != "POST":
             return 405, {"error": "method %s is not allowed on framework reporting" % verb}
@@ -1173,7 +1215,7 @@ def handle(method, path, body=None):
             return 409, {"error": str(error), "missing": error.missing}
         except ValueError as error:
             return _error(error)
-        return 200, {"report": report, "document": document, "docx": {
+        return 200, {"report": _json_safe(report), "document": document, "docx": {
             "filename": writing.filename(report), "mime": _MIME["docx"],
             "data": base64.b64encode(data).decode("ascii"),
             "sha256": hashlib.sha256(data).hexdigest()}}

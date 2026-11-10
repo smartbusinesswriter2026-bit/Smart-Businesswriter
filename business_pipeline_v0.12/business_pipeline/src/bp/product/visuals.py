@@ -24,23 +24,30 @@ import re
 import tempfile
 import time
 import uuid
+from decimal import Decimal, InvalidOperation
 from hashlib import sha256
 
-from . import charts, deck, docx, figures, renderers
+from . import charts, deck, diagrams, docx, figures, renderers
 from . import export as case_export
 
 FORMAT = "bp-visual/1"
 #: What a visual can be.  The rest of the figure kinds stay available through the
 #: paper; these are the ones a student asks for on their own.
-KINDS = ("bar", "line", "pie", "stacked_bar", "waterfall", "table", "pareto")
+KINDS = ("bar", "line", "area", "scatter", "candlestick", "pie", "stacked_bar",
+         "waterfall", "table", "pareto")
 
 #: Words a student uses, mapped to the chart they usually mean.
 KIND_CUES = (
     ("pareto", ("pareto", "vital few", "running total", "cumulative", "concentration",
                 "which few", "the few that")),
     ("waterfall", ("bridge", "movement", "moved", "driven by", "walk", "step change")),
+    ("candlestick", ("candlestick", "ohlc", "open high low close", "stock price",
+                     "share price", "price range")),
+    ("scatter", ("relationship", "correlation", "correlate", "against", "versus",
+                 "risk and return", "ad spend", "x and y")),
     ("pie", ("share", "mix", "composition", "split", "proportion", "breakdown")),
     ("stacked_bar", ("mix", "composition", "breakdown", "split")),
+    ("area", ("area chart", "area graph")),
     ("line", ("trend", "over time", "grew", "fell", "growth", "quarter", "year",
               "month", "week", "forecast")),
     ("bar", ("compare", "comparison", "versus", "rank", "by region", "by product",
@@ -123,7 +130,8 @@ def listing():
             continue
         rows.append({"id": record.get("id"), "title": record.get("title"),
                      "source": record.get("source"), "created_at": record.get("created_at"),
-                     "kinds": [figure.get("kind") for figure in record.get("figures") or []]})
+                     "kinds": [(figure.get("spec") or {}).get("kind")
+                               or figure.get("kind") for figure in record.get("figures") or []]})
     rows.sort(key=lambda row: str(row.get("created_at") or ""), reverse=True)
     return {"visuals": rows}
 
@@ -138,42 +146,79 @@ def delete(visual_id):
 
 # --- data sources ----------------------------------------------------------
 
-def _declared(points):
-    """A bundle built from figures the student typed, labelled as their own."""
+def _source_file(file):
+    """The compact file record a visual keeps when its figures came from a file."""
+    if not isinstance(file, dict) or not str(file.get("filename") or "").strip():
+        return None
+    keys = ("id", "filename", "sha256", "sheet", "ext", "edited", "kind")
+    compact = {key: file.get(key) for key in keys if file.get(key) is not None}
+    if isinstance(file.get("columns"), dict):
+        compact["columns"] = {key: file["columns"].get(key)
+                              for key in ("label", "value", "cumulative")
+                              if file["columns"].get(key)}
+    return compact
+
+
+def _declared(points, source_file=None):
+    """A bundle built from figures the student typed or read from their file."""
     if not isinstance(points, list) or not points:
         raise VisualError("a declared visual needs at least one point")
+    file = _source_file(source_file)
+    note = "declared by the student"
+    label = "Figures you declared"
+    if file:
+        note += " from %s" % file["filename"]
+        if file.get("sha256"):
+            note += " (sha256 %s)" % str(file["sha256"])[:12]
+        if file.get("edited"):
+            note += "; edited after reading"
+        label = "Figures read from %s" % file["filename"]
     artifacts, outputs, series = [], {}, []
     for index, point in enumerate(points, 1):
         if not isinstance(point, dict):
             raise VisualError("every point must be an object with 'label' and 'value'")
-        label = str(point.get("label") or "").strip()
-        if not label:
+        label_text = str(point.get("label") or "").strip()
+        if not label_text:
             raise VisualError("every point needs a label")
         try:
-            value = float(point.get("value"))
+            float(point.get("value"))
         except (TypeError, ValueError):
-            raise VisualError("point %r needs a number in 'value'" % label)
+            raise VisualError("point %r needs a number in 'value'" % label_text)
         label_id = "declared_label_%d" % index
         value_id = "declared_value_%d" % index
-        for key, stored in ((label_id, label), (value_id, str(point.get("value")).strip())):
-            artifacts.append([key, [key, "", "entity", "base"], "declared by the student"])
+        for key, stored in ((label_id, label_text), (value_id, str(point.get("value")).strip())):
+            artifacts.append([key, [key, "", "entity", "base"], note])
             outputs[key] = stored
-        entry = {"label": label, "label_artifact": label_id, "artifact": value_id}
+        entry = {"label": label_text, "label_artifact": label_id, "artifact": value_id}
+        group = str(point.get("group") or "").strip()
+        if group:
+            entry["group"] = group
+        for key in ("x", "open", "high", "low", "close"):
+            raw = point.get(key)
+            if raw is None or not str(raw).strip():
+                continue
+            try:
+                float(raw)
+            except (TypeError, ValueError):
+                raise VisualError("point %r needs a number in %r" % (label_text, key))
+            artifact_id = "declared_%s_%d" % (key, index)
+            artifacts.append([artifact_id, [artifact_id, "", "entity", "base"], note])
+            outputs[artifact_id] = str(raw).strip()
+            entry[key] = artifact_id
         running = point.get("cumulative")
         if running is not None and str(running).strip():
             try:
                 float(running)
             except (TypeError, ValueError):
-                raise VisualError("point %r needs a number in 'cumulative'" % label)
+                raise VisualError("point %r needs a number in 'cumulative'" % label_text)
             running_id = "declared_cumulative_%d" % index
-            artifacts.append([running_id, [running_id, "", "entity", "base"],
-                              "declared by the student"])
+            artifacts.append([running_id, [running_id, "", "entity", "base"], note])
             outputs[running_id] = str(running).strip()
             entry["cumulative"] = running_id
         series.append(entry)
     bundle = {"delivery": {"appendix": {"artifacts": artifacts}},
               "reperform": {"outputs": outputs}}
-    return bundle, series, "Figures you declared"
+    return bundle, series, label
 
 
 def _calculation(method, inputs, run):
@@ -233,7 +278,7 @@ def source_bundle(source, run=None):
         raise VisualError("a visual needs a 'source' object")
     kind = str(source.get("kind") or "").strip()
     if kind == "declared":
-        return _declared(source.get("points"))
+        return _declared(source.get("points"), source.get("file"))
     if kind == "calculation":
         return _calculation(source.get("method"), source.get("inputs"), run or METHOD_RUN)
     if kind == "case":
@@ -297,19 +342,154 @@ def spec_for(kind, series, title):
                             "cumulative": entry["cumulative"],
                             "label_artifact": entry.get("label_artifact")}
                            for entry in series]}
+    if kind == "scatter":
+        missing = [entry["label"] for entry in series if not entry.get("x")]
+        if missing:
+            raise VisualError("a scatter plot needs an x value for every point; missing: %s"
+                              % ", ".join(missing[:3]))
+        return {"format": "bp-chart/1", "kind": "scatter", "title": title,
+                "series": [{"label": entry["label"], "artifact": entry["artifact"],
+                            "x_artifact": entry["x"],
+                            "label_artifact": entry.get("label_artifact")}
+                           for entry in series]}
+    if kind == "candlestick":
+        missing = [entry["label"] for entry in series
+                   if not all(entry.get(key) for key in ("open", "high", "low", "close"))]
+        if missing:
+            raise VisualError("a candlestick chart needs open, high, low and close for every "
+                              "period; missing: %s" % ", ".join(missing[:3]))
+        return {"format": "bp-chart/1", "kind": "candlestick", "title": title,
+                "series": [{"label": entry["label"], "artifact": entry["close"],
+                            "open": entry["open"], "high": entry["high"],
+                            "low": entry["low"], "close": entry["close"],
+                            "label_artifact": entry.get("label_artifact")}
+                           for entry in series]}
     return {"format": "bp-chart/1", "kind": kind, "title": title, "series": series}
 
 
 # --- building one visual ---------------------------------------------------
 
+def _record_source(source, label):
+    stored = {"kind": source.get("kind"), "label": label}
+    if source.get("case_id"):
+        stored["case_id"] = source["case_id"]
+    file = _source_file(source.get("file"))
+    if file:
+        stored["file"] = file
+    return stored
+
+
+def _diagram_record(request):
+    """A framework or process diagram, from the student's own words."""
+    title = str(request.get("title") or "").strip()
+    if not title:
+        raise VisualError("a diagram needs a title")
+    source = request.get("source")
+    spec = source.get("spec") if isinstance(source, dict) else None
+    if not isinstance(spec, dict):
+        raise VisualError("a diagram needs a spec")
+    spec = dict(spec)
+    spec.setdefault("format", diagrams.FORMAT)
+    try:
+        kind, _title, _payload = diagrams.validate_spec(spec)
+    except diagrams.DiagramError as error:
+        raise VisualError(str(error))
+    figure = figures.make("diagram", spec, caption=title, note="Your framework",
+                          why="the student asked for this visual", origin="chat")
+    figures.render(figure, {})
+    figures.stamp(figure, {})
+    record = {
+        "format": FORMAT,
+        "id": "vis_" + sha256((title + kind + str(time.time())).encode("utf-8")).hexdigest()[:12],
+        "title": title,
+        "source": {"kind": "diagram", "label": "Your framework"},
+        "kind": kind,
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "figures": [{key: figure[key] for key in
+                     ("id", "format", "kind", "spec", "caption", "note", "why",
+                      "origin", "place", "sources", "digest", "table") if key in figure}],
+        "bundle": {},
+    }
+    return record, figure
+
+
+def _gantt_record(request):
+    """A project timeline from declared task names and day numbers."""
+    title = str(request.get("title") or "").strip()
+    if not title:
+        raise VisualError("a timeline needs a title")
+    source = request.get("source")
+    activities = source.get("activities") if isinstance(source, dict) else None
+    if not isinstance(activities, list) or not activities:
+        raise VisualError("a timeline needs at least one task")
+    artifacts, outputs, clean = [], {}, []
+    for index, activity in enumerate(activities, 1):
+        if not isinstance(activity, dict):
+            raise VisualError("every task must be an object with label, start and end")
+        label = str(activity.get("label") or "").strip()
+        if not label:
+            raise VisualError("every task needs a label")
+        start = str(activity.get("start") or "").strip()
+        end = str(activity.get("end") or "").strip()
+        try:
+            start_value, end_value = Decimal(start), Decimal(end)
+        except (InvalidOperation, ValueError):
+            raise VisualError("task %r needs numeric start and end day numbers" % label)
+        if end_value < start_value:
+            raise VisualError("task %r ends before it starts" % label)
+        label_id = "gantt_label_%d" % index
+        start_id = "gantt_start_%d" % index
+        end_id = "gantt_end_%d" % index
+        for key, value in ((label_id, label), (start_id, start), (end_id, end)):
+            artifacts.append([key, [key, "", "entity", "base"], "declared by the student"])
+            outputs[key] = value
+        entry = {"id": "gantt_%d" % index, "label": label,
+                 "start": start_id, "end": end_id}
+        for key, text_key in (("start_label", "start_label"), ("end_label", "end_label")):
+            text = str(activity.get(text_key) or "").strip()
+            if text:
+                artifact_id = "gantt_%s_%d" % (key, index)
+                artifacts.append([artifact_id, [artifact_id, "", "entity", "base"],
+                                  "declared by the student"])
+                outputs[artifact_id] = text
+                entry[key] = artifact_id
+        clean.append(entry)
+    spec = {"format": "bp-chart/1", "kind": "gantt", "title": title,
+            "activities": clean}
+    bundle = {"delivery": {"appendix": {"artifacts": artifacts}},
+              "reperform": {"outputs": outputs}}
+    figure = figures.make("chart", spec, caption=title, note="Your project timeline",
+                          why="the student asked for this visual", origin="chat")
+    figures.render(figure, bundle)
+    figures.stamp(figure, bundle)
+    record = {
+        "format": FORMAT,
+        "id": "vis_" + sha256((title + "gantt" + str(time.time())).encode("utf-8")).hexdigest()[:12],
+        "title": title,
+        "source": {"kind": "gantt", "label": "Your project timeline"},
+        "kind": "gantt",
+        "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "figures": [{key: figure[key] for key in
+                     ("id", "format", "kind", "spec", "caption", "note", "why",
+                      "origin", "place", "sources", "digest", "table") if key in figure}],
+        "bundle": bundle,
+    }
+    return record, figure
+
+
 def _record(request, run=None):
     """(record, figure) for a request, without storing it."""
     if not isinstance(request, dict):
         raise VisualError("a visual request must be an object")
+    source = request.get("source")
+    if isinstance(source, dict) and source.get("kind") == "diagram":
+        return _diagram_record(request)
+    if isinstance(source, dict) and source.get("kind") == "gantt":
+        return _gantt_record(request)
     title = str(request.get("title") or "").strip()
     if not title:
         raise VisualError("a visual needs a title")
-    bundle, series, label = source_bundle(request.get("source"), run)
+    bundle, series, label = source_bundle(source, run)
     kind = str(request.get("kind") or "").strip()
     if not kind:
         proposals = propose(request.get("source"), request.get("words") or title, run)
@@ -325,8 +505,7 @@ def _record(request, run=None):
         "format": FORMAT,
         "id": "vis_" + sha256((title + kind + str(time.time())).encode("utf-8")).hexdigest()[:12],
         "title": title,
-        "source": {"kind": request["source"].get("kind"), "label": label,
-                   "case_id": request["source"].get("case_id")},
+        "source": _record_source(request["source"], label),
         "kind": kind,
         "created_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "figures": [{key: record_figure[key] for key in

@@ -1,0 +1,33 @@
+﻿def test_documented_test_count_matches_the_real_suite(self):
+        count = _suite_count()
+        claims = (
+            ("docs/HOME.md", _home_test_count(_read(DOCS / "HOME.md"))),
+            ("docs/HANDOFF.md", _handoff_test_count(_read(DOCS / "HANDOFF.md"))),
+            ("docs/CONTRIBUTORS.md", _contributors_test_count(_read(DOCS / "CONTRIBUTORS.md"))),
+        )
+        for name, claimed in claims:
+            self.assertEqual(
+                claimed,
+                count,
+                "%s says %d tests, but the suite holds %d tests" % (name, claimed, count),
+            )
+
+    # -- 2. the build in the documents must be the newest changelog build -----
+    def test_documented_build_matches_the_newest_changelog_entry(self):
+        build = _newest_build(_read(DOCS / "CHANGELOG.md"))
+        home = _home_build(_read(DOCS / "HOME.md"))
+        handoff = _handoff_build(_read(DOCS / "HANDOFF.md"))
+        self.assertEqual(
+            home, build, "docs/HOME.md says build %s, but the newest changelog entry is %s" % (home, build)
+        )
+        self.assertEqual(
+            handoff,
+            build,
+            "docs/HANDOFF.md says build %s, but the newest changelog entry is %s" % (handoff, build),
+        )
+
+    def test_the_served_build_is_the_newest_changelog_build(self):
+        """The top bar cannot state a build the tree is not (D-PM-07).
+
+        The pill read "v1.45" for many builds because the number was a literal in
+        `web/index.html` that nothing

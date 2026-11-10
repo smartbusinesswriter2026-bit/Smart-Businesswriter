@@ -161,9 +161,9 @@ class InventoryTest(unittest.TestCase):
             row = registry.get(sheet["catalogue_id"])
             self.assertEqual(row["form"], "worksheet", sheet["catalogue_id"])
 
-    def test_E_mgt_006__the_six_non_draftable_worksheets_are_the_recorded_gap(self):
+    def test_E_mgt_006__the_four_non_draftable_worksheets_are_the_recorded_gap(self):
         off = sorted(sheet["catalogue_id"] for sheet in sheets() if not sheet["draftable"])
-        self.assertEqual(off, ["STR-04", "STR-08", "STR-09", "STR-12", "STR-13", "STR-14"])
+        self.assertEqual(off, ["STR-04", "STR-08", "STR-12", "STR-14"])
 
     def test_E_mgt_007__two_worksheets_that_share_one_engine_say_so(self):
         swot = [sheet["catalogue_id"] for sheet in sheets()
@@ -593,9 +593,9 @@ class ReachabilityTest(unittest.TestCase):
         not_draftable = sorted({sheet["template"] for row in subjects.catalogue()["subjects"]
                                 for sheet in subjects.detail(row["id"])["worksheets"]
                                 if not sheet["draftable"]})
-        self.assertEqual(len(not_draftable), 11,
-                         "11 on 2026-11-03: SERVQUAL left the shelf's rows while the marketing "
-                         "lane repairs it, so it is no longer counted here")
+        self.assertEqual(len(not_draftable), 9,
+                         "9 on 2026-11-09: Ansoff and ERRC gained the writing module, so they "
+                         "left the hand-filled set")
         for template in not_draftable:
             result = complete_any(template)
             report = completion.draft(result, "apa", "draft", "short")
@@ -718,6 +718,12 @@ class CueReachabilityTest(unittest.TestCase):
             kwargs = {}
             if field == "industry":
                 kwargs["industry"] = INDUSTRY
+            elif field == "firm":
+                kwargs["unit_value"] = "Kestrel Retail"
+                kwargs["industry"] = INDUSTRY
+            elif field == "country_industry":
+                kwargs["country"] = "Germany"
+                kwargs["industry"] = INDUSTRY
             elif field == "process":
                 kwargs["unit_value"] = "the campus mentoring programme"
             elif field == "country":
@@ -726,6 +732,9 @@ class CueReachabilityTest(unittest.TestCase):
                 kwargs["unit_value"] = "the campus shop offer"
             instruction = {"process": "The programme is being reviewed before deciding whether to continue it.",
                            "country": "A supermarket chain in Iran is weighing its options.",
+                           "firm": "Kestrel Retail is reviewing its position in grocery retail.",
+                           "country_industry": "Kestrel Retail is reviewing its grocery retail "
+                                               "position in Germany.",
                            "unit": "The campus shop is reviewing its offer."}.get(
                                field, BRIEF)
             with mock.patch("bp.product.sources.search_academic", side_effect=empty), \

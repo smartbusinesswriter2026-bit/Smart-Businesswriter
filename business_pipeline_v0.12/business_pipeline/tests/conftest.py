@@ -33,10 +33,11 @@ os.environ.setdefault("BP_REGRESSION_CASES",
 
 # Background reading is no longer part of the pipeline; the flag stays off so
 # an inherited environment cannot turn a live call on.
-os.environ.setdefault("BP_ORIENTATION", "0")
+os.environ["BP_ORIENTATION"] = "0"
 # The learning log writes to the live corpus service.  A test exercise is not a
-# student's search, so the fixtures never reach the real corpus history.
-os.environ.setdefault("BP_LEARNING_LOG", "0")
+# student's search, so the fixtures never reach the real corpus history.  Forced,
+# not defaulted, so an inherited app setting cannot turn the live call back on.
+os.environ["BP_LEARNING_LOG"] = "0"
 
 # The model lanes are live HTTPS calls (see `tests/__init__.py`).  pytest may import
 # a test file without importing the package first, so the keys are cleared here too.

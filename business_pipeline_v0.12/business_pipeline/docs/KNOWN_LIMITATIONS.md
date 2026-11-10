@@ -802,8 +802,10 @@ If an assignment needs one of these, say so in the limitations and show the meth
 ## Deferred with the silent plan release (owner decision, 2026-11-09)
 - **Full feasibility and project-proposal guide schemas.** The silent profiles read the labelled
   facts they are given (project, market, technical, legal, budget, beneficiaries, activities) and
-  write the 13 guide sections. They do not yet parse every table in those guides; the remaining
-  schema is deferred, not silently invented.
+  write the 13 guide sections. A project proposal with a work-plan or budget table now takes the
+  work-plan route (B-254); a narrative proposal, and every feasibility table beyond the three the
+  simplified route reads, keeps the guide schema, and the remaining schema is deferred, not
+  silently invented.
 - **Tax beyond the US effective-rate preset.** The product applies a stated rate, or 21% US
   federal corporate when none is stated, and labels the basis. Brackets, state tax, payroll tax,
   credits, losses carried forward and other jurisdictions are deferred. It is not a tax return
@@ -825,10 +827,9 @@ without changing the silent Home contract.
 ## Added with the quiet project-plan lane (B-252)
 - **The record is the brief's tables.** The project plan reads a labelled charter and classified tables; it does not invent a work package, a cost, an owner, a duration, a RACI letter or a risk from prose alone. A brief with no WBS table produces a paper whose tables are missing or empty and whose `project_plan.validate` problems are named, not a guessed breakdown.
 - **No web evidence is retrieved for a project plan.** The record is the source, so the paper cites none and its References section says "No sources were used." That is accepted for a planning document; it is not a literature review.
-- **The chart is a Gantt, and only when the schedule ran.** There is no network diagram, S-curve or resource histogram yet, and PowerPoint is a later addition. If the frozen schedule did not run, or Plotly/kaleido is absent so the PNG cannot be drawn, the paper keeps its schedule table and simply carries no chart.
+- **The chart is a Gantt, and only when the schedule ran.** There is no network diagram, S-curve or resource histogram yet; the PowerPoint deck is an export of the paper and was added in B-253. If the frozen schedule did not run, or Plotly/kaleido is absent so the PNG cannot be drawn, the paper keeps its schedule table and simply carries no chart.
 - **Height and dates are periods, not calendar dates.** The schedule's early/late values and the critical path are in the declared duration unit; the plan does not convert them to calendar dates and does not level resources.
 - **A revision preserves the recorded tables; it cannot add one.** `_rebuild_outline` reattaches each section's stored figure and strips model-echoed table rows. A table the record did not carry stays absent, and a change to scope must follow the plan's change-control route.
-- **The simplified three-table feasibility route is deferred.** The full feasibility study keeps its existing guide route; the owner-rejected multi-day rebuild is not started.
 
 ## Added with the project deck and the three-table feasibility study (B-253)
 - **The project plan and the three-table feasibility study each get a dedicated deck.** The project deck has a title slide, the summary claim, the Schedule chart and one table slide per recorded table; the feasibility deck has a title slide, the summary claim and the market, cost and returns tables. Neither carries a chart beyond the project Gantt, and both use only a fade; speaker notes carry the section prose. Other papers use the generic `deck.from_paper` path, which reorders the paper's own sentences and includes only figures the registry holds. A deck is an export, never a second paper.
@@ -836,6 +837,12 @@ without changing the silent Home contract.
 - **The market table uses the declared demand as the expected volume.** No market share is inferred and no market is forecast; the paper says so. A brief that states only a market size in currency, or only a share, is a guide-route brief or a named gap, not a three-table one.
 - **A subject door names its profile once.** If the student opens Home directly, the lane is chosen by the brief's own words or its WBS/table shape; a completely unlabelled narrative with no tables is not guessed into the project or feasibility lane.
 - **A project title falls back to the brief's first line.** The fallback is used only when no label states a title, the line has no colon, is at most 90 characters and is not a table header; otherwise the title stays missing and is named.
+
+## Added with the work-plan project proposal (B-254)
+- **The proposal's record is its labels and its tables.** `proposal_reader.py` reads the named facts (title, problem, objectives, location, proponents, timeline, funding source, income indicators, baseline, targets) and classifies the work plan, budget and risk tables. A missing objective, activity, owner or cost is named by `proposal_plan.validate`, never filled from prose.
+- **The budget total is the sum of the declared lines.** It is not a break-even, an appraisal or a forecast; the paper says the total is the declared lines. The proposal runs no core computation block and no research round, because the record is the source, so its References section says "No sources were used."
+- **A narrative proposal keeps the guide route.** Only a brief with a work-plan table or a budget table takes the silent work-plan route; the full 13-section proposal schema remains the guide path. A risk's response or owner that the brief does not state stays blank in the register.
+- **The download holds the paper, its workbook and the PDF.** The workbook is Overview, Work plan, Budget and Risks; a deck is not built for this profile yet, so the proposal ZIP has no `.pptx` and the generic export path is unchanged.
 
 
 

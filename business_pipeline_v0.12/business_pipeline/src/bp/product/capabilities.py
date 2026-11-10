@@ -574,6 +574,28 @@ def catalogue():
     return [dict(entry) for entry in ENTRIES.values()]
 
 
+def data_shapes(schema):
+    """The file shapes a method's input schema can accept."""
+    shapes = set()
+    for spec in (schema or {}).values():
+        kind = str((spec or {}).get("type") or "")
+        if kind in ("decimal", "rate", "integer", "percent", "text", "money", "number", "enum"):
+            shapes.add("cell")
+        elif kind == "value_list" or kind == "decimal_list":
+            shapes.add("column")
+        elif kind == "records":
+            shapes.add("records")
+        elif kind in ("rows", "object"):
+            shapes.add("rows")
+        elif kind in ("count_table", "value_matrix"):
+            shapes.add("count_table")
+        elif kind == "matrix":
+            shapes.add("matrix")
+        elif kind == "engagement_spec":
+            shapes.add("structured")
+    return sorted(shapes)
+
+
 def entry(key):
     found = ENTRIES.get(str(key or "").strip().lower())
     if not found:

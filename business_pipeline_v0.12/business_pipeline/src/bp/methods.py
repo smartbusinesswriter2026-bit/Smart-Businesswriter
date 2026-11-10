@@ -113,6 +113,11 @@ def _check(key, v, spec):
     t, errs = spec["type"], []
     try:
         if t == "decimal": _num(v)
+        elif t == "rate": _num(v)
+        elif t == "integer":
+            d = _num(v)
+            if d != d.to_integral_value():
+                errs.append(f"'{key}' must be a whole number")
         elif t == "column_map":
             if not isinstance(v, dict) or not v: return [f"'{key}' must be an object of name -> list of values"]
             if len(v) < spec.get("min_columns", 1): errs.append(f"'{key}' needs at least {spec['min_columns']} columns")
@@ -14514,8 +14519,10 @@ def proforma_statements_impl(inp):
         interest = [D(str(x)) for x in inp["interest"]]
         principal = [D(str(x)) for x in inp["principal_repayment"]]
     capex = [D(str(x)) for x in (inp.get("capex") or ["0"] * periods)]
+    withdrawals = [D(str(x)) for x in (inp.get("owner_withdrawals") or ["0"] * periods)]
     for name, values in (("operating_costs", opex), ("depreciation", dep), ("interest", interest),
-                         ("principal_repayment", principal), ("capex", capex)):
+                         ("principal_repayment", principal), ("capex", capex),
+                         ("owner_withdrawals", withdrawals)):
         _same_length(values, periods, name)
     rate = D(str(inp.get("tax_rate", "0")))
     ar_days = D(str(inp.get("receivable_days", "0")))
@@ -14527,7 +14534,7 @@ def proforma_statements_impl(inp):
         raise DataError("tax_rate must be between zero and one")
     if min(ar_days, inv_days, ap_days) < 0:
         raise DataError("working-capital days must be non-negative")
-    if any(v < 0 for v in revenue + opex + dep + interest + principal + capex):
+    if any(v < 0 for v in revenue + opex + dep + interest + principal + capex + withdrawals):
         raise DataError("revenue and cost figures must be non-negative")
     cash = D(str(inp.get("opening_cash", "0")))
     fixed = D(str(inp.get("opening_fixed_assets", "0")))
@@ -14559,18 +14566,18 @@ def proforma_statements_impl(inp):
         ap_new = cogs * ap_days / D(365)
         cfo = ni + dep[period - 1] - (ar_new - ar) - (inv_new - inventory) + (ap_new - ap)
         cfi = -capex[period - 1]
-        cff = -principal[period - 1]
+        cff = -principal[period - 1] - withdrawals[period - 1]
         net_cash = cfo + cfi + cff
         cash += net_cash
         fixed = fixed + capex[period - 1] - dep[period - 1]
         loan -= principal[period - 1]
         if loan < 0:
             raise DataError("period %d repays more loan than is outstanding" % period)
-        equity += ni
+        equity += ni - withdrawals[period - 1]
         ar, inventory, ap = ar_new, inv_new, ap_new
         cumulative_ni += ni
         row = {"revenue": rev, "gross_profit": gross, "operating_profit": ebit, "interest": interest[period - 1],
-               "principal_repayment": principal[period - 1],
+               "principal_repayment": principal[period - 1], "owner_withdrawals": withdrawals[period - 1],
                "pre_tax_profit": pretax, "tax": tax, "net_income": ni,
                "cash_from_operations": cfo, "cash_from_investing": cfi, "cash_from_financing": cff,
                "net_cash_flow": net_cash, "closing_cash": cash, "receivables": ar, "inventory": inventory,
@@ -14612,6 +14619,7 @@ def proforma_statements_tests(inp, impl):
     periods = len(inp["revenue"])
     margin = D(str(inp.get("gross_margin_rate", "0")))
     rate = D(str(inp.get("tax_rate", "0")))
+    withdrawals = [D(str(x)) for x in (inp.get("owner_withdrawals") or [])]
     checks = [
         ("second_implementation_agrees", _close(base["total_net_income"], ref["total_net_income"], rel=1e-9), "float route agrees with the Decimal route"),
         ("gross_profit_is_revenue_times_the_margin",
@@ -14625,8 +14633,13 @@ def proforma_statements_tests(inp, impl):
          "assets equal liabilities plus equity in each period"),
         ("cash_and_equity_roll_forward",
          _close(base["closing_cash_final"], D(str(inp.get("opening_cash", "0"))) + sum((base["net_cash_flow_%d" % p] for p in range(1, periods + 1)), D(0)))
-         and _close(base["closing_equity_final"], D(str(inp.get("opening_equity", "0"))) + base["total_net_income"]),
+         and _close(base["closing_equity_final"], D(str(inp.get("opening_equity", "0"))) + base["total_net_income"] - sum(withdrawals, D(0))),
          "closing cash and equity are the opening figures plus the flows"),
+        ("owner_withdrawals_are_financing_outflows",
+         all(_close(base["cash_from_financing_%d" % p],
+                    -base["principal_repayment_%d" % p] - (withdrawals[p - 1] if p <= len(withdrawals) else D(0)))
+             for p in range(1, periods + 1)),
+         "withdrawals leave through financing, not through operating cash"),
         ("a_declared_loan_is_repaid_in_full",
          (not _proforma_loan_terms(inp)) or (
              _close(base["loan_%d" % periods], D(0)) and
@@ -14678,6 +14691,9 @@ def proforma_statements_profile(inp):
         capex = inp.get("capex") or []
         if capex and len(capex) != periods:
             return ["capex must have one figure for each period"]
+        withdrawals = inp.get("owner_withdrawals") or []
+        if withdrawals and len(withdrawals) != periods:
+            return ["owner_withdrawals must have one figure for each period"]
         for value in revenue:
             if D(str(value)) < 0:
                 return ["revenue must be non-negative"]
@@ -15193,6 +15209,78 @@ def _pp_template(out, P, th):
 
 # ---------- plan building blocks: escalation, traffic revenue, line totals, payback ----------
 
+def seasonal_series_impl(inp):
+    """Apply a declared seasonal index to a declared base series."""
+    base = [D(str(value)) for value in inp.get("base") or []]
+    index = [D(str(value)) for value in inp.get("index") or []]
+    if not base or not index:
+        raise DataError("base and index are required")
+    if len(base) != len(index):
+        raise DataError("base and index must have the same number of periods")
+    if any(value < 0 for value in base) or any(value < 0 for value in index):
+        raise DataError("base and index figures must be non-negative")
+    values = [amount * factor for amount, factor in zip(base, index)]
+    peak = max(range(len(index)), key=lambda position: index[position]) + 1
+    trough = min(range(len(index)), key=lambda position: index[position]) + 1
+    out = {"total": sum(values, D(0)), "periods": D(len(values)),
+           "average_index": (sum(index, D(0)) / D(len(index))) if index else D(0),
+           "peak_period": D(peak), "trough_period": D(trough)}
+    for position, value in enumerate(values, 1):
+        out["value_%d" % position] = value
+    return out
+
+
+def _seasonal_profile(inp):
+    try:
+        base = inp.get("base") or []
+        index = inp.get("index") or []
+    except AttributeError:
+        return ["seasonal-series inputs are malformed"]
+    if not base or not index:
+        return ["base and index are required"]
+    if len(base) != len(index):
+        return ["base and index must have the same number of periods"]
+    try:
+        if any(D(str(value)) < 0 for value in base + index):
+            return ["base and index figures must be non-negative"]
+    except (InvalidOperation, ValueError, TypeError):
+        return ["base and index must be numbers"]
+    return []
+
+
+def _seasonal_tests(inp, impl):
+    out = impl(inp)
+    base = [D(str(value)) for value in inp["base"]]
+    index = [D(str(value)) for value in inp["index"]]
+    return [
+        ("each_period_is_base_times_index",
+         all(out["value_%d" % position] == base[position - 1] * index[position - 1]
+             for position in range(1, len(base) + 1)),
+         "each period is the base multiplied by its index"),
+        ("total_is_the_sum_of_the_periods",
+         out["total"] == sum(out["value_%d" % position] for position in range(1, len(base) + 1)),
+         "the total foots"),
+        ("a_flat_index_leaves_the_total_unchanged",
+         (index != [D(1)] * len(index)) or out["total"] == sum(base, D(0)),
+         "an index of one changes nothing"),
+    ]
+
+
+def _seasonal_typing(metric):
+    if metric in ("periods", "peak_period", "trough_period"):
+        return ("count", 0)
+    if metric == "average_index":
+        return ("rate", 4)
+    return ("currency", 2)
+
+
+def _seasonal_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("The declared base series becomes a total of " + tok("total") +
+            " under the declared seasonal index; the peak is period " + tok("peak_period") +
+            " and the trough is period " + tok("trough_period") + ".")
+
+
 def escalated_series_impl(inp):
     """A declared amount repeated over periods, stepped by a declared rate.
 
@@ -15452,7 +15540,167 @@ def _payback_template(out, P, th):
             " periods, during period " + tok("recovered_in_period") + ".")
 
 
+# ---------- Quality: FMEA risk priority and the Five-S score (B-256) ----------
+
+def fmea_rpn_impl(inp):
+    values = {}
+    for key in ("severity", "occurrence", "detection"):
+        d = D(str(inp[key]))
+        if d != d.to_integral_value():
+            raise DataError("%s must be a whole number from 1 to 10" % key)
+        if not (D(1) <= d <= D(10)):
+            raise DataError("%s must be from 1 to 10" % key)
+        values[key] = d
+    return {"severity": values["severity"], "occurrence": values["occurrence"],
+            "detection": values["detection"],
+            "rpn": values["severity"] * values["occurrence"] * values["detection"]}
+
+
+def _fmea_ref(inp):
+    s = D(str(inp["severity"])); o = D(str(inp["occurrence"])); d = D(str(inp["detection"]))
+    return {"severity": s, "occurrence": o, "detection": d, "rpn": s * o * d}
+
+
+def fmea_rpn_tests(inp, impl):
+    base, ref = impl(inp), _fmea_ref(inp)
+    s = D(str(inp["severity"])); o = D(str(inp["occurrence"])); d = D(str(inp["detection"]))
+    higher = impl({**inp, "severity": str(min(10, int(s) + 1))})
+    checks = [
+        ("second_implementation_agrees",
+         all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("rpn_is_severity_times_occurrence_times_detection",
+         _close(base["rpn"], s * o * d), "RPN is S x O x D"),
+        ("rpn_lies_between_one_and_one_thousand",
+         D(1) <= base["rpn"] <= D(1000), "the product of three 1-10 scores lies in 1-1000"),
+        ("raising_severity_never_lowers_rpn",
+         higher["rpn"] >= base["rpn"], "a higher severity cannot lower the RPN"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def fmea_rpn_profile(inp):
+    try:
+        for key in ("severity", "occurrence", "detection"):
+            d = D(str(inp.get(key)))
+            if d != d.to_integral_value():
+                return ["%s must be a whole number from 1 to 10" % key]
+            if not (D(1) <= d <= D(10)):
+                return ["%s must be from 1 to 10" % key]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["FMEA scores are malformed: severity, occurrence and detection are required numbers"]
+
+
+def _fmea_typing(metric):
+    if metric == "rpn":
+        return ("count", 0)
+    return ("count", 0)
+
+
+def fmea_rpn_caveats(out, th):
+    return ["The RPN is the product of three declared scores; the scores are judgments about severity, occurrence and detection.",
+            "A severity of 9 or 10 is a priority regardless of the RPN; the product does not let a low RPN hide a safety or regulatory effect.",
+            "The RPN is not a measurement and two different score combinations can share one RPN."]
+
+
+def fmea_rpn_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Severity " + tok("severity") + ", occurrence " + tok("occurrence") +
+            " and detection " + tok("detection") + " give an RPN of " + tok("rpn") + ".")
+
+
+def five_s_score_impl(inp):
+    scores = [D(str(value)) for value in inp["scores"]]
+    maximum = D(str(inp["maximum"]))
+    if not scores:
+        raise DataError("at least one criterion score is required")
+    if maximum <= 0:
+        raise DataError("maximum must be positive")
+    for value in scores:
+        if value < 0 or value > maximum:
+            raise DataError("every score must lie between zero and maximum")
+    total = sum(scores, D(0))
+    max_total = maximum * len(scores)
+    return {"n": D(len(scores)), "total": total, "max_total": max_total,
+            "score_rate": total / max_total}
+
+
+def _five_s_ref(inp):
+    scores = [D(str(value)) for value in inp["scores"]]
+    maximum = D(str(inp["maximum"]))
+    total = sum(scores, D(0))
+    return {"n": D(len(scores)), "total": total, "max_total": maximum * len(scores),
+            "score_rate": total / (maximum * len(scores))}
+
+
+def five_s_score_tests(inp, impl):
+    base, ref = impl(inp), _five_s_ref(inp)
+    scores = [D(str(value)) for value in inp["scores"]]
+    maximum = D(str(inp["maximum"]))
+    checks = [
+        ("second_implementation_agrees",
+         all(_close(base[k], ref[k]) for k in ref), "float route agrees with the Decimal route"),
+        ("total_is_the_sum_of_the_scores",
+         _close(base["total"], sum(scores, D(0))), "the total is the sum of the criterion scores"),
+        ("max_total_is_the_count_times_the_maximum",
+         _close(base["max_total"], maximum * len(scores)), "the maximum total is n x maximum"),
+        ("score_rate_is_the_total_over_the_maximum_total",
+         _close(base["score_rate"], base["total"] / base["max_total"]),
+         "the rate is the total over the maximum total"),
+        ("a_zero_score_gives_zero_percent",
+         _close(impl({"scores": ["0"] * len(scores), "maximum": str(maximum)})["score_rate"], D(0)),
+         "no evidence of the practice scores zero"),
+    ]
+    return [(name, ok) for name, ok, _ in checks]
+
+
+def five_s_score_profile(inp):
+    try:
+        scores = [D(str(value)) for value in inp.get("scores") or []]
+        maximum = D(str(inp.get("maximum")))
+        if not scores:
+            return ["at least one criterion score is required"]
+        if maximum <= 0:
+            return ["maximum must be positive"]
+        if any(value < 0 or value > maximum for value in scores):
+            return ["every score must lie between zero and maximum"]
+        return []
+    except (InvalidOperation, ValueError, TypeError, KeyError):
+        return ["Five-S scores are malformed: a list of scores and a maximum are required"]
+
+
+def _five_s_typing(metric):
+    if metric == "score_rate":
+        return ("rate", 4)
+    return ("count", 0)
+
+
+def five_s_score_caveats(out, th):
+    return ["The score is a declared judgement per criterion; the method adds the criteria and divides by the declared maximum.",
+            "An unassessed criterion must be left out, not scored zero; a zero means no evidence of the practice.",
+            "A higher score is not proof of sustainment; the evidence and the trend across audits carry that."]
+
+
+def five_s_score_template(out, P, th):
+    tok = lambda k: "{{ref:%s:%s:%s}}" % (k, k, P)
+    return ("Across " + tok("n") + " criteria the score is " + tok("total") + " of " +
+            tok("max_total") + ", a rate of " + tok("score_rate") + ".")
+
+
 LIBRARY = {
+    "seasonal_series": Method("seasonal_series", "T1", seasonal_series_impl, _seasonal_tests,
+                  _seasonal_profile, "total", "currency", None,
+                  ("each_period_is_base_times_index", "total_is_the_sum_of_the_periods",
+                   "a_flat_index_leaves_the_total_unchanged"),
+                  category="planning",
+                  intended_use="A declared base series multiplied period by period by a declared seasonal index.",
+                  unsupported_use="Choosing the index; forecasting the base; irregular or negative indices.",
+                  input_schema={"base": {"type": "value_list", "min_items": 1, "desc": "the base amount for each period"},
+                                "index": {"type": "value_list", "min_items": 1, "desc": "the seasonal multiplier for each period, same length as base"}},
+                  defaults=({"question": "Seasonal index", "default_chosen": "The index is applied period by period to the declared base; the index is the student's declaration.", "impact": "A different index redistributes the same annual base."},),
+                  assumptions=("The index is declared, not estimated.",),
+                  limitations=("A seasonal index redistributes the declared base; it does not create demand.",),
+                  default_period="monthly", typing=_seasonal_typing, template=_seasonal_template),
     "escalated_series": Method("escalated_series", "T1", escalated_series_impl, _escalated_tests,
                   _escalated_profile, "total", "currency", None,
                   ("first_value_equals_start", "last_value_follows_the_declared_steps",
@@ -17408,6 +17656,36 @@ LIBRARY = {
                   limitations=("Declared figures only; no market data and no competitor estimate.", "The boundary is the student's and cannot be tested.", "No significance test on a share change and no trend model."),
                   default_period="annual", caveats=market_share_caveats, template=market_share_template,
                   claim_ceiling="descriptive", typing=_market_share_typing),
+    "fmea_rpn": Method("fmea_rpn", "T1", fmea_rpn_impl, fmea_rpn_tests, fmea_rpn_profile,
+                  "rpn", "count", None,
+                  ("second_implementation_agrees", "rpn_is_severity_times_occurrence_times_detection",
+                   "rpn_lies_between_one_and_one_thousand", "raising_severity_never_lowers_rpn"),
+                  category="operations",
+                  intended_use="The Risk Priority Number of one FMEA row, the product of its declared severity, occurrence and detection scores.",
+                  unsupported_use="Choosing the S, O or D scores; the action-priority table; a severity override; re-scoring before the action is implemented; treating the RPN as a measurement or a cutoff.",
+                  input_schema={"severity": {"type": "integer", "desc": "severity score from 1 to 10"},
+                                "occurrence": {"type": "integer", "desc": "occurrence score from 1 to 10"},
+                                "detection": {"type": "integer", "desc": "detection score from 1 to 10"}},
+                  defaults=({"question": "RPN basis", "default_chosen": "RPN = Severity x Occurrence x Detection on the declared 1-10 scales.", "impact": "A different scale or an action-priority table gives a different ranking."},),
+                  assumptions=("Each score uses a written anchor and the same scale for every row.", "The three scores describe one cause of one failure mode."),
+                  limitations=("The scores are judgments; the product does not choose them.", "The RPN hides the severity override; a severity of 9 or 10 is a priority whatever the product.", "No AP table is supplied."),
+                  default_period="per assessment", caveats=fmea_rpn_caveats, template=fmea_rpn_template,
+                  claim_ceiling="descriptive", typing=_fmea_typing),
+    "five_s_score": Method("five_s_score", "T1", five_s_score_impl, five_s_score_tests, five_s_score_profile,
+                  "score_rate", "rate", None,
+                  ("second_implementation_agrees", "total_is_the_sum_of_the_scores",
+                   "max_total_is_the_count_times_the_maximum", "score_rate_is_the_total_over_the_maximum_total",
+                   "a_zero_score_gives_zero_percent"),
+                  category="operations",
+                  intended_use="The total and percentage score of a declared Five-S scorecard, from the criterion scores and the maximum per criterion.",
+                  unsupported_use="Scoring a criterion; excluding an unassessed criterion; trend or comparison across audits; a certification band; weighting one S above another.",
+                  input_schema={"scores": {"type": "value_list", "min_items": 1, "desc": "one score per criterion"},
+                                "maximum": {"type": "decimal", "desc": "the maximum score per criterion"}},
+                  defaults=({"question": "Score aggregation", "default_chosen": "Total = sum of the criterion scores; rate = total / (n x maximum).", "impact": "An average or a weighted total gives a different number; the method states which it used."},),
+                  assumptions=("Every score uses the same anchors and the same maximum.", "An unassessed criterion is absent, not scored zero."),
+                  limitations=("The scores are judgments; the product does not observe the area.", "No banding or certification threshold is invented.", "A single audit is a point in time, not a trend."),
+                  default_period="per audit", caveats=five_s_score_caveats, template=five_s_score_template,
+                  claim_ceiling="descriptive", typing=_five_s_typing),
     "clv_model": Method("clv_model", "T1", clv_model_impl, clv_model_tests, clv_model_profile,
                   "clv_discounted", "currency", None,
                   ("second_implementation_agrees", "undiscounted_value_is_the_closed_form_annuity",
@@ -17882,7 +18160,7 @@ LIBRARY = {
                   ("second_implementation_agrees", "gross_profit_is_revenue_times_the_margin",
                    "net_income_is_operating_profit_less_interest_and_tax",
                    "the_balance_sheet_balances_every_period", "cash_and_equity_roll_forward",
-                   "a_declared_loan_is_repaid_in_full"),
+                   "owner_withdrawals_are_financing_outflows", "a_declared_loan_is_repaid_in_full"),
                   category="business planning",
                   intended_use="Projected income statement, cash flow and balance sheet from declared revenue, margin, costs, depreciation, interest and principal (or a declared opening loan), tax and working-capital days, with the balance check.",
                   unsupported_use="Forecasting demand; deriving revenue; tax rules; dividends; new borrowing; deferred tax; asset disposals; monthly periods; multi-product statements.",
@@ -17896,6 +18174,7 @@ LIBRARY = {
                                 "loan_annual_rate": {"type": "decimal", "required": False, "desc": "optional annual interest rate on the opening loan, e.g. 0.09"},
                                 "loan_years": {"type": "decimal", "required": False, "desc": "optional number of level annual payments; must equal the number of periods"},
                                 "capex": {"type": "value_list", "required": False, "min_items": 1, "desc": "optional capital expenditure each period, default zero"},
+                                "owner_withdrawals": {"type": "value_list", "required": False, "min_items": 1, "desc": "optional owner withdrawals each period, a financing outflow, default zero"},
                                 "tax_rate": {"type": "decimal", "required": False, "desc": "tax rate on positive pre-tax profit, default 0"},
                                 "receivable_days": {"type": "decimal", "required": False, "desc": "receivable days of revenue, default 0"},
                                 "inventory_days": {"type": "decimal", "required": False, "desc": "inventory days of cost of sales, default 0"},
@@ -18009,3 +18288,28 @@ def describe(method_id):
             "assumption_checks": list(m.assumption_check_names), "fallbacks": dict(m.fallbacks), "default_thresholds": dict(m.default_thresholds)}
 
 def list_methods(): return [describe(k) for k in LIBRARY]
+
+try:
+    from . import finance_methods  # noqa: F401 - registers the finance shelf into LIBRARY
+except Exception:
+    pass
+
+
+# Ratified numeric schema for the finance shelf methods named in the schema contract.
+for _mid in ('current_ratio', 'future_value', 'dupont', 'altman_z_score', 'simple_interest', 'wacc_simple', 'npv_simple', 'eps'):
+    _method = LIBRARY.get(_mid)
+    if _method is None:
+        continue
+    for _name, _spec in _method.input_schema.items():
+        if _spec.get('type') != 'string':
+            continue
+        _lower = _name.lower()
+        if _lower in ('cashflows', 'flows', 'returns'):
+            _spec['type'] = 'decimal_list'
+        elif any(_word in _lower for _word in ('rate', 'yield', 'discount', 'growth', 'tax')):
+            _spec['type'] = 'rate'
+        elif any(_word in _lower for _word in ('period', 'year', 'months', 'days')) or _lower in ('n',):
+            _spec['type'] = 'integer'
+        else:
+            _spec['type'] = 'decimal'
+

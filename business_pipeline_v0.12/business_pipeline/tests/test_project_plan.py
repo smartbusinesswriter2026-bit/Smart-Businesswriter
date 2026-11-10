@@ -2,7 +2,11 @@
 
 import unittest
 
+from bp import methods
 from bp.product import project_plan
+
+def _run(name, inputs):
+    return methods.LIBRARY[name].impl(inputs)
 
 
 def record():
@@ -149,6 +153,44 @@ class TableTest(unittest.TestCase):
         grid = figure["grids"][0]["rows"]
         self.assertEqual(grid[0][0]["label"], "ID")
         self.assertEqual(grid[1][1]["bullets"], ["Design"])
+
+
+class LevellingTest(unittest.TestCase):
+
+    def demand_record(self):
+        data = record()
+        data["charter"]["start_date"] = "2026-01-05"
+        data["activities"] = [
+            {"id": "A1", "name": "Draw", "wbs": "1.1", "duration": 5,
+             "predecessors": [], "resource": "Architect", "demand": 1},
+            {"id": "A2", "name": "Permit", "wbs": "1.2", "duration": 3,
+             "predecessors": [], "resource": "Architect", "demand": 1},
+            {"id": "A3", "name": "Fit-out", "wbs": "2.1", "duration": 4,
+             "predecessors": ["A1", "A2"], "resource": "Builder", "demand": 1},
+        ]
+        return data
+
+    def test_levelling_delays_the_second_activity_on_one_resource(self):
+        outcome = project_plan.level(project_plan.normalise(self.demand_record()), _run)
+        self.assertTrue(outcome["ok"], outcome)
+        self.assertGreater(float(outcome["result"]["levelling_delay"]), 0)
+        self.assertEqual(len(project_plan.levelled_rows(
+            project_plan.normalise(self.demand_record()), outcome["result"])), 3)
+
+    def test_a_missing_demand_is_named_not_defaulted(self):
+        data = self.demand_record()
+        del data["activities"][0]["demand"]
+        outcome = project_plan.level(project_plan.normalise(data), _run)
+        self.assertFalse(outcome["ok"])
+        self.assertIn("no declared whole demand", outcome["error"])
+
+    def test_a_dated_schedule_starts_on_the_declared_date(self):
+        data = project_plan.normalise(self.demand_record())
+        outcome = project_plan.dated(data, _run)
+        self.assertTrue(outcome["ok"], outcome)
+        rows = project_plan.dated_rows(data, outcome["result"], data["charter"]["start_date"])
+        self.assertEqual(rows[0][2], "2026-01-05")
+        self.assertTrue(all(row[3] for row in rows), rows)
 
 
 if __name__ == "__main__":

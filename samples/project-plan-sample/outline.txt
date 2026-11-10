@@ -1,0 +1,32 @@
+Body words: 549
+Target: 600
+Range: [540, 660]
+Met: True
+
+Executive Summary and Authorisation
+  This plan authorises Northbridge Community Solar Canopy. Its objective: Install a 120 kW solar canopy over the Northbridge community market car park, reducing the market's grid energy use and providing shaded parking. The sponsor is Northbridge Community Trust. The declared budget is USD 480,000.00. The critical path runs 147 periods, with 12 critical activities. The plan carries the charter, scope, work breakdown, schedule, cost, assignments and risks; a record that is missing is named rather than guessed.
+Project Charter
+  The charter authorises Northbridge Community Solar Canopy under Northbridge Community Trust. The project manager is Project manager. The declared budget is USD 480,000.00. Work starts on 2026-09-01. It is due on 2027-06-30.
+Scope and Exclusions
+  The scope declares 5 included items, 3 exclusions and 4 deliverables. The WBS decomposes the deliverables; the exclusions bound the work the project will not do.
+Work Breakdown Structure
+  The WBS carries 13 nodes and 9 work packages. Each work package states an owner, a cost and the test that shows it is complete; the parent nodes carry the roll-up.
+Schedule
+  The schedule carries 14 activities. The critical path runs 147 periods and carries 12 critical activities. Early and late dates and float are the frozen method's own values; an activity with float is not on the critical path.
+Cost Plan
+  The WBS rolls 13 nodes up to a total of USD 480,000.00. The declared budget is USD 480,000.00; the variance is USD 0.00. A declared contingency of USD 38,400.00 gives USD 518,400.00. Cost is carried by the work package, not by the activity; no estimate is added where the record declares none.
+Organisation and Assignments
+  The plan names 9 resources. Every activity carries exactly one accountable role and at least one responsible role in the RACI matrix; a blank cell or a missing role is a named gap, not an inferred assignment.
+RACI Matrix
+Risk Register
+  The register carries 5 risks. Likelihood and impact are labels, not probabilities, and each risk states a response and an owner. No risk score or expected loss is computed.
+Governance and Change Control
+  Monthly steering group chaired by the Trust; the project manager reports progress, cost and risk. Any change above USD 10,000 or four weeks requires sponsor approval. Decisions above the stated change threshold go to the sponsor; decisions below it stay with the project manager. The plan records the arrangement the student declared and adds no approval route of its own.
+Monitoring and Success Measures
+  Progress is judged against 3 success measures, 2 assumptions and 2 constraints. A success measure without a baseline is reported as stated, not converted into a target.
+Limitations
+  The plan is limited to the record the student supplied. The CPM uses the declared single-point durations; PERT was not run unless the record asks for it. Costs are work-package estimates, not commitments. The plan does not assess procurement, financing or benefits beyond the declared success measures, and it does not rank the risks. The schedule and cost are tied to the WBS as recorded, so a changed scope changes both and must follow the change-control route above. A reader should treat the named gaps as open questions, not as conditions already met.
+Conclusion
+  The plan states what the project delivers, how it is broken down, what it costs, who does the work and what could go wrong. The WBS rolls up to USD 480,000.00 against a declared budget of USD 480,000.00. The critical path is 147 periods over 14 activities.
+References
+  No sources were used.

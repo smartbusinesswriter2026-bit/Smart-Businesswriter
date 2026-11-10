@@ -24,9 +24,14 @@ class ExportBlocked(ValueError):
         super().__init__("Export blocked: " + "; ".join(self.missing))
 
 
-def section(heading, level, lines=None, figure=None):
-    return {"heading": heading, "level": level, "lines": list(lines or []),
+def section(heading, level, lines=None, figure=None, table=None):
+    item = {"heading": heading, "level": level, "lines": list(lines or []),
             "figure": figure or None}
+    # A table is optional: a section without one keeps the old shape, so every
+    # existing caller and stored report is unchanged.
+    if table:
+        item["table"] = table
+    return item
 
 
 def figure_text(figure):
@@ -54,6 +59,37 @@ def paragraph(lines):
 def flatten(sections):
     """The legacy [heading, lines] view used by the existing chat UI."""
     return [[item["heading"], item["lines"]] for item in sections]
+
+
+def table_grid(figure):
+    """The cells of a table figure, or [] when the figure is not a table.
+
+    A cell carries a label or a list of bullets; both are its declared text, so
+    the reader sees the same values the Word file prints.
+    """
+    if not isinstance(figure, dict) or figure.get("kind") != "table":
+        return []
+    rows = []
+    for grid in figure.get("grids") or []:
+        for row in grid.get("rows") or []:
+            cells = []
+            for cell in row or []:
+                if not isinstance(cell, dict):
+                    cells.append(str(cell or ""))
+                    continue
+                text = str(cell.get("label") or "").strip()
+                bullets = [str(item).strip() for item in cell.get("bullets") or [] if str(item).strip()]
+                if bullets:
+                    text = (text + " " + "; ".join(bullets)).strip()
+                cells.append(text)
+            if any(cell.strip() for cell in cells):
+                rows.append(cells)
+    return rows
+
+
+def table_lines(figure):
+    """A table figure as `| ... |` lines, one row per line."""
+    return ["| " + " | ".join(row) + " |" for row in table_grid(figure)]
 
 
 def _contract_missing(state):
@@ -164,6 +200,16 @@ def _plan_missing(state):
     """
     plan = state.get("plan") or {}
     supplied = (state.get("answers") or {}).get("inputs") or {}
+    if (state.get("profile") or "") == "feasibility_study" and state.get("feasibility"):
+        from . import feasibility_plan
+        required = feasibility_plan.validate(feasibility_plan.normalise(state.get("feasibility") or {}))
+        computed = state.get("feasibility_run") or {}
+        if not computed.get("ok"):
+            required.append("the break-even computation: " + str(computed.get("error") or "it did not run"))
+        return required
+    if (state.get("profile") or "") == "project_proposal" and state.get("proposal_record"):
+        from . import proposal_plan
+        return proposal_plan.validate(proposal_plan.normalise(state.get("proposal_record") or {}))
     required = []
     for field in plan.get("fields") or []:
         if field.get("required") and not supplied.get(field.get("key")):
@@ -237,6 +283,12 @@ def check(sections, framework="pestel", implications="", answers=None, state=Non
     for item in sections:
         texts.append(" ".join(item.get("lines") or []))
         texts.append(figure_text(item.get("figure")))
+        # A template instruction must not hide in a table either.
+        table = item.get("table") if isinstance(item, dict) else None
+        if isinstance(table, dict):
+            texts.append(" ".join(str(column) for column in table.get("columns") or []))
+            for row in table.get("rows") or []:
+                texts.append(" ".join(str(cell) for cell in row))
     texts = " ".join(texts).lower()
     for phrase in META:
         if phrase in texts:

@@ -232,3 +232,49 @@ class ParetoTest(unittest.TestCase):
         self.assertEqual(len(series), 4)
         self.assertEqual(str(series[0]["cumulative"]), "42")
         self.assertEqual(series[-1]["cumulative_stored"], "100")
+
+
+class StatisticalChartTest(unittest.TestCase):
+    """Area, scatter and candlestick draw stored values only."""
+
+    def stats_bundle(self):
+        base = bundle()
+        extra = {"open": "100", "high": "120", "low": "90", "close": "110",
+                 "x_ad": "1200", "y_ad": "45000", "x_foot": "800", "y_foot": "30000"}
+        base["delivery"]["appendix"]["artifacts"] += [
+            [key, [key, "entity", "base"], ""] for key in extra]
+        base["reperform"]["outputs"].update(extra)
+        return base
+
+    def test_an_area_chart_draws_a_filled_trend(self):
+        svg = charts.render_svg(bundle(), dict(BAR, kind="area"))
+        ET.fromstring(svg)
+        self.assertIn("<polygon", svg)
+        self.assertIn("50.00", svg)
+
+    def test_a_scatter_chart_draws_points_from_two_stored_values(self):
+        base = self.stats_bundle()
+        spec = {"format": "bp-chart/1", "kind": "scatter", "title": "Ad spend",
+                "series": [{"label": "Ad spend", "artifact": "y_ad", "x_artifact": "x_ad"},
+                           {"label": "Footfall", "artifact": "y_foot", "x_artifact": "x_foot"}]}
+        svg = charts.render_svg(base, spec)
+        ET.fromstring(svg)
+        self.assertIn("<circle", svg)
+        with self.assertRaises(charts.ChartError):
+            charts.render_svg(base, {"format": "bp-chart/1", "kind": "scatter",
+                                     "title": "Ad spend",
+                                     "series": [{"label": "Ad spend", "artifact": "y_ad"}]})
+
+    def test_a_candlestick_draws_four_prices_and_refuses_an_impossible_bar(self):
+        base = self.stats_bundle()
+        spec = {"format": "bp-chart/1", "kind": "candlestick", "title": "Share price",
+                "series": [{"label": "Day one", "artifact": "close", "open": "open",
+                            "high": "high", "low": "low", "close": "close"}]}
+        svg = charts.render_svg(base, spec)
+        ET.fromstring(svg)
+        self.assertIn("<rect", svg)
+        bad = dict(spec)
+        bad["series"] = [{"label": "Day one", "artifact": "close", "open": "high",
+                          "high": "low", "low": "high", "close": "close"}]
+        with self.assertRaises(charts.ChartError):
+            charts.render_svg(base, bad)

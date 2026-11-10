@@ -18,6 +18,7 @@ import datetime
 import json
 import os
 import re
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -482,7 +483,13 @@ def _key(item):
 LEARNING_LOG_URL = os.environ.get("CORPUS_LEARNING_LOG_URL",
                                   "http://127.0.0.1:7710/api/corpus/log")
 #: A test run must not write its fixtures into the real corpus history.
-LEARNING_LOG_ENABLED = os.environ.get("BP_LEARNING_LOG", "1") != "0"
+#: `unittest discover` imports test modules directly, so `tests/__init__.py` is
+#: not guaranteed to run; the guard is here, at the call site.  A parent shell
+#: that exported BP_LEARNING_LOG=1 for the app must not make the suite wait on
+#: the live service (a blocking connect was found in test_people_frameworks).
+_TESTING = "unittest" in sys.modules or "pytest" in sys.modules
+LEARNING_LOG_ENABLED = ((not _TESTING)
+                        and os.environ.get("BP_LEARNING_LOG", "1") != "0")
 
 
 def _log_learning(query="", subject=None, dimension=None, corpus_hits=0,

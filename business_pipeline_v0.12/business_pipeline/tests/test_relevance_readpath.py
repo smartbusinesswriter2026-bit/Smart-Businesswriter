@@ -184,6 +184,61 @@ class ReaderLabelTest(RelevanceTestCase):
         self.assertIn("Ansoff", by_id["framework_ansoff"].get("aliases", []))
 
 
+class VerbatimExcerptTest(RelevanceTestCase):
+    """The excerpt a person quotes must be the passage the page carries.
+
+    The model copies a passage as it reads it, and it reads a list as one
+    line.  The page carries the items on separate lines.  The passage is the
+    same passage, so the check may not throw it away — but the check is
+    still done by code, and still refuses anything the page does not say.
+    """
+
+    def test_a_passage_copied_across_a_line_break_is_accepted(self):
+        page = ("Assessment:\n\n Partial written exam: 40%\n\n"
+                " End-of-term written exam: 40%\n\n Group project: 20%")
+        excerpt = "Partial written exam: 40% End-of-term written exam: 40% Group project: 20%"
+        self.assertTrue(reader._verify_excerpt_verbatim(excerpt, page))
+
+    def test_a_passage_the_page_does_not_carry_is_refused(self):
+        page = ("Assessment:\n\n Partial written exam: 40%\n\n"
+                " End-of-term written exam: 40%\n\n Group project: 20%")
+        self.assertFalse(reader._verify_excerpt_verbatim(
+            "Partial written exam: 60% Group project: 40%", page))
+        self.assertFalse(reader._verify_excerpt_verbatim(
+            "The final grade is 100% coursework.", page))
+
+    def test_a_paraphrase_is_refused(self):
+        """The words must be the page's, in the page's order."""
+        page = "The final grade consists of a written exam and a group project."
+        self.assertFalse(reader._verify_excerpt_verbatim(
+            "The grade is made of an exam and a project.", page))
+
+    def test_an_empty_excerpt_is_refused(self):
+        self.assertFalse(reader._verify_excerpt_verbatim("", "some text here"))
+
+    def test_the_excerpt_the_model_chose_is_kept(self):
+        """The reader must not fall back to the navigation menu."""
+        page = ("Strategy and Innovation\n\n"
+                " This course teaches the Business Model Canvas and the Ansoff "
+                "Growth Matrix.\n\n"
+                " Partial written exam: 40%\n\n"
+                " End-of-term written exam: 40%\n\n"
+                " Group project: 20%")
+        excerpt = "Partial written exam: 40% End-of-term written exam: 40% Group project: 20%"
+        record, error = reader.snapshot_to_evidence(
+            {"url": "https://www.example-school.edu/course",
+             "domain": "www.example-school.edu",
+             "fetched_at": "2026-11-10T00:00:00+00:00",
+             "sha256": "0" * 64,
+             "paywalled": False,
+             "_text": page},
+            excerpt=excerpt, use_model=False)
+        self.assertEqual(error, "")
+        self.assertIsNotNone(record)
+        self.assertIn("Partial written exam", record.excerpt)
+        self.assertNotIn("Skip to main content", record.excerpt)
+
+
 class ControlSeesThePageTest(RelevanceTestCase):
     """The control set must hold when the sweep read the name."""
 

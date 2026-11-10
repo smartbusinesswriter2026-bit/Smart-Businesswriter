@@ -317,6 +317,146 @@ A profile that is incomplete is refused by `profile_for`, so the framework falls
 back to its plain worksheet rather than producing a generic paper with the
 framework's name on it. Do not bypass that refusal.
 
+### 6.4 Writing modules: the analytical guideline
+
+A framework whose analysis must follow the owner's guideline
+(`docs/FRAMEWORK_WRITING_GUIDELINES.md`) declares a `writing` block in its
+profile.  The engine is shared; the profile supplies the words.  A profile
+without `writing` keeps the old outline exactly.
+
+The block declares:
+
+| Key | What it holds |
+|---|---|
+| `module` | the module id the audit branches on (`five_forces`, `generic_strategies`, `porters_diamond`) |
+| `scale` | `intensity` (Low/Moderate/High), `fit` (Strong/Partial/Weak/None) or `condition` (Advantage/Neutral/Disadvantage) |
+| `rating_label` | the word the paper prints before the value (`Rating`, `Fit`, `Condition`) |
+| `sections` | the ordered parts: `scope`, `outcome`, `summary`, `dimensions`, `synthesis`, `forward`, `coherence`, `stuck`, `assessment`, `implications`, `limitations`, `conclusion`, `audit` |
+| `section_heads` | the heading for each part |
+| `extra_sections` | the parts the model returns beyond `discussion`/`implications` |
+| `summary_columns`, `audit_columns` | the declared table columns |
+| `conventions` | the tier/recency/strength note printed under the audit |
+| `drivers` | the guideline's driver checklist per dimension |
+| `mid_directive` | what the synthesis call must return in its extra sections |
+
+The reading is a judgment, not a fact.  It is returned in the **same** section
+call as the prose and validated by `framework_writing.validate_reading`:
+
+- the value must be on the profile's scale;
+- every driver that is a fact or inference must name an accepted item;
+- a judgment driver may not cite an item as its evidence;
+- no number, name, link or citation outside the items;
+- `so_what`, `rationale` and `confidence_reason` are required;
+- an empty dimension gets no reading.
+
+A refused reading is dropped and stored as `reading: {status: "absent",
+reason: ...}`; the deterministic draft remains the fallback.  A reading is
+`proposed` until the student confirms, overrides or drops it
+(`POST /api/cases/frameworks/readings`), and the paper prints the status.
+
+The code builds the summary table and the evidence-audit table (claim, part,
+source ID, tier, recency, type, strength, causal link, notes), the coverage,
+triangulation, quantification, bias, contradiction and gap checks, and the
+verdict.  The tier, 3-year recency and strength rules are **product
+conventions**, printed in the audit note so a reader can challenge them; the
+default for an unknown source is C, never A.
+
+The unit rules: Five Forces is an industry; Generic Strategies is a firm or
+business unit in its market; the Diamond is a nation or region and its industry
+(`Global` is refused).
+
+**Adding a writing module.** Add the `writing` block to the profile, its driver
+checklist, its `mid_directive` and its columns; add the guide's output order to
+`sections`.  Do not add a branch to `completion.py`, `api.py` or the page.  Add
+tests for: the section order, the summary table, the reading paragraph, the
+audit rows and verdict, an empty dimension, and the scale refusal.  A profile
+that declares a scale the engine does not know is refused.
+
+### 6.5 Portfolio, growth and canvas modules
+
+The same `writing` mechanism covers the second and third owner instruction sets:
+Ansoff, BCG, GE-McKinsey, ERRC, the Business Model Canvas, the Lean Canvas and
+the Value Proposition Canvas.
+
+**H is a claim type.** `framework_writing.CLAIM_TYPES` is `F/I/J/H`. An H driver
+must carry `test`, the cheapest test that would confirm or reject it; an H
+without a test is refused. The audit prints H in the Type column, and the module
+may print an **assumption register** (`writing.register_columns`): a row per H
+driver with the assumption, block, why it matters, evidence so far, test and
+confidence.
+
+**Calculations are the core's.** BCG and GE-McKinsey do not compute in the
+product. `framework_calc` calls the frozen core:
+
+| Need | Core method | Output |
+|---|---|---|
+| relative share | `market_share` | `relative_market_share` |
+| market growth | `growth_rate` | `cagr` |
+| weighted axis score | `weighted_summary` | `weighted_mean` |
+
+`portfolio_reader` reads the unit table from the brief (Unit / Market / Growth /
+Own share / Top competitor share / Revenue) and names a missing figure.
+`framework_calc` classifies the BCG quadrant (`growth >= cutoff`, relative share
+`>= 1.0`) and the GE zone from the declared cutoffs. The model reads the
+calculation record and never divides, averages or scores.
+
+**Canvas layouts** are data in `matrix.LAYOUTS`: the BMC, Lean and VPC grids are
+drawn by the existing renderer. A profile without a layout keeps the
+block-by-block paper.
+
+**Units.** Ansoff: a firm/business unit in its market. BCG/GE: a portfolio.
+ERRC: a focal offering in its industry. Canvases: one business, idea or segment.
+A missing unit is refused with the module's own sentence.
+
+**Adding a portfolio or canvas module.** Add the `writing` block, the driver
+checklist, the section heads, the summary/audit columns and, where it applies,
+`register_columns`, `extra_sections` and `mid_directive`. Add the layout to
+`matrix.LAYOUTS` if the framework is a grid. Do not add a branch to
+`completion.py`, `api.py` or the page. Tests: the section order, the summary
+table, the register, the unit refusal, the canvas grid, and — for BCG/GE — a
+calculation record produced by the core and never by the model.
+
+### 6.6 Quality modules, worksheets and framework charts
+
+The fourth owner guideline (RCA, FMEA, PDCA, Five-S) adds two shared parts.
+
+**Tables.** A module may include `tables` in its `writing.sections`. The model
+returns `tables` as a list of `{heading, columns, rows}`; `clean_tables` drops a
+malformed table (a row that does not fill the columns) rather than printing it
+half-built. The paper prints one H2 per table. The worksheet is not evidence by
+itself: its cells are scanned for template text, and the evidence audit remains
+the place where a claim is graded.
+
+**The quality figures are the core's.** `fmea_rpn` multiplies the declared
+severity, occurrence and detection scores; `five_s_score` adds the criterion
+scores and divides by the declared maximum. `quality_reader.py` reads the FMEA
+worksheet, the Five-S scorecard and the PDCA measure table from the brief and
+names a missing column; `framework_calc.fmea`/`five_s` call the core, rank the
+RPN into a pareto and the S scores into a bar. The model interprets the record;
+it never computes RPN or a score.
+
+**Charts.** A module declares `chart` and a digit-free `chart_caption`, includes
+`chart` in `sections`, and the model (or the calculation adapter) returns
+`{kind, title, points}` or `{kind, title, root, children}` for a tree.
+`framework_figures.py` is the only builder; it calls the existing modules:
+
+| Kind | Existing module | Use |
+|---|---|---|
+| bar, line, pie, pareto, waterfall, stacked bar | `visuals` + `charts` | a scorecard, an RPN ranking, a measure series |
+| tree | `diagrams` | a why-chain |
+| matrix grids | `matrix` | Ansoff, BCG, GE, ERRC and the canvases |
+
+A chart may plot only a value the record holds; a pareto needs a cumulative for
+every point. The figure is stamped with a digest, and Word embeds the PNG or
+falls back to the value table. A framework with no numeric record prints one
+sentence, never an empty figure.
+
+**Cross-framework.** BCG plots relative share by unit and GE plots attractiveness
+by unit from the frozen calculation rows. The matrix frameworks keep their grid.
+Adding a chart to another framework is a profile change (`chart`,
+`chart_caption`, `chart` in `sections`) and a chart record; it is never a new
+renderer or a branch in the page.
+
 ## 7. Adding a computation (checklist)
 
 A computation is a **capability**, not a step. The paper carries one only when

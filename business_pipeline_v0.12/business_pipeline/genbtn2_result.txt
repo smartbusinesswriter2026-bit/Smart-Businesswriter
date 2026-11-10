@@ -1,0 +1,1 @@
+"healFreeGen').addEventListener('click', async () => {\n  let instruction = document.getElementById('healInstruction').value.trim();\n  const count = parseInt(document.getElementById('healCount').value) "

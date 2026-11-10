@@ -74,6 +74,7 @@
     {
       "id": "framework_bcg",
       "label": "BCG Growth-Share Matrix",
+      "aliases": ["Growth-Share Matrix", "Growth Share Matrix", "BCG matrix", "BCG portfolio matrix"],
       "family": "analytical_report",
       "artefact": "bcg",
       "artefact_type": "framework",
@@ -92,6 +93,7 @@
     {
       "id": "framework_errc",
       "label": "ERRC (Blue Ocean element)",
+      "aliases": ["Blue Ocean", "Blue Ocean Strategy", "ERRC grid"],
       "family": "analytical_report",
       "artefact": "errc",
       "artefact_type": "framework",

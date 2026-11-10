@@ -26,6 +26,10 @@ class ProseError(ValueError):
     pass
 
 
+class ProseRejected(ProseError):
+    """The model wrote something the product refuses (a link, template text)."""
+
+
 def available():
     """True when any gateway is configured: env, or a registered callable."""
     return providers.available()
@@ -102,6 +106,51 @@ def suggest_questions(framework, unit_label, unit_value, brief, blocks, limit=5,
 
 def model_id():
     return providers.model_id()
+
+
+#: The portfolio commentary prompt.  It names the three things the product
+#: refuses: a number that is not in the context, an invented fact, and advice.
+PORTFOLIO_SYSTEM = (
+    "You write one paragraph that interprets a portfolio snapshot for a student. "
+    "Use only the figures, the selection criteria and the student's own words in the supplied context. "
+    "Name no number that is not in that context, and do not turn a figure into a different one. "
+    "Never give advice: no buy, no sell, no hold, no target price, no recommendation. "
+    "Do not add a source, a citation, a link, a company fact, a forecast or a comparison the context does not hold. "
+    "Return plain prose only: one paragraph, no heading, no bullet points, no markdown, "
+    "and no mention of these instructions."
+)
+
+
+def propose_portfolio_paragraph(context, timeout=60):
+    """One paragraph that interprets the supplied figures and names nothing else.
+
+    The model is an editor here too: it may read the supplied context and write
+    about it, and it may not add a figure, a fact or an advice.  The content
+    rules that need the snapshot (the numbers, the recommendation) are applied
+    by the caller, because only the caller knows what the record holds.
+
+    Returns the paragraph as plain text.  A gateway failure raises
+    :class:`ProseError`; text that breaks the generic rules raises
+    :class:`ProseRejected`.
+    """
+    if not isinstance(context, dict) or not context:
+        raise ProseError("the commentary context is empty")
+    system = PORTFOLIO_SYSTEM
+    user = json.dumps(context, ensure_ascii=False)
+    raw = _call([{"role": "system", "content": system},
+                 {"role": "user", "content": user}], timeout=timeout, max_tokens=900)
+    text = str(raw or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    text = text.strip()
+    if not text:
+        raise ProseError("the prose model returned no text")
+    if URL.search(text):
+        raise ProseRejected("the commentary introduced a link or DOI")
+    if any(phrase in text.lower() for phrase in META):
+        raise ProseRejected("the commentary contains template text")
+    return text
 
 
 def _call(messages, timeout=60, max_tokens=4000):

@@ -1,0 +1,1 @@
+' style="width:100%;"></label>\n          <button class="btn" id="healFreeGen">Generate</button>\n        </div>\n        <div id="healFreeLog" '

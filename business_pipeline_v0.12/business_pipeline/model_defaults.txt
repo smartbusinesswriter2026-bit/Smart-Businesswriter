@@ -1,0 +1,3 @@
+﻿src/bp/product/prose.py 19 : DEFAULT_MODEL = "deepseek-v4.1-flash"
+src/bp/product/prose.py 99 : return os.environ.get("BP_PROSE_MODEL") or os.environ.get("BP_LLM_MODEL", DEFAULT_MODEL)
+src/bp/llm.py 91 : separate DeepSeek account. Model ids are the OpenCode Go catalog (e.g. deepseek-v4.1-flash, deepseek-v4-pro)."""

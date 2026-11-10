@@ -1,0 +1,4 @@
+﻿39 : body = json.dumps({"model": self.model, "max_tokens": int(max_tokens), "temperature": 0, "system": system, "messages": [
+46 : try: text = "".join(b["text"] for b in data["content"] if b.get("type") == "text")
+65 : "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}).encode()
+75 : text = data["choices"][0]["message"]["content"]

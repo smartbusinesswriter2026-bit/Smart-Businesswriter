@@ -30,6 +30,12 @@ def web(query, region="Global", limit=10, category=None, fast=False):
 
 
 def complete(template, **kwargs):
+    # The corrected units: Ansoff is one firm, BCG/GE one portfolio.  The
+    # matrix test is about the grid, so it names the unit the profile requires.
+    if template == "template_ansoff":
+        kwargs.setdefault("unit_value", "Kestrel Retail")
+    elif template in ("template_bcg", "template_ge_mckinsey"):
+        kwargs.setdefault("unit_value", "Kestrel Retail group")
     with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
             mock.patch("bp.product.sources.search_web", side_effect=web):
         return completion.complete(template, kwargs.pop("instruction", BRIEF),

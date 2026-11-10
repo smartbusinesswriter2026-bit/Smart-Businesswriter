@@ -42,6 +42,18 @@ ALLOWED = {
     "OPENALEX_EMAIL": "BP_OPENALEX_EMAIL",
     "CROSSREF_MAILTO": "BP_CROSSREF_MAILTO",
     "FIRECRAWL_KEYLESS": "BP_FIRECRAWL_KEYLESS",
+    # Relevance Research Agent: the external sensing loop's provider, its
+    # default model and the three per-stage models (D-4).  A stage variable
+    # wins over the default, so two stages can read and write with different
+    # models.
+    "BP_RELEVANCE_PROVIDER": "BP_RELEVANCE_PROVIDER",
+    "BP_RELEVANCE_MODEL": "BP_RELEVANCE_MODEL",
+    "BP_RELEVANCE_DISCOVERY_MODEL": "BP_RELEVANCE_DISCOVERY_MODEL",
+    "BP_RELEVANCE_EXTRACT_MODEL": "BP_RELEVANCE_EXTRACT_MODEL",
+    "BP_RELEVANCE_DESIGN_MODEL": "BP_RELEVANCE_DESIGN_MODEL",
+    "BP_RELEVANCE_AUTOSTART": "BP_RELEVANCE_AUTOSTART",
+    "BP_RELEVANCE_MAX_PAGES": "BP_RELEVANCE_MAX_PAGES",
+    "BP_RELEVANCE_BUDGET_TOKENS": "BP_RELEVANCE_BUDGET_TOKENS",
     # Payments. The client id is public (the browser SDK loads it); the secret never leaves the server.
     "PAYPAL_CLIENT_ID": "BP_PAYPAL_CLIENT_ID",
     "PAYPAL_CLIENT_SECRET": "BP_PAYPAL_CLIENT_SECRET",

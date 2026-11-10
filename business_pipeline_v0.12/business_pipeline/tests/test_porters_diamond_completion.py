@@ -1,9 +1,12 @@
-"""Porters Diamond completion: growth options on a market, one cell at a time.
+"""Porter's Diamond completion: a nation's industry, one determinant at a time.
 
-The behaviour the Five Forces and PESTEL builds proved, applied to the Porters Diamond
-Growth Matrix: four cells, sourced items or a named gap with a probe, an
-industry as the unit of analysis, one paper, and a refusal rather than a thin
-paper.  The framework supplies everything; the engine is unchanged.
+The behaviour the Five Forces and PESTEL builds proved, applied to Porter's
+Diamond: four determinants plus government and chance, sourced items or a named
+gap with a probe, **the nation/region and its industry** as the unit of
+analysis, one paper, and a refusal rather than a thin paper.  The unit was
+corrected from a bare industry because the Diamond explains why an industry in a
+place is competitive (owner guideline, 2026-11-09).  The framework supplies
+everything; the engine is unchanged.
 """
 
 import unittest
@@ -14,10 +17,12 @@ sys.path.insert(0, "src")
 
 from bp.product import api, completion  # noqa: E402
 
-BRIEF = ("A smartphoneser is reviewing growth options before deciding whether "
-         "to open a new store format or launch a private-label range.")
+BRIEF = ("Kestrel Retail is reviewing its grocery retail position in Germany before "
+         "deciding whether to expand.")
 
-INDUSTRY = "smartphones"
+COUNTRY = "Germany"
+
+INDUSTRY = "grocery retail"
 
 
 def academic(query, databases=None, limit=10, year_from=None):
@@ -43,6 +48,7 @@ def complete(**kwargs):
     with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
             mock.patch("bp.product.sources.search_web", side_effect=web):
         return completion.complete("template_porters_diamond", kwargs.pop("instruction", BRIEF),
+                                   country=kwargs.pop("country", COUNTRY),
                                    industry=kwargs.pop("industry", INDUSTRY), **kwargs)
 class PortersDiamondCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
@@ -60,16 +66,30 @@ class PortersDiamondCompletionTest(unittest.TestCase):
                     self.assertTrue(item["source"], block["key"])
                     self.assertTrue(item["citation"], block["key"])
 
-    def test_the_industry_is_the_unit_of_analysis(self):
+    def test_the_nation_and_its_industry_are_the_unit_of_analysis(self):
         result = complete()
-        self.assertEqual(result["unit"]["field"], "industry")
-        self.assertEqual(result["unit"]["value"], INDUSTRY)
-        self.assertTrue(result["blocks"][0]["query"].startswith(INDUSTRY + " "))
+        self.assertEqual(result["unit"]["field"], "country_industry")
+        self.assertEqual(result["unit"]["country"], COUNTRY)
+        self.assertEqual(result["unit"]["industry"], INDUSTRY)
+        self.assertIn(COUNTRY, result["unit"]["value"])
+        self.assertIn(INDUSTRY, result["unit"]["value"])
+        self.assertIn(COUNTRY, result["blocks"][0]["query"])
+        self.assertIn(INDUSTRY, result["blocks"][0]["query"])
+
+    def test_a_brief_without_a_country_is_refused_with_an_actionable_reason(self):
+        with self.assertRaises(ValueError) as refused:
+            complete(instruction="A firm is weighing growth options.", country="")
+        self.assertIn("country", str(refused.exception).lower())
 
     def test_a_brief_without_an_industry_is_refused_with_an_actionable_reason(self):
         with self.assertRaises(ValueError) as refused:
             complete(instruction="A firm is weighing growth options.", industry="")
-        self.assertIn("market", str(refused.exception).lower())
+        self.assertIn("industry", str(refused.exception).lower())
+
+    def test_global_is_not_a_nation_for_the_diamond(self):
+        with self.assertRaises(ValueError) as refused:
+            complete(country="Global")
+        self.assertIn("global", str(refused.exception).lower())
 
     def test_one_source_cannot_fill_two_cells(self):
         result = complete()
@@ -85,7 +105,8 @@ class PortersDiamondCompletionTest(unittest.TestCase):
             return {"results": [], "errors": [], "skipped": []}
         with mock.patch("bp.product.sources.search_academic", side_effect=empty_academic), \
                 mock.patch("bp.product.sources.search_web", side_effect=web):
-            result = completion.complete("template_porters_diamond", BRIEF, industry=INDUSTRY)
+            result = completion.complete("template_porters_diamond", BRIEF,
+                                         country=COUNTRY, industry=INDUSTRY)
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -131,6 +152,7 @@ class PortersDiamondCompletionTest(unittest.TestCase):
             status, payload = api.handle("POST", "/api/cases/frameworks/complete",
                                          {"template": "template_porters_diamond",
                                           "instruction": BRIEF,
+                                          "country": COUNTRY,
                                           "industry": INDUSTRY})
         self.assertEqual(status, 200)
         self.assertEqual(payload["template"], "template_porters_diamond")
@@ -142,6 +164,7 @@ class PortersDiamondCompletionTest(unittest.TestCase):
         self.assertIn("Porters Diamond", system)
         self.assertNotIn("PESTEL", system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
+        self.assertIn("country", system.lower())
         self.assertIn("industry", system.lower())
 
     def test_the_framework_name_is_not_an_invented_name(self):
@@ -152,8 +175,8 @@ class PortersDiamondCompletionTest(unittest.TestCase):
                 "lead": "lead", "groups": {"factor_conditions": ["Market penetration matters."]},
                 "discussion": [""], "implications": [""], "limitations": [""], "conclusion": [""]}
         allow = completion._allowed_names(completion._profile("template_porters_diamond"),
-                                          {"unit": {"value": INDUSTRY}, "region": "Global"})
-        problems = completion._problems(data, facts, "A case in smartphones.", "short",
+                                          {"unit": {"value": COUNTRY}, "region": "Europe"})
+        problems = completion._problems(data, facts, "A case in Germany.", "short",
                                         ["factor_conditions"], allow=allow)
         self.assertFalse([p for p in problems if p.startswith("name Porters Diamond")
                           or p.startswith("name Growth") or p.startswith("name Matrix")], problems)

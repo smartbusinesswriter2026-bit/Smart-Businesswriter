@@ -214,6 +214,12 @@ class PlanDoorContractTest(unittest.TestCase):
         self.assertIn('startPlan("strict", button.dataset.planProfile)', self.html)
         self.assertNotIn('$("#subjectplan")', self.html)
 
+    def test_the_start_box_carries_the_door_profile_once(self):
+        body = self.html.split("async function startChat()", 1)[1].split("async function reviseChat", 1)[0]
+        self.assertIn("if (state.planDoor)", body)
+        self.assertIn("body.profile = state.planDoor", body)
+        self.assertIn("state.planDoor = null", body)
+
     def test_the_panel_heading_follows_the_document_that_is_open(self):
         self.assertIn("titleNode.textContent = composed || planProfile().label", self.html)
         self.assertIn('const titleNode = $("#plan-title")', self.html)

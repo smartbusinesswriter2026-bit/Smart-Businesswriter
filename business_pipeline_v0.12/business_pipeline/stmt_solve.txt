@@ -1,0 +1,130 @@
+﻿101 :         raise CoreNotAttached("the statements tile is not attached to the frozen core (" + name + "); "
+102 :                               "start the workbench with python -m bp.server, which attaches it")
+103 :     return fn
+104 : 
+105 : 
+106 : def attached():
+107 :     """Whether the tile can run: the solver and the diagnosis are the minimum."""
+108 :     return "solve" in _CORE and "diagnose" in _CORE
+109 : 
+110 : 
+111 : #: Detection cues.  A trial balance is tested **before** adjustments, because a stated balance sheet
+112 : #: and profit-and-loss is a trial balance whatever words its account names contain ("accumulated
+113 : #: depreciation" is a balance, not an adjustment).  The cue that fired is recorded and shown.
+114 : CUES = (
+115 :     ("incomplete_records", (r"\bincomplete records\b", r"\bsingle entry\b", r"\bstatement of affairs\b",
+116 :                             r"\bfind the (capital|drawings|profit)\b", r"\bmissing (capital|drawings)\b")),
+117 :     ("trial_balance", (r"\btrial balance\b", r"\bthe following balances?\b", r"\bextracted at\b")),
+118 :     ("adjustments", (r"\baccrued\b", r"\baccruals?\b", r"\bprepaid\b", r"\bin advance\b", r"\bowing\b",
+119 :                      r"\bdepreciate\b|\bdepreciating\b", r"\bcharge depreciation\b",
+120 :                      r"\bdepreciation (charge|expense|for the year)\b", r"\bbad debts?\b",
+121 :                      r"\bprovision for\b", r"\badjust(ing)? entries?\b")),
+122 :     ("transactions", (r"\bstarted (?:\w+\s+)?(?:with|business)\b", r"\bbought\b", r"\bsold\b", r"\bpaid\b",
+123 :                       r"\breceived\b", r"\bon credit\b", r"\bpurchased\b")),
+124 : )
+125 : 
+126 : #: The chart vocabulary: (label pattern, type, section, statement line, role, activity, contra).
+127 : #: Order is the ranking when a label matches more than once: the earlier rule is the literal
+128 : #: standard reading (a loan is a liability before it is capital).  A label that matches nothing is
+129 : #: reported, never guessed.
+130 : _RULES_SEED = (
+131 :     (r"^(cash|bank|cash at bank|bank account|bank current account)$", "asset", "current", "Cash", "cash", "operating", False),
+132 :     (r"^(trade receivables?|receivables?|debtors?|accounts? receivable|sundry debtors|a/?r)$", "asset", "current", "Trade receivables", "", "operating", False),
+133 :     (r"^(inventor(y|ies)|stock|closing stock)$", "asset", "current", "Inventory", "", "operating", False),
+134 :     (r"^(prepayments?|prepaid\b.*)$", "asset", "current", "Prepayments", "", "operating", False),
+135 :     (r"^(equipment|vehicles?|machinery|furniture|land|buildings?|plant|motor vehicles?|office equipment|freehold property)$",
+136 :      "asset", "non_current", "Property, plant and equipment", "", "investing", False),
+137 :     (r"^(accumulated depreciation\b.*|provision for depreciation\b.*)$",
+138 :      "asset", "non_current", "Property, plant and equipment", "", "investing", True),
+139 :     (r"\bloan\b", "liability", "non_current", "Borrowings", "", "financing", False),
+140 :     (r"^(trade payables?|payables?|creditors?|accounts? payable|sundry creditors|a/?p)$", "liability", "current", "Trade payables", "", "operating", False),
+141 :     (r"^(accrued expenses?|accruals?|accrued\b.*)$", "liability", "current", "Accruals", "", "operating", False),
+142 :     (r"\bowner'?s?\b", "equity", "", "Capital", "capital", "financing", False),
+143 :     (r"^(capital|share capital|equity|owner'?s? capital)$", "equity", "", "Capital", "capital", "financing", False),
+144 :     (r"^(retained earnings?|accumulated (profit|earnings)|revenue reserve)(\s*\(.*\))?$", "equity", "", "Retained earnings", "retained_earnings", "", False),
+145 : (r"^(supplies|prepaid supplies|supplies on hand)$", "asset", "current", "Supplies", "", "operating", False),
+146 : (r"^(unearned revenue|deferred revenue|unearned income)(\s*\(.*\))?$", "liability", "current", "Accruals", "", "operating", False),
+147 : (r"^(notes payable|notes payable.*|long.term (debt|notes? payable)|long.term debt)(\s*\(.*\))?$", "liability", "non_current", "Borrowings", "", "financing", False),
+148 : (r"^(common stock|share capital|capital stock)(\s*\(.*\))?$", "equity", "", "Capital", "capital", "financing", False),
+149 :     (r"^(drawings?|dividends?)$", "equity", "", "Dividends", "dividends", "financing", True),
+150 :     (r"^(sales|revenue|turnover|fees earned|service revenue)$", "income", "", "Revenue", "", "operating", False),
+151 :     (r"^(other income|other gains?|interest income|income|gains?|gain on .+|other .* income|other .* gains?)$",
+152 :      "income", "", "Other income", "", "operating", False),
+153 :     (r"^(purchases?|cost of (sales|goods sold)|cogs)$", "expense", "", "Cost of sales", "", "operating", False),
+154 :     (r"^(interest\b.*|loan interest)$", "expense", "", "Interest expense", "", "operating", False),
+155 :     (r"^(finance costs?|financial (expenses?|charges)|bank charges?)$", "expense", "", "Finance costs", "", "operating", False),
+156 :     # The operating expenses are separate accounts, not one catch-all line: Salaries and
+157 :     # Rent are different things, and a statement that cannot tell them apart cannot show
+158 :     # a reader what the business spent money on.
+159 :     (r"^(rent|rental|rent expense)$", "expense", "", "Rent expense", "", "operating", False),
+160 :     (r"^(salaries|salary|wages|staff costs?|salaries and wages)( expense)?$", "expense", "", "Salaries expense", "", "operating", False),
+161 :     (r"^(utilities|utilities expense|electricity|water)$", "expense", "", "Utilities expense", "", "operating", False),
+162 :     (r"^(insurance|insurance expense)$", "expense", "", "Insurance expense", "", "operating", False),
+163 :     (r"^(advertising|advertising expense|marketing)$", "expense", "", "Advertising expense", "", "operating", False),
+164 :     (r"^(depreciation|depreciation expense)$", "expense", "", "Depreciation", "", "operating", False),
+165 :     (r"^(bad debts?|bad debt expense|provision for doubtful debts)$", "expense", "", "Bad debts", "", "operating", False),
+166 :     (r"^(general expenses?|general expense)$", "expense", "", "General expenses", "", "operating", False),
+167 :     (r"^(operating expenses?|operating expense)$", "expense", "", "Operating expenses", "", "operating", False),
+168 :     (r"^(telephone|telephone expense|phone)$", "expense", "", "Telephone expense", "", "operating", False),
+169 :     (r"^(transport|transport expense|delivery)$", "expense", "", "Transport expense", "", "operating", False),
+170 :     (r"^(repairs?|repairs and maintenance)$", "expense", "", "Repairs expense", "", "operating", False),
+171 :     (r"^(stationery|stationery expense|office supplies)$", "expense", "", "Stationery expense", "", "operating", False),
+172 :     (r"^supplies expense$", "expense", "", "Supplies expense", "", "operating", False),
+173 :     (r"^(fuel|fuel expense)$", "expense", "", "Fuel expense", "", "operating", False),
+174 :     (r"^(travel|travel expense)$", "expense", "", "Travel expense", "", "operating", False),
+175 :     (r"^(other expenses?|costs?|expenses?)$", "expense", "", "Other expenses", "", "operating", False),
+176 : )
+177 : 
+178 : from . import tier1_tables as _t1
+179 : RULES = _t1.get_rules() or _RULES_SEED
+180 : 
+181 : #: Internal chart codes.  The statements print the `line`, never the code, so these are
+182 : #: house-keeping rather than a numbering convention the student has to match.
+183 : CODE_FOR_LINE = {"Cash": "1000", "Trade receivables": "1100", "Inventory": "1200", "Prepayments": "1300",
+184 :                  "Supplies": "1350", "Property, plant and equipment": "1500", "Trade payables": "2000",
+185 :                  "Accruals": "2300", "Borrowings": "2100", "Capital": "3000", "Retained earnings": "3100",
+186 :                  "Dividends": "3200", "Revenue": "4000", "Other income": "4050", "Cost of sales": "5000",
+187 :                  "Operating expenses": "5100", "Telephone expense": "6010", "Transport expense": "6020",
+188 :                  "Repairs expense": "6030", "Stationery expense": "6040", "Fuel expense": "6050",
+189 :                  "Travel expense": "6060", "Salaries expense": "6100", "Rent expense": "6200",
+190 :                  "Utilities expense": "6250", "Insurance expense": "6300", "Advertising expense": "6350",
+191 :                  "Depreciation": "6400", "Bad debts": "6500", "General expenses": "6600",
+192 :                  "Other expenses": "5300", "Finance costs": "5200", "Interest expense": "7100",
+193 :                  "Supplies expense": "6550"}
+194 : 
+195 : MONTHS = {m: i + 1 for i, m in enumerate(("january february march april may june july august september "
+196 :                                           "october november december").split())}
+197 : MONEY = re.compile(r"-?\d[\d,]*(?:\.\d+)?")
+198 : 
+199 : 
+200 : def _sentence(text, position):
+201 :     """The sentence around a match, so the tile can quote the cue it acted on."""
+202 :     start = max(text.rfind(".", 0, position), text.rfind("\n", 0, position)) + 1
+203 :     end = text.find(".", position)
+204 :     return text[start:end + 1 if end != -1 else len(text)].strip()[:240]
+205 : 
+206 : 
+207 : def blocked_cue(text):
+208 :     """A currency or place the product does not use, or None."""
+209 :     match = BLOCKED.search(text or "")
+210 :     return match.group(0) if match else None
+211 : 
+212 : 
+213 : def currency_of(text, declared=None):
+214 :     """The case currency: declared, else USD.  A foreign code is refused by `read`."""
+215 :     if declared:
+216 :         return str(declared).strip().upper()
+217 :     return DEFAULT_CURRENCY
+218 : 
+219 : 
+220 : def classify(text):
+221 :     """(problem_type, cue, sentence) ΓÇö the first group that fires wins, and the cue is recorded."""
+222 :     # A trial balance carries Dr/Cr markers.  If the text has them, it is a trial balance
+223 :     # regardless of what the cue patterns say (account names like "Depreciation expense"
+224 :     # can match adjustment cues).
+225 :     import re as _re
+226 :     if _re.search(r"\d[\d,]*(?:\.\d+)?\s*(?:Dr|Cr)\.?(?=\s|$|[;,.])", text, _re.I):
+227 :         return "trial_balance", "trial balance", "the instruction carries Dr/Cr markers"
+228 :     for kind, patterns in CUES:
+229 :         for pattern in patterns:
+230 :             match = re.search(pattern, text, re.I)

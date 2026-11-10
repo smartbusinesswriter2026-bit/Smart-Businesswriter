@@ -1,0 +1,541 @@
+{
+  "charter": {
+    "title": "Northbridge Community Solar Canopy",
+    "objective": "Install a 120 kW solar canopy over the Northbridge community market car park, reducing the market's grid energy use and providing shaded parking.",
+    "sponsor": "Northbridge Community Trust",
+    "project_manager": "Project manager",
+    "scope_in": [
+      "Canopy structure",
+      "Solar array",
+      "Battery storage",
+      "Grid connection",
+      "Community information board"
+    ],
+    "scope_out": [
+      "Car park resurfacing",
+      "Market building retrofit",
+      "Electric vehicle chargers"
+    ],
+    "deliverables": [
+      "Permit and grid approval",
+      "Canopy structure",
+      "Solar and battery installation",
+      "Commissioning and handover"
+    ],
+    "success_measures": [
+      "120 kW peak capacity",
+      "Handover by 30 June 2027",
+      "Grid import reduced by 30% in the first year"
+    ],
+    "budget_total": 480000,
+    "currency": "USD",
+    "start_date": "2026-09-01",
+    "end_date": "2027-06-30",
+    "governance": "Monthly steering group chaired by the Trust; the project manager reports progress, cost and risk.",
+    "change_control": "Any change above USD 10,000 or four weeks requires sponsor approval.",
+    "assumptions": [
+      "The car park remains open during construction.",
+      "The grid offer is available within twelve weeks."
+    ],
+    "constraints": [
+      "No work during market trading hours.",
+      "Handover before 30 June 2027."
+    ]
+  },
+  "wbs": [
+    {
+      "id": "1",
+      "parent": null,
+      "level": 1,
+      "name": "Permits and approvals",
+      "acceptance": "",
+      "owner": "",
+      "cost": 0
+    },
+    {
+      "id": "1.1",
+      "parent": "1",
+      "level": 2,
+      "name": "Site survey and structural assessment",
+      "acceptance": "Signed survey report",
+      "owner": "Structural engineer",
+      "cost": 18000
+    },
+    {
+      "id": "1.2",
+      "parent": "1",
+      "level": 2,
+      "name": "Planning and grid application",
+      "acceptance": "Planning consent and grid offer",
+      "owner": "Permitting consultant",
+      "cost": 22000
+    },
+    {
+      "id": "2",
+      "parent": null,
+      "level": 1,
+      "name": "Canopy structure",
+      "acceptance": "",
+      "owner": "",
+      "cost": 0
+    },
+    {
+      "id": "2.1",
+      "parent": "2",
+      "level": 2,
+      "name": "Foundation and steel frame",
+      "acceptance": "Structural inspection certificate",
+      "owner": "Civil contractor",
+      "cost": 145000
+    },
+    {
+      "id": "2.2",
+      "parent": "2",
+      "level": 2,
+      "name": "Canopy roof and drainage",
+      "acceptance": "Weathertight sign-off",
+      "owner": "Roofing contractor",
+      "cost": 68000
+    },
+    {
+      "id": "3",
+      "parent": null,
+      "level": 1,
+      "name": "Solar and storage",
+      "acceptance": "",
+      "owner": "",
+      "cost": 0
+    },
+    {
+      "id": "3.1",
+      "parent": "3",
+      "level": 2,
+      "name": "PV modules and inverters",
+      "acceptance": "Array test report",
+      "owner": "Electrical contractor",
+      "cost": 132000
+    },
+    {
+      "id": "3.2",
+      "parent": "3",
+      "level": 2,
+      "name": "Battery storage",
+      "acceptance": "Capacity test",
+      "owner": "Electrical contractor",
+      "cost": 64000
+    },
+    {
+      "id": "3.3",
+      "parent": "3",
+      "level": 2,
+      "name": "Grid connection and metering",
+      "acceptance": "Utility connection approval",
+      "owner": "Electrical contractor",
+      "cost": 21000
+    },
+    {
+      "id": "4",
+      "parent": null,
+      "level": 1,
+      "name": "Handover",
+      "acceptance": "",
+      "owner": "",
+      "cost": 0
+    },
+    {
+      "id": "4.1",
+      "parent": "4",
+      "level": 2,
+      "name": "Commissioning and safety checks",
+      "acceptance": "Commissioning certificate",
+      "owner": "Commissioning lead",
+      "cost": 6000
+    },
+    {
+      "id": "4.2",
+      "parent": "4",
+      "level": 2,
+      "name": "Community information board",
+      "acceptance": "Board installed and signed off",
+      "owner": "Community liaison",
+      "cost": 4000
+    }
+  ],
+  "activities": [
+    {
+      "id": "A1",
+      "name": "Site survey",
+      "wbs": "1.1",
+      "duration": 10,
+      "predecessors": [],
+      "resource": "Structural engineer"
+    },
+    {
+      "id": "A2",
+      "name": "Structural assessment",
+      "wbs": "1.1",
+      "duration": 8,
+      "predecessors": [
+        "A1"
+      ],
+      "resource": "Structural engineer"
+    },
+    {
+      "id": "A3",
+      "name": "Planning application",
+      "wbs": "1.2",
+      "duration": 20,
+      "predecessors": [
+        "A2"
+      ],
+      "resource": "Permitting consultant"
+    },
+    {
+      "id": "A4",
+      "name": "Grid application",
+      "wbs": "1.2",
+      "duration": 15,
+      "predecessors": [
+        "A2"
+      ],
+      "resource": "Permitting consultant"
+    },
+    {
+      "id": "A5",
+      "name": "Foundation",
+      "wbs": "2.1",
+      "duration": 25,
+      "predecessors": [
+        "A3"
+      ],
+      "resource": "Civil contractor"
+    },
+    {
+      "id": "A6",
+      "name": "Steel frame",
+      "wbs": "2.1",
+      "duration": 20,
+      "predecessors": [
+        "A5"
+      ],
+      "resource": "Civil contractor"
+    },
+    {
+      "id": "A7",
+      "name": "Roof and drainage",
+      "wbs": "2.2",
+      "duration": 12,
+      "predecessors": [
+        "A6"
+      ],
+      "resource": "Roofing contractor"
+    },
+    {
+      "id": "A8",
+      "name": "PV procurement",
+      "wbs": "3.1",
+      "duration": 30,
+      "predecessors": [
+        "A4"
+      ],
+      "resource": "Electrical contractor"
+    },
+    {
+      "id": "A9",
+      "name": "PV installation",
+      "wbs": "3.1",
+      "duration": 18,
+      "predecessors": [
+        "A7",
+        "A8"
+      ],
+      "resource": "Electrical contractor"
+    },
+    {
+      "id": "A10",
+      "name": "Battery installation",
+      "wbs": "3.2",
+      "duration": 12,
+      "predecessors": [
+        "A9"
+      ],
+      "resource": "Electrical contractor"
+    },
+    {
+      "id": "A11",
+      "name": "Grid connection",
+      "wbs": "3.3",
+      "duration": 10,
+      "predecessors": [
+        "A10"
+      ],
+      "resource": "Electrical contractor"
+    },
+    {
+      "id": "A12",
+      "name": "Commissioning",
+      "wbs": "4.1",
+      "duration": 6,
+      "predecessors": [
+        "A11"
+      ],
+      "resource": "Commissioning lead"
+    },
+    {
+      "id": "A13",
+      "name": "Information board",
+      "wbs": "4.2",
+      "duration": 4,
+      "predecessors": [
+        "A12"
+      ],
+      "resource": "Community liaison"
+    },
+    {
+      "id": "A14",
+      "name": "Handover",
+      "wbs": "4.1",
+      "duration": 2,
+      "predecessors": [
+        "A12",
+        "A13"
+      ],
+      "resource": "Project manager"
+    }
+  ],
+  "resources": [
+    {
+      "name": "Project manager",
+      "role": "Management",
+      "capacity": 1
+    },
+    {
+      "name": "Sponsor",
+      "role": "Sponsorship",
+      "capacity": 1
+    },
+    {
+      "name": "Structural engineer",
+      "role": "Design",
+      "capacity": 1
+    },
+    {
+      "name": "Permitting consultant",
+      "role": "Permits",
+      "capacity": 1
+    },
+    {
+      "name": "Civil contractor",
+      "role": "Build",
+      "capacity": 2
+    },
+    {
+      "name": "Roofing contractor",
+      "role": "Build",
+      "capacity": 1
+    },
+    {
+      "name": "Electrical contractor",
+      "role": "Electrical",
+      "capacity": 2
+    },
+    {
+      "name": "Commissioning lead",
+      "role": "Commissioning",
+      "capacity": 1
+    },
+    {
+      "name": "Community liaison",
+      "role": "Engagement",
+      "capacity": 1
+    }
+  ],
+  "raci": [
+    {
+      "activity": "A1",
+      "role": "Design",
+      "letter": "R"
+    },
+    {
+      "activity": "A1",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A2",
+      "role": "Design",
+      "letter": "R"
+    },
+    {
+      "activity": "A2",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A3",
+      "role": "Permits",
+      "letter": "R"
+    },
+    {
+      "activity": "A3",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A4",
+      "role": "Permits",
+      "letter": "R"
+    },
+    {
+      "activity": "A4",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A5",
+      "role": "Build",
+      "letter": "R"
+    },
+    {
+      "activity": "A5",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A6",
+      "role": "Build",
+      "letter": "R"
+    },
+    {
+      "activity": "A6",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A7",
+      "role": "Build",
+      "letter": "R"
+    },
+    {
+      "activity": "A7",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A8",
+      "role": "Electrical",
+      "letter": "R"
+    },
+    {
+      "activity": "A8",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A9",
+      "role": "Electrical",
+      "letter": "R"
+    },
+    {
+      "activity": "A9",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A10",
+      "role": "Electrical",
+      "letter": "R"
+    },
+    {
+      "activity": "A10",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A11",
+      "role": "Electrical",
+      "letter": "R"
+    },
+    {
+      "activity": "A11",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A12",
+      "role": "Commissioning",
+      "letter": "R"
+    },
+    {
+      "activity": "A12",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A13",
+      "role": "Engagement",
+      "letter": "R"
+    },
+    {
+      "activity": "A13",
+      "role": "Management",
+      "letter": "A"
+    },
+    {
+      "activity": "A14",
+      "role": "Management",
+      "letter": "R"
+    },
+    {
+      "activity": "A14",
+      "role": "Sponsorship",
+      "letter": "A"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R1",
+      "description": "Planning consent is delayed beyond the assumed twelve weeks.",
+      "likelihood": "Medium",
+      "impact": "High",
+      "response": "Pre-application meeting and a four-week buffer in the schedule.",
+      "owner": "Project manager"
+    },
+    {
+      "id": "R2",
+      "description": "The grid operator offers less export capacity than requested.",
+      "likelihood": "Medium",
+      "impact": "High",
+      "response": "Submit the grid application early and hold a battery-only fallback.",
+      "owner": "Electrical contractor"
+    },
+    {
+      "id": "R3",
+      "description": "Steel prices rise before the supply contract is signed.",
+      "likelihood": "High",
+      "impact": "Medium",
+      "response": "Fix the steel price before the planning decision.",
+      "owner": "Project manager"
+    },
+    {
+      "id": "R4",
+      "description": "High wind stops crane work.",
+      "likelihood": "Medium",
+      "impact": "Medium",
+      "response": "Weather window in the schedule; no lifting in high wind.",
+      "owner": "Civil contractor"
+    },
+    {
+      "id": "R5",
+      "description": "Market traders object to lost parking during construction.",
+      "likelihood": "Low",
+      "impact": "High",
+      "response": "Two community information sessions before construction starts.",
+      "owner": "Community liaison"
+    }
+  ],
+  "options": {
+    "pert": false,
+    "contingency_pct": 8
+  }
+}

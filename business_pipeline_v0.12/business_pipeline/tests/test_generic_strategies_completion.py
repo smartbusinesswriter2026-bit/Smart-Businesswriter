@@ -1,9 +1,12 @@
-"""Generic Strategies completion: growth options on a market, one cell at a time.
+"""Generic Strategies completion: a firm's position, one strategy at a time.
 
-The behaviour the Five Forces and PESTEL builds proved, applied to the Generic Strategies
-Growth Matrix: four cells, sourced items or a named gap with a probe, an
-industry as the unit of analysis, one paper, and a refusal rather than a thin
-paper.  The framework supplies everything; the engine is unchanged.
+The behaviour the Five Forces and PESTEL builds proved, applied to Porter's
+generic strategies: four strategies, sourced items or a named gap with a probe,
+**the firm or business unit in its market** as the unit of analysis, one paper,
+and a refusal rather than a thin paper.  The unit was corrected from an industry
+to a firm because a generic strategy is chosen by a business unit, not by an
+industry (owner guideline, 2026-11-09).  The framework supplies everything; the
+engine is unchanged.
 """
 
 import unittest
@@ -14,10 +17,12 @@ sys.path.insert(0, "src")
 
 from bp.product import api, completion  # noqa: E402
 
-BRIEF = ("A smartphoneser is reviewing growth options before deciding whether "
-         "to open a new store format or launch a private-label range.")
+BRIEF = ("Kestrel Retail, a grocery retailer, is reviewing its competitive position "
+         "before deciding whether to open a new store format or launch a private-label range.")
 
-INDUSTRY = "smartphones"
+FIRM = "Kestrel Retail"
+
+MARKET = "grocery retail"
 
 
 def academic(query, databases=None, limit=10, year_from=None):
@@ -43,7 +48,8 @@ def complete(**kwargs):
     with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
             mock.patch("bp.product.sources.search_web", side_effect=web):
         return completion.complete("template_generic_strategies", kwargs.pop("instruction", BRIEF),
-                                   industry=kwargs.pop("industry", INDUSTRY), **kwargs)
+                                   unit_value=kwargs.pop("unit_value", FIRM),
+                                   industry=kwargs.pop("industry", MARKET), **kwargs)
 class GenericStrategiesCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
         result = complete()
@@ -59,13 +65,19 @@ class GenericStrategiesCompletionTest(unittest.TestCase):
                     self.assertTrue(item["source"], block["key"])
                     self.assertTrue(item["citation"], block["key"])
 
-    def test_the_industry_is_the_unit_of_analysis(self):
+    def test_the_firm_and_its_market_are_the_unit_of_analysis(self):
         result = complete()
-        self.assertEqual(result["unit"]["field"], "industry")
-        self.assertEqual(result["unit"]["value"], INDUSTRY)
-        self.assertTrue(result["blocks"][0]["query"].startswith(INDUSTRY + " "))
+        self.assertEqual(result["unit"]["field"], "firm")
+        self.assertEqual(result["unit"]["value"], FIRM)
+        self.assertEqual(result["unit"]["market"], MARKET)
+        self.assertIn(MARKET, result["blocks"][0]["query"])
 
-    def test_a_brief_without_an_industry_is_refused_with_an_actionable_reason(self):
+    def test_a_brief_without_a_firm_is_refused_with_an_actionable_reason(self):
+        with self.assertRaises(ValueError) as refused:
+            complete(instruction="A firm is weighing growth options.", unit_value="")
+        self.assertIn("firm", str(refused.exception).lower())
+
+    def test_a_brief_without_a_market_is_refused_with_an_actionable_reason(self):
         with self.assertRaises(ValueError) as refused:
             complete(instruction="A firm is weighing growth options.", industry="")
         self.assertIn("market", str(refused.exception).lower())
@@ -84,7 +96,8 @@ class GenericStrategiesCompletionTest(unittest.TestCase):
             return {"results": [], "errors": [], "skipped": []}
         with mock.patch("bp.product.sources.search_academic", side_effect=empty_academic), \
                 mock.patch("bp.product.sources.search_web", side_effect=web):
-            result = completion.complete("template_generic_strategies", BRIEF, industry=INDUSTRY)
+            result = completion.complete("template_generic_strategies", BRIEF,
+                                         unit_value=FIRM, industry=MARKET)
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -130,7 +143,8 @@ class GenericStrategiesCompletionTest(unittest.TestCase):
             status, payload = api.handle("POST", "/api/cases/frameworks/complete",
                                          {"template": "template_generic_strategies",
                                           "instruction": BRIEF,
-                                          "industry": INDUSTRY})
+                                          "unit": FIRM,
+                                          "industry": MARKET})
         self.assertEqual(status, 200)
         self.assertEqual(payload["template"], "template_generic_strategies")
 
@@ -141,7 +155,8 @@ class GenericStrategiesCompletionTest(unittest.TestCase):
         self.assertIn("Generic Strategies", system)
         self.assertNotIn("PESTEL", system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
-        self.assertIn("industry", system.lower())
+        self.assertIn("firm", system.lower())
+        self.assertIn("market", system.lower())
 
     def test_the_framework_name_is_not_an_invented_name(self):
         facts = completion._facts([{
@@ -151,8 +166,8 @@ class GenericStrategiesCompletionTest(unittest.TestCase):
                 "lead": "lead", "groups": {"low_cost": ["Market penetration matters."]},
                 "discussion": [""], "implications": [""], "limitations": [""], "conclusion": [""]}
         allow = completion._allowed_names(completion._profile("template_generic_strategies"),
-                                          {"unit": {"value": INDUSTRY}, "region": "Global"})
-        problems = completion._problems(data, facts, "A case in smartphones.", "short",
+                                          {"unit": {"value": FIRM}, "region": "Global"})
+        problems = completion._problems(data, facts, "A case in groceries.", "short",
                                         ["low_cost"], allow=allow)
         self.assertFalse([p for p in problems if p.startswith("name Generic Strategies")
                           or p.startswith("name Growth") or p.startswith("name Matrix")], problems)

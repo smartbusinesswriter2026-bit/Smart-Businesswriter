@@ -59,13 +59,38 @@ def _tier_for_domain(domain):
     return TIER_T3
 
 
+def _collapse_whitespace(value):
+    """Reduce every run of whitespace to a single space.
+
+    The model copies a passage as it reads it, and it reads a list as one
+    line: the page carries ``Partial written exam: 40%`` and
+    ``End-of-term written exam: 40%`` on separate lines, and the model
+    returns them separated by a space.  The passage is the same passage.
+    Comparing the two with the line breaks intact rejected it, and the
+    reader fell back to the opening words — which on a course catalogue
+    are the navigation menu, not the assessment rule.
+    """
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
 def _verify_excerpt_verbatim(excerpt, snapshot_text):
-    """Check that the excerpt appears verbatim in the snapshot text."""
+    """Check that the excerpt appears verbatim in the snapshot text.
+
+    "Verbatim" means **the same words, in the same order, unchanged** — not
+    a paraphrase and not an invention.  It does not mean "with the page's
+    line breaks in the same places": the page's own layout is not part of
+    what the reader quoted, and a passage the model copied across a line
+    break is still that passage.  So the comparison is made on whitespace
+    collapsed, and every other character still has to match.
+    """
     excerpt = str(excerpt or "").strip()
     text = str(snapshot_text or "")
     if not excerpt:
         return False
-    return excerpt in text
+    if excerpt in text:
+        return True
+    # The same words, the page's line breaks normalised away.
+    return _collapse_whitespace(excerpt) in _collapse_whitespace(text)
 
 
 def _html_to_text(raw):
@@ -128,8 +153,11 @@ def _model_excerpt(page_text, url):
     if not isinstance(topics, list):
         topics = []
     topics = [str(t).strip().lower() for t in topics if str(t).strip()][:8]
-    # The excerpt must be a literal substring of the page text.
-    if excerpt and excerpt not in text:
+    # The excerpt must be a literal passage of the page.  A passage the
+    # model copied across a line break is still that passage, so the check
+    # is the same one the reader makes, with the page's line breaks
+    # normalised away.
+    if excerpt and not _verify_excerpt_verbatim(excerpt, text):
         return "", topics
     return excerpt, topics
 

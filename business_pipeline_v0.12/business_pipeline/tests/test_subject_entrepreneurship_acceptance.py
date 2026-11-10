@@ -516,10 +516,11 @@ class WorksheetTest(unittest.TestCase):
         self.assertIsNone(re.search(r"\d", re.sub(r"\{\{ref:[^}]*\}\}", "",
                                                   result["narrative"])))
 
-    def test_e_ent_084__the_blue_ocean_grid_is_offered_but_not_draftable(self):
+    def test_e_ent_084__the_blue_ocean_grid_is_offered_and_draftable(self):
         row = next(w for w in SHELF["worksheets"] if w["catalogue_id"] == "STR-13")
         self.assertEqual(row["template"], "template_blue_ocean_errc")
-        self.assertFalse(row["draftable"], "the ERRC grid has no draft button, by design")
+        self.assertTrue(row["draftable"],
+                        "the ERRC writing module drafts the four actions and the register")
         self.assertTrue(self._run("template_blue_ocean_errc")["narrative"])
 
     def test_e_ent_085__the_marketing_plan_belongs_to_the_marketing_shelf_alone(self):

@@ -365,9 +365,9 @@ class HarnessHygieneTest(unittest.TestCase):
     def test_E_calc_025__the_library_and_the_frozen_fixture_are_the_numbers_measured(self):
         fixture = json.load(open(os.path.join(ROOT, "tests", "fixtures", "frozen_contract.json"),
                                  encoding="utf-8"))
-        self.assertEqual(len(LIBRARY), 215)
+        self.assertEqual(len(LIBRARY), 218)
         self.assertEqual(len(server.PRESETS), 144)
-        self.assertEqual(len(fixture["methods"]), 215)
+        self.assertEqual(len(fixture["methods"]), 218)
         self.assertEqual(len(fixture["presets"]), 144)
         for method_id in {tool["method"] for tool in tools()}:
             if method_id == COMPOSITE:

@@ -1,0 +1,1 @@
+'  log.scrollTop = log.scrollHeight;\n});\n\nasync function genF'

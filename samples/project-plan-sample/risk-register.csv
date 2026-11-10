@@ -1,0 +1,6 @@
+id,description,likelihood,impact,response,owner
+R1,Planning consent is delayed beyond the assumed twelve weeks.,Medium,High,Pre-application meeting and a four-week buffer in the schedule.,Project manager
+R2,The grid operator offers less export capacity than requested.,Medium,High,Submit the grid application early and hold a battery-only fallback.,Electrical contractor
+R3,Steel prices rise before the supply contract is signed.,High,Medium,Fix the steel price before the planning decision.,Project manager
+R4,High wind stops crane work.,Medium,Medium,Weather window in the schedule; no lifting in high wind.,Civil contractor
+R5,Market traders object to lost parking during construction.,Low,High,Two community information sessions before construction starts.,Community liaison

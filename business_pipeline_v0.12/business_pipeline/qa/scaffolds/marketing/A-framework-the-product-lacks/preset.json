@@ -1,0 +1,9 @@
+{
+ "format": "bp-tile-preset/1",
+ "subject": "marketing",
+ "tile": "A-framework-the-product-lacks",
+ "status": "PROVISIONAL - generated scaffold, not wired into the running system",
+ "objective": "The product has no framework for this analysis.",
+ "inputs": {},
+ "note": "declare the figures the method needs; leave an input out rather than invent it"
+}

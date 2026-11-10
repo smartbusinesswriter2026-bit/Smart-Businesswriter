@@ -2,8 +2,10 @@
 
 The behaviour the Five Forces and PESTEL builds proved, applied to the GE-McKinsey
 Growth Matrix: four cells, sourced items or a named gap with a probe, an
-industry as the unit of analysis, one paper, and a refusal rather than a thin
-paper.  The framework supplies everything; the engine is unchanged.
+**the portfolio or corporation** as the unit of analysis, one paper, and a
+refusal rather than a thin paper.  The unit was corrected from an industry
+because GE-McKinsey assesses the units of one portfolio (owner guideline,
+2026-11-09).  The framework supplies everything; the engine is unchanged.
 """
 
 import unittest
@@ -18,6 +20,7 @@ BRIEF = ("A smartphoneser is reviewing growth options before deciding whether "
          "to open a new store format or launch a private-label range.")
 
 INDUSTRY = "smartphones"
+PORTFOLIO = "Kestrel Retail group"
 
 
 def academic(query, databases=None, limit=10, year_from=None):
@@ -43,6 +46,7 @@ def complete(**kwargs):
     with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
             mock.patch("bp.product.sources.search_web", side_effect=web):
         return completion.complete("template_ge_mckinsey", kwargs.pop("instruction", BRIEF),
+                                   unit_value=kwargs.pop("unit_value", PORTFOLIO),
                                    industry=kwargs.pop("industry", INDUSTRY), **kwargs)
 class GEMcKinseyCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
@@ -60,32 +64,34 @@ class GEMcKinseyCompletionTest(unittest.TestCase):
                     self.assertTrue(item["source"], block["key"])
                     self.assertTrue(item["citation"], block["key"])
 
-    def test_the_industry_is_the_unit_of_analysis(self):
+    def test_the_portfolio_is_the_unit_of_analysis(self):
         result = complete()
-        self.assertEqual(result["unit"]["field"], "industry")
-        self.assertEqual(result["unit"]["value"], INDUSTRY)
-        self.assertTrue(result["blocks"][0]["query"].startswith(INDUSTRY + " "))
+        self.assertEqual(result["unit"]["field"], "business")
+        self.assertEqual(result["unit"]["value"], PORTFOLIO)
 
-    def test_a_brief_without_an_industry_is_refused_with_an_actionable_reason(self):
+    def test_a_brief_without_a_portfolio_is_refused_with_an_actionable_reason(self):
         with self.assertRaises(ValueError) as refused:
-            complete(instruction="A firm is weighing growth options.", industry="")
-        self.assertIn("market", str(refused.exception).lower())
+            complete(instruction="A firm is weighing growth options.", unit_value="")
+        self.assertIn("portfolio", str(refused.exception).lower())
 
     def test_one_source_cannot_fill_two_cells(self):
         result = complete()
-        sources = set()
+        sources = []
         for block in result["blocks"]:
             for item in block["items"]:
                 if item.get("provenance") == "sourced":
-                    sources.add(item.get("source"))
-        self.assertEqual(len(sources), len(result["blocks"]))
+                    sources.append(item.get("source"))
+        # The invariant is uniqueness, not that every cell found a source: a
+        # portfolio run may legitimately leave a cell a named gap.
+        self.assertEqual(len(sources), len(set(sources)))
 
     def test_no_source_run_fills_every_cell_with_background(self):
         def empty_academic(query, databases=None, limit=10, year_from=None):
             return {"results": [], "errors": [], "skipped": []}
         with mock.patch("bp.product.sources.search_academic", side_effect=empty_academic), \
                 mock.patch("bp.product.sources.search_web", side_effect=web):
-            result = completion.complete("template_ge_mckinsey", BRIEF, industry=INDUSTRY)
+            result = completion.complete("template_ge_mckinsey", BRIEF,
+                                         unit_value=PORTFOLIO, industry=INDUSTRY)
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -131,6 +137,7 @@ class GEMcKinseyCompletionTest(unittest.TestCase):
             status, payload = api.handle("POST", "/api/cases/frameworks/complete",
                                          {"template": "template_ge_mckinsey",
                                           "instruction": BRIEF,
+                                          "unit": PORTFOLIO,
                                           "industry": INDUSTRY})
         self.assertEqual(status, 200)
         self.assertEqual(payload["template"], "template_ge_mckinsey")
@@ -142,7 +149,7 @@ class GEMcKinseyCompletionTest(unittest.TestCase):
         self.assertIn("GE-McKinsey", system)
         self.assertNotIn("PESTEL", system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
-        self.assertIn("industry", system.lower())
+        self.assertIn("portfolio", system.lower())
 
     def test_the_framework_name_is_not_an_invented_name(self):
         facts = completion._facts([{
@@ -152,7 +159,7 @@ class GEMcKinseyCompletionTest(unittest.TestCase):
                 "lead": "lead", "groups": {"high_high": ["Market penetration matters."]},
                 "discussion": [""], "implications": [""], "limitations": [""], "conclusion": [""]}
         allow = completion._allowed_names(completion._profile("template_ge_mckinsey"),
-                                          {"unit": {"value": INDUSTRY}, "region": "Global"})
+                                          {"unit": {"value": PORTFOLIO}, "region": "Global"})
         problems = completion._problems(data, facts, "A case in smartphones.", "short",
                                         ["high_high"], allow=allow)
         self.assertFalse([p for p in problems if p.startswith("name GE-McKinsey")

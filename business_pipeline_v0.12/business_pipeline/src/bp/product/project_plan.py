@@ -8,8 +8,8 @@ cost, duration, date, owner or probability; a missing one is a named problem.
 The record is one object::
 
     {
-      "charter": {"title", "objective", "sponsor", "scope_in", "scope_out",
-                  "deliverables", "success_measures", "budget_total",
+      "charter": {"title", "objective", "sponsor", "project_manager", "scope_in",
+                  "scope_out", "deliverables", "success_measures", "budget_total",
                   "start_date", "end_date", "assumptions", "constraints",
                   "governance", "change_control"},
       "wbs": [{"id", "parent", "level", "name", "acceptance", "owner", "cost"}],
@@ -26,6 +26,8 @@ cost is refused because the parent's cost is the sum of its children.
 """
 
 import copy
+import re
+from datetime import date, timedelta
 
 FORMAT = "bp-project-plan/1"
 CURRENCY_DEFAULT = "USD"
@@ -37,8 +39,8 @@ def empty():
     """A blank record with the shape the composer expects."""
     return {
         "format": FORMAT,
-        "charter": {"title": "", "objective": "", "sponsor": "", "scope_in": [],
-                    "scope_out": [], "deliverables": [], "success_measures": [],
+        "charter": {"title": "", "objective": "", "sponsor": "", "project_manager": "",
+                    "scope_in": [], "scope_out": [], "deliverables": [], "success_measures": [],
                     "budget_total": 0, "currency": CURRENCY_DEFAULT,
                     "start_date": "", "end_date": "", "assumptions": [],
                     "constraints": [], "governance": "", "change_control": ""},
@@ -61,6 +63,21 @@ def _items(value, limit=40):
 def _number(value):
     try:
         return float(str(value or "0").replace(",", "").strip() or 0)
+    except (TypeError, ValueError):
+        return None
+
+
+def _declared(value):
+    """A number the record states, or None when the cell is blank.
+
+    Unlike `_number`, a blank cell is not zero: a missing demand or capacity must
+    stay missing so it can be named instead of silently satisfied.
+    """
+    text = str(value if value is not None else "").strip().replace(",", "")
+    if not text:
+        return None
+    try:
+        return float(text)
     except (TypeError, ValueError):
         return None
 
@@ -107,6 +124,7 @@ def normalise(record):
             "duration": _number(row.get("duration")),
             "predecessors": [_text(p, 20) for p in (preds or []) if _text(p, 20)],
             "resource": _text(row.get("resource"), 120),
+            "demand": _declared(row.get("demand")),
             "optimistic": _number(row.get("optimistic")),
             "most_likely": _number(row.get("most_likely")),
             "pessimistic": _number(row.get("pessimistic")),
@@ -116,7 +134,7 @@ def normalise(record):
         })
     base["resources"] = [{"name": _text(row.get("name"), 120),
                           "role": _text(row.get("role"), 120),
-                          "capacity": _number(row.get("capacity"))}
+                          "capacity": _declared(row.get("capacity"))}
                          for row in source.get("resources") or [] if isinstance(row, dict)]
     base["raci"] = [{"activity": _text(row.get("activity"), 20),
                      "role": _text(row.get("role"), 120),
@@ -332,6 +350,228 @@ def schedule(record, run):
         return {"ok": True, "result": run("cpm_schedule", schedule_inputs(record))}
     except Exception as error:  # the core's DataError is a refusal, not a crash
         return {"ok": False, "error": str(error)[:300]}
+
+
+def _whole(value):
+    """A declared whole number, or None.  The core refused fractions are its call."""
+    number = _number(value)
+    if number is None or number < 0 or int(number) != number:
+        return None
+    return int(number)
+
+
+def level_inputs(record):
+    """The rows the frozen resource-levelling method accepts, or the reason it cannot run.
+
+    Levelling needs a declared demand per activity and a declared capacity per
+    resource.  A missing one is named; it is never defaulted to one.
+    """
+    record = record or {}
+    activities = record.get("activities") or []
+    if not activities:
+        return None, "the plan declares no activities"
+    capacity = {}
+    codes = {}
+    for row in record.get("resources") or []:
+        name = _text(row.get("name"))
+        if not name or name in capacity:
+            continue
+        declared = _whole(row.get("capacity"))
+        if declared is None or declared <= 0:
+            return None, "resource " + name + " has no positive capacity"
+        code = "R%d" % (len(capacity) + 1)
+        capacity[name] = declared
+        codes[name] = code
+    if not capacity:
+        return None, "the plan declares no resources with a capacity"
+    rows = []
+    for row in activities:
+        activity_id = _text(row.get("id"))
+        if not re.fullmatch(r"[A-Za-z0-9_\-]{1,20}", activity_id):
+            return None, ("activity id " + (activity_id or "(blank)")
+                          + " cannot be levelled; use letters, digits, - or _")
+        resource = _text(row.get("resource"))
+        demand = _whole(row.get("demand"))
+        duration = _whole(row.get("duration"))
+        if not resource:
+            return None, "activity " + activity_id + " names no resource"
+        if resource not in capacity:
+            return None, ("activity " + activity_id + " names a resource that is not declared: "
+                          + resource)
+        if demand is None:
+            return None, "activity " + activity_id + " has no declared whole demand"
+        if demand > capacity[resource]:
+            return None, ("activity " + activity_id + " demands more than the capacity of "
+                          + resource)
+        if duration is None:
+            return None, "activity " + activity_id + " has no declared whole duration"
+        rows.append({"id": activity_id, "duration": str(duration),
+                     "predecessors": ",".join(row.get("predecessors") or []),
+                     "resource": codes[resource], "demand": str(demand)})
+    return {"activities": rows,
+            "resources": [{"name": codes[name], "capacity": str(value)}
+                          for name, value in capacity.items()]}, ""
+
+
+def level(record, run):
+    """Run the frozen serial resource-levelling method, or return its refusal."""
+    if run is None:
+        return {"ok": False, "error": "the computation core is not attached"}
+    inputs, reason = level_inputs(record)
+    if inputs is None:
+        return {"ok": False, "error": reason}
+    try:
+        return {"ok": True, "result": run("resource_leveling", inputs)}
+    except Exception as error:
+        return {"ok": False, "error": str(error)[:300]}
+
+
+def _iso_date(value):
+    text = _text(value)
+    try:
+        return date.fromisoformat(text)
+    except (TypeError, ValueError):
+        return None
+
+
+def dated_inputs(record):
+    """A weekday calendar from the declared start date, for the frozen calendar method.
+
+    One declared period is one working day.  The calendar lists the day offsets
+    that are Monday to Friday from the declared start date; weekends are a gap,
+    and the frozen method then refuses to start or finish inside one.  No holiday
+    is inferred.
+    """
+    record = record or {}
+    charter = record.get("charter") or {}
+    start = _iso_date(charter.get("start_date"))
+    if start is None:
+        return None, "the charter states no ISO start date (YYYY-MM-DD)"
+    activities = record.get("activities") or []
+    if not activities:
+        return None, "the plan declares no activities"
+    rows, total = [], 0
+    for row in activities:
+        duration = _whole(row.get("duration"))
+        if duration is None:
+            return None, "activity " + _text(row.get("id")) + " has no declared whole duration"
+        total += duration
+        rows.append({"id": _text(row.get("id")), "duration": str(duration),
+                     "predecessors": ",".join(row.get("predecessors") or [])})
+    offsets, day = [], 0
+    while len(offsets) < max(1, total):
+        if (start + timedelta(days=day)).weekday() < 5:
+            offsets.append(day)
+        day += 1
+    return {"working_periods": ",".join(str(offset) for offset in offsets),
+            "activities": rows}, ""
+
+
+def dated(record, run):
+    """Run the frozen calendar schedule, or return its refusal."""
+    if run is None:
+        return {"ok": False, "error": "the computation core is not attached"}
+    inputs, reason = dated_inputs(record)
+    if inputs is None:
+        return {"ok": False, "error": reason}
+    try:
+        return {"ok": True, "result": run("calendar_schedule", inputs)}
+    except Exception as error:
+        return {"ok": False, "error": str(error)[:300]}
+
+
+def _date_for(start, offset):
+    try:
+        return (start + timedelta(days=int(float(offset)))).isoformat()
+    except (TypeError, ValueError, OverflowError):
+        return ""
+
+
+def levelled_rows(record, result):
+    """One row per activity with the levelled start, finish and delay."""
+    rows = []
+    for row in (record or {}).get("activities") or []:
+        activity_id = row.get("id") or ""
+        rows.append([activity_id, row.get("name") or "",
+                     str(result.get("lv_start_" + activity_id, "")),
+                     str(result.get("lv_finish_" + activity_id, "")),
+                     str(result.get("lv_delay_" + activity_id, ""))])
+    return rows
+
+
+def dated_rows(record, result, start_date):
+    """One row per activity with the start and finish date the calendar produced.
+
+    The frozen method returns period offsets; a start of offset *e* is the date
+    *e* days after the declared start, and a finish *f* is the last working day
+    before offset *f*.
+    """
+    start = _iso_date(start_date)
+    if start is None:
+        return []
+    rows = []
+    for row in (record or {}).get("activities") or []:
+        activity_id = row.get("id") or ""
+        es = result.get("es_" + activity_id)
+        ef = result.get("ef_" + activity_id)
+        if es is None or ef is None:
+            continue
+        try:
+            finish_offset = max(int(float(es)), int(float(ef)) - 1)
+        except (TypeError, ValueError):
+            finish_offset = int(float(es))
+        rows.append([activity_id, row.get("name") or "",
+                     _date_for(start, es), _date_for(start, finish_offset),
+                     str(max(0, int(float(ef)) - int(float(es))))])
+    return rows
+
+
+def load_series(record, result):
+    """Declared demand per period from the stored starts and finishes.
+
+    It is arithmetic on the record's own demand and the frozen method's own
+    offsets; no demand is inferred and no resource is levelled here.
+    """
+    loads = {}
+    for row in (record or {}).get("activities") or []:
+        activity_id = row.get("id") or ""
+        demand = _number(row.get("demand"))
+        start = result.get("lv_start_" + activity_id, result.get("es_" + activity_id))
+        finish = result.get("lv_finish_" + activity_id, result.get("ef_" + activity_id))
+        if demand is None or start is None or finish is None:
+            continue
+        try:
+            first, last = int(float(start)), int(float(finish))
+        except (TypeError, ValueError):
+            continue
+        for period in range(first, max(first + 1, last)):
+            loads[period] = loads.get(period, 0.0) + float(demand)
+    return sorted(loads.items())
+
+
+def completion_series(record, result):
+    """Cumulative per cent of activities finished by each period, from stored finishes."""
+    activities = (record or {}).get("activities") or []
+    if not activities:
+        return []
+    finishes = []
+    for row in activities:
+        activity_id = row.get("id") or ""
+        finish = result.get("lv_finish_" + activity_id, result.get("ef_" + activity_id))
+        if finish is None:
+            continue
+        try:
+            finishes.append(int(float(finish)))
+        except (TypeError, ValueError):
+            continue
+    if not finishes:
+        return []
+    total = len(finishes)
+    series = []
+    for period in range(0, max(finishes) + 1):
+        done = sum(1 for finish in finishes if finish <= period)
+        series.append((period, 100.0 * done / total))
+    return series
 
 
 def table(caption, columns, rows, note=""):

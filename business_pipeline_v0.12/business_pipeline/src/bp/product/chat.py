@@ -1253,7 +1253,8 @@ def silent(state, framework=None, words=None, style=None):
                   implications=_silent_implications(state) if "business_plan" not in keys else "",
                   style=(state.get("answers") or {}).get("style"))
     profile = state.get("profile") or ""
-    if profile in profile_writer.PROFILES and not _simple_feasibility(state):
+    if (profile in profile_writer.PROFILES and not _simple_feasibility(state)
+            and not _simple_proposal(state)):
         state["profile_facts"] = profile_reader.read(state.get("brief") or "")
         expanded = profile_writer.write(state, state.get("brief"), profile)
         if expanded:
@@ -1535,24 +1536,163 @@ def _project_bundle(state):
 def _with_figures(state):
     """The paper's blocks with the figures its recorded data earns.
 
-    A table is already a figure on its section.  The schedule chart is drawn
-    from the stored early dates and placed under the Schedule heading; it is
-    never drawn in the browser pane, only in the Word file and the PDF.
+    A table is already a figure on its section.  The schedule chart, the activity
+    network, the planned-completion curve and the resource-load histogram are
+    drawn from the stored schedule and placed in their own blocks; one section
+    holds one figure.  They are never drawn in the browser pane, only in the Word
+    file, the PDF and the deck.
     """
     blocks = _outline_blocks(state)
-    figure = _schedule_figure(state)
-    if figure is None:
+    additions = {}
+
+    def add(after, heading, figure):
+        additions.setdefault(after, []).append(
+            {"heading": heading, "level": 2, "lines": [], "figure": figure})
+
+    chart = _schedule_figure(state)
+    if chart:
+        add("Schedule", "Schedule chart", chart)
+    network = _network_figure(state)
+    if network:
+        add("Schedule", "Activity network", network)
+    completion = _completion_figure(state)
+    if completion:
+        add("Schedule", "Planned completion", completion)
+    load = _load_figure(state)
+    if load:
+        add("Resource-Levelled Schedule", "Resource load", load)
+    if not additions:
         return blocks
-    placed, done = [], False
+    placed = []
     for item in blocks:
         placed.append(item)
-        # The chart is its own block: the Schedule section already carries the
-        # table, and one section may not hold two figures.
-        if not done and str(item.get("heading")) == "Schedule":
-            placed.append({"heading": "Schedule chart", "level": 2, "lines": [],
-                           "figure": figure})
-            done = True
-    return placed if done else blocks
+        for extra in additions.get(str(item.get("heading")), []):
+            placed.append(extra)
+    return placed
+
+
+def _value_bundle(prefix, values):
+    """A figure bundle whose artifacts are the derived period values.
+
+    The values are arithmetic on the record's own inputs and the frozen
+    method's own offsets; the bundle says so through the figure's reason.
+    """
+    artifacts = [{"id": prefix + str(index), "metric": prefix + str(index),
+                  "unit": "", "precision": "", "value": str(value)}
+                 for index, value in enumerate(values, 1)]
+    return {"format": "bp-project-values/1",
+            "delivery": {"appendix": {"artifacts": artifacts}},
+            "reperform": {"outputs": {item["id"]: item["value"] for item in artifacts}}}
+
+
+_PERIOD_ONES = ("", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+                "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
+                "seventeen", "eighteen", "nineteen")
+_PERIOD_TENS = ("", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty",
+                "ninety")
+
+
+def _period_word(number):
+    """A period label without digits; the chart rule allows words only."""
+    try:
+        value = int(float(number))
+    except (TypeError, ValueError):
+        return "period"
+    if 0 <= value < 20:
+        return _PERIOD_ONES[value] or "zero"
+    if 20 <= value < 100:
+        tens, ones = divmod(value, 10)
+        return _PERIOD_TENS[tens] + ("" if not ones else "-" + _PERIOD_ONES[ones])
+    return "period"
+
+
+def _network_figure(state):
+    """An activity-on-node diagram from the record's own dependencies."""
+    if (state.get("profile") or "") != PROFILE_PROJECT_PLAN:
+        return None
+    scheduled = state.get("project_schedule") or {}
+    if not scheduled.get("ok"):
+        return None
+    record = project_plan_mod.normalise(state.get("project") or {})
+    activities = record.get("activities") or []
+    ids = {str(row.get("id")) for row in activities}
+    if len(activities) < 2:
+        return None
+    edges = []
+    for row in activities:
+        for predecessor in row.get("predecessors") or []:
+            if str(predecessor) in ids:
+                edges.append({"from": str(predecessor), "to": str(row.get("id"))})
+    if not edges:
+        return None
+    spec = {"format": "bp-chart/1", "kind": "network", "title": "Activity network",
+            "nodes": [{"id": str(row.get("id")),
+                       "label": _activity_label(index, row.get("name"))}
+                      for index, row in enumerate(activities)],
+            "edges": edges}
+    return _rendered_figure(state, spec, "Activity network",
+                            "the record declares %d dependencies among %d activities"
+                            % (len(edges), len(activities)), place="Schedule")
+
+
+def _load_figure(state):
+    """A histogram of declared demand per period after levelling."""
+    if (state.get("profile") or "") != PROFILE_PROJECT_PLAN:
+        return None
+    levelled = state.get("project_levelled") or {}
+    if not levelled.get("ok"):
+        return None
+    record = project_plan_mod.normalise(state.get("project") or {})
+    series = project_plan_mod.load_series(record, levelled.get("result") or {})
+    if len(series) < 2:
+        return None
+    bundle = _value_bundle("load", [value for _period, value in series])
+    spec = {"format": "bp-chart/1", "kind": "bar", "title": "Resource load by period",
+            "series": [{"label": _period_word(period), "artifact": "load" + str(index)}
+                       for index, (period, _value) in enumerate(series, 1)]}
+    return _rendered_figure(state, spec, "Resource load by period",
+                            "the levelled schedule assigns declared demand for %d periods"
+                            % len(series), place="Resource-Levelled Schedule", bundle=bundle)
+
+
+def _completion_figure(state):
+    """A planned-completion S-curve: cumulative activities finished, not cost."""
+    if (state.get("profile") or "") != PROFILE_PROJECT_PLAN:
+        return None
+    levelled = state.get("project_levelled") or {}
+    scheduled = state.get("project_schedule") or {}
+    result = (levelled.get("result") if levelled.get("ok") else
+              (scheduled.get("result") if scheduled.get("ok") else None))
+    if not result:
+        return None
+    record = project_plan_mod.normalise(state.get("project") or {})
+    series = project_plan_mod.completion_series(record, result)
+    if len(series) < 2:
+        return None
+    bundle = _value_bundle("done", ["%.4f" % value for _period, value in series])
+    spec = {"format": "bp-chart/1", "kind": "line", "title": "Planned completion",
+            "series": [{"label": _period_word(period), "artifact": "done" + str(index)}
+                       for index, (period, _value) in enumerate(series, 1)]}
+    return _rendered_figure(state, spec, "Planned completion curve",
+                            "the stored finishes place %d activities over %d periods"
+                            % (len(record.get("activities") or []), len(series)),
+                            place="Schedule", bundle=bundle)
+
+
+def _rendered_figure(state, spec, caption, why, place, bundle=None):
+    """Make, draw and stamp one figure; None when it cannot be drawn honestly."""
+    from . import figures
+    bundle = bundle if bundle is not None else _project_bundle(state)
+    if not bundle:
+        return None
+    try:
+        figure = figures.make("chart", spec, caption=caption, why=why,
+                              origin="plan", place=place)
+        figures.render(figure, bundle)
+        figures.stamp(figure, bundle)
+    except Exception:
+        return None
+    return figure
 
 
 def _activity_label(index, name):
@@ -1697,7 +1837,7 @@ def paper_bytes(state, fmt="bundle"):
         return pdf, slug + ".pdf", "application/pdf"
     deck_bytes = None
     if ((state.get("profile") or "") == PROFILE_PROJECT_PLAN
-            or _simple_feasibility(state)):
+            or _simple_feasibility(state) or _simple_proposal(state)):
         try:
             deck_bytes = pptx_bytes(state)
         except Exception:
@@ -6596,6 +6736,10 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
     # The frozen core returns Decimal values; the case store is JSON, so the
     # stored result is a plain JSON copy.  The displayed row keeps the same text.
     state["project_schedule"] = json.loads(json.dumps(scheduled, default=str))
+    levelled = project_plan_mod.level(record, METHOD_RUN)
+    state["project_levelled"] = json.loads(json.dumps(levelled, default=str))
+    dated = project_plan_mod.dated(record, METHOD_RUN)
+    state["project_dated"] = json.loads(json.dumps(dated, default=str))
     duration = (scheduled.get("result") or {}).get("project_duration") if scheduled.get("ok") else None
     critical = (scheduled.get("result") or {}).get("critical_count") if scheduled.get("ok") else None
     sections = []
@@ -6685,6 +6829,47 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
         sections.append(paper.section("Schedule", paper.H1,
                                       ["The schedule could not be computed: " + str(scheduled.get("error"))
                                        + " No date is reported."]))
+
+    # -- dated schedule
+    if dated.get("ok") and charter.get("start_date"):
+        dated_rows = project_plan_mod.dated_rows(record, dated.get("result") or {},
+                                                 charter.get("start_date"))
+        if dated_rows:
+            sections.append(paper.section("Dated Schedule", paper.H2,
+                                          [paper.paragraph([
+                                              "Dates count one declared period as one working day, "
+                                              "Monday to Friday, from the declared start date of "
+                                              + charter["start_date"] + ". A finish is the last working "
+                                              "day of the activity; weekends are a gap and no holiday "
+                                              "is inferred."])],
+                                          figure=_project_table("Dated schedule",
+                                                                ["ID", "Activity", "Start", "Finish",
+                                                                 "Working days"], dated_rows)))
+
+    # -- resource-levelled schedule
+    if levelled.get("ok"):
+        result = levelled.get("result") or {}
+        sections.append(paper.section("Resource-Levelled Schedule", paper.H1,
+                                      [paper.paragraph([
+                                          "The frozen resource-levelling method orders activities by "
+                                          "early start, then longest duration, then id, and delays an "
+                                          "activity until its declared resource has capacity. It adds "
+                                          + _periods(result.get("levelling_delay")) + " period"
+                                          + ("" if str(_periods(result.get("levelling_delay"))) == "1" else "s")
+                                          + ", so the plan finishes in "
+                                          + _periods(result.get("levelled_duration"))
+                                          + " periods against " + _periods(result.get("cpm_duration"))
+                                          + " without resource limits. "
+                                          + _periods(result.get("overallocated_periods_before"))
+                                          + " periods were over capacity before levelling and "
+                                          + _periods(result.get("overallocated_periods_after"))
+                                          + " after; the peak demand was "
+                                          + _periods(result.get("peak_demand_before")) + " before and "
+                                          + _periods(result.get("peak_demand_after")) + " after."])],
+                                      figure=_project_table("Resource-levelled schedule",
+                                                            ["ID", "Activity", "Levelled start",
+                                                             "Levelled finish", "Delay"],
+                                                            project_plan_mod.levelled_rows(record, result))))
 
     # -- cost
     cost_lines = ["The WBS rolls " + str(len(record.get("wbs") or [])) + " nodes up to a total of "
@@ -6784,6 +6969,10 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
               "reader should treat the named gaps as open questions, not as conditions already met."]
     if rolled.get("uncosted"):
         limits.append("The uncosted work packages named in the cost plan are gaps, not zero-cost work.")
+    if not levelled.get("ok"):
+        limits.append("Resource levelling was not run: " + str(levelled.get("error")) + ".")
+    if not dated.get("ok"):
+        limits.append("A dated schedule was not run: " + str(dated.get("error")) + ".")
     sections.append(paper.section("Limitations", paper.H1, [paper.paragraph(limits)]))
 
     # -- conclusion
@@ -6804,6 +6993,64 @@ def _draft_project_plan(state, accepted_ids=None, style=None):
     return _store_plan_draft(state, sections, style, accepted,
                              "Project plan: " + (title or _clean(state.get("brief"), 180)),
                              PROFILE_PROJECT_PLAN)
+
+
+def _proposal_deck(state):
+    """The proposal as a deck: the claim, then its work plan, budget and risks."""
+    from . import deck
+
+    blocks = _outline_blocks(state)
+    draft = state.get("draft") or {}
+    title = draft.get("title") or "Project proposal"
+
+    def first_sentence(heading, fallback):
+        for item in blocks:
+            if str(item.get("heading")) == heading:
+                for line in item.get("lines") or []:
+                    text = str(line).strip()
+                    if text:
+                        match = re.search(r"[.!?](\s|$)", text)
+                        return text[:match.end()].strip() if match else text
+        return fallback
+
+    def section_text(heading):
+        for item in blocks:
+            if str(item.get("heading")) == heading:
+                return " ".join(str(line).strip() for line in item.get("lines") or []
+                                if str(line).strip())
+        return ""
+
+    figures = {}
+    slides = [deck.slide("title", claim=title, subtitle="Project proposal")]
+    slides.append(deck.slide(
+        "claim", claim=first_sentence("Executive Summary", title),
+        bullets=["The proposal states the need, the objectives, the work plan and timeline, "
+                 "the budget and the risks."],
+        notes=section_text("Executive Summary")))
+    table_sections = (
+        ("Work Plan and Timeline", "Work plan"),
+        ("Budget", "Budget"),
+        ("Risk Analysis", "Risks"),
+    )
+    for position, (heading, name) in enumerate(table_sections, start=1):
+        item = next((row for row in blocks if str(row.get("heading")) == heading), None)
+        rows = paper.table_grid((item or {}).get("figure"))
+        if len(rows) < 2:
+            continue
+        figure_id = "proposal-table-%d" % position
+        figures[figure_id] = {"id": figure_id, "kind": "table", "caption": name,
+                              "table": {"columns": rows[0], "rows": rows[1:]}, "rows": []}
+        slides.append(deck.slide("table", claim=first_sentence(heading, name), table=figure_id,
+                                 notes=section_text(heading)))
+    monitor = section_text("Monitoring and Evaluation")
+    if monitor:
+        slides.append(deck.slide(
+            "claim",
+            claim=first_sentence("Monitoring and Evaluation",
+                                 "Progress is reported against the declared indicators."),
+            bullets=[line for line in monitor.split(". ") if line.strip()][:3],
+            notes=monitor))
+    return {"format": deck.DECK_FORMAT, "title": title, "slides": slides}, figures
 
 
 def _draft_proposal_simple(state, accepted_ids=None, style=None):
@@ -8661,9 +8908,22 @@ def _project_deck(state):
             note="Bars are the frozen schedule's stored early start and finish.",
             notes=section_text("Schedule")))
 
+    for heading, name in (("Activity network", "Activity network"),
+                          ("Planned completion", "Planned completion"),
+                          ("Resource load", "Resource load")):
+        item = next((row for row in blocks if str(row.get("heading")) == heading), None)
+        figure = (item or {}).get("figure")
+        if not figure or not figure.get("id"):
+            continue
+        figures[figure["id"]] = figure
+        slides.append(deck.slide("figure", claim=first_sentence(heading, name),
+                                 figure=figure["id"], notes=section_text(heading)))
+
     table_sections = (
         ("Work Breakdown Structure", "WBS"),
         ("Schedule", "Schedule"),
+        ("Dated Schedule", "Dated schedule"),
+        ("Resource-Levelled Schedule", "Levelled schedule"),
         ("Cost Plan", "Cost"),
         ("RACI Matrix", "RACI"),
         ("Risk Register", "Risks"),
@@ -8747,6 +9007,9 @@ def pptx_bytes(state):
     if (state.get("profile") or "") == PROFILE_PROJECT_PLAN:
         built, figures = _project_deck(state)
         return deck.render(built, figures)
+    if (state.get("profile") or "") == PROFILE_PROJECT_PROPOSAL and state.get("proposal_record"):
+        built, figures = _proposal_deck(state)
+        return deck.render(built, figures)
     if _simple_feasibility(state):
         built, figures = _feasibility_deck(state)
         return deck.render(built, figures)
@@ -8772,6 +9035,9 @@ def pdf_bytes(state):
         raise ChatError("Draft the paper before exporting it.")
     if (state.get("profile") or "") == PROFILE_PROJECT_PLAN:
         built, figures = _project_deck(state)
+        data = deck.pdf_bytes(built, figures)
+    elif (state.get("profile") or "") == PROFILE_PROJECT_PROPOSAL and state.get("proposal_record"):
+        built, figures = _proposal_deck(state)
         data = deck.pdf_bytes(built, figures)
     elif _simple_feasibility(state):
         built, figures = _feasibility_deck(state)

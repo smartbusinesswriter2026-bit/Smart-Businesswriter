@@ -1,0 +1,216 @@
+key,label,tier,category,current_layers,proposed_status,proposed_subject,paper_overlay,note
+ab_test_two_proportion,Ab Test Two Proportion,T1,digital marketing,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+abc_costing,Abc Costing,T1,management accounting,tool;calculator;calc_inputs,tile,accounting,,
+accruals_ratio,Accruals Ratio,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+altman_z_score,Altman Z Score,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+amortization_payment,Amortization Payment,T1,debt,calc_inputs,tile,,,not surfaced on any shelf
+anova,Anova,T1,group comparison,paper;tool;calculator;calc_inputs,paper,economics;statistics,yes,
+asset_turnover_advanced,Asset Turnover Advanced,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+attribution_split,Attribution Split,T1,digital marketing,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+balance_of_payments,Balance Of Payments,T1,international economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+beneish_m_score,Beneish M Score,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+beta_simple,Beta Simple,T1,portfolio,calc_inputs,tile,,,not surfaced on any shelf
+black_scholes_call,Black Scholes Call,T1,derivatives,calc_inputs,tile,,,not surfaced on any shelf
+bond_analysis,Bond Analysis,T1,fixed income,paper;tool;calculator;calc_inputs,paper,finance,yes,
+bond_price,Bond Price,T1,fixed income,calc_inputs,tile,,,not surfaced on any shelf
+breakeven,Breakeven,T1,cost-volume-profit,paper;tool;calculator;calc_inputs,paper,accounting;economics;entrepreneurship;finance;operations,yes,
+budget_debt,Budget Debt,T1,macroeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+calendar_schedule,Calendar Schedule,T1,project scheduling,paper;tool;calculator;calc_inputs,paper,operations,yes,
+campaign_efficiency,Campaign Efficiency,T1,digital marketing,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+cap_table_round,Cap Table Round,T1,venture finance,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+capacity_analysis,Capacity Analysis,T1,operations and capacity,paper;tool;calculator;calc_inputs,paper,operations,yes,
+capm,Capm,T1,cost of capital,paper;tool;calculator;calc_inputs,paper,finance,yes,
+cash_conversion_cycle,Cash Conversion Cycle,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+cash_runway,Cash Runway,T1,venture finance,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+cash_tax_rate,Cash Tax Rate,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+channel_economics,Channel Economics,T1,digital marketing,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+chi_square,Chi Square,T1,categorical association,paper;tool;calculator;calc_inputs,paper,economics;marketing;operations;people;statistics,yes,
+clv_model,Clv Model,T1,marketing and customers,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+cohort_retention,Cohort Retention,T1,market analysis,paper;tool;calculator;calc_inputs,paper,entrepreneurship;marketing,yes,
+comparative_advantage,Comparative Advantage,T1,international economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+cost_benefit,Cost Benefit,T2,appraisal,paper;tool;calculator;calc_inputs,paper,economics;entrepreneurship,yes,
+cost_curves,Cost Curves,T1,microeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+cost_effectiveness,Cost Effectiveness,T2,appraisal,paper;tool;calculator;calc_inputs,paper,economics;entrepreneurship;people,yes,
+cournot_duopoly,Cournot Duopoly,T1,industrial organization,paper;tool;calculator;calc_inputs,paper,economics,yes,
+cpm_schedule,Cpm Schedule,T1,project scheduling,paper;tool;calculator;calc_inputs,paper,operations,yes,
+currency_appreciation,Currency Appreciation,T1,international finance,calc_inputs,tile,,,not surfaced on any shelf
+currency_appreciation_calc,Currency Appreciation Calc,T1,international finance,calc_inputs,tile,,,not surfaced on any shelf
+currency_convert,Currency Convert,T1,currency,paper;tool;calculator;calc_inputs,paper,economics;finance,yes,
+current_ratio,Current Ratio,T1,liquidity,calc_inputs,tile,,,not surfaced on any shelf
+current_ratio_calc,Current Ratio Calc,T1,liquidity,calc_inputs,tile,,,not surfaced on any shelf
+current_yield,Current Yield,T1,fixed income,calc_inputs,tile,,,not surfaced on any shelf
+customer_profitability,Customer Profitability,T1,marketing and customers,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+days_payable_outstanding,Days Payable Outstanding,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+dcf_valuation,Dcf Valuation,T2,valuation,paper;tool;calculator;calc_inputs,paper,economics;finance,yes,
+dcf_with_sensitivity,Dcf With Sensitivity,T1,portfolio,calc_inputs,tile,,,not surfaced on any shelf
+decision_tree,Decision Tree,T1,decision analysis,paper;tool;calculator;calc_inputs,paper,operations,yes,
+demand_curve,Demand Curve,T1,demand analysis,paper;tool;calculator;calc_inputs,paper,economics;entrepreneurship;marketing,yes,
+demand_supply_equilibrium,Demand Supply Equilibrium,T1,microeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+depreciation_schedule,Depreciation Schedule,T1,management accounting,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+depreciation_sl,Depreciation Sl,T1,fixed assets,calc_inputs,tile,,,not surfaced on any shelf
+descriptive_stats,Descriptive Stats,T1,descriptive statistics,paper;tool;calculator;calc_inputs,paper,economics;operations;people;statistics,yes,
+difference_in_differences,Difference In Differences,T1,impact evaluation,paper;tool;calculator;calc_inputs,paper,economics,yes,
+discounted_payback,Discounted Payback,T1,capital budgeting,paper;tool;calculator;calc_inputs,paper,entrepreneurship;finance,yes,
+dividend_payout,Dividend Payout,T1,dividend policy,calc_inputs,tile,,,not surfaced on any shelf
+dividend_payout_ratio,Dividend Payout Ratio,T1,dividend policy,calc_inputs,tile,,,not surfaced on any shelf
+dupont,Dupont,T1,profitability,calc_inputs,tile,,,not surfaced on any shelf
+dupont_analysis,Dupont Analysis,T1,financial statement analysis,paper;tool;calculator;calc_inputs,paper,finance,yes,
+dupont_simple,Dupont Simple,T1,profitability,calc_inputs,tile,,,not surfaced on any shelf
+earned_value,Earned Value,T1,project control,paper;tool;calculator;calc_inputs,paper,operations,yes,
+ebitdar,Ebitdar,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+effective_tax_rate_advanced,Effective Tax Rate Advanced,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+elasticity,Elasticity,T1,microeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+email_list_health,Email List Health,T1,digital marketing,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+eoq,Eoq,T1,working capital,calc_inputs,tile,,,not surfaced on any shelf
+eoq_calc,Eoq Calc,T1,working capital,calc_inputs,tile,,,not surfaced on any shelf
+eps,Eps,T1,equity,calc_inputs,tile,,,not surfaced on any shelf
+eps_simple,Eps Simple,T1,equity,calc_inputs,tile,,,not surfaced on any shelf
+equity_bridge,Equity Bridge,T2,valuation,paper;tool;calculator;calc_inputs,paper,finance,yes,
+escalated_series,Escalated Series,T1,planning,calc_inputs,tile,,,not surfaced on any shelf
+ev_ebitda,Ev Ebitda,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+exchange_rate_ppp,Exchange Rate Ppp,T1,international economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+expected_utility,Expected Utility,T1,behavioural economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+externality_pigouvian,Externality Pigouvian,T1,welfare economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+fiscal_multiplier,Fiscal Multiplier,T1,macroeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+forward_price,Forward Price,T1,derivatives,calc_inputs,tile,,,not surfaced on any shelf
+forward_price_calc,Forward Price Calc,T1,derivatives,calc_inputs,tile,,,not surfaced on any shelf
+free_cash_flow_conversion,Free Cash Flow Conversion,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+future_value,Future Value,T1,time value,calc_inputs,tile,,,not surfaced on any shelf
+fv_annuity,Fv Annuity,T1,time value,calc_inputs,tile,,,not surfaced on any shelf
+fx_parity,Fx Parity,T1,international finance,paper;tool;calculator;calc_inputs,paper,finance,yes,
+gini_coefficient,Gini Coefficient,T1,welfare economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+gordon,Gordon,T1,equity valuation,calc_inputs,tile,,,not surfaced on any shelf
+gordon_growth,Gordon Growth,T1,equity valuation,calc_inputs,tile,,,not surfaced on any shelf
+growth_rate,Growth Rate,T1,macroeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+hdi,Hdi,T1,development economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+inflation_cpi,Inflation Cpi,T1,macroeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+instrumental_variables,Instrumental Variables,T1,instrumental variables,paper;tool;calculator;calc_inputs,paper,economics,yes,
+interest_burden,Interest Burden,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+interest_rate_parity,Interest Rate Parity,T1,international economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+inventory_policy,Inventory Policy,T1,operations and inventory,paper;tool;calculator;calc_inputs,paper,operations,yes,
+irr,Irr,T1,capital budgeting,paper;tool;calculator;calc_inputs,paper,entrepreneurship;finance,yes,
+justified_pe,Justified Pe,T1,equity valuation,calc_inputs,tile,,,not surfaced on any shelf
+kruskal_wallis,Kruskal Wallis,T1,group comparison,tool;calculator;calc_inputs,tile,statistics,,
+labour_market,Labour Market,T1,labour economics,paper;tool;calculator;calc_inputs,paper,economics;people,yes,
+lease_adjusted_debt,Lease Adjusted Debt,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+leverage_analysis,Leverage Analysis,T1,capital structure,paper;tool;calculator;calc_inputs,paper,finance,yes,
+line_balancing,Line Balancing,T1,operations and scheduling,paper;tool;calculator;calc_inputs,paper,operations,yes,
+line_totals,Line Totals,T1,planning,calc_inputs,tile,,,not surfaced on any shelf
+loan_amortization,Loan Amortization,T1,debt,paper;tool;calculator;calc_inputs,paper,accounting;finance,yes,
+loan_payment,Loan Payment,T1,debt,calc_inputs,tile,,,not surfaced on any shelf
+logistic_regression,Logistic Regression,T1,regression,tool;calculator;calc_inputs,tile,statistics,,
+macaulay_dur,Macaulay Dur,T1,fixed income,calc_inputs,tile,,,not surfaced on any shelf
+macaulay_duration,Macaulay Duration,T1,fixed income,calc_inputs,tile,,,not surfaced on any shelf
+management_accounts,Management Accounts,T2,accounting,tool;calculator;calc_inputs,service,accounting,,
+mann_whitney,Mann Whitney,T1,group comparison,tool;calculator;calc_inputs,tile,statistics,,
+market_concentration,Market Concentration,T1,microeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+market_power,Market Power,T1,microeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+market_share,Market Share,T1,marketing and customers,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+market_sizing,Market Sizing,T1,market analysis,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+media_plan,Media Plan,T1,marketing and customers,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+missing_data_bounds,Missing Data Bounds,T1,data quality,paper;tool;calculator;calc_inputs,paper,operations;statistics,yes,
+money_multiplier,Money Multiplier,T1,macroeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+monte_carlo,Monte Carlo,T1,decision analysis,paper;tool;calculator;calc_inputs,paper,operations,yes,
+multi_criteria,Multi Criteria,T1,decision analysis,paper;tool;calculator;calc_inputs,paper,operations,yes,
+multi_product_breakeven,Multi Product Breakeven,T1,cost-volume-profit,paper;tool;calculator;calc_inputs,paper,accounting;economics;entrepreneurship;finance;marketing;operations,yes,
+multi_project_schedule,Multi Project Schedule,T1,project scheduling,paper;tool;calculator;calc_inputs,paper,operations,yes,
+multi_year_cagr,Multi Year Cagr,T1,portfolio,calc_inputs,tile,,,not surfaced on any shelf
+multiple_comparison,Multiple Comparison,T1,inference control,tool;calculator;calc_inputs,tile,statistics,,
+multiples_valuation,Multiples Valuation,T2,valuation,paper;tool;calculator;calc_inputs,paper,finance,yes,
+nash_equilibrium,Nash Equilibrium,T1,game theory,paper;tool;calculator;calc_inputs,paper,economics,yes,
+national_income,National Income,T1,macroeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+npv,Npv,T1,capital budgeting,paper;tool;calculator;calc_inputs,paper,economics;entrepreneurship;finance,yes,
+npv_simple,Npv Simple,T1,capital budgeting,calc_inputs,tile,,,not surfaced on any shelf
+oee_analysis,Oee Analysis,T1,operations and quality,paper;tool;calculator;calc_inputs,paper,operations,yes,
+ols,Ols,T1,regression,paper;tool;calculator;calc_inputs,paper,economics;people;statistics,yes,
+ols_robust,Ols Robust,T1,regression,paper;tool;calculator;calc_inputs,paper,statistics,yes,
+one_sample_t,One Sample T,T1,group comparison,tool;calculator;calc_inputs,tile,statistics,,
+operating_margin_advanced,Operating Margin Advanced,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+optimal_pollution,Optimal Pollution,T1,environmental economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+option_pricing,Option Pricing,T2,derivatives,paper;tool;calculator;calc_inputs,paper,finance,yes,
+output_gap_okun,Output Gap Okun,T1,macroeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+paired_t,Paired T,T1,group comparison,tool;calculator;calc_inputs,tile,statistics,,
+panel_regression,Panel Regression,T1,panel data,paper;tool;calculator;calc_inputs,paper,economics,yes,
+payback_calc,Payback Calc,T1,capital budgeting,calc_inputs,tile,,,not surfaced on any shelf
+payback_period,Payback Period,T1,capital budgeting,calc_inputs,tile,,,not surfaced on any shelf
+pe_ratio,Pe Ratio,T1,equity valuation,calc_inputs,tile,,,not surfaced on any shelf
+pe_ratio_calc,Pe Ratio Calc,T1,equity valuation,calc_inputs,tile,,,not surfaced on any shelf
+pearson,Pearson,T1,correlation,paper;tool;calculator;calc_inputs,paper,economics;people;statistics,yes,
+peer_relative_multiples,Peer Relative Multiples,T1,portfolio,calc_inputs,tile,,,not surfaced on any shelf
+peg_ratio_advanced,Peg Ratio Advanced,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+piotroski_f_score,Piotroski F Score,T1,portfolio,calc_inputs,tile,,,not surfaced on any shelf
+portfolio_analysis,Portfolio Analysis,T1,investments,paper;tool;calculator;calc_inputs,paper,finance,yes,
+portfolio_performance,Portfolio Performance,T1,portfolio,tool;calculator;calc_inputs,tile,finance,,
+portfolio_valuation,Portfolio Valuation,T1,portfolio,tool;calculator;calc_inputs,tile,finance,,
+posthoc_pairwise,Posthoc Pairwise,T1,group comparison,tool;calculator;calc_inputs,tile,statistics,,
+poverty_measures,Poverty Measures,T1,welfare economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+power_analysis,Power Analysis,T1,study design,paper;tool;calculator;calc_inputs,paper,economics;marketing;operations;people;statistics,yes,
+present_value,Present Value,T1,time value,calc_inputs,tile,,,not surfaced on any shelf
+price_control,Price Control,T1,microeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+price_discrimination,Price Discrimination,T1,industrial organization,paper;tool;calculator;calc_inputs,paper,economics,yes,
+price_to_book_advanced,Price To Book Advanced,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+pricing_decision,Pricing Decision,T1,pricing,paper;tool;calculator;calc_inputs,paper,economics;entrepreneurship,yes,
+probit,Probit,T1,binary choice,paper;tool;calculator;calc_inputs,paper,economics,yes,
+process_control,Process Control,T1,operations and quality,paper;tool;calculator;calc_inputs,paper,operations,yes,
+profit_maximization,Profit Maximization,T1,microeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+proforma_statements,Proforma Statements,T1,business planning,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+project_crashing,Project Crashing,T1,project scheduling,paper;tool;calculator;calc_inputs,paper,operations,yes,
+project_metrics,Project Metrics,T1,capital budgeting,paper;tool;calculator;calc_inputs,paper,finance,yes,
+prospect_theory,Prospect Theory,T1,behavioural economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+public_good,Public Good,T1,welfare economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+purchase_intent,Purchase Intent,T1,market analysis,paper;tool;calculator;calc_inputs,paper,entrepreneurship;marketing,yes,
+pv_annuity,Pv Annuity,T1,time value,calc_inputs,tile,,,not surfaced on any shelf
+queue_analysis,Queue Analysis,T1,operations and queueing,paper;tool;calculator;calc_inputs,paper,operations,yes,
+quick_ratio,Quick Ratio,T1,liquidity,calc_inputs,tile,,,not surfaced on any shelf
+quick_ratio_simple,Quick Ratio Simple,T1,liquidity,calc_inputs,tile,,,not surfaced on any shelf
+ratio_analysis,Ratio Analysis,T1,financial statement analysis,paper;tool;calculator;calc_inputs,paper,accounting;finance,yes,
+real_option,Real Option,T1,capital budgeting,paper;tool;calculator;calc_inputs,paper,operations,yes,
+regression_discontinuity,Regression Discontinuity,T1,regression discontinuity,paper;tool;calculator;calc_inputs,paper,economics,yes,
+reliability_alpha,Reliability Alpha,T1,measurement,paper;tool;calculator;calc_inputs,paper,marketing;people;statistics,yes,
+remaining_balance,Remaining Balance,T1,debt,calc_inputs,tile,,,not surfaced on any shelf
+resource_leveling,Resource Leveling,T1,project scheduling,paper;tool;calculator;calc_inputs,paper,operations,yes,
+retention_ratio,Retention Ratio,T1,dividend policy,calc_inputs,tile,,,not surfaced on any shelf
+retention_ratio_calc,Retention Ratio Calc,T1,dividend policy,calc_inputs,tile,,,not surfaced on any shelf
+return_on_investment,Return On Investment,T1,venture finance,paper;tool;calculator;calc_inputs,paper,entrepreneurship;people,yes,
+revenue_from_traffic,Revenue From Traffic,T1,planning,calc_inputs,tile,,,not surfaced on any shelf
+rfm_scoring,Rfm Scoring,T1,marketing and customers,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+risk_metrics,Risk Metrics,T1,risk management,paper;tool;calculator;calc_inputs,paper,finance,yes,
+roic_advanced,Roic Advanced,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+sales_from_market,Sales From Market,T1,business planning,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+sales_funnel,Sales Funnel,T1,market analysis,paper;tool;calculator;calc_inputs,paper,entrepreneurship;marketing,yes,
+sales_projection,Sales Projection,T1,venture planning,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+sales_variances,Sales Variances,T1,management accounting,tool;calculator;calc_inputs,tile,accounting,,
+scenario_analysis,Scenario Analysis,T1,decision analysis,paper;tool;calculator;calc_inputs,paper,finance,yes,
+schedule_risk,Schedule Risk,T1,project scheduling,paper;tool;calculator;calc_inputs,paper,operations,yes,
+sensitivity_table,Sensitivity Table,T1,business planning,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+sharpe_ratio,Sharpe Ratio,T1,portfolio,calc_inputs,tile,,,not surfaced on any shelf
+simple_interest,Simple Interest,T1,interest,calc_inputs,tile,,,not surfaced on any shelf
+simple_payback,Simple Payback,T1,capital budgeting,calc_inputs,tile,,,not surfaced on any shelf
+social_engagement,Social Engagement,T1,digital marketing,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+social_welfare,Social Welfare,T1,welfare economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+spearman,Spearman,T1,correlation,tool;calculator;calc_inputs,tile,statistics,,
+sroi,Sroi,T2,appraisal,paper;tool;calculator;calc_inputs,paper,economics;entrepreneurship,yes,
+standard_cost_variances,Standard Cost Variances,T1,management accounting,tool;calculator;calc_inputs,tile,accounting,,
+startup_capital,Startup Capital,T1,venture finance,paper;tool;calculator;calc_inputs,paper,entrepreneurship,yes,
+tariff_welfare,Tariff Welfare,T1,international economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+tax_burden,Tax Burden,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+tax_declared,Tax Declared,T1,taxation,paper;tool;calculator;calc_inputs,paper,accounting,yes,
+tax_incidence,Tax Incidence,T1,microeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+tax_progressivity,Tax Progressivity,T1,public economics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+tax_reconciliation,Tax Reconciliation,T1,taxation,calc_inputs,tile,,,not surfaced on any shelf
+time_value,Time Value,T1,time value of money,paper;tool;calculator;calc_inputs,paper,finance,yes,
+trend_analysis,Trend Analysis,T1,financial statement analysis,paper;tool;calculator;calc_inputs,paper,accounting;finance,yes,
+trend_forecast,Trend Forecast,T1,forecasting,paper;tool;calculator;calc_inputs,paper,economics;entrepreneurship;finance;marketing;operations;statistics,yes,
+trial_balance_check,Trial Balance Check,T2,accounting,tool;calculator;calc_inputs,service,accounting,,
+two_way_anova,Two Way Anova,T1,group comparison,tool;calculator;calc_inputs,tile,statistics,,
+unemployment_rate,Unemployment Rate,T1,macroeconomics,paper;tool;calculator;calc_inputs,paper,economics,yes,
+unit_economics,Unit Economics,T1,unit economics,paper;tool;calculator;calc_inputs,paper,economics;entrepreneurship;finance;marketing;operations,yes,
+var_simple,Var Simple,T1,risk,calc_inputs,tile,,,not surfaced on any shelf
+wacc,Wacc,T1,valuation,paper;tool;calculator;calc_inputs,paper,finance,yes,
+wacc_simple,Wacc Simple,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf
+web_analytics,Web Analytics,T1,digital marketing,paper;tool;calculator;calc_inputs,paper,marketing,yes,
+weighted_summary,Weighted Summary,T1,descriptive statistics,paper;tool;calculator;calc_inputs,paper,people;statistics,yes,
+welch_t,Welch T,T1,group comparison,paper;tool;calculator;calc_inputs,paper,economics;statistics,yes,
+working_capital,Working Capital,T1,working capital,paper;tool;calculator;calc_inputs,paper,accounting;finance,yes,
+working_capital_cycle,Working Capital Cycle,T1,working capital,calc_inputs,tile,,,not surfaced on any shelf
+working_capital_ratio,Working Capital Ratio,T1,advanced,calc_inputs,tile,,,not surfaced on any shelf

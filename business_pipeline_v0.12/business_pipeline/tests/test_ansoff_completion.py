@@ -1,9 +1,11 @@
 """Ansoff completion: growth options on a market, one cell at a time.
 
 The behaviour the Five Forces and PESTEL builds proved, applied to the Ansoff
-Growth Matrix: four cells, sourced items or a named gap with a probe, an
-industry as the unit of analysis, one paper, and a refusal rather than a thin
-paper.  The framework supplies everything; the engine is unchanged.
+Growth Matrix: four cells, sourced items or a named gap with a probe, **the
+firm or business unit in its market** as the unit of analysis, one paper, and a
+refusal rather than a thin paper.  The unit was corrected from an industry
+because Ansoff sorts one firm's growth options (owner guideline, 2026-11-09).
+The framework supplies everything; the engine is unchanged.
 """
 
 import unittest
@@ -18,6 +20,7 @@ BRIEF = ("A grocery retailer is reviewing growth options before deciding whether
          "to open a new store format or launch a private-label range.")
 
 INDUSTRY = "grocery retail"
+FIRM = "Kestrel Retail"
 
 
 def academic(query, databases=None, limit=10, year_from=None):
@@ -43,6 +46,7 @@ def complete(**kwargs):
     with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
             mock.patch("bp.product.sources.search_web", side_effect=web):
         return completion.complete("template_ansoff", kwargs.pop("instruction", BRIEF),
+                                   unit_value=kwargs.pop("unit_value", FIRM),
                                    industry=kwargs.pop("industry", INDUSTRY), **kwargs)
 class AnsoffCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
@@ -59,13 +63,19 @@ class AnsoffCompletionTest(unittest.TestCase):
                     self.assertTrue(item["source"], block["key"])
                     self.assertTrue(item["citation"], block["key"])
 
-    def test_the_industry_is_the_unit_of_analysis(self):
+    def test_the_firm_and_market_are_the_unit_of_analysis(self):
         result = complete()
-        self.assertEqual(result["unit"]["field"], "industry")
-        self.assertEqual(result["unit"]["value"], INDUSTRY)
-        self.assertTrue(result["blocks"][0]["query"].startswith(INDUSTRY + " "))
+        self.assertEqual(result["unit"]["field"], "firm")
+        self.assertEqual(result["unit"]["value"], FIRM)
+        self.assertEqual(result["unit"]["market"], INDUSTRY)
+        self.assertIn(INDUSTRY, result["blocks"][0]["query"])
 
-    def test_a_brief_without_an_industry_is_refused_with_an_actionable_reason(self):
+    def test_a_brief_without_a_firm_is_refused_with_an_actionable_reason(self):
+        with self.assertRaises(ValueError) as refused:
+            complete(instruction="A firm is weighing growth options.", unit_value="")
+        self.assertIn("firm", str(refused.exception).lower())
+
+    def test_a_brief_without_a_market_is_refused_with_an_actionable_reason(self):
         with self.assertRaises(ValueError) as refused:
             complete(instruction="A firm is weighing growth options.", industry="")
         self.assertIn("market", str(refused.exception).lower())
@@ -84,7 +94,8 @@ class AnsoffCompletionTest(unittest.TestCase):
             return {"results": [], "errors": [], "skipped": []}
         with mock.patch("bp.product.sources.search_academic", side_effect=empty_academic), \
                 mock.patch("bp.product.sources.search_web", side_effect=web):
-            result = completion.complete("template_ansoff", BRIEF, industry=INDUSTRY)
+            result = completion.complete("template_ansoff", BRIEF,
+                                         unit_value=FIRM, industry=INDUSTRY)
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -130,6 +141,7 @@ class AnsoffCompletionTest(unittest.TestCase):
             status, payload = api.handle("POST", "/api/cases/frameworks/complete",
                                          {"template": "template_ansoff",
                                           "instruction": BRIEF,
+                                          "unit": FIRM,
                                           "industry": INDUSTRY})
         self.assertEqual(status, 200)
         self.assertEqual(payload["template"], "template_ansoff")
@@ -141,6 +153,7 @@ class AnsoffCompletionTest(unittest.TestCase):
         self.assertIn("Ansoff", system)
         self.assertNotIn("PESTEL", system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
+        self.assertIn("firm", system.lower())
         self.assertIn("market", system.lower())
 
     def test_the_framework_name_is_not_an_invented_name(self):
@@ -151,7 +164,7 @@ class AnsoffCompletionTest(unittest.TestCase):
                 "lead": "lead", "groups": {"market_penetration": ["Market penetration matters."]},
                 "discussion": [""], "implications": [""], "limitations": [""], "conclusion": [""]}
         allow = completion._allowed_names(completion._profile("template_ansoff"),
-                                          {"unit": {"value": INDUSTRY}, "region": "Global"})
+                                          {"unit": {"value": FIRM}, "region": "Global"})
         problems = completion._problems(data, facts, "A case in grocery retail.", "short",
                                         ["market_penetration"], allow=allow)
         self.assertFalse([p for p in problems if p.startswith("name Ansoff")

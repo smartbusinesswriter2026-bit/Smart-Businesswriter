@@ -1,0 +1,9 @@
+{
+ "format": "bp-tile-preset/1",
+ "subject": "general",
+ "tile": "Test",
+ "status": "PROVISIONAL - generated scaffold, not wired into the running system",
+ "objective": "Test",
+ "inputs": {},
+ "note": "declare the figures the method needs; leave an input out rather than invent it"
+}

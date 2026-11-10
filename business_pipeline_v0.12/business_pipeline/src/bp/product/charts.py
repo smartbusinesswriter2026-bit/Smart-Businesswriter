@@ -14,7 +14,8 @@ that is not already recorded.  Rules, all enforced:
 * geometry arithmetic (bar lengths, point positions) is rendering-only: the
   labels a reader sees are the stored strings, verbatim.
 
-Kinds: bar, line, stacked_bar, waterfall, pie, sparkline, table, gantt, pareto.
+Kinds: bar, line, area, scatter, candlestick, stacked_bar, waterfall, pie, sparkline,
+table, gantt, pareto.
 
 A Gantt chart is drawn from the stored CPM artifacts: each activity names its
 early-start and early-finish artifact, and optionally its float and critical
@@ -36,8 +37,8 @@ from . import export as case_export
 from . import theme
 
 FORMAT = "bp-chart/1"
-KINDS = ("bar", "line", "stacked_bar", "waterfall", "pie", "sparkline", "table", "gantt",
-         "pareto")
+KINDS = ("bar", "line", "area", "scatter", "candlestick", "stacked_bar", "waterfall",
+         "pie", "sparkline", "table", "gantt", "pareto", "network")
 WIDTH, HEIGHT = 720, 300
 #: The categorical palette is defined once, in `theme`, so the builtin drawing and
 #: the Plotly template cannot drift apart.
@@ -139,7 +140,7 @@ def validate_spec(spec):
             for key in ("start", "end"):
                 if not isinstance(entry.get(key), str) or not entry[key].strip():
                     raise ChartError("%s needs a stored artifact id in %r" % (where, key))
-            for key in ("float", "critical"):
+            for key in ("float", "critical", "start_label", "end_label"):
                 if entry.get(key) is not None and (not isinstance(entry[key], str) or not entry[key].strip()):
                     raise ChartError("%s %r must be a stored artifact id when supplied" % (where, key))
             identifier = entry.get("id") or label
@@ -147,7 +148,9 @@ def validate_spec(spec):
                 raise ChartError("%s id must be text when supplied" % where)
             clean.append({"id": identifier.strip(), "label": label, "start": entry["start"].strip(),
                           "end": entry["end"].strip(), "float": (entry.get("float") or "").strip() or None,
-                          "critical": (entry.get("critical") or "").strip() or None})
+                          "critical": (entry.get("critical") or "").strip() or None,
+                          "start_label": (entry.get("start_label") or "").strip() or None,
+                          "end_label": (entry.get("end_label") or "").strip() or None})
         identifiers = [item["id"] for item in clean]
         if len(set(identifiers)) != len(identifiers):
             raise ChartError("gantt activity ids must be unique")
@@ -165,6 +168,37 @@ def validate_spec(spec):
                 raise ChartError("dependencies[%d] cannot link an activity to itself" % (index - 1))
             dependencies.append({"from": source, "to": target})
         return kind, title, {"activities": clean, "dependencies": dependencies}
+    if kind == "network":
+        nodes = spec.get("nodes")
+        if not isinstance(nodes, list) or not nodes:
+            raise ChartError("a network chart needs a non-empty 'nodes' list")
+        clean = []
+        for index, entry in enumerate(nodes):
+            where = "nodes[%d]" % index
+            if not isinstance(entry, dict):
+                raise ChartError("%s must be an object" % where)
+            identifier = entry.get("id")
+            if not isinstance(identifier, str) or not identifier.strip():
+                raise ChartError("%s needs an 'id'" % where)
+            label = _text(entry.get("label"), "%s label" % where)
+            clean.append({"id": identifier.strip(), "label": label})
+        identifiers = [item["id"] for item in clean]
+        if len(set(identifiers)) != len(identifiers):
+            raise ChartError("network node ids must be unique")
+        raw_edges = spec.get("edges") or []
+        if not isinstance(raw_edges, list):
+            raise ChartError("network edges must be a list")
+        edges = []
+        for index, edge in enumerate(raw_edges, 1):
+            if not isinstance(edge, dict):
+                raise ChartError("edges[%d] must be an object" % (index - 1))
+            source, target = edge.get("from"), edge.get("to")
+            if source not in identifiers or target not in identifiers:
+                raise ChartError("edges[%d] must name two nodes in this chart" % (index - 1))
+            if source == target:
+                raise ChartError("edges[%d] cannot link a node to itself" % (index - 1))
+            edges.append({"from": source, "to": target})
+        return kind, title, {"nodes": clean, "edges": edges}
     series = spec.get("series")
     if kind != "table":
         if not isinstance(series, list) or not series:
@@ -187,6 +221,15 @@ def validate_spec(spec):
                 _text(entry["group"], "series group")
             if not isinstance(entry.get("artifact"), str) or not entry["artifact"].strip():
                 raise ChartError("each series entry needs an 'artifact' id or metric")
+        if kind == "scatter":
+            for entry in series:
+                if not isinstance(entry.get("x_artifact"), str) or not entry["x_artifact"].strip():
+                    raise ChartError("a scatter series entry needs an 'x_artifact' id")
+        if kind == "candlestick":
+            for entry in series:
+                for key in ("open", "high", "low", "close"):
+                    if not isinstance(entry.get(key), str) or not entry[key].strip():
+                        raise ChartError("a candlestick series entry needs a stored %r id" % key)
     return kind, title, series or []
 
 
@@ -211,6 +254,15 @@ def _series_values(spec, rows):
         item = {"label": entry["label"].strip(), "value": _number(row, entry["artifact"].strip()),
                 "stored": str(row.get("value")), "unit": row.get("unit"),
                 "group": str(entry.get("group") or "").strip()}
+        if entry.get("x_artifact"):
+            x_row = _row_for(rows, entry["x_artifact"].strip())
+            item["x"] = _number(x_row, entry["x_artifact"].strip())
+            item["x_stored"] = str(x_row.get("value"))
+        for key in ("open", "high", "low", "close"):
+            if entry.get(key):
+                source_row = _row_for(rows, entry[key].strip())
+                item[key] = _number(source_row, entry[key].strip())
+                item[key + "_stored"] = str(source_row.get("value"))
         source = entry.get("cumulative")
         if isinstance(source, str) and source.strip():
             running = _row_for(rows, source.strip())
@@ -227,7 +279,7 @@ def series_of(bundle, spec):
     and the numbers beside it come from one resolution of the record.
     """
     kind, _title, _payload = validate_spec(spec)
-    if kind in ("table", "gantt"):
+    if kind in ("table", "gantt", "network"):
         return []
     rows = _stored_rows(bundle)
     verify_labels(spec, rows)
@@ -420,10 +472,15 @@ def _gantt(payload, rows, title):
             raise ChartError("activity %r has an early finish before its early start" % entry["label"])
         float_value = _number(_row_for(rows, entry["float"]), entry["float"]) if entry["float"] else Decimal(0)
         critical = _number(_row_for(rows, entry["critical"]), entry["critical"]) if entry["critical"] else Decimal(0)
+        start_text = str(start_row.get("value"))
+        end_text = str(end_row.get("value"))
+        if entry.get("start_label"):
+            start_text = str(_row_for(rows, entry["start_label"]).get("value"))
+        if entry.get("end_label"):
+            end_text = str(_row_for(rows, entry["end_label"]).get("value"))
         resolved.append({"id": entry["id"], "label": entry["label"], "start": start, "end": end,
                          "float": float_value, "critical": critical != 0,
-                         "start_stored": str(start_row.get("value")),
-                         "end_stored": str(end_row.get("value"))})
+                         "start_stored": start_text, "end_stored": end_text})
     horizon = max(item["end"] + item["float"] for item in resolved) or Decimal(1)
     left, right, top, bottom = 250, WIDTH - 40, 76, HEIGHT - 58
     row_height = (bottom - top) / max(1, len(resolved))
@@ -480,6 +537,46 @@ def _gantt(payload, rows, title):
                 'Bars are the stored early dates; red marks the critical path, the thin line is float and '
                 'arrows are the declared dependencies.</text>'
                 % (HEIGHT - 34))
+    return _frame(title, "".join(body))
+
+
+def _network(payload, title):
+    """An activity-on-node network: boxes in dependency layers, arrows for edges."""
+    nodes, edges = payload["nodes"], payload["edges"]
+    layer = {node["id"]: 0 for node in nodes}
+    for _ in range(len(nodes)):
+        changed = False
+        for edge in edges:
+            if layer[edge["to"]] < layer[edge["from"]] + 1:
+                layer[edge["to"]] = layer[edge["from"]] + 1
+                changed = True
+        if not changed:
+            break
+    columns = {}
+    for node in nodes:
+        columns.setdefault(layer[node["id"]], []).append(node)
+    deepest = max(columns) if columns else 0
+    positions = {}
+    for place, members in columns.items():
+        x = 40 + Decimal(WIDTH - 200) * Decimal(place) / Decimal(max(1, deepest))
+        for index, node in enumerate(members):
+            y = Decimal(70) + Decimal(HEIGHT - 150) * Decimal(index + 0.5) / Decimal(len(members))
+            positions[node["id"]] = (x, y)
+    body = ['<defs><marker id="network-arrow" markerWidth="8" markerHeight="8" '
+            'refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#7c828b"/></marker></defs>']
+    for edge in edges:
+        x1, y1 = positions[edge["from"]]
+        x2, y2 = positions[edge["to"]]
+        body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#7c828b" stroke-width="1.5" '
+                    'marker-end="url(#network-arrow)"/>'
+                    % (_fmt(x1 + 62), _fmt(y1), _fmt(x2 - 62), _fmt(y2)))
+    for node in nodes:
+        x, y = positions[node["id"]]
+        body.append('<rect x="%s" y="%s" width="124" height="34" rx="4" fill="#f1f4f8" '
+                    'stroke="#4a5568"/>' % (_fmt(x - 62), _fmt(y - 17)))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Georgia, serif" '
+                    'font-size="11" fill="#1b1b1b">%s</text>'
+                    % (_fmt(x), _fmt(y + 4), html.escape(node["label"], quote=False)))
     return _frame(title, "".join(body))
 
 
@@ -570,6 +667,95 @@ def _table(rows, title):
     return _frame(title, "".join(body))
 
 
+def _area(series, title):
+    """A filled line: the same stored values as a line, drawn as a trend area."""
+    if len(series) < 2:
+        raise ChartError("an area chart needs at least two series points")
+    top, bottom, left, right = 64, HEIGHT - 60, 40, WIDTH - 40
+    values = [item["value"] for item in series]
+    low, high = min(values), max(values)
+    span = (high - low) or Decimal(1)
+    points = []
+    for index, item in enumerate(series):
+        x = Decimal(left) + Decimal(right - left) * Decimal(index) / Decimal(len(series) - 1)
+        y = Decimal(bottom) - Decimal(bottom - top) * (item["value"] - low) / span
+        points.append((x, y, item))
+    polygon = " ".join("%s,%s" % (_fmt(x), _fmt(y)) for x, y, _ in points)
+    body = ['<polygon fill="%s" fill-opacity="0.18" stroke="none" points="%s %s,%s %s,%s"/>'
+            % (PALETTE[0], polygon, _fmt(right), _fmt(bottom), _fmt(left), _fmt(bottom)),
+            '<polyline fill="none" stroke="%s" stroke-width="2" points="%s"/>' % (PALETTE[0], polygon)]
+    for x, y, item in points:
+        body.append('<circle cx="%s" cy="%s" r="4" fill="%s"/>' % (_fmt(x), _fmt(y), PALETTE[0]))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Georgia, serif" font-size="12" fill="#1b1b1b">%s</text>'
+                    % (_fmt(x), _fmt(y - 12), html.escape(item["stored"], quote=False)))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Georgia, serif" font-size="11" fill="#555550">%s</text>'
+                    % (_fmt(x), _fmt(bottom + 22), html.escape(item["label"], quote=False)))
+    return _frame(title, "".join(body))
+
+
+def _scatter(series, title):
+    """Points from two stored values per entry: x against y."""
+    if len(series) < 2:
+        raise ChartError("a scatter plot needs at least two points")
+    if any("x" not in item for item in series):
+        raise ChartError("a scatter plot needs an x value for every point")
+    top, bottom, left, right = 64, HEIGHT - 60, 56, WIDTH - 40
+    xs = [item["x"] for item in series]
+    ys = [item["value"] for item in series]
+    x_low, x_high = min(xs), max(xs)
+    y_low, y_high = min(ys), max(ys)
+    x_span = (x_high - x_low) or Decimal(1)
+    y_span = (y_high - y_low) or Decimal(1)
+    body = ['<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#c9c9c4"/>' % (left, top, left, bottom),
+            '<line x1="%d" y1="%d" x2="%d" y2="%d" stroke="#c9c9c4"/>' % (left, bottom, right, bottom)]
+    for item in series:
+        x = Decimal(left) + Decimal(right - left) * (item["x"] - x_low) / x_span
+        y = Decimal(bottom) - Decimal(bottom - top) * (item["value"] - y_low) / y_span
+        body.append('<circle cx="%s" cy="%s" r="4.5" fill="%s"/>' % (_fmt(x), _fmt(y), PALETTE[0]))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Georgia, serif" font-size="10" fill="#555550">%s</text>'
+                    % (_fmt(x), _fmt(y - 10), html.escape(item["label"], quote=False)))
+    body.append('<text x="%d" y="%d" font-family="Georgia, serif" font-size="11" fill="#555550">x: %s to %s</text>'
+                % (left, HEIGHT - 28, html.escape(str(x_low)), html.escape(str(x_high))))
+    return _frame(title, "".join(body))
+
+
+def _candlestick(series, title):
+    """One candle per period from stored open, high, low and close values."""
+    if len(series) < 1:
+        raise ChartError("a candlestick chart needs at least one period")
+    for item in series:
+        for key in ("open", "high", "low", "close"):
+            if key not in item:
+                raise ChartError("a candlestick chart needs %r for every period" % key)
+        if item["high"] < item["low"]:
+            raise ChartError("period %r has a high below its low" % item["label"])
+        if item["high"] < max(item["open"], item["close"]) or item["low"] > min(item["open"], item["close"]):
+            raise ChartError("period %r has an open or close outside its high-low range" % item["label"])
+    top, bottom, left, right = 64, HEIGHT - 60, 48, WIDTH - 40
+    highs = [item["high"] for item in series]
+    lows = [item["low"] for item in series]
+    high, low = max(highs), min(lows)
+    span = (high - low) or Decimal(1)
+    slot = Decimal(right - left) / Decimal(max(1, len(series)))
+    width = slot * Decimal("0.45")
+    body = []
+    for index, item in enumerate(series):
+        centre = Decimal(left) + slot * (index + Decimal("0.5"))
+        y_high = Decimal(bottom) - Decimal(bottom - top) * (item["high"] - low) / span
+        y_low = Decimal(bottom) - Decimal(bottom - top) * (item["low"] - low) / span
+        y_open = Decimal(bottom) - Decimal(bottom - top) * (item["open"] - low) / span
+        y_close = Decimal(bottom) - Decimal(bottom - top) * (item["close"] - low) / span
+        colour = "#2e7d32" if item["close"] >= item["open"] else "#c62828"
+        body.append('<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="%s" stroke-width="1.5"/>'
+                    % (_fmt(centre), _fmt(y_high), _fmt(centre), _fmt(y_low), colour))
+        body.append('<rect x="%s" y="%s" width="%s" height="%s" fill="%s"/>'
+                    % (_fmt(centre - width / 2), _fmt(min(y_open, y_close)), _fmt(width),
+                       _fmt(abs(y_close - y_open) or 2), colour))
+        body.append('<text x="%s" y="%s" text-anchor="middle" font-family="Georgia, serif" font-size="10" fill="#555550">%s</text>'
+                    % (_fmt(centre), _fmt(bottom + 22), html.escape(item["label"], quote=False)))
+    return _frame(title, "".join(body))
+
+
 def render_svg(bundle, spec):
     """Draw one chart as deterministic SVG. Returns the SVG string."""
     kind, title, payload = validate_spec(spec)
@@ -579,11 +765,19 @@ def render_svg(bundle, spec):
         return _table(rows, title)
     if kind == "gantt":
         return _gantt(payload, rows, title)
+    if kind == "network":
+        return _network(payload, title)
     series = _series_values(spec, rows)
     if kind == "bar":
         return _bar(series, title)
     if kind == "line":
         return _line(series, title)
+    if kind == "area":
+        return _area(series, title)
+    if kind == "scatter":
+        return _scatter(series, title)
+    if kind == "candlestick":
+        return _candlestick(series, title)
     if kind == "stacked_bar":
         return _stacked(series, title)
     if kind == "waterfall":

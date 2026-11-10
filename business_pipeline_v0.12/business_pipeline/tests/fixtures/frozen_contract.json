@@ -1328,6 +1328,42 @@
         "tax_rate"
       ]
     },
+    "five_s_score": {
+      "tier": "T1",
+      "metric": "score_rate",
+      "unit": "rate",
+      "test_names": [
+        "second_implementation_agrees",
+        "total_is_the_sum_of_the_scores",
+        "max_total_is_the_count_times_the_maximum",
+        "score_rate_is_the_total_over_the_maximum_total",
+        "a_zero_score_gives_zero_percent"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "operations",
+      "inputs": [
+        "maximum",
+        "scores"
+      ]
+    },
+    "fmea_rpn": {
+      "tier": "T1",
+      "metric": "rpn",
+      "unit": "count",
+      "test_names": [
+        "second_implementation_agrees",
+        "rpn_is_severity_times_occurrence_times_detection",
+        "rpn_lies_between_one_and_one_thousand",
+        "raising_severity_never_lowers_rpn"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "operations",
+      "inputs": [
+        "detection",
+        "occurrence",
+        "severity"
+      ]
+    },
     "forward_price": {
       "tier": "T1",
       "metric": "forward_price",
@@ -2868,6 +2904,7 @@
         "net_income_is_operating_profit_less_interest_and_tax",
         "the_balance_sheet_balances_every_period",
         "cash_and_equity_roll_forward",
+        "owner_withdrawals_are_financing_outflows",
         "a_declared_loan_is_repaid_in_full"
       ],
       "claim_ceiling": "descriptive",
@@ -2889,6 +2926,7 @@
         "opening_payables",
         "opening_receivables",
         "operating_costs",
+        "owner_withdrawals",
         "payable_days",
         "principal_repayment",
         "receivable_days",
@@ -3437,6 +3475,22 @@
         "iterations",
         "seed",
         "target_duration"
+      ]
+    },
+    "seasonal_series": {
+      "tier": "T1",
+      "metric": "total",
+      "unit": "currency",
+      "test_names": [
+        "each_period_is_base_times_index",
+        "total_is_the_sum_of_the_periods",
+        "a_flat_index_leaves_the_total_unchanged"
+      ],
+      "claim_ceiling": "descriptive",
+      "category": "planning",
+      "inputs": [
+        "base",
+        "index"
       ]
     },
     "sensitivity_table": {

@@ -1,0 +1,14 @@
+﻿1 : """Optional model-assisted prose for the paper (product layer).
+2 : 
+3 : The model is an editor, not a researcher.  It may rewrite the introduction,
+18 : ENDPOINT = os.environ.get("BP_PROSE_URL") or "https://opencode.ai/inference/go/openai/v1/chat/completions"
+19 : DEFAULT_MODEL = "deepseek-v4.1-flash"
+20 : META = ("(your analysis)", "not supplied yet", "further research is needed")
+21 : CITATION = re.compile(r"\([^()]{1,140}?,\s*(?:n\.d\.|no date|\d{4}[a-z]?)\)")
+96 : 
+97 : 
+98 : def model_id():
+99 :     return os.environ.get("BP_PROSE_MODEL") or os.environ.get("BP_LLM_MODEL", DEFAULT_MODEL)
+100 : 
+101 : 
+102 : def _call(messages, timeout=60, max_tokens=4000):

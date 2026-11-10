@@ -1,0 +1,1 @@
+'class="rail" id="rail">\n    <button data-panel="runs" class="active">📋 Run log</button>\n    <button data-panel="validation">🧪 Validation</button>\n    <button data-panel="heal">Self-Healing</button>\n  <button data-panel="autoresearch">Autoresearch</button>\n    <button data-panel="chat">💬 Chat box</bu'

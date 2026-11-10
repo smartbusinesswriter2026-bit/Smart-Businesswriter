@@ -290,8 +290,8 @@ def _web(query, region="Global", limit=10, category=None, fast=False):
 def _complete(rubric_text):
     with mock.patch("bp.product.sources.search_academic", side_effect=_academic), \
             mock.patch("bp.product.sources.search_web", side_effect=_web):
-        return completion.complete("template_ansoff", BRIEF, industry=INDUSTRY,
-                                   rubric=rubric_text)
+        return completion.complete("template_ansoff", BRIEF, unit_value="Kestrel Retail",
+                                   industry=INDUSTRY, rubric=rubric_text)
 
 
 def _draft(rubric_text):
@@ -392,7 +392,8 @@ class RubricCoverageTest(unittest.TestCase):
     def test_e_rub_028__a_paper_without_a_rubric_is_unchanged(self):
         with mock.patch("bp.product.sources.search_academic", side_effect=_academic), \
                 mock.patch("bp.product.sources.search_web", side_effect=_web):
-            plain = completion.complete("template_ansoff", BRIEF, industry=INDUSTRY)
+            plain = completion.complete("template_ansoff", BRIEF,
+                                        unit_value="Kestrel Retail", industry=INDUSTRY)
         self.assertNotIn("rubric", plain)
         report = completion.draft(plain)
         self.assertNotIn("Rubric coverage", [section["heading"] for section in report["sections"]])

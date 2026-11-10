@@ -192,37 +192,37 @@
     "ebit": {
      "desc": "ebit",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "market_value_equity": {
      "desc": "market value equity",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "retained_earnings": {
      "desc": "retained earnings",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "sales": {
      "desc": "sales",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "total_assets": {
      "desc": "total assets",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "total_liabilities": {
      "desc": "total liabilities",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "working_capital": {
      "desc": "working capital",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "intended_use": "financial statement computation",
@@ -2106,12 +2106,12 @@
     "current_assets": {
      "desc": "current assets",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "current_liabilities": {
      "desc": "current liabilities",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "intended_use": "Current ratio.",
@@ -2937,22 +2937,22 @@
     "equity": {
      "desc": "equity",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "net_income": {
      "desc": "net income",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "sales": {
      "desc": "sales",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "total_assets": {
      "desc": "total assets",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "intended_use": "DuPont analysis (ROE decomposition).",
@@ -3513,12 +3513,12 @@
     "net_income": {
      "desc": "net income",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "shares": {
      "desc": "shares",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "intended_use": "Earnings per share.",
@@ -3997,6 +3997,102 @@
    "unsupported_use": "Estimating the mpc or tax rate; crowding out, confidence, supply-side effects, lags, open-economy leakages or a full macro model.",
    "version": "1.0.0"
   },
+  "five_s_score": {
+   "assumptions": [
+    "Every score uses the same anchors and the same maximum.",
+    "An unassessed criterion is absent, not scored zero."
+   ],
+   "category": "operations",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "Total = sum of the criterion scores; rate = total / (n x maximum).",
+     "impact": "An average or a weighted total gives a different number; the method states which it used.",
+     "question": "Score aggregation"
+    }
+   ],
+   "inputs": {
+    "maximum": {
+     "desc": "the maximum score per criterion",
+     "required": true,
+     "type": "decimal"
+    },
+    "scores": {
+     "desc": "one score per criterion",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "intended_use": "The total and percentage score of a declared Five-S scorecard, from the criterion scores and the maximum per criterion.",
+   "limitations": [
+    "The scores are judgments; the product does not observe the area.",
+    "No banding or certification threshold is invented.",
+    "A single audit is a point in time, not a trend."
+   ],
+   "method_id": "five_s_score",
+   "planned_checks": [
+    "second_implementation_agrees",
+    "total_is_the_sum_of_the_scores",
+    "max_total_is_the_count_times_the_maximum",
+    "score_rate_is_the_total_over_the_maximum_total",
+    "a_zero_score_gives_zero_percent"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Scoring a criterion; excluding an unassessed criterion; trend or comparison across audits; a certification band; weighting one S above another.",
+   "version": "1.0.0"
+  },
+  "fmea_rpn": {
+   "assumptions": [
+    "Each score uses a written anchor and the same scale for every row.",
+    "The three scores describe one cause of one failure mode."
+   ],
+   "category": "operations",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "RPN = Severity x Occurrence x Detection on the declared 1-10 scales.",
+     "impact": "A different scale or an action-priority table gives a different ranking.",
+     "question": "RPN basis"
+    }
+   ],
+   "inputs": {
+    "detection": {
+     "desc": "detection score from 1 to 10",
+     "required": true,
+     "type": "integer"
+    },
+    "occurrence": {
+     "desc": "occurrence score from 1 to 10",
+     "required": true,
+     "type": "integer"
+    },
+    "severity": {
+     "desc": "severity score from 1 to 10",
+     "required": true,
+     "type": "integer"
+    }
+   },
+   "intended_use": "The Risk Priority Number of one FMEA row, the product of its declared severity, occurrence and detection scores.",
+   "limitations": [
+    "The scores are judgments; the product does not choose them.",
+    "The RPN hides the severity override; a severity of 9 or 10 is a priority whatever the product.",
+    "No AP table is supplied."
+   ],
+   "method_id": "fmea_rpn",
+   "planned_checks": [
+    "second_implementation_agrees",
+    "rpn_is_severity_times_occurrence_times_detection",
+    "rpn_lies_between_one_and_one_thousand",
+    "raising_severity_never_lowers_rpn"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Choosing the S, O or D scores; the action-priority table; a severity override; re-scoring before the action is implemented; treating the RPN as a measurement or a cutoff.",
+   "version": "1.0.0"
+  },
   "forward_price": {
    "assumptions": [
     "The declared inputs are the values used; nothing is defaulted or inferred."
@@ -4137,17 +4233,17 @@
     "periods": {
      "desc": "periods",
      "required": true,
-     "type": "string"
+     "type": "integer"
     },
     "pv": {
      "desc": "pv",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "rate": {
      "desc": "rate",
      "required": true,
-     "type": "string"
+     "type": "rate"
     }
    },
    "intended_use": "Future value of a lump sum.",
@@ -6732,12 +6828,12 @@
     "cashflows": {
      "desc": "cashflows",
      "required": true,
-     "type": "string"
+     "type": "decimal_list"
     },
     "rate": {
      "desc": "rate",
      "required": true,
-     "type": "string"
+     "type": "rate"
     }
    },
    "intended_use": "Net present value of cash flows.",
@@ -8770,6 +8866,11 @@
      "required": true,
      "type": "value_list"
     },
+    "owner_withdrawals": {
+     "desc": "optional owner withdrawals each period, a financing outflow, default zero",
+     "required": false,
+     "type": "value_list"
+    },
     "payable_days": {
      "desc": "payable days of cost of sales, default 0",
      "required": false,
@@ -8809,6 +8910,7 @@
     "net_income_is_operating_profit_less_interest_and_tax",
     "the_balance_sheet_balances_every_period",
     "cash_and_equity_roll_forward",
+    "owner_withdrawals_are_financing_outflows",
     "a_declared_loan_is_repaid_in_full"
    ],
    "review_status": "pending_named_reviewer",
@@ -10487,6 +10589,47 @@
    "unsupported_use": "Resource limits, calendars or correlated durations; treating the seed or the distribution as a forecast; a guarantee that the P80 will hold.",
    "version": "1.0.0"
   },
+  "seasonal_series": {
+   "assumptions": [
+    "The index is declared, not estimated."
+   ],
+   "category": "planning",
+   "claim_ceiling": "descriptive",
+   "defaults": [
+    {
+     "default_chosen": "The index is applied period by period to the declared base; the index is the student's declaration.",
+     "impact": "A different index redistributes the same annual base.",
+     "question": "Seasonal index"
+    }
+   ],
+   "inputs": {
+    "base": {
+     "desc": "the base amount for each period",
+     "required": true,
+     "type": "value_list"
+    },
+    "index": {
+     "desc": "the seasonal multiplier for each period, same length as base",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "intended_use": "A declared base series multiplied period by period by a declared seasonal index.",
+   "limitations": [
+    "A seasonal index redistributes the declared base; it does not create demand."
+   ],
+   "method_id": "seasonal_series",
+   "planned_checks": [
+    "each_period_is_base_times_index",
+    "total_is_the_sum_of_the_periods",
+    "a_flat_index_leaves_the_total_unchanged"
+   ],
+   "review_status": "pending_named_reviewer",
+   "status": "implemented_tested",
+   "tier": "T1",
+   "unsupported_use": "Choosing the index; forecasting the base; irregular or negative indices.",
+   "version": "1.0.0"
+  },
   "sensitivity_table": {
    "assumptions": [
     "The base figures and the declared changes are the owner's inputs.",
@@ -10617,17 +10760,17 @@
     "principal": {
      "desc": "principal",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "rate": {
      "desc": "rate",
      "required": true,
-     "type": "string"
+     "type": "rate"
     },
     "time": {
      "desc": "time",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "intended_use": "Simple interest earned on principal.",
@@ -12076,27 +12219,27 @@
     "cost_of_debt": {
      "desc": "cost of debt",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "cost_of_equity": {
      "desc": "cost of equity",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "debt_value": {
      "desc": "debt value",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "equity_value": {
      "desc": "equity value",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "tax_rate": {
      "desc": "tax rate",
      "required": true,
-     "type": "string"
+     "type": "rate"
     }
    },
    "intended_use": "financial statement computation",

@@ -113,6 +113,21 @@ class SourceTest(StoreCase):
                            "source": {"kind": "calculation", "method": "breakeven",
                                       "inputs": {}}})
 
+    def test_a_declared_visual_can_name_the_file_it_was_read_from(self):
+        record = visuals.build({
+            "title": "From a file", "kind": "bar",
+            "source": {"kind": "declared",
+                       "points": [{"label": "Q1", "value": "1"},
+                                  {"label": "Q2", "value": "2"}],
+                       "file": {"id": "abc", "filename": "sales.csv",
+                                "sha256": "a" * 64,
+                                "columns": {"label": "Quarter", "value": "Revenue"}}}})
+        self.assertEqual(record["source"]["label"], "Figures read from sales.csv")
+        self.assertEqual(record["source"]["file"]["filename"], "sales.csv")
+        self.assertIn("sales.csv", record["figures"][0]["note"])
+        self.assertIn("sales.csv",
+                      record["bundle"]["delivery"]["appendix"]["artifacts"][0][2])
+
     def test_a_case_source_reads_the_recorded_artifacts(self):
         bundle = product_fixtures.make_bundle()
         bundle["delivery"]["appendix"]["artifacts"] = [
@@ -278,6 +293,116 @@ class ParetoVisualTest(StoreCase):
     def test_a_pareto_is_not_proposed_without_running_totals(self):
         plan = visuals.propose(DECLARED, "the vital few causes")
         self.assertNotIn("pareto", [row["kind"] for row in plan["proposals"]])
+
+
+class StatisticalChartTest(StoreCase):
+    """Area, scatter and candlestick draw stored values only."""
+
+    SCATTER = {"kind": "declared", "points": [
+        {"label": "Ad spend", "value": "45000", "x": "1200"},
+        {"label": "Footfall", "value": "30000", "x": "800"},
+        {"label": "Referral", "value": "52000", "x": "1500"}]}
+
+    CANDLES = {"kind": "declared", "points": [
+        {"label": "Day one", "value": "110", "open": "100", "high": "120",
+         "low": "90", "close": "110"},
+        {"label": "Day two", "value": "105", "open": "110", "high": "115",
+         "low": "100", "close": "105"}]}
+
+    def test_an_area_chart_builds_and_draws_the_trend(self):
+        record = visuals.build({"title": "Revenue trend", "source": DECLARED, "kind": "area"})
+        self.assertEqual(record["figures"][0]["spec"]["kind"], "area")
+        svg = visuals.export(record, "svg")[0].decode("utf-8")
+        self.assertIn("<polygon", svg)
+        self.assertIn("120000", svg)
+
+    def test_a_scatter_builds_and_draws_both_values(self):
+        record = visuals.build({"title": "Ad spend and sales", "source": self.SCATTER,
+                                "kind": "scatter"})
+        spec = record["figures"][0]["spec"]
+        self.assertEqual(spec["kind"], "scatter")
+        self.assertTrue(all(entry.get("x_artifact") for entry in spec["series"]))
+        svg = visuals.export(record, "svg")[0].decode("utf-8")
+        self.assertIn("<circle", svg)
+
+    def test_a_scatter_without_x_values_is_refused(self):
+        with self.assertRaises(visuals.VisualError):
+            visuals.build({"title": "Ad spend and sales", "source": DECLARED,
+                           "kind": "scatter"})
+
+    def test_a_candlestick_builds_and_draws_four_prices(self):
+        record = visuals.build({"title": "Share price", "source": self.CANDLES,
+                                "kind": "candlestick"})
+        spec = record["figures"][0]["spec"]
+        self.assertEqual(spec["kind"], "candlestick")
+        self.assertTrue(all(entry.get(key) for entry in spec["series"]
+                            for key in ("open", "high", "low", "close")))
+        svg = visuals.export(record, "svg")[0].decode("utf-8")
+        self.assertIn("<rect", svg)
+
+    def test_a_candlestick_without_four_prices_is_refused(self):
+        with self.assertRaises(visuals.VisualError):
+            visuals.build({"title": "Share price", "source": DECLARED, "kind": "candlestick"})
+
+    def test_the_words_can_point_at_a_scatter(self):
+        plan = visuals.propose(self.SCATTER, "the relationship between ad spend and sales")
+        self.assertEqual(plan["proposals"][0]["kind"], "scatter")
+
+    def test_the_words_can_point_at_a_candlestick(self):
+        plan = visuals.propose(self.CANDLES, "the share price open high low close")
+        self.assertEqual(plan["proposals"][0]["kind"], "candlestick")
+
+
+class DiagramVisualTest(StoreCase):
+
+    def test_a_swot_diagram_builds_lists_and_exports(self):
+        spec = {"format": "bp-diagram/1", "kind": "matrix2x2", "title": "SWOT",
+                "quadrants": {"top_left": "Strengths", "top_right": "Weaknesses",
+                              "bottom_left": "Opportunities", "bottom_right": "Threats"}}
+        record = visuals.build({"title": "SWOT",
+                                "source": {"kind": "diagram", "spec": spec}})
+        self.assertEqual(record["kind"], "matrix2x2")
+        self.assertEqual(record["source"]["label"], "Your framework")
+        self.assertEqual(visuals.listing()["visuals"][0]["kinds"], ["matrix2x2"])
+        preview = visuals.preview({"title": "SWOT",
+                                   "source": {"kind": "diagram", "spec": spec}})
+        self.assertIn("<svg", preview["svg"])
+        data, name, mime = visuals.export(record, "svg")
+        self.assertEqual(mime, "image/svg+xml")
+        self.assertIn(b"<svg", data)
+        self.assertTrue(name.endswith(".svg"))
+
+    def test_a_diagram_label_may_not_carry_a_digit(self):
+        spec = {"format": "bp-diagram/1", "kind": "process", "title": "Bad",
+                "items": [{"label": "4Ps"}, {"label": "Pricing"}]}
+        with self.assertRaises(visuals.VisualError):
+            visuals.build({"title": "Bad",
+                           "source": {"kind": "diagram", "spec": spec}})
+
+
+class GanttVisualTest(StoreCase):
+
+    def test_a_gantt_builds_with_date_labels_and_exports(self):
+        source = {"kind": "gantt", "activities": [
+            {"label": "Research", "start": "0", "end": "4",
+             "start_label": "Jan 1", "end_label": "Jan 5"},
+            {"label": "Draft", "start": "4", "end": "11",
+             "start_label": "Jan 5", "end_label": "Jan 12"}]}
+        record = visuals.build({"title": "Timeline", "source": source})
+        self.assertEqual(record["kind"], "gantt")
+        self.assertEqual(record["source"]["label"], "Your project timeline")
+        self.assertEqual(visuals.listing()["visuals"][0]["kinds"], ["gantt"])
+        preview = visuals.preview({"title": "Timeline", "source": source})
+        self.assertIn("<svg", preview["svg"])
+        self.assertIn("Jan 1", preview["svg"])
+        data, _name, mime = visuals.export(record, "svg")
+        self.assertEqual(mime, "image/svg+xml")
+        self.assertIn(b"Jan 1", data)
+
+    def test_a_task_that_ends_before_it_starts_is_refused(self):
+        with self.assertRaises(visuals.VisualError):
+            visuals.build({"title": "Bad", "source": {"kind": "gantt", "activities": [
+                {"label": "A", "start": "5", "end": "2"}]}})
 
 
 class FigureSheetTest(StoreCase):

@@ -89,37 +89,37 @@
     "ebit": {
      "desc": "ebit",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "market_value_equity": {
      "desc": "market value equity",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "retained_earnings": {
      "desc": "retained earnings",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "sales": {
      "desc": "sales",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "total_assets": {
      "desc": "total assets",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "total_liabilities": {
      "desc": "total liabilities",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "working_capital": {
      "desc": "working capital",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "tier": "T1",
@@ -918,12 +918,12 @@
     "current_assets": {
      "desc": "current assets",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "current_liabilities": {
      "desc": "current liabilities",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "tier": "T1",
@@ -1255,22 +1255,22 @@
     "equity": {
      "desc": "equity",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "net_income": {
      "desc": "net income",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "sales": {
      "desc": "sales",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "total_assets": {
      "desc": "total assets",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "tier": "T1",
@@ -1550,12 +1550,12 @@
     "net_income": {
      "desc": "net income",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "shares": {
      "desc": "shares",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "tier": "T1",
@@ -1774,6 +1774,43 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "five_s_score": {
+   "inputs": {
+    "maximum": {
+     "desc": "the maximum score per criterion",
+     "required": true,
+     "type": "decimal"
+    },
+    "scores": {
+     "desc": "one score per criterion",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
+  "fmea_rpn": {
+   "inputs": {
+    "detection": {
+     "desc": "detection score from 1 to 10",
+     "required": true,
+     "type": "integer"
+    },
+    "occurrence": {
+     "desc": "occurrence score from 1 to 10",
+     "required": true,
+     "type": "integer"
+    },
+    "severity": {
+     "desc": "severity score from 1 to 10",
+     "required": true,
+     "type": "integer"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "forward_price": {
    "inputs": {
     "rate": {
@@ -1837,17 +1874,17 @@
     "periods": {
      "desc": "periods",
      "required": true,
-     "type": "string"
+     "type": "integer"
     },
     "pv": {
      "desc": "pv",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "rate": {
      "desc": "rate",
      "required": true,
-     "type": "string"
+     "type": "rate"
     }
    },
    "tier": "T1",
@@ -2947,12 +2984,12 @@
     "cashflows": {
      "desc": "cashflows",
      "required": true,
-     "type": "string"
+     "type": "decimal_list"
     },
     "rate": {
      "desc": "rate",
      "required": true,
-     "type": "string"
+     "type": "rate"
     }
    },
    "tier": "T1",
@@ -3892,6 +3929,11 @@
      "required": true,
      "type": "value_list"
     },
+    "owner_withdrawals": {
+     "desc": "optional owner withdrawals each period, a financing outflow, default zero",
+     "required": false,
+     "type": "value_list"
+    },
     "payable_days": {
      "desc": "payable days of cost of sales, default 0",
      "required": false,
@@ -4689,6 +4731,22 @@
    "tier": "T1",
    "version": "1.0.0"
   },
+  "seasonal_series": {
+   "inputs": {
+    "base": {
+     "desc": "the base amount for each period",
+     "required": true,
+     "type": "value_list"
+    },
+    "index": {
+     "desc": "the seasonal multiplier for each period, same length as base",
+     "required": true,
+     "type": "value_list"
+    }
+   },
+   "tier": "T1",
+   "version": "1.0.0"
+  },
   "sensitivity_table": {
    "inputs": {
     "base_fixed_cost": {
@@ -4751,17 +4809,17 @@
     "principal": {
      "desc": "principal",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "rate": {
      "desc": "rate",
      "required": true,
-     "type": "string"
+     "type": "rate"
     },
     "time": {
      "desc": "time",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     }
    },
    "tier": "T1",
@@ -5424,27 +5482,27 @@
     "cost_of_debt": {
      "desc": "cost of debt",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "cost_of_equity": {
      "desc": "cost of equity",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "debt_value": {
      "desc": "debt value",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "equity_value": {
      "desc": "equity value",
      "required": true,
-     "type": "string"
+     "type": "decimal"
     },
     "tax_rate": {
      "desc": "tax rate",
      "required": true,
-     "type": "string"
+     "type": "rate"
     }
    },
    "tier": "T1",

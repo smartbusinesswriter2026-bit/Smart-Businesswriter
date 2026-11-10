@@ -2,8 +2,11 @@
 
 The behaviour the Five Forces and PESTEL builds proved, applied to the Blue Ocean ERRC
 Growth Matrix: four cells, sourced items or a named gap with a probe, an
-industry as the unit of analysis, one paper, and a refusal rather than a thin
-paper.  The framework supplies everything; the engine is unchanged.
+**the focal offering in its industry** as the unit of analysis, one paper, and a
+refusal rather than a thin paper.  The unit was corrected from a bare industry
+because the four actions redesign one offering against an industry's conventions
+(owner guideline, 2026-11-09).  The framework supplies everything; the engine is
+unchanged.
 """
 
 import unittest
@@ -17,7 +20,8 @@ from bp.product import api, completion  # noqa: E402
 BRIEF = ("A smartphoneser is reviewing growth options before deciding whether "
          "to open a new store format or launch a private-label range.")
 
-INDUSTRY = "smartphones"
+INDUSTRY = "grocery retail"
+OFFERING = "a subscription grocery box"
 
 
 def academic(query, databases=None, limit=10, year_from=None):
@@ -43,6 +47,7 @@ def complete(**kwargs):
     with mock.patch("bp.product.sources.search_academic", side_effect=academic), \
             mock.patch("bp.product.sources.search_web", side_effect=web):
         return completion.complete("template_blue_ocean_errc", kwargs.pop("instruction", BRIEF),
+                                   unit_value=kwargs.pop("unit_value", OFFERING),
                                    industry=kwargs.pop("industry", INDUSTRY), **kwargs)
 class ERRCCompletionTest(unittest.TestCase):
     def test_four_cells_each_carry_a_sourced_item_or_a_named_gap(self):
@@ -59,16 +64,22 @@ class ERRCCompletionTest(unittest.TestCase):
                     self.assertTrue(item["source"], block["key"])
                     self.assertTrue(item["citation"], block["key"])
 
-    def test_the_industry_is_the_unit_of_analysis(self):
+    def test_the_offering_and_industry_are_the_unit_of_analysis(self):
         result = complete()
-        self.assertEqual(result["unit"]["field"], "industry")
-        self.assertEqual(result["unit"]["value"], INDUSTRY)
-        self.assertTrue(result["blocks"][0]["query"].startswith(INDUSTRY + " "))
+        self.assertEqual(result["unit"]["field"], "firm")
+        self.assertEqual(result["unit"]["value"], OFFERING)
+        self.assertEqual(result["unit"]["market"], INDUSTRY)
+        self.assertIn(INDUSTRY, result["blocks"][0]["query"])
+
+    def test_a_brief_without_an_offering_is_refused_with_an_actionable_reason(self):
+        with self.assertRaises(ValueError) as refused:
+            complete(instruction="A firm is weighing growth options.", unit_value="")
+        self.assertIn("offering", str(refused.exception).lower())
 
     def test_a_brief_without_an_industry_is_refused_with_an_actionable_reason(self):
         with self.assertRaises(ValueError) as refused:
             complete(instruction="A firm is weighing growth options.", industry="")
-        self.assertIn("market", str(refused.exception).lower())
+        self.assertIn("industry", str(refused.exception).lower())
 
     def test_one_source_cannot_fill_two_cells(self):
         result = complete()
@@ -84,7 +95,8 @@ class ERRCCompletionTest(unittest.TestCase):
             return {"results": [], "errors": [], "skipped": []}
         with mock.patch("bp.product.sources.search_academic", side_effect=empty_academic), \
                 mock.patch("bp.product.sources.search_web", side_effect=web):
-            result = completion.complete("template_blue_ocean_errc", BRIEF, industry=INDUSTRY)
+            result = completion.complete("template_blue_ocean_errc", BRIEF,
+                                         unit_value=OFFERING, industry=INDUSTRY)
         for block in result["blocks"]:
             self.assertTrue(block["items"] or block["gap"], block["key"])
             for item in block["items"]:
@@ -130,6 +142,7 @@ class ERRCCompletionTest(unittest.TestCase):
             status, payload = api.handle("POST", "/api/cases/frameworks/complete",
                                          {"template": "template_blue_ocean_errc",
                                           "instruction": BRIEF,
+                                          "unit": OFFERING,
                                           "industry": INDUSTRY})
         self.assertEqual(status, 200)
         self.assertEqual(payload["template"], "template_blue_ocean_errc")
@@ -141,6 +154,7 @@ class ERRCCompletionTest(unittest.TestCase):
         self.assertIn("Blue Ocean four actions", system)
         self.assertNotIn("PESTEL", system)
         self.assertIn("Do not add facts, numbers, names, sources or citations", system)
+        self.assertIn("offering", system.lower())
         self.assertIn("industry", system.lower())
 
     def test_the_framework_name_is_not_an_invented_name(self):
@@ -151,7 +165,7 @@ class ERRCCompletionTest(unittest.TestCase):
                 "lead": "lead", "groups": {"eliminate": ["Market penetration matters."]},
                 "discussion": [""], "implications": [""], "limitations": [""], "conclusion": [""]}
         allow = completion._allowed_names(completion._profile("template_blue_ocean_errc"),
-                                          {"unit": {"value": INDUSTRY}, "region": "Global"})
+                                          {"unit": {"value": OFFERING}, "region": "Global"})
         problems = completion._problems(data, facts, "A case in smartphones.", "short",
                                         ["eliminate"], allow=allow)
         self.assertFalse([p for p in problems if p.startswith("name Blue Ocean ERRC")

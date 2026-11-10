@@ -1380,7 +1380,27 @@ def _opencode_exe():
 
 
 def _parse_opencode_results(stdout, sites, limit):
+    """Read the websearch results out of a headless OpenCode session.
+
+    The websearch tool returns its findings as **JSON**:
+    ``{"search_id": ..., "results": [{"url": ..., "title": ..., "excerpts": [...]}]}``.
+    An older build of the tool returned plain text blocks ("Title: ...", "URL:
+    ...", "Highlights: ..."), so both shapes are read: a provider that answers
+    in the old shape is still answered, and one that answers in the new shape
+    is not silently dropped.
+    """
     out, seen = [], set()
+
+    def add(raw_url, title, summary):
+        url = (raw_url or "").strip()
+        if not url:
+            return
+        item = _web_item({"title": (title or "").strip(), "url": url,
+                           "summary": (summary or "").strip()}, sites)
+        if item and item["url"] not in seen:
+            seen.add(item["url"])
+            out.append(item)
+
     for line in (stdout or "").splitlines():
         try:
             event = json.loads(line)
@@ -1390,18 +1410,40 @@ def _parse_opencode_results(stdout, sites, limit):
         if event.get("type") != "tool_use" or part.get("tool") != "websearch":
             continue
         output = (part.get("state") or {}).get("output") or ""
+        if not output:
+            continue
+
+        # The current shape: JSON with a results list.
+        parsed = None
+        try:
+            parsed = json.loads(output)
+        except ValueError:
+            parsed = None
+        if isinstance(parsed, dict) and isinstance(parsed.get("results"), list):
+            for row in parsed["results"]:
+                if not isinstance(row, dict):
+                    continue
+                excerpts = row.get("excerpts") or row.get("highlights") or ""
+                if isinstance(excerpts, list):
+                    excerpts = "\n".join(str(e) for e in excerpts)
+                add(row.get("url"), row.get("title"), str(excerpts))
+            continue
+        if isinstance(parsed, list):
+            for row in parsed:
+                if isinstance(row, dict):
+                    add(row.get("url"), row.get("title"),
+                        str(row.get("excerpts") or row.get("summary") or ""))
+            continue
+
+        # The older shape: plain text blocks.
         for block in re.split(r"\n\s*---\s*\n", output):
             title = re.search(r"^Title:\s*(.+)$", block, re.M)
             url = re.search(r"^URL:\s*(https?://\S+)", block, re.M)
             if not url:
                 continue
             highlight = re.search(r"Highlights:\s*(.*)", block, re.S)
-            item = _web_item({"title": title.group(1).strip() if title else "",
-                              "url": url.group(1).strip(),
-                              "summary": highlight.group(1).strip() if highlight else ""}, sites)
-            if item and item["url"] not in seen:
-                seen.add(item["url"])
-                out.append(item)
+            add(url.group(1), title.group(1) if title else "",
+                highlight.group(1) if highlight else "")
     return out[:max(1, limit)]
 
 
@@ -1419,12 +1461,20 @@ def _opengo_web(text, sites, limit):
         return [], {"provider": "opengo", "skipped": "opencode is not on PATH"}
     model = os.environ.get("BP_LLM_MODEL", "beam-free")
     count = min(max(limit * 3, 5), 10)
-    prompt = ("Use the websearch tool with the query: %s. Return the top %d results. "
-              "Do not answer from memory. Do not add commentary." % (text, count))
+    # The site filter must reach the **prompt**: the websearch tool has no
+    # site: parameter, so without this it answers from the whole web and
+    # every result is then dropped by the curated filter — the provider
+    # looked like it had found nothing.
+    domains = [s["domain"] for s in (sites or [])
+               if s.get("tier") in ("official", "data", "research")][:5]
+    scope = (" site:" + " OR site:".join(domains)) if domains else ""
+    prompt = ("Use the websearch tool with the query: %s%s. Return the top %d results. "
+              "Do not answer from memory. Do not add commentary."
+              % (text, scope, count))
     try:
-        timeout = max(10, int(os.environ.get("BP_OPENGO_TIMEOUT", "12")))
+        timeout = max(20, int(os.environ.get("BP_OPENGO_TIMEOUT", "45")))
     except (TypeError, ValueError):
-        timeout = 12
+        timeout = 45
     try:
         process = subprocess.Popen(
             [executable, "run", "-m", "opencode-go/" + model, "--format", "json", "--auto", prompt],
@@ -1453,8 +1503,10 @@ def _opengo_web(text, sites, limit):
         if line is None:
             break
         lines.append(line)
-        if '"tool_use"' in line and '"websearch"' in line:
-            break
+        # The read continues to the end of the session: the websearch tool
+        # *call* carries no results, and stopping at the call meant the
+        # provider always returned nothing.  The output arrives with the
+        # completed tool state.
     try:
         process.terminate()
         process.wait(timeout=3)
@@ -1567,7 +1619,17 @@ def search_web(query, region="Global", limit=10, category=None, fast=False, site
                   "unavailable or empty; the vetted-site directory is below.")
     payload = {"query": text, "results": results, "sites": site_list, "provider": provider,
                "attempts": attempts, "notice": notice, "cached": False}
-    _cache_put(key, payload)
+    # A search that every provider **refused** is not an answer, and caching
+    # it as one poisons the cache for its whole TTL: a rate-limited search
+    # would read as "this source has nothing", and the next caller would be
+    # told the same thing without asking anyone.  Only a search that really
+    # came back empty is cached.
+    refused = bool(results) is False and any(
+        isinstance(a, dict) and (a.get("error") or a.get("skipped")) for a in attempts)
+    if not refused:
+        _cache_put(key, payload)
+    else:
+        payload["not_cached"] = "every provider refused the query"
     return copy.deepcopy(payload)
 
 

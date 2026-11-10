@@ -9,8 +9,10 @@ for pytest, which may import a test file without importing this package first.
 
 import os
 
-os.environ.setdefault("BP_ORIENTATION", "0")
-os.environ.setdefault("BP_LEARNING_LOG", "0")
+# Forced, not defaulted: a parent shell that serves the product may export these
+# for the app, and a test run must still be offline.
+os.environ["BP_ORIENTATION"] = "0"
+os.environ["BP_LEARNING_LOG"] = "0"
 
 #: The model lanes are live HTTPS calls: the analysis lane drafts a part from the
 #: instruction and the proposal lane writes a question for a gap.  A machine that

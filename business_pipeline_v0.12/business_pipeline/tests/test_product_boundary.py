@@ -41,6 +41,11 @@ OPTIONAL_DOCUMENT_READERS = {"pypdf", "pypdfium2", "pytesseract", "PIL"}
 #: so the product still runs with no third-party package installed.
 OPTIONAL_RENDERERS = {"plotly", "kaleido", "cairosvg"}
 
+#: The optional headless browser for the Portfolio Lab evidence slot.  `evidence_capture.py`
+#: imports it lazily inside `capture`; when it is absent the caller gets a named gap and the
+#: student attaches their own screenshot, so a snapshot is never blocked by a missing package.
+OPTIONAL_EVIDENCE_CAPTURE = {"playwright"}
+
 
 def _product_sources():
     for name in sorted(os.listdir(PRODUCT_DIR)):
@@ -64,6 +69,8 @@ class ProductBoundaryTest(unittest.TestCase):
                 allowed |= OPTIONAL_DOCUMENT_READERS
             if name in ("renderers.py", "theme.py"):
                 allowed |= OPTIONAL_RENDERERS
+            if name == "evidence_capture.py":
+                allowed |= OPTIONAL_EVIDENCE_CAPTURE
             tree = ast.parse(source, filename=name)
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):

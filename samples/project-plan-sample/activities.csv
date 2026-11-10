@@ -1,0 +1,15 @@
+id,name,wbs,duration,predecessors,resource
+A1,Site survey,1.1,10,,Structural engineer
+A2,Structural assessment,1.1,8,A1,Structural engineer
+A3,Planning application,1.2,20,A2,Permitting consultant
+A4,Grid application,1.2,15,A2,Permitting consultant
+A5,Foundation,2.1,25,A3,Civil contractor
+A6,Steel frame,2.1,20,A5,Civil contractor
+A7,Roof and drainage,2.2,12,A6,Roofing contractor
+A8,PV procurement,3.1,30,A4,Electrical contractor
+A9,PV installation,3.1,18,"A7,A8",Electrical contractor
+A10,Battery installation,3.2,12,A9,Electrical contractor
+A11,Grid connection,3.3,10,A10,Electrical contractor
+A12,Commissioning,4.1,6,A11,Commissioning lead
+A13,Information board,4.2,4,A12,Community liaison
+A14,Handover,4.1,2,"A12,A13",Project manager

@@ -341,6 +341,9 @@
       <button class="nav-item" data-panel="autoresearch">
         <span class="nav-text">Autoresearch<small>Recursive repair loop</small></span>
       </button>
+      <button class="nav-item" data-panel="relevance">
+        <span class="nav-text">Relevance<small>External sensing (RRA)</small></span>
+      </button>
       <button class="nav-item" data-panel="runs">
         <span class="nav-text">Run log<small>Pipeline activity</small></span>
       </button>
@@ -420,6 +423,19 @@
           <button data-hpanel="cases">Cases</button>
           <button data-hpanel="uploads">Uploads</button>
           <button data-hpanel="tools">Tools</button>
+          <button data-hpanel="loops">Loops</button>
+        </div>
+
+        <!-- LOOPS AND CAPABILITIES -->
+        <div class="hpane" id="hpanel-loops">
+          <div class="card">
+            <div class="card-head"><div><h2>Loops and capabilities</h2><p>Everything here is <strong>off by default</strong>. A switch that is turned on works immediately; a loop that is turned off stops.</p></div>
+              <button class="btn" id="loopsRefresh">Refresh</button>
+            </div>
+            <div class="card-body"><div id="loopsList">Loading…</div>
+              <p style="margin:12px 0 0;color:#667;font-size:12px;">The <strong>repair loop</strong> replays open errors and pins the fix as a regression case; it creates nothing and applies no code. The <strong>growth loop</strong> turns an approved capability gap into a PROVISIONAL scaffold for a human to finish; it wires nothing in and commits nothing. The <strong>relevance loop</strong> sweeps the sampling frame for what schools teach and what the standards now require; it applies nothing. A search provider that is switched off leaves the chain.</p>
+            </div>
+          </div>
         </div>
 
         <!-- OVERVIEW -->
@@ -637,6 +653,53 @@
           <div class="card-body"><div id="arHistory"></div></div>
         </div>
       </div>
+      <div class="panel" id="panel-relevance">
+        <div class="card">
+          <div class="card-head"><div><h2>Relevance Research Agent (RRA)</h2><p>External sensing: curriculum, standards, coverage, gaps, obsolescence watchlist.</p></div>
+            <div class="row">
+              <button class="btn primary" id="relStart">Run sweep</button>
+              <button class="btn" id="relDiscover">Discover pages</button>
+              <button class="btn danger" id="relStop">Stop</button>
+              <button class="btn" id="relRefresh">Refresh</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="relStatus" class="code" style="min-height:64px;margin:12px 0;">Status: idle</div>
+            <div class="stat-grid">
+              <div class="stat accent"><div class="label">Evidence</div><div class="value" id="relEvidence">—</div></div>
+              <div class="stat"><div class="label">Coverage rows</div><div class="value" id="relCoverage">—</div></div>
+              <div class="stat"><div class="label">Open gaps</div><div class="value" id="relGaps">—</div></div>
+              <div class="stat"><div class="label">Watch items</div><div class="value" id="relWatch">—</div></div>
+            </div>
+            <div style="margin:12px 0;">
+              <label style="font-size:13px;color:#667;">Manual URLs (one per line, optional — pipeline auto-discovers if empty):</label>
+              <textarea id="relUrls" rows="4" style="width:100%;margin-top:4px;font-family:monospace;font-size:12px;" placeholder="https://insead.edu/mba/curriculum&#10;https://www.aacsb.edu/insights/..."></textarea>
+            </div>
+            <div class="row" style="margin-top:8px;">
+              <label style="font-size:13px;color:#667;"><input type="checkbox" id="relUseModel" checked> Let the model draft excerpts and gap specs</label>
+            </div>
+            <div id="relConfig" class="code" style="margin-top:8px;min-height:20px;font-size:11px;color:#667;"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Open gaps</h2><p>Strict-pass gaps awaiting owner decision.</p></div></div>
+          <div class="card-body"><div id="relGapsList"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Watchlist</h2><p>Obsolescence watch items.</p></div></div>
+          <div class="card-body"><div id="relWatchlist"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Measurement controls</h2><p>What the system already has. If these are not seen, the sweep cannot see — and no gap is promoted from it.</p></div>
+            <button class="btn" id="relControls">Refresh</button></div>
+          <div class="card-body"><div id="relControlsBox"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><h2>Back-test</h2><p>Recall on the seeded known gaps and the false-gap rate on the seeded present items.</p></div>
+            <button class="btn" id="relBacktest">Run back-test</button></div>
+          <div class="card-body"><div id="relBacktestResult"></div></div>
+        </div>
+      </div>
 
       <!-- ═══ CHAT ═══ -->
       <div class="panel" id="panel-chat">
@@ -764,8 +827,47 @@ document.querySelectorAll('#healTabs button').forEach(btn => {
     const target = document.getElementById('hpanel-' + btn.dataset.hpanel);
     if (target) target.classList.add('active');
     if (btn.dataset.hpanel === 'tools') loadErrorDb();
+    if (btn.dataset.hpanel === 'loops') loadLoops();
   });
 });
+
+async function loadLoops() {
+  const r = await apiFetch('/api/ops/loops');
+  const box = document.getElementById('loopsList');
+  if (r.status !== 200 || !Array.isArray(r.data.capabilities)) {
+    box.innerHTML = '<div class="empty">The switches are unavailable.</div>'; return;
+  }
+  const rows = r.data.capabilities;
+  let h = '<table><thead><tr><th>Capability</th><th>Kind</th><th>State</th><th>Switch</th></tr></thead><tbody>';
+  rows.forEach(c => {
+    const running = c.running === true;
+    const state = c.enabled ? (running ? 'on — running' : 'on — idle') : 'off';
+    h += '<tr><td><strong>' + escapeHtml(c.label) + '</strong>'
+       + '<div style="font-size:11px;color:#667;">' + escapeHtml(c.description || '') + '</div></td>'
+       + '<td>' + escapeHtml(c.kind) + '</td>'
+       + '<td>' + escapeHtml(state) + '</td>'
+       + '<td><label style="font-size:12px;"><input type="checkbox" data-loop-key="' + escapeHtml(c.key) + '"'
+       + (c.enabled ? ' checked' : '') + '> ' + (c.enabled ? 'on' : 'off') + '</label></td></tr>';
+  });
+  h += '</tbody></table>';
+  box.innerHTML = h;
+  box.querySelectorAll('[data-loop-key]').forEach(box2 => {
+    box2.addEventListener('change', async () => {
+      const key = box2.getAttribute('data-loop-key');
+      const on = box2.checked;
+      const res = await apiFetch('/api/ops/loops/' + encodeURIComponent(key) + '/switch',
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: on }) });
+      if (res.status === 200) {
+        toast(res.data.message || (key + ' is now ' + (on ? 'on' : 'off')));
+      } else {
+        toast('Failed: ' + ((res.data && res.data.error) || 'unknown'));
+      }
+      loadLoops();
+    });
+  });
+}
+document.getElementById('loopsRefresh').addEventListener('click', loadLoops);
 
 function loadPanel(name) {
   const meta = PAGE_META[name] || [name, ""];
@@ -775,6 +877,7 @@ function loadPanel(name) {
   else if (name === 'validation') { loadFindings(); loadProposals(); }
   else if (name === 'heal') { loadErrors(); loadHealHistory(); loadPaperTesting(); loadCases(); loadUploads(); refreshOverview(); }
   else if (name === 'autoresearch') { loadAutoresearch(); }
+  else if (name === 'relevance') { loadRelevance(); }
   else if (name === 'chat') { /* chat panel loaded on demand */ }
   else if (name === 'health') loadHealth();
 }
@@ -2734,6 +2837,180 @@ document.getElementById('arStop').addEventListener('click', async () => {
 
 document.getElementById('arRefresh').addEventListener('click', loadAutoresearch);
 document.getElementById('arCausesRefresh').addEventListener('click', loadCauses);
+
+async function loadRelevance() {
+  const r = await apiFetch('/api/ops/relevance/status');
+  if (r.status === 200) {
+    const d = r.data;
+    document.getElementById('relStatus').textContent =
+      'Status: ' + (d.status || 'idle') + '\n' +
+      'Pending decisions: ' + (d.pending || 0) + '\n' +
+      'Decisions: ' + JSON.stringify(d.decisions || {});
+    document.getElementById('relEvidence').textContent = '—';
+    document.getElementById('relCoverage').textContent = '—';
+    document.getElementById('relGaps').textContent = d.pending || 0;
+    document.getElementById('relWatch').textContent = '—';
+  }
+  const r5 = await apiFetch('/api/ops/relevance/config');
+  if (r5.status === 200) {
+    const c = r5.data;
+    let stages = '';
+    const st = c.stages || {};
+    Object.keys(st).forEach(k => {
+      const s = st[k];
+      if (s && s.model) {
+        stages += '\n' + k + ': ' + s.model + (s.overridden ? ' (stage override)' : '');
+      }
+    });
+    document.getElementById('relConfig').textContent =
+      'model: ' + (c.provider || 'none') + ' / ' + (c.model || 'none') +
+      '  ·  enabled: ' + c.enabled +
+      '  ·  pages/sweep: ' + c.max_pages +
+      '  ·  token budget: ' + c.budget_tokens +
+      '  ·  discover: ' + c.discover +
+      '  ·  autostart: ' + c.autostart + stages +
+      (c.problem ? ('  ·  ' + c.problem) : '');
+  }
+  const r2 = await apiFetch('/api/ops/relevance/gaps');
+  const gl = document.getElementById('relGapsList');
+  if (r2.status === 200 && Array.isArray(r2.data.gaps)) {
+    if (!r2.data.gaps.length) { gl.innerHTML = '<div class="empty">No open gaps.</div>'; }
+    else {
+      let h = '<table><thead><tr><th>Title</th><th>Priority</th><th>Category</th><th>Lane</th><th>Status</th><th>Decision</th></tr></thead><tbody>';
+      r2.data.gaps.forEach(g => {
+        const gid = g.id || g.gap_id || '';
+        const open = (g.status === 'open');
+        const decision = open
+          ? '<button class="btn" data-rel-decide="approve" data-rel-gap="' + escapeHtml(gid) + '">Approve</button> '
+            + '<button class="btn" data-rel-decide="reject" data-rel-gap="' + escapeHtml(gid) + '">Reject</button> '
+            + '<button class="btn" data-rel-decide="defer" data-rel-gap="' + escapeHtml(gid) + '">Defer</button>'
+          : '<span style="font-size:11px;color:#667;">' + escapeHtml(g.status || '') + '</span>';
+        h += '<tr><td>' + escapeHtml(g.title || '') + '<div style="font-size:11px;color:#667;">'
+             + escapeHtml((g.general_capability_statement || '').slice(0, 140)) + '</div></td>'
+             + '<td>' + (g.priority || '') + '</td><td>' + (g.category || '') + '</td><td>' + (g.owner_lane || '') + '</td>'
+             + '<td>' + (g.status || '') + '</td><td>' + decision + '</td></tr>';
+      });
+      h += '</tbody></table>';
+      gl.innerHTML = h;
+      gl.querySelectorAll('[data-rel-decide]').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const gid = btn.getAttribute('data-rel-gap');
+          const action = btn.getAttribute('data-rel-decide');
+          const reason = window.prompt('Reason for ' + action + ' (recorded with the decision):', '');
+          if (reason === null) return;
+          const r = await apiFetch('/api/ops/relevance/gaps/' + encodeURIComponent(gid) + '/decision',
+            { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({decision: action, reason: reason, user: 'owner'}) });
+          toast(r.status === 200 ? ('Gap ' + action + 'd') : ('Failed: ' + ((r.data && r.data.error) || 'unknown')));
+          loadRelevance();
+        });
+      });
+    }
+  }
+  const r3 = await apiFetch('/api/ops/relevance/watchlist');
+  const wl = document.getElementById('relWatchlist');
+  if (r3.status === 200 && Array.isArray(r3.data.watchlist)) {
+    if (!r3.data.watchlist.length) { wl.innerHTML = '<div class="empty">No watch items.</div>'; }
+    else {
+      let h = '<table><thead><tr><th>Item</th><th>Why at risk</th><th>Status</th></tr></thead><tbody>';
+      r3.data.watchlist.forEach(w => {
+        h += '<tr><td>' + escapeHtml(w.item || '') + '</td><td>' + escapeHtml(w.why_at_risk || '') + '</td><td>' + (w.status || '') + '</td></tr>';
+      });
+      h += '</tbody></table>';
+      wl.innerHTML = h;
+    }
+  }
+  // Update stats from runs
+  const r4 = await apiFetch('/api/ops/relevance/runs?limit=1');
+  if (r4.status === 200 && Array.isArray(r4.data.runs) && r4.data.runs.length) {
+    const run = r4.data.runs[r4.data.runs.length - 1];
+    document.getElementById('relEvidence').textContent = run.evidence_count || 0;
+    document.getElementById('relCoverage').textContent = run.coverage_count || '\u2014';
+    document.getElementById('relWatch').textContent = run.watchitem_count || 0;
+  }
+}
+
+document.getElementById('relStart').addEventListener('click', async () => {
+  const urlsRaw = document.getElementById('relUrls').value || '';
+  const urls = urlsRaw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+  const useModel = document.getElementById('relUseModel').checked;
+  const body = JSON.stringify({urls: urls, use_model: useModel, discover: urls.length === 0});
+  const r = await apiFetch('/api/ops/relevance/start', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body });
+  toast('Sweep ' + (r.data.status || 'done') + ': ' + (r.data.strict_pass_count || 0) + ' gaps, ' + (r.data.evidence_count || 0) + ' evidence');
+  loadRelevance();
+});
+document.getElementById('relDiscover').addEventListener('click', async () => {
+  const useModel = document.getElementById('relUseModel').checked;
+  const r = await apiFetch('/api/ops/relevance/discover', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({use_model: useModel}) });
+  if (r.status === 200) {
+    toast('Discovered ' + (r.data.count || 0) + ' URL(s)');
+    const urls = (r.data.urls || []).join('\n');
+    if (urls) document.getElementById('relUrls').value = urls;
+  } else {
+    toast('Discovery failed: ' + ((r.data && r.data.error) || 'unknown'));
+  }
+  loadRelevance();
+});
+document.getElementById('relStop').addEventListener('click', async () => {
+  const r = await apiFetch('/api/ops/relevance/stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  toast(r.data.message || 'Stopped');
+  loadRelevance();
+});
+document.getElementById('relRefresh').addEventListener('click', loadRelevance);
+
+async function loadRelControls() {
+  const r = await apiFetch('/api/ops/relevance/runs?limit=1');
+  const box = document.getElementById('relControlsBox');
+  if (r.status !== 200 || !Array.isArray(r.data.runs) || !r.data.runs.length) {
+    box.innerHTML = '<div class="empty">No run yet.</div>'; return;
+  }
+  const run = r.data.runs[r.data.runs.length - 1];
+  const c = run.controls;
+  if (!c) { box.innerHTML = '<div class="empty">The last run carried no control result.</div>'; return; }
+  const verdict = c.passed ? 'HELD' : 'FAILED';
+  let h = '<div class="stat-grid">'
+    + '<div class="stat accent"><div class="label">Controls held</div><div class="value">' + (c.held || 0) + ' / ' + (c.total || 0) + '</div></div>'
+    + '<div class="stat"><div class="label">Share held</div><div class="value">' + Math.round((c.ratio || 0) * 100) + '%</div></div>'
+    + '<div class="stat"><div class="label">Needed</div><div class="value">' + Math.round((c.min_held || 0) * 100) + '%</div></div>'
+    + '<div class="stat"><div class="label">Verdict</div><div class="value" style="font-size:18px;color:' + (c.passed ? '#137a4a' : '#a33') + ';">' + verdict + '</div></div>'
+    + '</div>';
+  if (!c.passed) {
+    h += '<p style="font-size:12px;color:#a33;margin:8px 0 0;">The measurement failed its controls, so <strong>no gap was promoted from it</strong>. '
+       + 'A control that scores zero is evidence about the method, not about the catalogue.</p>';
+    if (c.missing_items && c.missing_items.length) {
+      h += '<ul style="font-size:12px;color:#667;">';
+      c.missing_items.forEach(m => { h += '<li>' + escapeHtml(m.label || '') + ' — ' + escapeHtml(m.reason || '') + '</li>'; });
+      h += '</ul>';
+    }
+  }
+  if (run.withheld_count) {
+    h += '<p style="font-size:12px;color:#667;">' + run.withheld_count + ' candidate gap(s) were withheld because the measurement failed.</p>';
+  }
+  box.innerHTML = h;
+}
+document.getElementById('relControls').addEventListener('click', loadRelControls);
+
+async function loadRelBacktest() {
+  const r = await apiFetch('/api/ops/relevance/backtest');
+  const box = document.getElementById('relBacktestResult');
+  if (r.status !== 200 || !r.data) { box.innerHTML = '<div class="empty">No back-test result.</div>'; return; }
+  const d = r.data;
+  const verdict = d.passed ? 'PASS' : 'BELOW THRESHOLD';
+  let h = '<div class="stat-grid">'
+    + '<div class="stat accent"><div class="label">Recall</div><div class="value">' + (d.recall !== undefined ? Math.round(d.recall * 100) + '%' : '\u2014') + '</div></div>'
+    + '<div class="stat"><div class="label">Found</div><div class="value">' + (d.found_count || 0) + ' / ' + (d.seeded_gap_count || 0) + '</div></div>'
+    + '<div class="stat"><div class="label">False flags</div><div class="value">' + (d.false_flag_count || 0) + '</div></div>'
+    + '<div class="stat"><div class="label">Verdict</div><div class="value" style="font-size:18px;">' + verdict + '</div></div>'
+    + '</div>';
+  if (d.missed && d.missed.length) {
+    h += '<p style="font-size:12px;color:#667;">Missed: ' + escapeHtml(d.missed.map(m => m.title).join(', ')) + '</p>';
+  }
+  if (d.false_flags && d.false_flags.length) {
+    h += '<p style="font-size:12px;color:#a33;">False flags: ' + escapeHtml(d.false_flags.map(f => f.title).join(', ')) + '</p>';
+  }
+  box.innerHTML = h;
+}
+document.getElementById('relBacktest').addEventListener('click', loadRelBacktest);
 
 
 // Regenerate free-form

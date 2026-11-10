@@ -793,6 +793,111 @@ it never blocks the plan. The capability card hides its fields and its button on
 has recorded the result, so "Validate and attach" remains only for a figure the case genuinely
 does not state.
 
+### 21.11 The quiet document profiles: marketing plan and project plan
+
+The marketing-plan and project-plan lanes run through the same silent Home call. They
+differ in where the paper's record comes from: the project plan reads the brief's own
+tables, and neither lane asks a question.
+
+**Routing.** `chat._detect_profile` returns `marketing_plan` for "marketing plan" (and
+"marketing strategy plan"), `feasibility_study` for "feasibility study/analysis" and
+"viability study", `project_proposal` for a proposal cue, and `project_plan` when the
+brief names a project plan, a project-management plan, a work breakdown structure, the
+WBS, or carries a WBS table with a title. The proposal cues are checked before the WBS
+table so a proposal that quotes a WBS is not misrouted. A business plan is not routed
+here: the generic conductor recognises its tables.
+
+**The project record is the brief's tables.** `project_reader.read` reads the charter
+labels and then every table it can classify from its own column names: WBS/work packages,
+activities, resources, the RACI matrix (direct rows or a role-per-column matrix) and the
+risk register. It fills a field only from a named column or a labelled line, and never
+fills a cell. Exactly three derivations are allowed, and each is structural:
+
+- a row with no id is numbered by its position, because the row needs a name to be cited;
+- a dotted id ("1.2") gets the parent "1" only when "1" is itself a row;
+- an activity points at the WBS row with the same id, or the same name, and nowhere else.
+
+`project_plan.normalise` cleans the record and `project_plan.validate` names every
+problem — a work package with no cost, owner or acceptance test, an activity with no
+duration, a RACI row without exactly one A and at least one R, a risk with no response
+or owner. `chat._read_project_record` stores the record as `state["project"]`, and the
+project lane skips `research()` entirely: the record is the source, so there is no web
+evidence to fetch and no retrieval round to show.
+
+**Tables are the paper.** `_draft_project_plan` composes the paper from the record and
+the frozen CPM run (`bp.methods` through the attached runner; `bp.product` never imports
+the core). Each table is a `table` figure on its section, and `paper_view` appends it as
+`| ... |` lines. Table rows bypass the missing-input filter (`GAP_LINE`): a missing cell
+prints as the empty cell the record declares, because the table is the record, not a
+sentence. The browser pane renders a `|` line as monospace. There is no Gaps section and
+no checks summary.
+
+**The chart is an export-only figure.** `chat._schedule_figure` builds a Gantt from the
+stored early start/finish/float/critical artifacts of the frozen schedule. Chart labels
+must be digit-free (`charts.validate_spec` refuses a digit as a stored value), so the
+activity name is used, or a lettered "Activity A/B…" fallback. The Schedule section
+already carries its table figure, so the chart is a separate level-2 **Schedule chart**
+block after it; Word embeds the PNG, the PDF embeds the inline SVG, and the browser pane
+never shows it. A plan whose schedule did not run has no chart.
+
+**One download.** `paper_bytes(state, "bundle")` returns one ZIP holding the paper's own
+`.docx`, its `-workbook.xlsx`, its `-deck.pptx` and, when Chrome is present, a `.pdf` of
+the same paper. `project_workbook.py` writes the Charter, WBS, Schedule, Cost, RACI and
+Risks sheets with the product's xlsx writer; no figure is recomputed there.
+`paper_bytes(state, "pptx")` returns the deck alone.
+
+**The deck is the same paper, argued.** `chat._project_deck` builds a title slide, the
+executive-summary sentence, the **Schedule chart** slide (the stored Gantt PNG), then one
+native table slide each for the WBS, schedule, cost, RACI and risk register. A slide's
+claim is the paper's own first sentence (or the critical-path result), and a table slide
+names the same figure id the paper holds; `deck.render` writes the package. PowerPoint is
+a fourth file of the one download, never a second paper.
+
+**A table-shaped feasibility brief takes the three-table route.** `feasibility_reader.py`
+reads a labelled project, a market table (`Item | Value`: target market, demand, price)
+and a cost table (`Item | Amount`: investment items, fixed cost, variable cost per unit);
+a cell it cannot name stays missing. `feasibility_plan.py` sums the declared investment,
+runs the **frozen `breakeven` method** with the declared demand as the expected volume,
+and prints three tables: market and demand, investment and operating cost, and returns
+(expected revenue, contribution margin, break-even volume/revenue, margin of safety).
+`chat._draft_feasibility_simple` writes the study from those tables and skips research;
+a narrative feasibility brief keeps the thirteen-section guide route. The one download
+holds the study's `.docx`, its workbook (Project, Market, Costs, Returns), its
+`-deck.pptx` (title, summary, market, cost, returns) and its `.pdf`.
+
+**A subject door carries its profile once.** `startPlan` records the document the student
+chose, and `startChat` posts its `profile` and `mode` for that run only, clearing the
+choice afterwards. **Build the complete project plan** therefore reaches the project
+lane even when the brief never says "project plan"; every other door works the same way.
+
+**A work-plan proposal is table-first.** `proposal_reader.py` reads the proposal's labels
+(title, problem, objectives, location, proponents, timeline, funding source, indicators,
+baseline, targets) and classifies its **work plan** (activity, duration, deliverable,
+owner), **budget** (item, amount) and **risk** tables. `proposal_plan.py` validates the
+record, sums the declared budget lines and builds the tables; `proposal_workbook.py`
+writes Overview, Work plan, Budget and Risks. `chat._draft_proposal_simple` writes the
+paper — executive summary, problem and need, objectives, work plan and timeline, budget,
+monitoring, risks, conclusion, references — and skips the research round, because the
+record is the source. The budget total is the sum of the declared lines, not a break-even
+or a forecast; a narrative proposal keeps the guide route. The one download holds the
+docx, the workbook and the PDF.
+
+**A revision cannot drop a table.** `revise` stores `{paper, outline}` per history entry.
+`_rebuild_outline` reattaches each section's stored figure and strips table rows the
+model echoed back, so a changed sentence keeps the WBS, schedule, cost, RACI and risk
+tables byte-for-byte. `undo` restores the recorded outline, not a flattened paper. An
+older case that recorded a plain paper still undoes.
+
+Tests: `tests/test_project_reader.py` (11), `tests/test_project_plan.py` (14),
+`tests/test_feasibility_reader.py` (5), `tests/test_feasibility_plan.py` (6),
+`tests/test_proposal_reader.py` (5), `tests/test_proposal_plan.py` (5),
+`tests/test_silent_home.py` (`SilentProjectPlanTest` 8: detection, tables, schedule and
+cost, one ZIP, a real Word table with the chart, the deck, a revision that keeps the
+tables; `SilentFeasibilityTest` 6: detection, three tables, the frozen values, the
+workbook, the deck, a revision that keeps the tables; `SilentProposalTest` 5: detection,
+work plan and budget, the summed total, the workbook, a revision that keeps the work
+plan), and `tests/test_document_profile_doors.py` (the door posts its profile once).
+
 ---
 
 ## 22. Final instruction to any model

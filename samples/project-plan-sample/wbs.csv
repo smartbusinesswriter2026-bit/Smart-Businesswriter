@@ -1,0 +1,14 @@
+id,parent,level,name,acceptance,owner,cost
+1,,1,Permits and approvals,,,0
+1.1,1,2,Site survey and structural assessment,Signed survey report,Structural engineer,18000
+1.2,1,2,Planning and grid application,Planning consent and grid offer,Permitting consultant,22000
+2,,1,Canopy structure,,,0
+2.1,2,2,Foundation and steel frame,Structural inspection certificate,Civil contractor,145000
+2.2,2,2,Canopy roof and drainage,Weathertight sign-off,Roofing contractor,68000
+3,,1,Solar and storage,,,0
+3.1,3,2,PV modules and inverters,Array test report,Electrical contractor,132000
+3.2,3,2,Battery storage,Capacity test,Electrical contractor,64000
+3.3,3,2,Grid connection and metering,Utility connection approval,Electrical contractor,21000
+4,,1,Handover,,,0
+4.1,4,2,Commissioning and safety checks,Commissioning certificate,Commissioning lead,6000
+4.2,4,2,Community information board,Board installed and signed off,Community liaison,4000

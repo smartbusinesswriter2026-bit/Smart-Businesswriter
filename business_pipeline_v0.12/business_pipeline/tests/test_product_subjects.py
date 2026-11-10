@@ -773,9 +773,14 @@ class CalculatorGuardTest(unittest.TestCase):
         finance_methods_ids = finance_methods_ids | {"eps", "working_capital_cycle", "tax_reconciliation"}
         # Plan-registered helpers are run by the business-plan engine, not as standalone
         # calculators: escalation, traffic revenue, line totals and simple payback.
-        plan_helpers = {"escalated_series", "revenue_from_traffic", "line_totals", "simple_payback"}
+        plan_helpers = {"escalated_series", "seasonal_series", "revenue_from_traffic",
+                        "line_totals", "simple_payback"}
+        # Framework-run helpers: the quality modules call these through the
+        # framework adapter, not as standalone calculator tools.
+        framework_helpers = {"fmea_rpn", "five_s_score"}
         frozen_methods = {method["method_id"] for method in methods.list_methods()
-                          if method["method_id"] not in finance_methods_ids | plan_helpers}
+                          if method["method_id"] not in
+                          finance_methods_ids | plan_helpers | framework_helpers}
         self.assertEqual(frozen_methods - launched, set(),
                          "a frozen method is missing from the Calculator and subject pages")
 

@@ -260,6 +260,66 @@ def extract_docx(raw):
     return {"status": "extracted", "text": text, "pages": None, "chars": len(text), "method": "docx_text"}
 
 
+def extract_docx_tables(raw):
+    """Read every table in a Word .docx as rows of cell text.
+
+    ``extract_docx`` turns each paragraph into a line, so a table row becomes one
+    line per cell and a label/value pair is lost.  This reader keeps the table
+    shape.  A horizontally merged cell (``gridSpan``) keeps its value in the first
+    cell and leaves the spanned cells empty, so the columns stay aligned.  A
+    vertically merged cell is read as it appears; the continuation rows are empty.
+    """
+    import zipfile
+    from xml.etree import ElementTree
+    if not raw or raw[:2] != b"PK":
+        raise DocumentError("this file is not a Word .docx document")
+    try:
+        archive = zipfile.ZipFile(io.BytesIO(raw))
+    except (zipfile.BadZipFile, OSError) as exc:
+        raise DocumentError("this .docx could not be opened (%s)" % type(exc).__name__)
+    with archive:
+        try:
+            root = ElementTree.fromstring(archive.read("word/document.xml"))
+        except KeyError:
+            raise DocumentError("this .docx has no word/document.xml part, so it is not a Word text document")
+        except ElementTree.ParseError as exc:
+            raise DocumentError("this .docx document XML could not be read (%s)" % type(exc).__name__)
+    ns = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
+    tables = []
+    for table in root.iter(ns + "tbl"):
+        rows = []
+        for row in table.findall(ns + "tr"):
+            cells = []
+            for cell in row.findall(ns + "tc"):
+                pieces = []
+                for node in cell.iter():
+                    if node.tag == ns + "t":
+                        pieces.append(node.text or "")
+                    elif node.tag == ns + "tab":
+                        pieces.append("\t")
+                    elif node.tag in (ns + "br", ns + "cr"):
+                        pieces.append("\n")
+                text = _clean("".join(pieces))
+                cells.append(text)
+                span = 1
+                properties = cell.find(ns + "tcPr")
+                if properties is not None:
+                    grid = properties.find(ns + "gridSpan")
+                    if grid is not None:
+                        try:
+                            span = max(1, int(grid.get(ns + "val") or "1"))
+                        except ValueError:
+                            span = 1
+                for _ in range(span - 1):
+                    cells.append("")
+            if any(cell.strip() for cell in cells):
+                rows.append(cells)
+        if rows:
+            tables.append({"rows": rows, "n_rows": len(rows),
+                           "n_cols": max(len(row) for row in rows)})
+    return tables
+
+
 def extract_txt(raw):
     """A plain-text brief.  UTF-8, UTF-16 with a BOM and Windows-1252 are tried, in that order."""
     if not raw:
