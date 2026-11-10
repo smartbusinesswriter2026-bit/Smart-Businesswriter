@@ -22,6 +22,11 @@ must have references.
 4. **The declared sources reach these lanes.** A `Sources:` line in a
    business-plan or marketing-plan brief is listed with the retrieved evidence,
    and a source the evidence already lists is not repeated.
+5. **The quiet marketing lane reads its facts from the brief.** The business,
+   the product, the customers, the place, the budget and the channels come from
+   the brief's own labels, through the reader the guide writer already uses, so
+   a silent marketing plan is a document and not one sentence. A field the brief
+   does not state stays missing and is named.
 
 **Measured.** A live business-plan brief asking for Harvard renders its declared
 source as `City Health Department (2025) 'Community Kitchen Guidelines'`; the
@@ -79,7 +84,7 @@ cases - **906 pass, 0 pipeline failures, 9 invalid, 0 errors, 0 regressions**.
 Direction 2 over five tiles: 4 pass, 1 skipped (the statements tile has no
 declared figures).  The fault harness: each fault came back with the scope the
 cause rules say, and the live error log was byte-identical before and after.
-73 new tests; suite 5188.
+73 new tests; suite 5205.
 
 **Left.**  The styled report and the admin tab are the design lane's; the
 computation lane emits the manifest and an explainer .docx.  The RRA sweep
