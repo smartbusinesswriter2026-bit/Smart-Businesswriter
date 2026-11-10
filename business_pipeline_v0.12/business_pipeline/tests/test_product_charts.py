@@ -278,3 +278,34 @@ class StatisticalChartTest(unittest.TestCase):
                           "high": "low", "low": "high", "close": "close"}]
         with self.assertRaises(charts.ChartError):
             charts.render_svg(base, bad)
+
+
+class NetworkChartTest(unittest.TestCase):
+
+    NODES = [{"id": "A1", "label": "Design"},
+             {"id": "A2", "label": "Permit"},
+             {"id": "A3", "label": "Fit out"}]
+
+    def spec(self):
+        return {"format": "bp-chart/1", "kind": "network", "title": "Activity network",
+                "nodes": self.NODES,
+                "edges": [{"from": "A1", "to": "A2"}, {"from": "A2", "to": "A3"}]}
+
+    def test_a_network_draws_boxes_and_arrows(self):
+        svg = charts.render_svg(bundle(), self.spec())
+        ET.fromstring(svg)
+        self.assertIn("<rect", svg)
+        self.assertIn("<line", svg)
+        self.assertIn("Fit out", svg)
+
+    def test_a_network_refuses_an_edge_to_an_unknown_node(self):
+        bad = self.spec()
+        bad["edges"] = [{"from": "A1", "to": "A9"}]
+        with self.assertRaises(charts.ChartError):
+            charts.render_svg(bundle(), bad)
+
+    def test_a_network_label_carries_no_typed_number(self):
+        bad = self.spec()
+        bad["nodes"] = [{"id": "A1", "label": "Design phase 1"}]
+        with self.assertRaises(charts.ChartError):
+            charts.render_svg(bundle(), bad)

@@ -378,9 +378,10 @@ class SilentProjectPlanTest(unittest.TestCase):
             slides = [name for name in names
                       if name.startswith("ppt/slides/slide") and name.endswith(".xml")]
             texts = " ".join(deck.read(name).decode("utf-8") for name in slides)
-        self.assertTrue(media, names)
-        self.assertEqual(len(slides), 8, slides)
-        for label in ("Work package", "Activity", "USD 48,000.00", "Management", "Risk"):
+        self.assertEqual(len(media), 3, names)
+        self.assertEqual(len(slides), 11, slides)
+        for label in ("Work package", "Activity", "USD 48,000.00", "Management", "Risk",
+                      "2026-01-05", "Planned completion", "Activity network"):
             self.assertIn(label, texts)
 
     def test_the_downloaded_bundle_holds_the_deck(self):
@@ -389,6 +390,75 @@ class SilentProjectPlanTest(unittest.TestCase):
         with zipfile.ZipFile(io.BytesIO(data)) as bundle:
             names = bundle.namelist()
         self.assertTrue(any(name.endswith("-deck.pptx") for name in names), names)
+
+
+PROJECT_DEMAND = (PROJECT
+                  .replace("| Predecessors | Resource", "| Predecessors | Resource | Demand")
+                  .replace("A1 | Design | 10 | | Architect", "A1 | Design | 10 | | Architect | 1")
+                  .replace("A2 | Permit | 15 | A1 | Project manager",
+                           "A2 | Permit | 15 | | Architect | 1")
+                  .replace("A3 | Fit out | 20 | A2 | Builder", "A3 | Fit out | 20 | A1,A2 | Builder | 1")
+                  .replace("A4 | Install | 5 | A3 | Supplier", "A4 | Install | 5 | A3 | Supplier | 1"))
+
+
+class SilentProjectScheduleTest(unittest.TestCase):
+    """Declared demand and a start date earn a levelled and a dated schedule."""
+
+    @classmethod
+    def setUpClass(cls):
+        business_plan.set_runner(_run)
+        chat.set_method_compute(_run, methods.describe)
+
+    def test_a_levelled_and_dated_schedule_adds_two_tables(self):
+        state = chat.silent(chat.start(PROJECT_DEMAND, subject="any"))
+        headings = [heading for heading, _lines in state["paper"]["sections"]]
+        self.assertIn("Dated Schedule", headings)
+        self.assertIn("Resource-Levelled Schedule", headings)
+        self.assertGreater(float(state["project_levelled"]["result"]["levelling_delay"]), 0)
+        dated = next(lines for heading, lines in state["paper"]["sections"]
+                     if heading == "Dated Schedule")
+        self.assertTrue(any("2026-01-05" in line for line in dated), dated)
+
+    def test_the_figures_are_in_the_word_file_not_the_pane(self):
+        state = chat.silent(chat.start(PROJECT_DEMAND, subject="any"))
+        blocks = chat._with_figures(state)
+        charts = [item["figure"] for item in blocks
+                  if isinstance(item.get("figure"), dict) and item["figure"].get("kind") == "chart"]
+        self.assertEqual(len(charts), 4, [item.get("caption") for item in charts])
+        pane = " ".join(line for _heading, lines in state["paper"]["sections"] for line in lines)
+        self.assertNotIn("Planned completion", pane)
+        data = chat.paper_docx(state)
+        with zipfile.ZipFile(io.BytesIO(data)) as bundle:
+            media = [name for name in bundle.namelist() if name.startswith("word/media/")]
+            document = bundle.read("word/document.xml").decode("utf-8")
+        self.assertEqual(len(media), 4, media)
+        for label in ("Activity network", "Planned completion", "Resource load"):
+            self.assertIn(label, document)
+
+    def test_the_workbook_carries_the_dated_and_levelled_sheets(self):
+        state = chat.silent(chat.start(PROJECT_DEMAND, subject="any"))
+        data, _name, _mime = chat.paper_bytes(state, "xlsx")
+        with zipfile.ZipFile(io.BytesIO(data)) as bundle:
+            workbook = bundle.read("xl/workbook.xml").decode("utf-8")
+        self.assertIn("Dated schedule", workbook)
+        self.assertIn("Levelled schedule", workbook)
+
+    def test_the_deck_holds_every_figure(self):
+        state = chat.silent(chat.start(PROJECT_DEMAND, subject="any"))
+        data = chat.pptx_bytes(state)
+        with zipfile.ZipFile(io.BytesIO(data)) as deck:
+            media = [name for name in deck.namelist() if name.startswith("ppt/media/")]
+            slides = [name for name in deck.namelist()
+                      if name.startswith("ppt/slides/slide") and name.endswith(".xml")]
+        self.assertEqual(len(media), 4, media)
+        self.assertEqual(len(slides), 13, slides)
+
+    def test_a_plan_without_demand_is_not_levelled_and_says_so(self):
+        state = chat.silent(chat.start(PROJECT, subject="any"))
+        self.assertFalse(state["project_levelled"]["ok"])
+        limits = next(lines for heading, lines in state["paper"]["sections"]
+                      if heading == "Limitations")
+        self.assertTrue(any("Resource levelling was not run" in line for line in limits), limits)
 
 
 FEASIBILITY = """
@@ -558,6 +628,18 @@ class SilentProposalTest(unittest.TestCase):
             names = bundle.namelist()
         self.assertTrue(any(name.endswith(".docx") for name in names), names)
         self.assertTrue(any(name.endswith("-workbook.xlsx") for name in names), names)
+        self.assertTrue(any(name.endswith("-deck.pptx") for name in names), names)
+
+    def test_the_proposal_deck_holds_its_own_three_tables(self):
+        state = chat.silent(chat.start(PROPOSAL, subject="any"))
+        data = chat.pptx_bytes(state)
+        with zipfile.ZipFile(io.BytesIO(data)) as deck:
+            slides = [name for name in deck.namelist()
+                      if name.startswith("ppt/slides/slide") and name.endswith(".xml")]
+            texts = " ".join(deck.read(name).decode("utf-8") for name in slides)
+        self.assertEqual(len(slides), 6, slides)
+        for label in ("Secure the lease", "USD 54,000.00", "Permit delay"):
+            self.assertIn(label, texts)
 
     def test_a_revision_keeps_the_work_plan_table(self):
         state = chat.silent(chat.start(PROPOSAL, subject="any"))
