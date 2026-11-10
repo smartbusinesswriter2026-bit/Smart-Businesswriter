@@ -28,6 +28,8 @@ must have references.
    a silent marketing plan is a document and not one sentence. A field the brief
    does not state stays missing and is named.
 
+Decision B-268.
+
 **Measured.** A live business-plan brief asking for Harvard renders its declared
 source as `City Health Department (2025) 'Community Kitchen Guidelines'`; the
 same brief in APA 7 renders it as `City Health Department (2025). Community
