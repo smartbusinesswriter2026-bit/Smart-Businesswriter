@@ -1,0 +1,209 @@
+{
+  "format": "bp-relevance-schools/1",
+  "description": "Sampling frame for the RRA (owner-editable).  Schools are a sampling frame only; gap specs must be jurisdiction-neutral.",
+  "regions": {
+    "US": [
+      {
+        "name": "Harvard Business School",
+        "level": "MBA",
+        "notes": "required core: Finance 1, Financial Reporting and Control, Leadership and Organizational Behavior, Marketing, Technology and Operations Management, FIELD",
+        "domain": "hbs.edu"
+      },
+      {
+        "name": "Stanford Graduate School of Business",
+        "level": "MBA",
+        "notes": "approx. 30 AI courses offered; required core varies",
+        "domain": "gsb.stanford.edu"
+      },
+      {
+        "name": "MIT Sloan School of Management",
+        "level": "MBA",
+        "notes": "FT Global MBA 2026 rank 1",
+        "domain": "mitsloan.mit.edu"
+      },
+      {
+        "name": "The Wharton School",
+        "level": "MBA",
+        "notes": "AI for Business MBA major (2025); required Applied ML in Business and accountable-AI ethics course",
+        "domain": "wharton.upenn.edu"
+      },
+      {
+        "name": "Chicago Booth",
+        "level": "MBA",
+        "notes": "",
+        "domain": "chicagobooth.edu"
+      },
+      {
+        "name": "Kellogg School of Management",
+        "level": "MBA",
+        "notes": "",
+        "domain": "kellogg.northwestern.edu"
+      },
+      {
+        "name": "Columbia Business School",
+        "level": "MBA",
+        "notes": "",
+        "domain": "gsb.columbia.edu"
+      },
+      {
+        "name": "Yale School of Management",
+        "level": "MBA",
+        "notes": "",
+        "domain": "som.yale.edu"
+      },
+      {
+        "name": "Darden School of Business",
+        "level": "MBA",
+        "notes": "AI moved into core strategy (May 2026)",
+        "domain": "darden.virginia.edu"
+      },
+      {
+        "name": "Michigan Ross",
+        "level": "MBA",
+        "notes": "",
+        "domain": "michiganross.umich.edu"
+      }
+    ],
+    "Europe": [
+      {
+        "name": "INSEAD",
+        "level": "MBA",
+        "notes": "Period 1 core: Financial Accounting, Financial Markets and Valuation, Introduction to Strategy, Organisational Behaviour 1, Prices and Markets, Uncertainty, Data and Judgement; Period 2 adds Corporate Financial Policy, Managing Customer Value, Managerial Accounting, Processes and Operations Management; Business and Society follows",
+        "domain": "insead.edu"
+      },
+      {
+        "name": "London Business School",
+        "level": "MBA",
+        "notes": "FT Global MBA 2026 rank 4 (tied)",
+        "domain": "lbs.edu"
+      },
+      {
+        "name": "IESE Business School",
+        "level": "MBA",
+        "notes": "FT Global MBA 2026 rank 4 (tied)",
+        "domain": "iese.edu"
+      },
+      {
+        "name": "HEC Paris",
+        "level": "MBA",
+        "notes": "machine-off (foundational knowledge) and machine-on (AI-use) exercises",
+        "domain": "hec.edu"
+      },
+      {
+        "name": "ESADE",
+        "level": "MBA",
+        "notes": "one of ten European deans reporting shift to live assessment",
+        "domain": "esade.edu"
+      },
+      {
+        "name": "Oxford Saïd",
+        "level": "MBA",
+        "notes": "",
+        "domain": "sbs.ox.ac.uk"
+      },
+      {
+        "name": "Cambridge Judge",
+        "level": "MBA",
+        "notes": "",
+        "domain": "jbs.cam.ac.uk"
+      },
+      {
+        "name": "Imperial College Business School",
+        "level": "MBA",
+        "notes": "one of ten European deans reporting shift to live assessment",
+        "domain": "imperial.ac.uk"
+      },
+      {
+        "name": "IMD",
+        "level": "MBA",
+        "notes": "one of ten European deans reporting shift to live assessment",
+        "domain": "imd.org"
+      },
+      {
+        "name": "Bocconi",
+        "level": "MBA",
+        "notes": "",
+        "domain": "unibocconi.it"
+      },
+      {
+        "name": "Rotterdam School of Management",
+        "level": "MBA",
+        "notes": "",
+        "domain": "rsm.nl"
+      },
+      {
+        "name": "University of St. Gallen",
+        "level": "MBA",
+        "notes": "",
+        "domain": "unisg.ch"
+      },
+      {
+        "name": "Frankfurt School",
+        "level": "MBA",
+        "notes": "bringing back oral exams and final presentations",
+        "domain": "frankfurt-school.de"
+      },
+      {
+        "name": "Nova SBE",
+        "level": "MBA",
+        "notes": "lengthened thesis defences",
+        "domain": "novasbe.pt"
+      },
+      {
+        "name": "Vlerick Business School",
+        "level": "MBA",
+        "notes": "one of ten European deans reporting shift to live assessment",
+        "domain": "vlerick.com"
+      }
+    ]
+  },
+  "bodies_to_watch": [
+    {
+      "name": "AACSB",
+      "domain": "aacsb.edu"
+    },
+    {
+      "name": "EFMD (EQUIS)",
+      "domain": "efmd.org"
+    },
+    {
+      "name": "AMBA and BGA",
+      "domain": "amba-bga.com"
+    },
+    {
+      "name": "GMAC",
+      "domain": "gmac.com"
+    },
+    {
+      "name": "IFRS Foundation (IASB and ISSB)",
+      "domain": "ifrs.org"
+    },
+    {
+      "name": "EFRAG and the European Commission",
+      "domain": "ec.europa.eu"
+    },
+    {
+      "name": "FASB",
+      "domain": "fasb.org"
+    },
+    {
+      "name": "CFA Institute",
+      "domain": "cfainstitute.org"
+    },
+    {
+      "name": "PMI",
+      "domain": "pmi.org"
+    },
+    {
+      "name": "CIPD",
+      "domain": "cipd.org"
+    }
+  ],
+  "per_school_record_to_collect": [
+    "required core list",
+    "assessment forms in core courses",
+    "AI-use policy text",
+    "capstone and thesis format",
+    "any published assessment-reform statement"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "format": "bp-relevance-controls/1",
+  "description": "The control set: the frameworks and capabilities the system ALREADY has. Every coverage measurement carries these. If a control scores zero, the measurement failed and is discarded rather than reported. This is the rule that caught two of the three methods tried in Phase 1.",
+  "why": "A measurement without a control cannot distinguish 'the thing is missing' from 'the method cannot see it'. The Phase 1 sweep read core-course lists and found nothing for any framework, including these — the control failed and the measurement was thrown away.",
+  "controls": [
+    {"id": "ctrl_pestel", "taxonomy_id": "framework_pestel", "label": "PESTEL", "kind": "framework", "expectation": "taught"},
+    {"id": "ctrl_swot", "taxonomy_id": "framework_swot", "label": "SWOT", "kind": "framework", "expectation": "taught"},
+    {"id": "ctrl_five_forces", "taxonomy_id": "framework_five_forces", "label": "Five Forces", "kind": "framework", "expectation": "taught"},
+    {"id": "ctrl_bcg", "taxonomy_id": "framework_bcg", "label": "BCG", "kind": "framework", "expectation": "taught"},
+    {"id": "ctrl_errc", "taxonomy_id": "framework_errc", "label": "ERRC", "kind": "framework", "expectation": "taught"},
+    {"id": "ctrl_bmc", "taxonomy_id": "framework_bmc", "label": "Business Model Canvas", "kind": "framework", "expectation": "taught"},
+    {"id": "ctrl_ansoff", "taxonomy_id": "framework_ansoff", "label": "Ansoff", "kind": "framework", "expectation": "taught"},
+    {"id": "ctrl_breakeven", "taxonomy_id": "computation_breakeven", "label": "Break-even", "kind": "capability", "expectation": "covered"},
+    {"id": "ctrl_npv", "taxonomy_id": "computation_npv", "label": "Net Present Value", "kind": "capability", "expectation": "covered"},
+    {"id": "ctrl_ratio_analysis", "taxonomy_id": "computation_ratio_analysis", "label": "Ratio analysis", "kind": "capability", "expectation": "covered"},
+    {"id": "ctrl_vetted_sources", "taxonomy_id": "retrieval_vetted_sources", "label": "Vetted web source registry", "kind": "retrieval", "expectation": "covered"},
+    {"id": "ctrl_corpus", "taxonomy_id": "retrieval_corpus", "label": "Proprietary PDF corpus", "kind": "retrieval", "expectation": "covered"}
+  ],
+  "rules": {
+    "min_controls_held": 0.75,
+    "note": "Below this share the measurement is reported as FAILED and no gap is promoted from it. A control that scores zero is evidence about the method, not about the catalogue."
+  }
+}

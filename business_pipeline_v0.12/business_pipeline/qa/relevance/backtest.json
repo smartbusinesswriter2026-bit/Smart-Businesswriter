@@ -1,0 +1,37 @@
+{
+  "format": "bp-relevance-backtest/1",
+  "description": "Back-test set for the RRA.  Seeded known gaps (must be rediscovered) and present items (must NOT be flagged).  Recall and false-gap rate measured against this set.",
+  "seeded_gaps": [
+    {"id": "gap_balanced_scorecard", "title": "Balanced Scorecard", "taxonomy_id": "framework_balanced_scorecard", "expected_category": "A", "notes": "Listed as not built in HOME_CHAT_ORCHESTRATION §6.2"},
+    {"id": "gap_okr", "title": "OKR", "taxonomy_id": "framework_okr", "expected_category": "A", "notes": "Objectives and Key Results; not in conductor or profiles"},
+    {"id": "gap_mckinsey_7s", "title": "McKinsey 7S", "taxonomy_id": "framework_mckinsey_7s", "expected_category": "A", "notes": "Not in conductor or profiles"},
+    {"id": "gap_kotter", "title": "Kotter 8-Step Change", "taxonomy_id": "framework_kotter", "expected_category": "A", "notes": "Not in conductor or profiles"},
+    {"id": "gap_three_horizons", "title": "McKinsey Three Horizons", "taxonomy_id": "framework_three_horizons", "expected_category": "A", "notes": "Not in conductor or profiles"},
+    {"id": "gap_reflective_paper", "title": "Reflective paper", "taxonomy_id": "paper_family_reflective", "expected_category": "D", "notes": "Listed as not built"},
+    {"id": "gap_literature_synthesis", "title": "Literature synthesis", "taxonomy_id": "paper_family_literature_synthesis", "expected_category": "D", "notes": "Literature review; listed as not built"},
+    {"id": "gap_legal_regulatory", "title": "Legal/regulatory paper", "taxonomy_id": "paper_family_legal_regulatory", "expected_category": "D", "notes": "Listed as not built"},
+    {"id": "gap_communication", "title": "Business communication", "taxonomy_id": "paper_family_communication", "expected_category": "D", "notes": "Letter, email, press release; listed as not built (separate lane)"},
+    {"id": "gap_factor_analysis", "title": "Factor analysis", "taxonomy_id": "stat_factor_analysis", "expected_category": "B", "notes": "Parked (frontier-model queue)"},
+    {"id": "gap_cluster_analysis", "title": "Cluster analysis", "taxonomy_id": "stat_cluster_analysis", "expected_category": "B", "notes": "Cluster analysis / k-means; parked (frontier-model queue)"},
+    {"id": "gap_process_evidence", "title": "Process evidence", "taxonomy_id": "assessment_process_evidence", "expected_category": "J", "notes": "B1 strategic finding: assessment shifting to process/live defence"}
+  ],
+  "seeded_present": [
+    {"id": "present_pestel", "title": "PESTEL", "taxonomy_id": "framework_pestel", "notes": "Conductor framework — must NOT be flagged"},
+    {"id": "present_swot", "title": "SWOT", "taxonomy_id": "framework_swot", "notes": "Conductor framework — must NOT be flagged"},
+    {"id": "present_five_forces", "title": "Five Forces", "taxonomy_id": "framework_five_forces", "notes": "Porter's Five Forces; conductor framework — must NOT be flagged"},
+    {"id": "present_bcg", "title": "BCG", "taxonomy_id": "framework_bcg", "notes": "BCG Growth-Share Matrix; framework profile with writing module — must NOT be flagged"},
+    {"id": "present_errc", "title": "ERRC", "taxonomy_id": "framework_errc", "notes": "Framework profile — must NOT be flagged"},
+    {"id": "present_bmc", "title": "Business Model Canvas", "taxonomy_id": "framework_bmc", "notes": "Canvas framework — must NOT be flagged"},
+    {"id": "present_breakeven", "title": "Break-even", "taxonomy_id": "computation_breakeven", "notes": "Capability — must NOT be flagged"},
+    {"id": "present_npv", "title": "Net Present Value", "taxonomy_id": "computation_npv", "notes": "Capability — must NOT be flagged"},
+    {"id": "present_ratio_analysis", "title": "Ratio analysis", "taxonomy_id": "computation_ratio_analysis", "notes": "Capability — must NOT be flagged"},
+    {"id": "present_vetted_sources", "title": "Vetted web source registry", "taxonomy_id": "retrieval_vetted_sources", "notes": "Retrieval layer — must NOT be flagged"},
+    {"id": "present_corpus", "title": "Corpus", "taxonomy_id": "retrieval_corpus", "notes": "Proprietary PDF corpus; retrieval layer — must NOT be flagged"}
+  ],
+  "thresholds": {
+    "min_recall": 0.8,
+    "max_false_gap_rate": 0.0,
+    "min_recall_count": 8,
+    "max_false_flags": 0
+  }
+}

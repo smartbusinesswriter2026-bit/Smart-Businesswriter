@@ -929,6 +929,16 @@ These were measured, not assumed.  Each one is a limit on what the RRA can
   browser shows the full description — so the framework the course teaches is
   not in the text the reader can see.  The reader reads **server-rendered
   text only**; a client-rendered page is a gap the RRA cannot close today.
+  *Repaired in build 1.149, partly.*  The scout now reads 400,000 characters
+  of the response (a 100,000-character read cut the body off, because a
+  course page's header, logo and script block fill that space), the body is
+  stripped to text **before** the cap, and a rendered page is kept when its
+  readable text beats the fetch's — the comparison used to be against the raw
+  markup, so the browser's reading was always discarded.  A plain fetch now
+  finds the Business Model Canvas on the Bocconi course page that the browser
+  could see.  **What is still true:** a page that only a browser can read is
+  still a page the sweep may not see, because the render is bounded (12 a
+  sweep) and the browser is optional.
 - **A short label is not safe to text-match.**  "5S" stripped of punctuation
   is "5s", which appears by chance in almost any long page, and a two-letter
   token matches course codes.  The reader refuses a topic whose label is
@@ -943,4 +953,29 @@ These were measured, not assumed.  Each one is a limit on what the RRA can
   sweep whose controls fail reports **no gaps at all**, which is the safe
   direction and also the unhelpful one: a sweep that cannot see the
   frameworks the system already has is not measuring anything, and the
-  console says so in as many words.
+  console says so in as many words.  *Measured in build 1.149:* over the
+  owner's Phase 1 URL set the controls now hold at **9/12 (0.75)** and the
+  measurement passes, where the same sweep held 5/12 and withheld
+  everything.  BCG, ERRC and Ansoff were still not named on those pages and
+  are reported as missing rather than as found.  **A curated URL list proves
+  the reader can see a framework; it does not prove discovery can find one.**
+  The two claims are kept apart, and `qa/relevance/curated_seed.json` says so
+  in the file.
+
+- **The search backup is slower than the search it backs up.**  The
+  OpenCode leg is a headless model session with a websearch tool: it
+  answers when Brave and Firecrawl both refuse, and it costs a model
+  call per query.  The RRA's search budget (120 queries a sweep) is
+  what keeps that bounded; a frame this size needs several sweeps.
+- **The search providers answer the whole web, then the curated filter
+  drops what is off-site.**  The OpenCode leg carries the site's domain
+  in the prompt, but a page it returns from another host is still
+  discarded, so a narrow frame narrows the answers.
+- **The search chain can be down, and it is down sometimes.**  On 2026-11-10
+  all three legs failed at once: Brave `HTTP 429`, Firecrawl `HTTP 429` (a
+  24-hour cooldown), and the OpenCode Go gateway returned *"Unexpected server
+  error"* for **any** prompt — including `Reply with exactly: PING` with no
+  websearch tool — so the backup was not a fallback but a second outage.  A
+  refusal is not a finding, and the sweep says which provider refused rather
+  than reporting "nothing found".  The discovery stage cannot run while the
+  chain is down; the curated seed lets a sweep run without it.

@@ -8,8 +8,8 @@ You are taking over a working repo, not starting one. Read this file first, then
 Project root : D:\SMART BUSINESSWRITER\business_pipeline_v0.12\business_pipeline
 Python       : 3.14 (stdlib only at runtime; scipy/numpy are offline fixture generators, never imported by src/)
 Git          : branch corpus/merge-v1, remote origin = smartbusinesswriter2026-bit/smart-businesswriter002; `main` is the deployment branch and carries the same tree; clean tree expected (hashes live in `git log`; do not hard-code them here)
-Build        : 1.148 (see docs/CHANGELOG.md)
-Tests        : 4990 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â see docs/OPEN_ISSUES.md
+Build        : 1.149 (see docs/CHANGELOG.md)
+Tests        : 5052 tests; the statement-plan layer, the extraction boundary and the request contract (compute scope vs output scope) are built and unit-tested (see docs/TIPS_FINANCIAL_STATEMENTS.md), and live extraction is proved on two synthetic problems only; the Business Bundle's payment side is built and unit-tested (B-208) but **no live charge has been taken yet**; the People & organisation shelf is green (18 frameworks); the remaining framework-completion failures are in other shelves ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â see docs/OPEN_ISSUES.md
 ```
 
 ```powershell
@@ -665,3 +665,85 @@ GET  /api/ops/relevance/backtest
   is rejected, and a spec without an authoritative reference does not pass G5.
 - It does not train or fine-tune anything.
 
+---
+
+## 12. The owner's switches and the growth loop
+
+Read this section before changing the loops, the search chain or the admin
+console's **Loops** tab.
+
+### 12.1 The capability registry
+
+`src/bp/product/ops_switches.py` holds every capability the owner may
+switch.  A switch decides whether something **runs**; it never changes a
+rule, a gate or a computation.
+
+| Key | Kind | Default | What it does |
+|---|---|---|---|
+| `loop.repair` | loop | **off** | `autoresearch` — replays open errors, fixes what it can by replay, pins the fix as a regression case.  Creates nothing, applies no code. |
+| `loop.growth` | loop | **off** | `growth_loop` — turns an approved capability gap into a PROVISIONAL scaffold for a human to finish. |
+| `loop.relevance` | loop | **off** | `relevance.job` — sweeps the sampling frame for what schools teach and what the standards now require. |
+| `search.brave` | search | on | The cheap, fast web search the RRA tries first. |
+| `search.firecrawl` | search | on | The second provider: answers when Brave rate-limits. |
+| `search.opengo` | search | on | The owner's backup: a headless OpenCode session running DeepSeek V4.1 Flash with its websearch tool. |
+
+**Every loop is off by default.**  A switch turned on works immediately — the
+loop starts on its next pass — and a switch turned off stops the thing.  The
+state lives in `state/ops_switches.json`, so a switch survives a restart.
+The env vars `BP_AUTORESEARCH_AUTOSTART`, `BP_GROWTH_AUTOSTART` and
+`BP_RELEVANCE_AUTOSTART` **seed** a loop's switch the first time the system
+looks; they are not the switch itself.
+
+**The repair loop no longer starts by itself at boot.**  It used to, whenever
+an error was waiting.  That behaviour is now `loop.repair`, and the default
+is off.
+
+### 12.2 The routes and the console
+
+`GET /api/ops/loops` lists every capability with its state.
+`POST /api/ops/loops/{key}/switch` with `{"enabled": true|false}` turns one
+on or off, and the change takes effect immediately.
+
+The console has a **Loops** tab under Self-Healing: a switch per capability,
+the running state of each loop, and the reason each one is safe.
+
+### 12.3 The growth loop
+
+`src/bp/product/growth_loop.py` reads the open findings whose **rule** is
+`capability_gap` — from the chat (`source="capability_gap"`) and from the
+Relevance Research Agent (`source="relevance"`) alike — and writes a
+PROVISIONAL scaffold under `qa/scaffolds/<subject>/<tile>/`:
+
+| File | What it is |
+|---|---|
+| `method_stub.py` | the method's shape, with `impl` left to a human |
+| `capability_entry.py` | the row the capability would add to `capabilities.ENTRIES` |
+| `preset.json` | the tile preset, with the inputs left empty |
+| `test_sketch.py` | the test's shape, so the suite cannot be green by construction |
+| `README.md` | the gap, what the system already knows, the research order, and the checklist before it becomes a capability |
+
+The loop **never** commits, **never** wires anything into the running
+system, and **never** resolves the finding it worked on: the finding stays
+open for the owner.  What it has scaffolded is recorded in
+`state/growth_loop.jsonl`, and a gap is scaffolded once.
+
+### 12.4 The search chain
+
+The RRA searches `brave -> firecrawl -> opengo`.  When Brave and Firecrawl
+rate-limit (HTTP 429), the OpenCode leg answers: a headless `opencode run`
+session on the OpenCode Go gateway, running DeepSeek V4.1 Flash, using its
+websearch tool with the site's domain in the prompt.
+
+Four defects in that provider were found and fixed while wiring it:
+
+1. the session was killed at the websearch **tool call**, before the tool
+   returned its results, so the provider always returned nothing;
+2. the parser read the older plain-text shape (`Title:` / `URL:`) while the
+   tool now answers in **JSON** (`{"results": [{"url", "title", "excerpts"}]}`);
+3. the **site filter never reached the prompt**, so every answer came from
+   the open web and was then dropped by the curated filter;
+4. a search that every provider **refused** was cached as "this source has
+   nothing", so one rate-limited query poisoned the cache for its whole TTL.
+
+Both shapes are read now, and a refused search is asked again rather than
+served from the cache.

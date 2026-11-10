@@ -1,0 +1,3691 @@
+{
+  "format": "bp-catalogue-snapshot/1",
+  "generated_at": "2026-11-09T16:45:20.477953+00:00",
+  "capabilities": [
+    {
+      "key": "breakeven",
+      "label": "Break-even",
+      "method": "breakeven",
+      "subject": "",
+      "intent": "cost_cover",
+      "aliases": []
+    },
+    {
+      "key": "business_plan",
+      "label": "Business plan financials",
+      "method": "business_plan",
+      "subject": "",
+      "intent": "plan",
+      "aliases": []
+    },
+    {
+      "key": "npv",
+      "label": "Net present value",
+      "method": "npv",
+      "subject": "",
+      "intent": "appraisal",
+      "aliases": []
+    },
+    {
+      "key": "irr",
+      "label": "Internal rate of return",
+      "method": "irr",
+      "subject": "",
+      "intent": "appraisal",
+      "aliases": []
+    },
+    {
+      "key": "discounted_payback",
+      "label": "Discounted payback",
+      "method": "discounted_payback",
+      "subject": "",
+      "intent": "appraisal",
+      "aliases": []
+    },
+    {
+      "key": "project_metrics",
+      "label": "Project metrics",
+      "method": "project_metrics",
+      "subject": "",
+      "intent": "appraisal",
+      "aliases": []
+    },
+    {
+      "key": "unit_economics",
+      "label": "Unit economics",
+      "method": "unit_economics",
+      "subject": "",
+      "intent": "unit_margin",
+      "aliases": []
+    },
+    {
+      "key": "wacc",
+      "label": "Cost of capital",
+      "method": "wacc",
+      "subject": "",
+      "intent": "cost_of_capital",
+      "aliases": []
+    },
+    {
+      "key": "return_on_investment",
+      "label": "Return on investment",
+      "method": "return_on_investment",
+      "subject": "",
+      "intent": "return",
+      "aliases": []
+    },
+    {
+      "key": "market_sizing",
+      "label": "Market size",
+      "method": "market_sizing",
+      "subject": "",
+      "intent": "market_size",
+      "aliases": []
+    },
+    {
+      "key": "market_share",
+      "label": "Market share",
+      "method": "market_share",
+      "subject": "",
+      "intent": "market_position",
+      "aliases": []
+    },
+    {
+      "key": "startup_capital",
+      "label": "Start-up capital",
+      "method": "startup_capital",
+      "subject": "",
+      "intent": "funding_need",
+      "aliases": []
+    },
+    {
+      "key": "cash_runway",
+      "label": "Cash runway",
+      "method": "cash_runway",
+      "subject": "",
+      "intent": "runway",
+      "aliases": []
+    },
+    {
+      "key": "clv_model",
+      "label": "Customer lifetime value",
+      "method": "clv_model",
+      "subject": "",
+      "intent": "customer_value",
+      "aliases": []
+    },
+    {
+      "key": "campaign_efficiency",
+      "label": "Campaign efficiency",
+      "method": "campaign_efficiency",
+      "subject": "",
+      "intent": "campaign",
+      "aliases": []
+    },
+    {
+      "key": "elasticity",
+      "label": "Price elasticity of demand",
+      "method": "elasticity",
+      "subject": "",
+      "intent": "price_response",
+      "aliases": []
+    },
+    {
+      "key": "earned_value",
+      "label": "Earned value",
+      "method": "earned_value",
+      "subject": "",
+      "intent": "delivery_status",
+      "aliases": []
+    },
+    {
+      "key": "growth_rate",
+      "label": "Growth rate",
+      "method": "growth_rate",
+      "subject": "",
+      "intent": "growth",
+      "aliases": []
+    },
+    {
+      "key": "inflation_cpi",
+      "label": "Inflation",
+      "method": "inflation_cpi",
+      "subject": "",
+      "intent": "inflation",
+      "aliases": []
+    },
+    {
+      "key": "tax_incidence",
+      "label": "Tax incidence",
+      "method": "tax_incidence",
+      "subject": "",
+      "intent": "tax_burden",
+      "aliases": []
+    },
+    {
+      "key": "pricing_decision",
+      "label": "Pricing decision",
+      "method": "pricing_decision",
+      "subject": "",
+      "intent": "pricing",
+      "aliases": []
+    },
+    {
+      "key": "cap_table_round",
+      "label": "Cap table",
+      "method": "cap_table_round",
+      "subject": "",
+      "intent": "ownership",
+      "aliases": []
+    },
+    {
+      "key": "time_value",
+      "label": "Time value of money",
+      "method": "time_value",
+      "subject": "",
+      "intent": "time_value",
+      "aliases": []
+    },
+    {
+      "key": "loan_amortization",
+      "label": "Loan amortization",
+      "method": "loan_amortization",
+      "subject": "",
+      "intent": "debt_service",
+      "aliases": []
+    },
+    {
+      "key": "leverage_analysis",
+      "label": "Financial leverage",
+      "method": "leverage_analysis",
+      "subject": "",
+      "intent": "leverage",
+      "aliases": []
+    },
+    {
+      "key": "inventory_policy",
+      "label": "Inventory policy",
+      "method": "inventory_policy",
+      "subject": "",
+      "intent": "inventory",
+      "aliases": []
+    },
+    {
+      "key": "purchase_intent",
+      "label": "Purchase intent",
+      "method": "purchase_intent",
+      "subject": "",
+      "intent": "demand_signal",
+      "aliases": []
+    },
+    {
+      "key": "sales_projection",
+      "label": "Sales projection",
+      "method": "sales_projection",
+      "subject": "",
+      "intent": "sales_plan",
+      "aliases": []
+    },
+    {
+      "key": "sales_from_market",
+      "label": "Target sales from the market",
+      "method": "sales_from_market",
+      "subject": "",
+      "intent": "sales_plan",
+      "aliases": []
+    },
+    {
+      "key": "depreciation_schedule",
+      "label": "Depreciation",
+      "method": "depreciation_schedule",
+      "subject": "",
+      "intent": "depreciation",
+      "aliases": []
+    },
+    {
+      "key": "tax_declared",
+      "label": "Declared income tax",
+      "method": "tax_declared",
+      "subject": "",
+      "intent": "tax_charge",
+      "aliases": []
+    },
+    {
+      "key": "equity_bridge",
+      "label": "Equity bridge",
+      "method": "equity_bridge",
+      "subject": "",
+      "intent": "valuation",
+      "aliases": []
+    },
+    {
+      "key": "multi_product_breakeven",
+      "label": "Multi-product break-even",
+      "method": "multi_product_breakeven",
+      "subject": "",
+      "intent": "cost_cover",
+      "aliases": []
+    },
+    {
+      "key": "capm",
+      "label": "Cost of equity (CAPM)",
+      "method": "capm",
+      "subject": "",
+      "intent": "required_return",
+      "aliases": []
+    },
+    {
+      "key": "bond_analysis",
+      "label": "Bond price and yield",
+      "method": "bond_analysis",
+      "subject": "",
+      "intent": "bond",
+      "aliases": []
+    },
+    {
+      "key": "ratio_analysis",
+      "label": "Ratio analysis",
+      "method": "ratio_analysis",
+      "subject": "",
+      "intent": "ratios",
+      "aliases": []
+    },
+    {
+      "key": "dcf_valuation",
+      "label": "Discounted cash flow valuation",
+      "method": "dcf_valuation",
+      "subject": "",
+      "intent": "valuation",
+      "aliases": []
+    },
+    {
+      "key": "multiples_valuation",
+      "label": "Comparable multiples valuation",
+      "method": "multiples_valuation",
+      "subject": "",
+      "intent": "valuation",
+      "aliases": []
+    },
+    {
+      "key": "option_pricing",
+      "label": "Option price",
+      "method": "option_pricing",
+      "subject": "",
+      "intent": "option",
+      "aliases": []
+    },
+    {
+      "key": "real_option",
+      "label": "Real option value",
+      "method": "real_option",
+      "subject": "",
+      "intent": "option",
+      "aliases": []
+    },
+    {
+      "key": "portfolio_analysis",
+      "label": "Portfolio return and risk",
+      "method": "portfolio_analysis",
+      "subject": "",
+      "intent": "portfolio",
+      "aliases": []
+    },
+    {
+      "key": "descriptive_stats",
+      "label": "Descriptive statistics",
+      "method": "descriptive_stats",
+      "subject": "",
+      "intent": "distribution",
+      "aliases": []
+    },
+    {
+      "key": "pearson",
+      "label": "Correlation",
+      "method": "pearson",
+      "subject": "",
+      "intent": "association",
+      "aliases": []
+    },
+    {
+      "key": "welch_t",
+      "label": "Difference between two means",
+      "method": "welch_t",
+      "subject": "",
+      "intent": "difference",
+      "aliases": []
+    },
+    {
+      "key": "anova",
+      "label": "Group comparison (ANOVA)",
+      "method": "anova",
+      "subject": "",
+      "intent": "difference",
+      "aliases": []
+    },
+    {
+      "key": "chi_square",
+      "label": "Association between categories",
+      "method": "chi_square",
+      "subject": "",
+      "intent": "independence",
+      "aliases": []
+    },
+    {
+      "key": "ols",
+      "label": "Multiple regression",
+      "method": "ols",
+      "subject": "",
+      "intent": "relationship_model",
+      "aliases": []
+    },
+    {
+      "key": "queue_analysis",
+      "label": "Queue performance",
+      "method": "queue_analysis",
+      "subject": "",
+      "intent": "flow",
+      "aliases": []
+    },
+    {
+      "key": "capacity_analysis",
+      "label": "Capacity and bottleneck",
+      "method": "capacity_analysis",
+      "subject": "",
+      "intent": "capacity",
+      "aliases": []
+    },
+    {
+      "key": "oee_analysis",
+      "label": "Equipment effectiveness",
+      "method": "oee_analysis",
+      "subject": "",
+      "intent": "equipment",
+      "aliases": []
+    },
+    {
+      "key": "process_control",
+      "label": "Process control",
+      "method": "process_control",
+      "subject": "",
+      "intent": "quality",
+      "aliases": []
+    },
+    {
+      "key": "line_balancing",
+      "label": "Line balancing",
+      "method": "line_balancing",
+      "subject": "",
+      "intent": "line_balance",
+      "aliases": []
+    },
+    {
+      "key": "demand_curve",
+      "label": "Demand curve",
+      "method": "demand_curve",
+      "subject": "",
+      "intent": "demand",
+      "aliases": []
+    },
+    {
+      "key": "rfm_scoring",
+      "label": "RFM segments",
+      "method": "rfm_scoring",
+      "subject": "",
+      "intent": "segmentation",
+      "aliases": []
+    },
+    {
+      "key": "sales_funnel",
+      "label": "Sales funnel",
+      "method": "sales_funnel",
+      "subject": "",
+      "intent": "funnel",
+      "aliases": []
+    },
+    {
+      "key": "ab_test_two_proportion",
+      "label": "A/B test",
+      "method": "ab_test_two_proportion",
+      "subject": "",
+      "intent": "experiment",
+      "aliases": []
+    },
+    {
+      "key": "social_engagement",
+      "label": "Social engagement",
+      "method": "social_engagement",
+      "subject": "",
+      "intent": "social",
+      "aliases": []
+    },
+    {
+      "key": "reliability_alpha",
+      "label": "Survey reliability",
+      "method": "reliability_alpha",
+      "subject": "",
+      "intent": "reliability",
+      "aliases": []
+    },
+    {
+      "key": "weighted_summary",
+      "label": "Weighted summary",
+      "method": "weighted_summary",
+      "subject": "",
+      "intent": "weighted",
+      "aliases": []
+    },
+    {
+      "key": "power_analysis",
+      "label": "Statistical power",
+      "method": "power_analysis",
+      "subject": "",
+      "intent": "sample_size",
+      "aliases": []
+    },
+    {
+      "key": "cohort_retention",
+      "label": "Cohort retention",
+      "method": "cohort_retention",
+      "subject": "",
+      "intent": "retention",
+      "aliases": []
+    },
+    {
+      "key": "trend_forecast",
+      "label": "Trend forecast",
+      "method": "trend_forecast",
+      "subject": "",
+      "intent": "forecast",
+      "aliases": []
+    },
+    {
+      "key": "missing_data_bounds",
+      "label": "Missing data bounds",
+      "method": "missing_data_bounds",
+      "subject": "",
+      "intent": "data_quality",
+      "aliases": []
+    },
+    {
+      "key": "media_plan",
+      "label": "Media plan",
+      "method": "media_plan",
+      "subject": "",
+      "intent": "media",
+      "aliases": []
+    },
+    {
+      "key": "web_analytics",
+      "label": "Web analytics",
+      "method": "web_analytics",
+      "subject": "",
+      "intent": "web",
+      "aliases": []
+    },
+    {
+      "key": "email_list_health",
+      "label": "Email list health",
+      "method": "email_list_health",
+      "subject": "",
+      "intent": "email",
+      "aliases": []
+    },
+    {
+      "key": "customer_profitability",
+      "label": "Customer profitability",
+      "method": "customer_profitability",
+      "subject": "",
+      "intent": "segment_profit",
+      "aliases": []
+    },
+    {
+      "key": "channel_economics",
+      "label": "Channel economics",
+      "method": "channel_economics",
+      "subject": "",
+      "intent": "channel_unit",
+      "aliases": []
+    },
+    {
+      "key": "attribution_split",
+      "label": "Attribution split",
+      "method": "attribution_split",
+      "subject": "",
+      "intent": "attribution",
+      "aliases": []
+    },
+    {
+      "key": "dupont_analysis",
+      "label": "DuPont decomposition",
+      "method": "dupont_analysis",
+      "subject": "",
+      "intent": "return_decomposition",
+      "aliases": []
+    },
+    {
+      "key": "trend_analysis",
+      "label": "Trend analysis",
+      "method": "trend_analysis",
+      "subject": "",
+      "intent": "trend",
+      "aliases": []
+    },
+    {
+      "key": "working_capital",
+      "label": "Working capital cycle",
+      "method": "working_capital",
+      "subject": "",
+      "intent": "working_capital",
+      "aliases": []
+    },
+    {
+      "key": "scenario_analysis",
+      "label": "Scenario analysis",
+      "method": "scenario_analysis",
+      "subject": "",
+      "intent": "scenario",
+      "aliases": []
+    },
+    {
+      "key": "risk_metrics",
+      "label": "Value at risk",
+      "method": "risk_metrics",
+      "subject": "",
+      "intent": "market_risk",
+      "aliases": []
+    },
+    {
+      "key": "fx_parity",
+      "label": "FX parity",
+      "method": "fx_parity",
+      "subject": "",
+      "intent": "parity",
+      "aliases": []
+    },
+    {
+      "key": "currency_convert",
+      "label": "Currency conversion",
+      "method": "currency_convert",
+      "subject": "",
+      "intent": "conversion",
+      "aliases": []
+    },
+    {
+      "key": "ols_robust",
+      "label": "Regression with robust errors",
+      "method": "ols_robust",
+      "subject": "",
+      "intent": "relationship_model",
+      "aliases": []
+    },
+    {
+      "key": "market_concentration",
+      "label": "Market concentration",
+      "method": "market_concentration",
+      "subject": "",
+      "intent": "market_structure",
+      "aliases": []
+    },
+    {
+      "key": "cost_curves",
+      "label": "Cost curves",
+      "method": "cost_curves",
+      "subject": "",
+      "intent": "cost_structure",
+      "aliases": []
+    },
+    {
+      "key": "market_power",
+      "label": "Market power",
+      "method": "market_power",
+      "subject": "",
+      "intent": "market_power",
+      "aliases": []
+    },
+    {
+      "key": "proforma_statements",
+      "label": "Pro-forma statements",
+      "method": "proforma_statements",
+      "subject": "",
+      "intent": "projection",
+      "aliases": []
+    },
+    {
+      "key": "sensitivity_table",
+      "label": "Sensitivity table",
+      "method": "sensitivity_table",
+      "subject": "",
+      "intent": "sensitivity",
+      "aliases": []
+    },
+    {
+      "key": "sroi",
+      "label": "Social return on investment",
+      "method": "sroi",
+      "subject": "",
+      "intent": "social_value",
+      "aliases": []
+    },
+    {
+      "key": "cost_benefit",
+      "label": "Cost-benefit analysis",
+      "method": "cost_benefit",
+      "subject": "",
+      "intent": "social_appraisal",
+      "aliases": []
+    },
+    {
+      "key": "cost_effectiveness",
+      "label": "Cost-effectiveness analysis",
+      "method": "cost_effectiveness",
+      "subject": "",
+      "intent": "social_appraisal",
+      "aliases": []
+    },
+    {
+      "key": "demand_supply_equilibrium",
+      "label": "Market equilibrium",
+      "method": "demand_supply_equilibrium",
+      "subject": "",
+      "intent": "market_model",
+      "aliases": []
+    },
+    {
+      "key": "price_control",
+      "label": "Price control",
+      "method": "price_control",
+      "subject": "",
+      "intent": "market_model",
+      "aliases": []
+    },
+    {
+      "key": "profit_maximization",
+      "label": "Profit maximisation",
+      "method": "profit_maximization",
+      "subject": "",
+      "intent": "market_model",
+      "aliases": []
+    },
+    {
+      "key": "price_discrimination",
+      "label": "Price discrimination",
+      "method": "price_discrimination",
+      "subject": "",
+      "intent": "market_model",
+      "aliases": []
+    },
+    {
+      "key": "cournot_duopoly",
+      "label": "Cournot duopoly",
+      "method": "cournot_duopoly",
+      "subject": "",
+      "intent": "market_model",
+      "aliases": []
+    },
+    {
+      "key": "nash_equilibrium",
+      "label": "Nash equilibrium",
+      "method": "nash_equilibrium",
+      "subject": "",
+      "intent": "market_model",
+      "aliases": []
+    },
+    {
+      "key": "national_income",
+      "label": "National income",
+      "method": "national_income",
+      "subject": "",
+      "intent": "national_accounts",
+      "aliases": []
+    },
+    {
+      "key": "unemployment_rate",
+      "label": "Unemployment",
+      "method": "unemployment_rate",
+      "subject": "",
+      "intent": "labour_stats",
+      "aliases": []
+    },
+    {
+      "key": "labour_market",
+      "label": "Real wages",
+      "method": "labour_market",
+      "subject": "",
+      "intent": "wages",
+      "aliases": []
+    },
+    {
+      "key": "money_multiplier",
+      "label": "Money multiplier",
+      "method": "money_multiplier",
+      "subject": "",
+      "intent": "monetary",
+      "aliases": []
+    },
+    {
+      "key": "fiscal_multiplier",
+      "label": "Fiscal multiplier",
+      "method": "fiscal_multiplier",
+      "subject": "",
+      "intent": "fiscal",
+      "aliases": []
+    },
+    {
+      "key": "budget_debt",
+      "label": "Budget and debt",
+      "method": "budget_debt",
+      "subject": "",
+      "intent": "fiscal_debt",
+      "aliases": []
+    },
+    {
+      "key": "output_gap_okun",
+      "label": "Output gap (Okun)",
+      "method": "output_gap_okun",
+      "subject": "",
+      "intent": "output_gap",
+      "aliases": []
+    },
+    {
+      "key": "externality_pigouvian",
+      "label": "Externality and Pigouvian tax",
+      "method": "externality_pigouvian",
+      "subject": "",
+      "intent": "welfare_external",
+      "aliases": []
+    },
+    {
+      "key": "public_good",
+      "label": "Public good",
+      "method": "public_good",
+      "subject": "",
+      "intent": "public_good",
+      "aliases": []
+    },
+    {
+      "key": "optimal_pollution",
+      "label": "Optimal pollution",
+      "method": "optimal_pollution",
+      "subject": "",
+      "intent": "pollution",
+      "aliases": []
+    },
+    {
+      "key": "social_welfare",
+      "label": "Social welfare",
+      "method": "social_welfare",
+      "subject": "",
+      "intent": "welfare",
+      "aliases": []
+    },
+    {
+      "key": "gini_coefficient",
+      "label": "Gini coefficient",
+      "method": "gini_coefficient",
+      "subject": "",
+      "intent": "inequality",
+      "aliases": []
+    },
+    {
+      "key": "poverty_measures",
+      "label": "Poverty measures",
+      "method": "poverty_measures",
+      "subject": "",
+      "intent": "poverty",
+      "aliases": []
+    },
+    {
+      "key": "tax_progressivity",
+      "label": "Tax progressivity",
+      "method": "tax_progressivity",
+      "subject": "",
+      "intent": "progressivity",
+      "aliases": []
+    },
+    {
+      "key": "tariff_welfare",
+      "label": "Tariff welfare",
+      "method": "tariff_welfare",
+      "subject": "",
+      "intent": "trade_policy",
+      "aliases": []
+    },
+    {
+      "key": "comparative_advantage",
+      "label": "Comparative advantage",
+      "method": "comparative_advantage",
+      "subject": "",
+      "intent": "trade_advantage",
+      "aliases": []
+    },
+    {
+      "key": "exchange_rate_ppp",
+      "label": "Purchasing-power parity",
+      "method": "exchange_rate_ppp",
+      "subject": "",
+      "intent": "parity",
+      "aliases": []
+    },
+    {
+      "key": "interest_rate_parity",
+      "label": "Interest-rate parity",
+      "method": "interest_rate_parity",
+      "subject": "",
+      "intent": "parity",
+      "aliases": []
+    },
+    {
+      "key": "balance_of_payments",
+      "label": "Balance of payments",
+      "method": "balance_of_payments",
+      "subject": "",
+      "intent": "external_accounts",
+      "aliases": []
+    },
+    {
+      "key": "hdi",
+      "label": "Human development index",
+      "method": "hdi",
+      "subject": "",
+      "intent": "development",
+      "aliases": []
+    },
+    {
+      "key": "expected_utility",
+      "label": "Expected utility",
+      "method": "expected_utility",
+      "subject": "",
+      "intent": "decision_under_risk",
+      "aliases": []
+    },
+    {
+      "key": "prospect_theory",
+      "label": "Prospect theory",
+      "method": "prospect_theory",
+      "subject": "",
+      "intent": "decision_under_risk",
+      "aliases": []
+    },
+    {
+      "key": "difference_in_differences",
+      "label": "Difference-in-differences",
+      "method": "difference_in_differences",
+      "subject": "",
+      "intent": "relationship_model",
+      "aliases": []
+    },
+    {
+      "key": "instrumental_variables",
+      "label": "Instrumental variables",
+      "method": "instrumental_variables",
+      "subject": "",
+      "intent": "relationship_model",
+      "aliases": []
+    },
+    {
+      "key": "panel_regression",
+      "label": "Panel regression",
+      "method": "panel_regression",
+      "subject": "",
+      "intent": "relationship_model",
+      "aliases": []
+    },
+    {
+      "key": "regression_discontinuity",
+      "label": "Regression discontinuity",
+      "method": "regression_discontinuity",
+      "subject": "",
+      "intent": "relationship_model",
+      "aliases": []
+    },
+    {
+      "key": "probit",
+      "label": "Probit model",
+      "method": "probit",
+      "subject": "",
+      "intent": "relationship_model",
+      "aliases": []
+    },
+    {
+      "key": "cpm_schedule",
+      "label": "Critical path",
+      "method": "cpm_schedule",
+      "subject": "",
+      "intent": "schedule",
+      "aliases": []
+    },
+    {
+      "key": "resource_leveling",
+      "label": "Resource levelling",
+      "method": "resource_leveling",
+      "subject": "",
+      "intent": "schedule",
+      "aliases": []
+    },
+    {
+      "key": "project_crashing",
+      "label": "Project crashing",
+      "method": "project_crashing",
+      "subject": "",
+      "intent": "schedule",
+      "aliases": []
+    },
+    {
+      "key": "schedule_risk",
+      "label": "Schedule risk",
+      "method": "schedule_risk",
+      "subject": "",
+      "intent": "schedule",
+      "aliases": []
+    },
+    {
+      "key": "calendar_schedule",
+      "label": "Calendar schedule",
+      "method": "calendar_schedule",
+      "subject": "",
+      "intent": "schedule",
+      "aliases": []
+    },
+    {
+      "key": "multi_criteria",
+      "label": "Weighted decision matrix",
+      "method": "multi_criteria",
+      "subject": "",
+      "intent": "decision_matrix",
+      "aliases": []
+    },
+    {
+      "key": "monte_carlo",
+      "label": "Monte Carlo range",
+      "method": "monte_carlo",
+      "subject": "",
+      "intent": "simulation",
+      "aliases": []
+    },
+    {
+      "key": "decision_tree",
+      "label": "Decision tree",
+      "method": "decision_tree",
+      "subject": "",
+      "intent": "decision_tree",
+      "aliases": []
+    },
+    {
+      "key": "multi_project_schedule",
+      "label": "Multi-project schedule",
+      "method": "multi_project_schedule",
+      "subject": "",
+      "intent": "multi_project",
+      "aliases": []
+    }
+  ],
+  "frameworks": [
+    {
+      "key": "five_forces",
+      "label": "Porter's Five Forces",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Required: Five Forces analyses an industry, not a company.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Porter's Five Forces analyses an industry, not a company on its own. Name the industry or market (for example smartphones, grocery retail or banking)."
+      },
+      "aliases": []
+    },
+    {
+      "key": "pestel",
+      "label": "PESTEL",
+      "unit": {
+        "field": "country",
+        "label": "Country or market",
+        "help": "PESTEL evidence is country-specific. Name the country, or type Global to analyse the environment without a single country.",
+        "example": "Saudi Arabia, Iran, Global",
+        "refuse": "PESTEL analyses the environment a decision sits in, and political, legal and economic evidence is country-specific. Name the country or market, or type Global."
+      },
+      "aliases": []
+    },
+    {
+      "key": "value_chain",
+      "label": "Porter's Value Chain",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Value chain evidence is industry-specific. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Value chain analysis examines an industry's activities. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "swot",
+      "label": "SWOT / TOWS",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "SWOT is written against an industry or market, not a company alone.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "SWOT analyses an industry or market. Name the industry or market, or the company and the market it competes in."
+      },
+      "aliases": []
+    },
+    {
+      "key": "ansoff",
+      "label": "Ansoff Growth Matrix",
+      "unit": {
+        "field": "firm",
+        "rule": "the firm or business unit in its market",
+        "label": "Firm or business unit",
+        "example": "Kestrel Retail",
+        "help": "Ansoff places one firm's growth options against its current products and markets. Name the firm or business unit, and its market in the next field.",
+        "secondary": {
+          "label": "Its market",
+          "example": "grocery retail",
+          "help": "The market the firm currently competes in."
+        },
+        "refuse": "Ansoff classifies growth options for one firm or business unit in its market. Name both, for example Kestrel Retail in grocery retail."
+      },
+      "aliases": []
+    },
+    {
+      "key": "vrio",
+      "label": "VRIO",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "VRIO evaluates resources against an industry's competitors. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "VRIO evaluates resources against an industry's competitors. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "errc",
+      "label": "Blue Ocean four actions (ERRC)",
+      "unit": {
+        "field": "firm",
+        "rule": "the focal offering in its industry",
+        "label": "Focal offering",
+        "example": "a subscription grocery box",
+        "help": "The four actions are written against one offering in one industry. Name the offering, and its industry in the next field.",
+        "secondary": {
+          "label": "Its industry",
+          "example": "grocery retail",
+          "help": "The industry whose conventions the offering breaks."
+        },
+        "refuse": "Blue Ocean's four actions are written against one offering in one industry. Name both, for example a subscription grocery box in grocery retail."
+      },
+      "aliases": []
+    },
+    {
+      "key": "activity_system",
+      "label": "Strategic positioning and activity-system fit",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Activity systems are written against a market. Name it.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Activity-system fit is written against a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "scenario",
+      "label": "Scenario planning",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Scenarios are written against a market. Name it.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Scenario planning is written against a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "strategic_group",
+      "label": "Strategic group mapping",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Strategic groups are written against a market. Name it.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Strategic group mapping is written against a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "sipoc",
+      "label": "SIPOC",
+      "unit": {
+        "field": "process",
+        "label": "The process you are mapping",
+        "help": "SIPOC bounds one process. Name it in a few words, for example the lunch service at the meal counter or the returns process at the warehouse.",
+        "example": "the lunch service at the meal counter",
+        "refuse": "SIPOC bounds one process. Name the process you are mapping, for example the lunch service at the meal counter or the returns process at the warehouse."
+      },
+      "aliases": []
+    },
+    {
+      "key": "vsm",
+      "label": "Value stream mapping",
+      "unit": {
+        "field": "process",
+        "label": "The value stream you are mapping",
+        "help": "A value stream map follows one flow of one product or service family from request to delivery. Name it in a few words, for example the lunch orders at the meal counter.",
+        "example": "the lunch orders at the meal counter",
+        "refuse": "A value stream map follows one flow of one product or service family. Name the value stream you are mapping, for example the lunch orders at the meal counter."
+      },
+      "aliases": []
+    },
+    {
+      "key": "toc",
+      "label": "Theory of Constraints",
+      "unit": {
+        "field": "process",
+        "label": "The system you are focusing on",
+        "help": "The five focusing steps apply to one system: a line, a service, a whole plant. Name it in a few words, for example the lunch service at the meal counter.",
+        "example": "the lunch service at the meal counter",
+        "refuse": "The five focusing steps apply to one system. Name the system you are focusing on, for example the lunch service at the meal counter."
+      },
+      "aliases": []
+    },
+    {
+      "key": "a3",
+      "label": "A3 problem solving",
+      "unit": {
+        "field": "process",
+        "label": "The process the problem sits in",
+        "help": "An A3 works one problem in one process. Name it in a few words, for example the lunch service at the meal counter or the returns process at the warehouse.",
+        "example": "the lunch service at the meal counter",
+        "refuse": "An A3 works one problem in one process. Name the process the problem sits in, for example the lunch service at the meal counter."
+      },
+      "aliases": []
+    },
+    {
+      "key": "scor",
+      "label": "SCOR",
+      "unit": {
+        "field": "process",
+        "label": "The supply chain you are mapping",
+        "help": "Name the chain or the part of it in scope, for example the meal counter's supply chain.",
+        "example": "the meal counter's supply chain",
+        "refuse": "SCOR maps one supply chain. Name the chain or the part of it in scope, for example the meal counter's supply chain."
+      },
+      "aliases": []
+    },
+    {
+      "key": "five_s",
+      "label": "5S",
+      "unit": {
+        "field": "process",
+        "label": "The workplace you are auditing",
+        "help": "Name the area in scope, for example the meal counter or the packing bench.",
+        "example": "the meal counter",
+        "refuse": "5S audits one workplace. Name the area in scope, for example the meal counter."
+      },
+      "aliases": []
+    },
+    {
+      "key": "root_cause",
+      "label": "Root cause analysis",
+      "unit": {
+        "field": "process",
+        "label": "The process the problem sits in",
+        "help": "Name the process and the problem in a few words, for example the noon queue at the meal counter.",
+        "example": "the noon queue at the meal counter",
+        "refuse": "Root cause analysis works one problem in one process. Name the process and the problem, for example the noon queue at the meal counter."
+      },
+      "aliases": []
+    },
+    {
+      "key": "fmea",
+      "label": "FMEA",
+      "unit": {
+        "field": "process",
+        "label": "The process or product you are analysing",
+        "help": "Name the process or product in scope, for example the meal counter's lunch service.",
+        "example": "the meal counter's lunch service",
+        "refuse": "FMEA analyses one process or product. Name it in a few words, for example the meal counter's lunch service."
+      },
+      "aliases": []
+    },
+    {
+      "key": "kraljic",
+      "label": "Kraljic purchasing portfolio",
+      "unit": {
+        "field": "process",
+        "label": "The purchasing portfolio you are classifying",
+        "help": "Name what the portfolio covers, for example the meal counter's purchases.",
+        "example": "the meal counter's purchases",
+        "refuse": "Kraljic classifies one purchasing portfolio. Name what it covers, for example the meal counter's purchases."
+      },
+      "aliases": []
+    },
+    {
+      "key": "sop",
+      "label": "Sales and operations planning",
+      "unit": {
+        "field": "process",
+        "label": "The plan you are reconciling",
+        "help": "Name the product, service or line the plan covers, for example the meal counter's lunch service.",
+        "example": "the meal counter's lunch service",
+        "refuse": "S&OP reconciles one plan. Name the product, service or line it covers, for example the meal counter's lunch service."
+      },
+      "aliases": []
+    },
+    {
+      "key": "pdca",
+      "label": "PDCA",
+      "unit": {
+        "field": "process",
+        "label": "The change you are testing",
+        "help": "Name the change and where it is tried, for example moving packing away from the order point.",
+        "example": "moving packing away from the order point",
+        "refuse": "PDCA tests one change. Name the change and where it is tried, for example moving packing away from the order point."
+      },
+      "aliases": []
+    },
+    {
+      "key": "job_characteristics",
+      "label": "Job Characteristics Model",
+      "unit": {
+        "field": "process",
+        "label": "The role you are reviewing",
+        "help": "A job characteristics review examines one role. Name it in a few words, for example the kitchen supervisor role or the counter service role.",
+        "example": "the kitchen supervisor role",
+        "refuse": "A job characteristics review examines one role. Name the role you are reviewing, for example the kitchen supervisor role or the counter service role."
+      },
+      "aliases": []
+    },
+    {
+      "key": "kirkpatrick",
+      "label": "Kirkpatrick Training Evaluation Model",
+      "unit": {
+        "field": "process",
+        "label": "The training you are evaluating",
+        "help": "A training evaluation reads one programme. Name it in a few words, for example the food safety induction for kitchen staff or the manual handling course for warehouse staff.",
+        "example": "the food safety induction for kitchen staff",
+        "refuse": "A training evaluation reads one programme. Name the training you are evaluating, for example the food safety induction for kitchen staff or the manual handling course for warehouse staff."
+      },
+      "aliases": []
+    },
+    {
+      "key": "amo",
+      "label": "AMO Framework",
+      "unit": {
+        "field": "process",
+        "label": "The performance problem you are diagnosing",
+        "help": "An ability, motivation and opportunity diagnosis explains one performance problem. Name it in a few words, for example slow service on the meal counter or the late reporting in the ward office.",
+        "example": "slow service on the meal counter",
+        "refuse": "An ability, motivation and opportunity diagnosis explains one performance problem. Name the problem you are diagnosing, for example slow service on the meal counter or the late reporting in the ward office."
+      },
+      "aliases": []
+    },
+    {
+      "key": "tuckman",
+      "label": "Tuckman's Team Development Stages",
+      "unit": {
+        "field": "process",
+        "label": "The team you are reviewing",
+        "help": "A team development review reads one team. Name it in a few words, for example the tray assembly team or the counter service team.",
+        "example": "the tray assembly team",
+        "refuse": "A team development review reads one team. Name the team you are reviewing, for example the tray assembly team or the counter service team."
+      },
+      "aliases": []
+    },
+    {
+      "key": "nine_box",
+      "label": "Nine-Box Talent Grid",
+      "unit": {
+        "field": "process",
+        "label": "The team you are reviewing",
+        "help": "A talent grid review places a group of people. Name the group in a few words, for example the counter team or the ward nursing team.",
+        "example": "the counter team",
+        "refuse": "A talent grid review places a group of people. Name the group you are reviewing, for example the counter team or the ward nursing team."
+      },
+      "aliases": []
+    },
+    {
+      "key": "kotter",
+      "label": "Kotter's Eight-Step Change Model",
+      "unit": {
+        "field": "process",
+        "label": "The change you are planning",
+        "help": "A change review reads one programme of change. Name it in a few words, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.",
+        "example": "moving the campus meal card to a contactless system",
+        "refuse": "A change review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota."
+      },
+      "aliases": []
+    },
+    {
+      "key": "competing_values",
+      "label": "Competing Values Framework",
+      "unit": {
+        "field": "process",
+        "label": "The organisation you are describing",
+        "help": "A culture review describes one organisation or unit. Name it in a few words, for example the campus catering team or the university estates office.",
+        "example": "the campus catering team",
+        "refuse": "A culture review describes one organisation or unit. Name the organisation you are describing, for example the campus catering team or the university estates office."
+      },
+      "aliases": []
+    },
+    {
+      "key": "org_design",
+      "label": "Organisational Design Review",
+      "unit": {
+        "field": "process",
+        "label": "The organisation you are redesigning",
+        "help": "A design review checks one organisation against the parts of a design. Name it in a few words, for example the catering unit of the university or the estates office.",
+        "example": "the catering unit of the university",
+        "refuse": "A design review checks one organisation against the parts of a design. Name the organisation you are redesigning, for example the catering unit of the university or the estates office."
+      },
+      "aliases": []
+    },
+    {
+      "key": "adkar",
+      "label": "ADKAR",
+      "unit": {
+        "field": "process",
+        "label": "The change you are planning",
+        "help": "A readiness review reads one programme of change. Name it in a few words, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.",
+        "example": "moving the campus meal card to a contactless system",
+        "refuse": "A readiness review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota."
+      },
+      "aliases": []
+    },
+    {
+      "key": "lewin",
+      "label": "Lewin",
+      "unit": {
+        "field": "process",
+        "label": "The change you are planning",
+        "help": "A change review reads one programme of change. Name it in a few words, for example moving the campus meal card to a contactless system or the restructuring of the ward rota.",
+        "example": "moving the campus meal card to a contactless system",
+        "refuse": "A change review reads one programme of change. Name the change you are planning, for example moving the campus meal card to a contactless system or the restructuring of the ward rota."
+      },
+      "aliases": []
+    },
+    {
+      "key": "theory_of_change",
+      "label": "Theory of Change",
+      "unit": {
+        "field": "process",
+        "label": "The programme you are describing",
+        "help": "A theory of change describes one programme or intervention. Name it in a few words, for example the campus mentoring programme or the community health outreach.",
+        "example": "the campus mentoring programme",
+        "refuse": "A theory of change describes one programme or intervention. Name the programme you are describing, for example the campus mentoring programme or the community health outreach."
+      },
+      "aliases": []
+    },
+    {
+      "key": "pdsa",
+      "label": "PDSA",
+      "unit": {
+        "field": "process",
+        "label": "The change you are testing",
+        "help": "A PDSA cycle tests one change. Name it in a few words, for example moving the campus meal card to a contactless system or the new triage order in the ward.",
+        "example": "moving the campus meal card to a contactless system",
+        "refuse": "A PDSA cycle tests one change. Name the change you are testing, for example moving the campus meal card to a contactless system or the new triage order in the ward."
+      },
+      "aliases": []
+    },
+    {
+      "key": "dmaic",
+      "label": "DMAIC",
+      "unit": {
+        "field": "process",
+        "label": "The process you are improving",
+        "help": "A DMAIC cycle improves one process. Name it in a few words, for example the campus meal card service or the ward discharge process.",
+        "example": "the campus meal card service",
+        "refuse": "A DMAIC cycle improves one process. Name the process you are improving, for example the campus meal card service or the ward discharge process."
+      },
+      "aliases": []
+    },
+    {
+      "key": "generic_strategies",
+      "label": "Generic Strategies",
+      "unit": {
+        "field": "firm",
+        "label": "Firm or business unit",
+        "rule": "the firm or business unit in its market",
+        "help": "Porter's generic strategies are chosen by a firm or business unit in a market. Name the firm or business unit, and its market in the next field.",
+        "example": "Kestrel Retail",
+        "secondary": {
+          "label": "Its market",
+          "help": "The market the firm competes in, for example grocery retail.",
+          "example": "grocery retail"
+        },
+        "refuse": "Porter's generic strategies are chosen by a firm or business unit in a market. Name both, for example Kestrel Retail in grocery retail."
+      },
+      "aliases": []
+    },
+    {
+      "key": "bcg",
+      "label": "BCG Growth-Share Matrix",
+      "unit": {
+        "field": "business",
+        "label": "Portfolio or corporation",
+        "help": "BCG positions the units of one portfolio. Name the corporation or portfolio; the unit table in the brief supplies each unit's market, growth and share.",
+        "example": "Kestrel Retail group",
+        "refuse": "BCG positions the units of one portfolio. Name the corporation or portfolio, and declare a unit table with market, growth and share."
+      },
+      "aliases": []
+    },
+    {
+      "key": "ge_mckinsey",
+      "label": "GE-McKinsey Matrix",
+      "unit": {
+        "field": "business",
+        "label": "Portfolio or corporation",
+        "help": "GE-McKinsey assesses the units of one portfolio. Name the corporation or portfolio; the unit table in the brief supplies the factor scores and weights.",
+        "example": "Kestrel Retail group",
+        "refuse": "GE-McKinsey assesses the units of one portfolio. Name the corporation or portfolio, and declare the factors, weights and scores."
+      },
+      "aliases": []
+    },
+    {
+      "key": "mckinsey_7s",
+      "label": "McKinsey 7S",
+      "unit": {
+        "field": "process",
+        "label": "The organisation you are describing",
+        "help": "An alignment review describes one organisation or unit. Name it in a few words, for example the campus catering team or the university estates office.",
+        "example": "the campus catering team",
+        "refuse": "An alignment review describes one organisation or unit. Name the organisation you are describing, for example the campus catering team or the university estates office."
+      },
+      "aliases": []
+    },
+    {
+      "key": "raci",
+      "label": "RACI",
+      "unit": {
+        "example": "smartphones, grocery retail, banking",
+        "field": "industry",
+        "help": "RACI assigns four roles to each task. Name the industry or market.",
+        "label": "Industry or market",
+        "refuse": "RACI assigns four roles to each task. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "porters_diamond",
+      "label": "Porters Diamond",
+      "unit": {
+        "field": "country_industry",
+        "label": "Country or region",
+        "rule": "the nation or region and its industry",
+        "help": "Porter's Diamond explains why an industry in a nation or region is competitive. Name the country or region, and the industry in the next field.",
+        "example": "Germany",
+        "secondary": {
+          "label": "Its industry",
+          "help": "The specific industry, for example machine tools.",
+          "example": "machine tools"
+        },
+        "refuse": "Porter's Diamond explains why an industry in a nation or region is competitive. Name the country or region and the industry, for example Germany in machine tools. Global is not a nation."
+      },
+      "aliases": []
+    },
+    {
+      "key": "burke_litwin",
+      "label": "Burke-Litwin",
+      "unit": {
+        "field": "process",
+        "label": "The organisation you are describing",
+        "help": "A change review describes one organisation or unit. Name it in a few words, for example the campus catering team or the university estates office.",
+        "example": "the campus catering team",
+        "refuse": "A change review describes one organisation or unit. Name the organisation you are describing, for example the campus catering team or the university estates office."
+      },
+      "aliases": []
+    },
+    {
+      "key": "galbraith_star",
+      "label": "Galbraith Star",
+      "unit": {
+        "field": "process",
+        "label": "The organisation you are describing",
+        "help": "An operating-model review describes one organisation or unit. Name it in a few words, for example the campus catering team or the university estates office.",
+        "example": "the campus catering team",
+        "refuse": "An operating-model review describes one organisation or unit. Name the organisation you are describing, for example the campus catering team or the university estates office."
+      },
+      "aliases": []
+    },
+    {
+      "key": "mintzberg",
+      "label": "Mintzberg",
+      "unit": {
+        "field": "process",
+        "label": "The organisation you are describing",
+        "help": "A configuration review describes one organisation or unit. Name it in a few words, for example the campus catering team or the university estates office.",
+        "example": "the campus catering team",
+        "refuse": "A configuration review describes one organisation or unit. Name the organisation you are describing, for example the campus catering team or the university estates office."
+      },
+      "aliases": []
+    },
+    {
+      "key": "logic_model",
+      "label": "Logic Model",
+      "unit": {
+        "field": "process",
+        "label": "The programme you are describing",
+        "help": "A logic model describes one programme or intervention. Name it in a few words, for example the campus mentoring programme or the community health outreach.",
+        "example": "the campus mentoring programme",
+        "refuse": "A logic model describes one programme or intervention. Name the programme you are describing, for example the campus mentoring programme or the community health outreach."
+      },
+      "aliases": []
+    },
+    {
+      "key": "bmc",
+      "label": "Business Model Canvas",
+      "unit": {
+        "field": "business",
+        "label": "Business, idea or segment",
+        "help": "A canvas describes one business model, one idea or one customer segment. Name it in a few words.",
+        "example": "a subscription grocery box for small households",
+        "refuse": "A canvas describes one business, idea or segment. Name it before filling the blocks."
+      },
+      "aliases": []
+    },
+    {
+      "key": "lean_canvas",
+      "label": "Lean Canvas",
+      "unit": {
+        "field": "business",
+        "label": "Business, idea or segment",
+        "help": "A canvas describes one business model, one idea or one customer segment. Name it in a few words.",
+        "example": "a subscription grocery box for small households",
+        "refuse": "A canvas describes one business, idea or segment. Name it before filling the blocks."
+      },
+      "aliases": []
+    },
+    {
+      "key": "value_proposition_canvas",
+      "label": "Value Proposition Canvas",
+      "unit": {
+        "field": "business",
+        "label": "Business, idea or segment",
+        "help": "A canvas describes one business model, one idea or one customer segment. Name it in a few words.",
+        "example": "a subscription grocery box for small households",
+        "refuse": "A canvas describes one business, idea or segment. Name it before filling the blocks."
+      },
+      "aliases": []
+    },
+    {
+      "key": "project_charter",
+      "label": "Project Charter",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the single unit this worksheet covers.",
+        "example": "One project, one change programme, or one business model.",
+        "refuse": "A worksheet cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "balanced_scorecard",
+      "label": "Balanced Scorecard",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the project or business unit this scorecard steers.",
+        "example": "One project, one programme, or one operating unit.",
+        "refuse": "A scorecard cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "strategy_map",
+      "label": "Strategy Map",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the project or business unit this map steers.",
+        "example": "One project, one programme, or one operating unit.",
+        "refuse": "A strategy map cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "kpi_tree",
+      "label": "KPI Tree",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the project or business unit this metric tree describes.",
+        "example": "One project, one programme, or one operating unit.",
+        "refuse": "A KPI tree cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "okrs",
+      "label": "OKRs",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the project or team these OKRs commit.",
+        "example": "One project, one team, or one operating unit.",
+        "refuse": "An OKR set cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "wbs",
+      "label": "Work Breakdown Structure",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the single unit this worksheet covers.",
+        "example": "One project, one change programme, or one business model.",
+        "refuse": "A worksheet cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "risk_register",
+      "label": "Risk Register",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the single unit this worksheet covers.",
+        "example": "One project, one change programme, or one business model.",
+        "refuse": "A worksheet cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "stakeholder_plan",
+      "label": "Stakeholder Plan",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the single unit this worksheet covers.",
+        "example": "One project, one change programme, or one business model.",
+        "refuse": "A worksheet cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "lessons_learned",
+      "label": "Lessons Learned",
+      "unit": {
+        "field": "unit",
+        "label": "Unit of analysis",
+        "help": "Name the single unit this worksheet covers.",
+        "example": "One project, one change programme, or one business model.",
+        "refuse": "A worksheet cannot be completed for a unit that has not been named."
+      },
+      "aliases": []
+    },
+    {
+      "key": "strategic_positioning",
+      "label": "Strategic Positioning",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Strategic positioning is claimed against a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Strategic positioning is claimed against a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "change_organization",
+      "label": "Change and Organization",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "A change and organisation review reads one programme of change in the industry or market the organisation competes in. Name the industry or market, for example grocery retail or healthcare.",
+        "example": "grocery retail, healthcare",
+        "refuse": "A change and organisation review is analysed for the industry or market the organisation competes in. Name the industry or market (for example grocery retail or healthcare)."
+      },
+      "aliases": []
+    },
+    {
+      "key": "marketing_plan",
+      "label": "Marketing Plan",
+      "unit": {
+        "example": "smartphones, grocery retail, banking",
+        "field": "industry",
+        "help": "A marketing plan is set for a firm in a market. Name the industry or market.",
+        "label": "Industry or market",
+        "refuse": "A marketing plan is set for a firm in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "kano",
+      "label": "Kano Model",
+      "unit": {
+        "example": "smartphones, grocery retail, banking",
+        "field": "industry",
+        "help": "The Kano model classifies requirements for a firm in a market. Name the industry or market.",
+        "label": "Industry or market",
+        "refuse": "The Kano model classifies requirements for a firm in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "paid_media_plan",
+      "label": "Paid Media Plan",
+      "unit": {
+        "example": "smartphones, grocery retail, banking",
+        "field": "industry",
+        "help": "A paid media plan is set for a firm in a market. Name the industry or market.",
+        "label": "Industry or market",
+        "refuse": "A paid media plan is set for a firm in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "measurement_plan",
+      "label": "Measurement Plan",
+      "unit": {
+        "example": "smartphones, grocery retail, banking",
+        "field": "industry",
+        "help": "A measurement plan is set for a firm in a market. Name the industry or market.",
+        "label": "Industry or market",
+        "refuse": "A measurement plan is set for a firm in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "stp",
+      "label": "STP",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Segmentation, targeting and positioning are decided against a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Segmentation, targeting and positioning are decided against a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "aida",
+      "label": "AIDA",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "AIDA describes how an audience in a market is reached. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "AIDA describes how an audience in a market is reached. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "customer_journey",
+      "label": "Customer Journey",
+      "unit": {
+        "example": "smartphones, grocery retail, banking",
+        "field": "industry",
+        "help": "The customer journey is read for a firm in a market. Name the industry or market.",
+        "label": "Industry or market",
+        "refuse": "The customer journey is read for a firm in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "funnel",
+      "label": "Funnel",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "A funnel is measured for a market or a defined audience. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "A funnel is measured for a market or a defined audience. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "servqual",
+      "label": "SERVQUAL",
+      "unit": {
+        "example": "smartphones, grocery retail, banking",
+        "field": "industry",
+        "help": "SERVQUAL reads service quality for a firm in a market. Name the industry or market.",
+        "label": "Industry or market",
+        "refuse": "SERVQUAL reads service quality for a firm in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "rfm",
+      "label": "RFM",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "RFM segmentation groups the customers of a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "RFM segmentation groups the customers of a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "tam",
+      "label": "Technology Acceptance Model",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "The Technology Acceptance Model is read against the users of a system in a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "The Technology Acceptance Model is read against the users of a system in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "utaut",
+      "label": "UTAUT",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "UTAUT reads the users of a system in a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "UTAUT reads the users of a system in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "brand_equity",
+      "label": "Brand Equity",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Brand equity is assessed in a market against the alternatives customers can choose. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Brand equity is assessed in a market against the alternatives customers can choose. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "digital_mix",
+      "label": "Digital Marketing Mix",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "The digital mix is allocated across the channels available in a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "The digital mix is allocated across the channels available in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "seo_content",
+      "label": "SEO and Content",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "An SEO and content plan is written for an audience found in a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "An SEO and content plan is written for an audience found in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "email_crm",
+      "label": "Email CRM and Lifecycle",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Email and CRM performance is read for a market's audience. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Email and CRM performance is read for a market's audience. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "social_media",
+      "label": "Social Media and Influencer",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "A social and influencer plan is written for an audience in a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "A social and influencer plan is written for an audience in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "attribution",
+      "label": "Attribution and Campaign Measurement",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Campaign attribution is read for the campaigns running in a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Campaign attribution is read for the campaigns running in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "cro",
+      "label": "Conversion Rate Optimisation",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "A conversion test is run on a page or step reached in a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "A conversion test is run on a page or step reached in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "marketing_automation",
+      "label": "Marketing Automation",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "Marketing automation rules are written for the leads moving through a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "Marketing automation rules are written for the leads moving through a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "stp_evidence",
+      "label": "STP Evidence Check",
+      "unit": {
+        "field": "industry",
+        "label": "Industry or market",
+        "help": "The STP evidence check audits a claim made in a market. Name the industry or market.",
+        "example": "smartphones, grocery retail, banking",
+        "refuse": "The STP evidence check audits a claim made in a market. Name the industry or market."
+      },
+      "aliases": []
+    },
+    {
+      "key": "leadership_theory_comparison",
+      "label": "Leadership theory profile and comparison",
+      "unit": {
+        "field": "process",
+        "label": "Leader or organisation",
+        "help": "Name the leader or organisation the paper is about.",
+        "example": "",
+        "refuse": "Name the leader or organisation the paper is about."
+      },
+      "aliases": []
+    },
+    {
+      "key": "situational_leadership",
+      "label": "Situational and contingency leadership",
+      "unit": {
+        "field": "process",
+        "label": "Leader or organisation",
+        "help": "Name the leader or organisation the paper is about.",
+        "example": "",
+        "refuse": "Name the leader or organisation the paper is about."
+      },
+      "aliases": []
+    },
+    {
+      "key": "leader_effectiveness",
+      "label": "Leader effectiveness appraisal",
+      "unit": {
+        "field": "process",
+        "label": "Leader or organisation",
+        "help": "Name the leader and the period the appraisal covers.",
+        "example": "",
+        "refuse": "Name the leader and the period the appraisal covers."
+      },
+      "aliases": []
+    },
+    {
+      "key": "leadership_development",
+      "label": "Leadership development plan",
+      "unit": {
+        "field": "process",
+        "label": "Leader or organisation",
+        "help": "Name the leader or team the plan is for.",
+        "example": "",
+        "refuse": "Name the leader or team the plan is for."
+      },
+      "aliases": []
+    },
+    {
+      "key": "culture_framework_comparison",
+      "label": "Cultural framework comparison",
+      "unit": {
+        "field": "process",
+        "label": "Country or organisation",
+        "help": "Name the country or organisation the paper is about.",
+        "example": "",
+        "refuse": "Name the country or organisation the paper is about."
+      },
+      "aliases": []
+    },
+    {
+      "key": "cross_cultural_leadership",
+      "label": "Cross-cultural leadership and organisation",
+      "unit": {
+        "field": "process",
+        "label": "Country or organisation",
+        "help": "Name the country or organisation the paper is about.",
+        "example": "",
+        "refuse": "Name the country or organisation the paper is about."
+      },
+      "aliases": []
+    },
+    {
+      "key": "organisational_culture",
+      "label": "Organisational culture diagnosis",
+      "unit": {
+        "field": "process",
+        "label": "Organisation",
+        "help": "Name the organisation the diagnosis is about.",
+        "example": "",
+        "refuse": "Name the organisation the diagnosis is about."
+      },
+      "aliases": []
+    },
+    {
+      "key": "ethical_dilemma",
+      "label": "Ethical dilemma analysis",
+      "unit": {
+        "field": "process",
+        "label": "Decision or case",
+        "help": "Name the decision or case the dilemma is about.",
+        "example": "",
+        "refuse": "Name the decision or case the dilemma is about."
+      },
+      "aliases": []
+    },
+    {
+      "key": "stakeholder_csr",
+      "label": "Stakeholder and CSR analysis",
+      "unit": {
+        "field": "process",
+        "label": "Decision or case",
+        "help": "Name the decision or case the analysis is about.",
+        "example": "",
+        "refuse": "Name the decision or case the analysis is about."
+      },
+      "aliases": []
+    },
+    {
+      "key": "ethical_decision_process",
+      "label": "Ethical decision-making process",
+      "unit": {
+        "field": "process",
+        "label": "Decision or case",
+        "help": "Name the decision the paper traces.",
+        "example": "",
+        "refuse": "Name the decision the paper traces."
+      },
+      "aliases": []
+    }
+  ],
+  "methods": [
+    {
+      "method_id": "seasonal_series",
+      "category": "planning",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A declared base series multiplied period by period by a declared seasonal index."
+    },
+    {
+      "method_id": "escalated_series",
+      "category": "planning",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A declared amount repeated over periods and stepped by a declared rate at a declared period."
+    },
+    {
+      "method_id": "revenue_from_traffic",
+      "category": "planning",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Revenue per period from days open, an average ticket and declared daily transactions."
+    },
+    {
+      "method_id": "line_totals",
+      "category": "planning",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "The total of declared cost or funding lines and the total of each declared category."
+    },
+    {
+      "method_id": "simple_payback",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "How many periods the declared cash flows need to recover a declared investment, interpolated within the recovery period."
+    },
+    {
+      "method_id": "npv",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Value a stream of cash flows at a user-supplied discount rate."
+    },
+    {
+      "method_id": "irr",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "The discount rate at which a declared stream of cash flows has a net present value of zero (the IRR, for conventional cash flows)."
+    },
+    {
+      "method_id": "discounted_payback",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "How many periods the discounted cash flows need to recover a declared initial outlay, interpolated within the recovery period."
+    },
+    {
+      "method_id": "breakeven",
+      "category": "cost-volume-profit",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Units needed to cover fixed cost at a constant unit contribution, with the break-even revenue, contribution margin, margin of safety and target-profit volume when those inputs are declared."
+    },
+    {
+      "method_id": "pearson",
+      "category": "correlation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Linear association between two numeric variables in a sample, with interval, p-value and effect size."
+    },
+    {
+      "method_id": "spearman",
+      "category": "correlation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Monotone association between two variables, robust to outliers and skew; fallback for Pearson."
+    },
+    {
+      "method_id": "ols",
+      "category": "regression",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Linear association of one numeric outcome with up to five numeric predictors, with intervals, p-values and effect sizes."
+    },
+    {
+      "method_id": "ols_robust",
+      "category": "regression",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Linear regression with HC3 heteroskedasticity-robust standard errors; fallback for OLS."
+    },
+    {
+      "method_id": "welch_t",
+      "category": "group comparison",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compare the means of two independent groups on a numeric outcome, with interval, p-value and standardized effect size."
+    },
+    {
+      "method_id": "mann_whitney",
+      "category": "group comparison",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compare two independent groups without assuming normality; fallback for Welch."
+    },
+    {
+      "method_id": "descriptive_stats",
+      "category": "descriptive statistics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Summarize one numeric variable in a dataset (n, missing, mean, median, range, sample SD)."
+    },
+    {
+      "method_id": "anova",
+      "category": "group comparison",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compare the means of three or more independent groups with an omnibus F test, an eta-squared effect size and per-group summaries."
+    },
+    {
+      "method_id": "kruskal_wallis",
+      "category": "group comparison",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compare three or more independent groups without assuming normality; nonparametric fallback for one-way ANOVA."
+    },
+    {
+      "method_id": "chi_square",
+      "category": "categorical association",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Test whether two categorical variables are independent from a table of observed counts, with a Cramer's V effect size."
+    },
+    {
+      "method_id": "trend_forecast",
+      "category": "forecasting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Project a linear trend in a single time series forward for a user-chosen horizon, with prediction intervals and a disclosed out-of-sample error on the recent past."
+    },
+    {
+      "method_id": "ratio_analysis",
+      "category": "financial statement analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compute liquidity, profitability, solvency and efficiency ratios from figures on your own financial statements, showing each ratio's declared formula and the figures it used."
+    },
+    {
+      "method_id": "multiple_comparison",
+      "category": "inference control",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Adjust a pre-declared family of p-values for multiple testing with Holm's step-down or Bonferroni, and count how many remain significant at a declared alpha."
+    },
+    {
+      "method_id": "power_analysis",
+      "category": "study design",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Plan a two-sample or one-sample comparison of means: the power for a stated effect, and the minimum detectable effect at a declared target power, under the normal approximation."
+    },
+    {
+      "method_id": "missing_data_bounds",
+      "category": "data quality",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Report how much of a variable is missing and bound the complete-data mean under the worst case: every missing value at the observed minimum or maximum, with the missing-data mechanism recorded as the owner's declaration."
+    },
+    {
+      "method_id": "paired_t",
+      "category": "group comparison",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compare two matched measurements on the same observations (for example before and after) using the mean within-pair difference, with a confidence interval, a paired t test and Cohen's dz."
+    },
+    {
+      "method_id": "one_sample_t",
+      "category": "group comparison",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compare one sample mean with a declared reference value, with a confidence interval, a one-sample t test and Cohen's d."
+    },
+    {
+      "method_id": "logistic_regression",
+      "category": "regression",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Binary logistic regression (0/1 outcome) with up to five numeric predictors: coefficients as log-odds, odds ratios, Wald p-values and a McFadden pseudo R-squared."
+    },
+    {
+      "method_id": "reliability_alpha",
+      "category": "measurement",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Cronbach's alpha for the internal consistency of a set of items answered by the same respondents."
+    },
+    {
+      "method_id": "cost_benefit",
+      "category": "appraisal",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Discounted cost-benefit appraisal: present values of declared costs and benefits, the net present value and the benefit-cost ratio."
+    },
+    {
+      "method_id": "cost_effectiveness",
+      "category": "appraisal",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Cost-effectiveness analysis against a declared comparator: incremental cost per unit of effect (ICER) for each other option, with dominance flags."
+    },
+    {
+      "method_id": "sroi",
+      "category": "appraisal",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Social return on investment: present value of declared social benefits divided by the declared investment."
+    },
+    {
+      "method_id": "unit_economics",
+      "category": "unit economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Unit contribution margin, payback of the acquisition cost and (when a churn rate is declared) a period-value LTV and LTV/CAC."
+    },
+    {
+      "method_id": "multi_product_breakeven",
+      "category": "cost-volume-profit",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Break-even in units and revenue for a fixed product mix: the mix-weighted contribution margin and the per-product break-even quantities."
+    },
+    {
+      "method_id": "two_way_anova",
+      "category": "group comparison",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Two-way balanced factorial ANOVA on one numeric response: the two main effects and their interaction, with F tests and partial eta-squared."
+    },
+    {
+      "method_id": "posthoc_pairwise",
+      "category": "group comparison",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compare every pair of independent groups with a Welch t-test and a declared family-wise correction (Holm, Bonferroni or none), reporting raw and adjusted p-values."
+    },
+    {
+      "method_id": "currency_convert",
+      "category": "currency",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Convert an amount from one ISO 4217 currency to another at a rate the owner declares, recording the rate, its provenance, any source and date."
+    },
+    {
+      "method_id": "wacc",
+      "category": "valuation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compute the weighted average cost of capital from declared market values of equity and debt and declared costs of equity and AFTER-TAX debt."
+    },
+    {
+      "method_id": "dcf_valuation",
+      "category": "valuation",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Discount a declared stream of free cash flows at a declared rate and declared timing (end-of-period, or an explicit mid-year convention), with an optional Gordon-growth terminal value, to an enterprise value."
+    },
+    {
+      "method_id": "equity_bridge",
+      "category": "valuation",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Bridge a declared enterprise value to an equity value by subtracting net debt (debt minus cash) and the declared minority and preferred claims, with an optional per-share value."
+    },
+    {
+      "method_id": "weighted_summary",
+      "category": "descriptive statistics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Summarize a variable under declared design or frequency weights: weighted mean, weighted standard deviation, effective sample size and design effect."
+    },
+    {
+      "method_id": "management_accounts",
+      "category": "accounting",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Run a declarative management-accounts engagement (chart, opening balances, entries and schedules) through the ledger kernel: statements, trial balance, two-route cash flow, closing and the retained-earnings rollforward, with every invariant checked."
+    },
+    {
+      "method_id": "trial_balance_check",
+      "category": "accounting",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Compare a student's own trial balance with the one rebuilt from their own journal: every line that matches, differs or has no counterpart, with candidate causes labelled as heuristics."
+    },
+    {
+      "method_id": "time_value",
+      "category": "time value of money",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Find the future value of a lump sum plus a level payment, the present value of those payments, and the effective annual rate, showing the periodic rate and number of periods used."
+    },
+    {
+      "method_id": "loan_amortization",
+      "category": "debt",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compute the level payment on an amortizing loan, the total interest over its life, the first payment's interest and principal split, and the effective annual rate."
+    },
+    {
+      "method_id": "bond_analysis",
+      "category": "fixed income",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Price a plain fixed-coupon bond from its yield, or solve its yield from a declared price, and report Macaulay and modified duration, convexity, DV01 and current yield."
+    },
+    {
+      "method_id": "capm",
+      "category": "cost of capital",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compute the CAPM cost of equity from a declared risk-free rate, market return and beta, estimating beta from two return series when it is not declared, and relever or unlever it with Hamada when a debt-to-equity ratio is supplied."
+    },
+    {
+      "method_id": "dupont_analysis",
+      "category": "financial statement analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Decompose return on equity into net margin, asset turnover and the equity multiplier (and, when EBIT, pre-tax income and tax are declared, the five-step tax- and interest-burden form), with common-size ratios and growth against one declared comparison period."
+    },
+    {
+      "method_id": "multiples_valuation",
+      "category": "valuation",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Apply the mean (or median) of declared comparable multiples to the subject's own earnings, EBITDA, sales or book value, and bridge the result to an equity value and a per-share value."
+    },
+    {
+      "method_id": "working_capital",
+      "category": "working capital",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Measure the cash conversion cycle from receivable, inventory and payable days, and compute the economic order quantity, reorder point and the annualised cost of forgoing a trade discount."
+    },
+    {
+      "method_id": "working_capital_cycle",
+      "category": "working capital",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Measure the cash conversion cycle from receivable, inventory and payable days, without the order-quantity and trade-credit terms the combined working-capital method needs."
+    },
+    {
+      "method_id": "portfolio_analysis",
+      "category": "investments",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Combine two assets at a declared weight and report each asset's mean and standard deviation, their covariance and correlation, the portfolio's return and risk, and the Sharpe, beta, Treynor and Jensen performance measures."
+    },
+    {
+      "method_id": "project_metrics",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Report the profitability index, modified internal rate of return, simple payback and equivalent annual annuity of one declared project alongside its NPV and IRR, so the ranking measures can be compared."
+    },
+    {
+      "method_id": "option_pricing",
+      "category": "derivatives",
+      "tier": "T2",
+      "status": "implemented_tested",
+      "intended_use": "Price a European call or put with Black-Scholes, cross-check it with a binomial tree, and report delta, gamma, vega, theta, rho, intrinsic and time value."
+    },
+    {
+      "method_id": "risk_metrics",
+      "category": "risk management",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Report parametric and historical value at risk and expected shortfall from a declared return series, with the loss in currency on a declared portfolio value and an optional stress loss."
+    },
+    {
+      "method_id": "fx_parity",
+      "category": "international finance",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Apply covered interest parity and relative purchasing power parity to declared spot, interest and inflation rates, report the implied forward, forward premium and real rates, and compare a declared foreign-currency exposure hedged with one forward against the unhedged outcome."
+    },
+    {
+      "method_id": "leverage_analysis",
+      "category": "capital structure",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Report earnings per share, the degree of financial leverage, interest cover and the interest tax shield from declared EBIT, interest, tax and shares, add the five-term Altman Z-score when its six figures are declared, and find the EBIT-EPS indifference point against one alternative financing plan."
+    },
+    {
+      "method_id": "scenario_analysis",
+      "category": "decision analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Recompute a project's NPV at a low and a high discount rate, report the swing, and find the single discount rate at which the decision flips."
+    },
+    {
+      "method_id": "demand_supply_equilibrium",
+      "category": "microeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Equilibrium price and quantity for declared linear demand and supply curves (Qd = a - bP, Qs = c + dP), with consumer and producer surplus."
+    },
+    {
+      "method_id": "elasticity",
+      "category": "microeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Arc (midpoint) price elasticity of demand between two declared price-quantity observations, with the revenue change and an elastic/inelastic classification."
+    },
+    {
+      "method_id": "tax_incidence",
+      "category": "microeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Economic incidence of a declared per-unit tax in a linear partial-equilibrium market: consumer and producer prices, the burden split, tax revenue and deadweight loss."
+    },
+    {
+      "method_id": "price_control",
+      "category": "microeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "The effect of a declared price ceiling or floor on a linear competitive market: quantity traded, shortage or surplus, and deadweight loss."
+    },
+    {
+      "method_id": "market_concentration",
+      "category": "microeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Market concentration from declared firm revenues: Herfindahl-Hirschman index (0-10,000), CR1, CR4 and the equivalent number of equal-sized firms."
+    },
+    {
+      "method_id": "cost_curves",
+      "category": "microeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Average cost, average variable cost, average fixed cost and marginal cost at a declared quantity for the quadratic cost function TC = fixed + linear x Q + quadratic x Q squared, with optional price, revenue, profit and a shutdown flag."
+    },
+    {
+      "method_id": "profit_maximization",
+      "category": "microeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Profit-maximising quantity and price for a firm facing linear demand P = a - bQ and quadratic cost TC = fixed + linear x Q + quadratic x Q squared, with revenue, cost, profit, markup and the Lerner index."
+    },
+    {
+      "method_id": "market_power",
+      "category": "microeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Markup and Lerner index from a declared price and marginal cost, with the implied demand elasticity under the single-price monopoly model."
+    },
+    {
+      "method_id": "national_income",
+      "category": "macroeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "GDP by the expenditure approach, plus GNP, NNP, net exports, optional GDP per capita and optional real GDP from a declared deflator."
+    },
+    {
+      "method_id": "growth_rate",
+      "category": "macroeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Total growth, compound annual growth rate and the rule-of-72 doubling time between two declared values, with optional per-capita growth."
+    },
+    {
+      "method_id": "inflation_cpi",
+      "category": "macroeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Inflation from two CPI values, the exact and approximate real interest rate, and optional real wage growth."
+    },
+    {
+      "method_id": "unemployment_rate",
+      "category": "macroeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Unemployment rate, labour-force participation rate and employment-population ratio from declared labour-force, employment and working-age population counts."
+    },
+    {
+      "method_id": "money_multiplier",
+      "category": "macroeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Simple and currency-adjusted money multipliers from the monetary base, reserve ratio and optional currency drain, with the implied money supply."
+    },
+    {
+      "method_id": "fiscal_multiplier",
+      "category": "macroeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Government-spending, tax and balanced-budget multipliers from a declared marginal propensity to consume and proportional tax rate, with the output change from declared fiscal changes."
+    },
+    {
+      "method_id": "budget_debt",
+      "category": "macroeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Overall and primary budget balances, the debt-to-GDP ratio, the interest rate and the standard debt-ratio change from declared budget aggregates."
+    },
+    {
+      "method_id": "externality_pigouvian",
+      "category": "welfare economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Market and social optimum under a declared per-unit external cost, with the Pigouvian tax and deadweight loss."
+    },
+    {
+      "method_id": "public_good",
+      "category": "welfare economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Efficient provision of a public good from two declared linear marginal-benefit schedules and one marginal-cost schedule, with total and net benefit."
+    },
+    {
+      "method_id": "social_welfare",
+      "category": "welfare economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Utilitarian, Rawlsian and Nash social welfare from declared incomes, with the selected welfare function."
+    },
+    {
+      "method_id": "gini_coefficient",
+      "category": "welfare economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Gini coefficient, mean, minimum and maximum from declared incomes, with the poorest and richest shares."
+    },
+    {
+      "method_id": "poverty_measures",
+      "category": "welfare economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Headcount ratio, poverty gap, squared gap and total shortfall from declared incomes and a declared poverty line."
+    },
+    {
+      "method_id": "tax_progressivity",
+      "category": "public economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Average tax rate and a simple top-quartile progressivity gap from declared incomes and taxes."
+    },
+    {
+      "method_id": "optimal_pollution",
+      "category": "environmental economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Optimal emissions and pollution tax where declared linear marginal damage equals declared linear marginal abatement cost."
+    },
+    {
+      "method_id": "output_gap_okun",
+      "category": "macroeconomics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Output gap from actual and potential GDP, with the predicted unemployment change from a declared Okun coefficient."
+    },
+    {
+      "method_id": "comparative_advantage",
+      "category": "international economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Ricardian comparative advantage from two countries' declared unit labour requirements in two goods, with opportunity costs and specialisation flags."
+    },
+    {
+      "method_id": "tariff_welfare",
+      "category": "international economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Small-country tariff on a linear market: domestic price, imports, tariff revenue and the production and consumption deadweight losses."
+    },
+    {
+      "method_id": "exchange_rate_ppp",
+      "category": "international economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Absolute and relative purchasing-power parity from declared price levels and a nominal exchange rate, with the real rate, misalignment and expected depreciation."
+    },
+    {
+      "method_id": "interest_rate_parity",
+      "category": "international economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Covered interest parity: the implied forward rate and forward premium from a spot rate, two interest rates and a declared horizon, with an optional declared forward and real rates."
+    },
+    {
+      "method_id": "balance_of_payments",
+      "category": "international economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Balance-of-payments identity from declared current, capital and financial account balances, with an optional errors term and current-account-to-GDP ratio."
+    },
+    {
+      "method_id": "hdi",
+      "category": "development economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Human Development Index from declared life expectancy, expected and mean years of schooling and GNI per capita, using the UNDP goalposts."
+    },
+    {
+      "method_id": "expected_utility",
+      "category": "behavioural economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Expected value, expected utility, certainty equivalent and risk premium for a declared gamble under risk neutrality or CRRA utility."
+    },
+    {
+      "method_id": "prospect_theory",
+      "category": "behavioural economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Kahneman-Tversky-style prospect value from declared outcomes, probabilities and a reference point, with loss aversion, curvature and probability weighting."
+    },
+    {
+      "method_id": "labour_market",
+      "category": "labour economics",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Real wage, wage share of productivity and optional labour-market tightness - vacancies per unemployed person - from a declared nominal wage, CPI, productivity, vacancy count and unemployment count."
+    },
+    {
+      "method_id": "price_discrimination",
+      "category": "industrial organization",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Third-degree price discrimination across two separated linear markets with constant marginal cost: quantities, prices and profit."
+    },
+    {
+      "method_id": "cournot_duopoly",
+      "category": "industrial organization",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Two-firm Cournot equilibrium with linear demand and constant marginal costs: quantities, price and profits."
+    },
+    {
+      "method_id": "difference_in_differences",
+      "category": "impact evaluation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Two-group, two-period difference-in-differences from four declared means."
+    },
+    {
+      "method_id": "nash_equilibrium",
+      "category": "game theory",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Pure-strategy Nash equilibria of a declared 2x2 game, with a flag for each cell and the number of equilibria."
+    },
+    {
+      "method_id": "panel_regression",
+      "category": "panel data",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Balanced-panel fixed-effects (within) slope and intercept for one regressor, with within R-squared and degrees of freedom."
+    },
+    {
+      "method_id": "instrumental_variables",
+      "category": "instrumental variables",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Just-identified instrumental-variables slope and intercept with one endogenous regressor and one excluded instrument, plus the first-stage and OLS slopes for comparison."
+    },
+    {
+      "method_id": "regression_discontinuity",
+      "category": "regression discontinuity",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Sharp regression-discontinuity estimate from a local linear fit on each side of a declared cutoff and bandwidth."
+    },
+    {
+      "method_id": "probit",
+      "category": "binary choice",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Binary probit with one predictor: latent-index coefficients, log likelihood, McFadden pseudo R-squared and the marginal effect at the mean."
+    },
+    {
+      "method_id": "trend_analysis",
+      "category": "financial statement analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Turn several years of income-statement figures into common-size percentages, an index on the first period, compound growth rates and margin changes."
+    },
+    {
+      "method_id": "market_sizing",
+      "category": "market analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Top-down TAM, SAM and SOM from a declared population, annual spend and two declared shares, with the customer count implied by the obtainable share."
+    },
+    {
+      "method_id": "startup_capital",
+      "category": "venture finance",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "The start-up funding requirement: declared set-up costs plus working capital plus a declared contingency, less the owner equity and loan already committed, with the amount still to raise."
+    },
+    {
+      "method_id": "cash_runway",
+      "category": "venture finance",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Months of cash left from a declared opening balance and monthly net cash flow, with optional monthly growth, the lowest balance and the funding gap over a declared horizon."
+    },
+    {
+      "method_id": "pricing_decision",
+      "category": "pricing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Cost-plus, target-margin, break-even and target-return prices from declared unit cost, fixed cost, volume and rate inputs."
+    },
+    {
+      "method_id": "return_on_investment",
+      "category": "venture finance",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Return on investment from a declared total investment and net gain, with an annualised return when the holding period is declared."
+    },
+    {
+      "method_id": "sales_projection",
+      "category": "venture planning",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A period-by-period revenue, cost and profit projection from a declared starting volume, price, unit cost, fixed cost and growth rate."
+    },
+    {
+      "method_id": "cap_table_round",
+      "category": "venture finance",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "One priced equity round: post-money value, price per share, new shares, the investor and founder percentages and the dilution, with an optional post-money option pool."
+    },
+    {
+      "method_id": "sales_funnel",
+      "category": "market analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Stage-by-stage conversion and drop-off from the counts you declare, with the overall conversion and, when spend is declared, the acquisition cost per customer."
+    },
+    {
+      "method_id": "cohort_retention",
+      "category": "market analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Pooled retention and churn by period from declared cohort sizes and retained counts, with the average retention and the average lifetime under the declared curve."
+    },
+    {
+      "method_id": "demand_curve",
+      "category": "demand analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A straight line fitted to declared price-quantity observations, with the slope, R-squared, elasticity at the mean price and, when the slope is negative, the revenue-maximising price on the fitted line."
+    },
+    {
+      "method_id": "purchase_intent",
+      "category": "market analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A weighted purchase-intent rate from declared survey counts, with a projected buyer count and revenue when a population and a price are declared."
+    },
+    {
+      "method_id": "campaign_efficiency",
+      "category": "digital marketing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Click-through, cost per click, cost per thousand impressions, conversion rate, cost per acquisition, return on ad spend and advertising cost of sales from the campaign counts you declare, with break-even return on ad spend when a contribution margin is declared."
+    },
+    {
+      "method_id": "ab_test_two_proportion",
+      "category": "digital marketing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A two-proportion comparison of two observed arms: rates, absolute and relative lift, the pooled z-test, a two-sided p-value, an interval for the difference and, when a minimum effect is declared, the visitors each arm would need."
+    },
+    {
+      "method_id": "attribution_split",
+      "category": "digital marketing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Compare the credit each channel receives under first-click, last-click and linear attribution from the credit counts you declare, and show the largest share disagreement."
+    },
+    {
+      "method_id": "channel_economics",
+      "category": "digital marketing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Customer acquisition cost, payback, lifetime value and the lifetime-value-to-acquisition-cost ratio for each declared channel, with the blended acquisition cost and each channel's share of spend."
+    },
+    {
+      "method_id": "email_list_health",
+      "category": "digital marketing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "List growth, unsubscribe and bounce rates, open and click rates, click-to-open and revenue per subscriber from the email counts you declare."
+    },
+    {
+      "method_id": "social_engagement",
+      "category": "digital marketing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Engagement rate, frequency, cost per thousand impressions, cost per engagement, follower growth and engagement per post from the social counts you declare."
+    },
+    {
+      "method_id": "web_analytics",
+      "category": "digital marketing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Sessions, conversions, conversion rate, revenue per session and channel share from the acquisition rows you declare, with organic-search click-through when impressions and clicks are supplied."
+    },
+    {
+      "method_id": "rfm_scoring",
+      "category": "marketing and customers",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Quintile recency, frequency and monetary scores and the eleven named RFM segments from a declared customer list, with each segment's size and the mean scores."
+    },
+    {
+      "method_id": "media_plan",
+      "category": "marketing and customers",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Reach, reach share, gross impressions, gross rating points, cost per rating point and cost per thousand impressions for each declared vehicle, with the plan total and a combined net reach under random duplication."
+    },
+    {
+      "method_id": "market_share",
+      "category": "marketing and customers",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Market share, the change from a declared prior period, the implied growth of the firm and the market, penetration against a declared population and relative share against a named largest competitor."
+    },
+    {
+      "method_id": "fmea_rpn",
+      "category": "operations",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "The Risk Priority Number of one FMEA row, the product of its declared severity, occurrence and detection scores."
+    },
+    {
+      "method_id": "five_s_score",
+      "category": "operations",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "The total and percentage score of a declared Five-S scorecard, from the criterion scores and the maximum per criterion."
+    },
+    {
+      "method_id": "clv_model",
+      "category": "marketing and customers",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "The present value of a customer's margin over a declared horizon, with a constant churn and discount rate, the undiscounted value beside it, and (with an acquisition cost) the value per unit of acquisition cost and the payback period."
+    },
+    {
+      "method_id": "customer_profitability",
+      "category": "marketing and customers",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Revenue, declared cost, profit, margin and profit share for each segment, product or channel, with the totals, the profitable and unprofitable counts and the smallest number of segments that produce a declared share of the profit."
+    },
+    {
+      "method_id": "standard_cost_variances",
+      "category": "management accounting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Material price and usage, labour rate and efficiency, and (when declared) variable and fixed overhead variances for the output actually produced, with a positive figure unfavourable."
+    },
+    {
+      "method_id": "inventory_policy",
+      "category": "operations and inventory",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Economic order quantity, orders per year, cycle and safety stock, reorder point and the annual ordering and holding cost from declared demand, costs, lead time and a service level."
+    },
+    {
+      "method_id": "queue_analysis",
+      "category": "operations and queueing",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A multi-server M/M/c queue: utilisation, average customers in the queue and in the system, the average waits, the probability the system is empty and the probability a customer waits."
+    },
+    {
+      "method_id": "capacity_analysis",
+      "category": "operations and capacity",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Process capacity per resource from available hours and minutes per unit, the bottleneck resource and, when demand is declared, each resource's utilisation and the capacity gap."
+    },
+    {
+      "method_id": "cpm_schedule",
+      "category": "project scheduling",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Critical-path scheduling and PERT from declared activities: early and late dates, total float, the critical path, the project duration and (with three-point estimates) the PERT variance along it."
+    },
+    {
+      "method_id": "resource_leveling",
+      "category": "project scheduling",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Level a declared schedule against declared resource capacities: early and levelled starts and finishes, the delay each activity takes, the project duration and the over-capacity periods before and after."
+    },
+    {
+      "method_id": "project_crashing",
+      "category": "project scheduling",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Crash a declared schedule to a target duration: the activity periods bought, the resulting duration and the total crash cost."
+    },
+    {
+      "method_id": "calendar_schedule",
+      "category": "project scheduling",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Schedule declared activities over a declared working calendar: early and late dates, float, the critical path and the calendar duration with non-working gaps."
+    },
+    {
+      "method_id": "multi_project_schedule",
+      "category": "project scheduling",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Schedule several projects that share declared resources: project and activity starts and finishes, each project's finish and delay against its own CPM, and the overall duration."
+    },
+    {
+      "method_id": "schedule_risk",
+      "category": "project scheduling",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Seeded Monte Carlo of a PERT network: mean, P50/P80/P90 and range of the project duration, the share of runs within a target, and each activity's criticality index."
+    },
+    {
+      "method_id": "decision_tree",
+      "category": "decision analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Roll back a declared decision tree: expected value of each alternative, the best alternative, loss probability and the best/worst terminal value for each path."
+    },
+    {
+      "method_id": "real_option",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Value a real option on a declared project value with a Cox-Ross-Rubinstein binomial lattice: option value, intrinsic value, delta, up/down factors and risk-neutral probability."
+    },
+    {
+      "method_id": "multi_criteria",
+      "category": "decision analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Score declared alternatives against declared criteria with declared weights: weighted totals, ranks and the best alternative."
+    },
+    {
+      "method_id": "monte_carlo",
+      "category": "decision analysis",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A seeded Monte Carlo for two declared decision models: NPV of uncertain cash flows, or profit from uncertain price, variable cost and volume. Reports the mean, P10/P50/P90, range and the share of positive outcomes."
+    },
+    {
+      "method_id": "earned_value",
+      "category": "project control",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Earned value at a status date: schedule and cost variances, SPI and CPI, one declared estimate at completion, the estimate to complete, the variance at completion and the to-complete performance index."
+    },
+    {
+      "method_id": "oee_analysis",
+      "category": "operations and quality",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Overall equipment effectiveness from declared planned time, downtime, ideal cycle time and unit counts: availability, performance, quality and the product of the three."
+    },
+    {
+      "method_id": "process_control",
+      "category": "operations and quality",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "An individuals chart with moving ranges: mean, estimated sigma, three-sigma control limits, out-of-control points, the longest run on one side of the mean and, when specification limits are declared, Cp and Cpk."
+    },
+    {
+      "method_id": "abc_costing",
+      "category": "management accounting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Activity-based costing: a rate per activity from its pool and driver total, each product's allocation from the driver quantities it consumes, and the resulting unit cost."
+    },
+    {
+      "method_id": "sales_variances",
+      "category": "management accounting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Sales price, mix and yield variances for two or more products, at budgeted prices with the budget mix as the standard, reconciling to the total revenue change."
+    },
+    {
+      "method_id": "line_balancing",
+      "category": "operations and scheduling",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Assign declared tasks to stations at a declared cycle time using a declared heuristic (longest task time or ranked positional weight), with the theoretical lower bound, idle time and line efficiency."
+    },
+    {
+      "method_id": "tax_declared",
+      "category": "taxation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Income tax, VAT payable and deferred tax from the rates and figures you declare, with the after-tax income and the total tax charge."
+    },
+    {
+      "method_id": "tax_reconciliation",
+      "category": "taxation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Reconcile a declared accounting profit to taxable income through declared non-deductible, non-taxable and allowance items, then compute current tax, deferred tax, the total tax expense, the effective rate and VAT payable from declared figures."
+    },
+    {
+      "method_id": "depreciation_schedule",
+      "category": "management accounting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A depreciation schedule by straight line or declining balance, with the period charge, accumulated depreciation and carrying amount."
+    },
+    {
+      "method_id": "proforma_statements",
+      "category": "business planning",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Projected income statement, cash flow and balance sheet from declared revenue, margin, costs, depreciation, interest and principal (or a declared opening loan), tax and working-capital days, with the balance check."
+    },
+    {
+      "method_id": "sales_from_market",
+      "category": "business planning",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Target revenue and units from a declared market size, target share and price, so the market section and the financial plan agree."
+    },
+    {
+      "method_id": "sensitivity_table",
+      "category": "business planning",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "A one- or two-way profit table across declared price and volume changes, with the base case, for the plan's risk section."
+    },
+    {
+      "method_id": "portfolio_valuation",
+      "category": "portfolio",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Value a dated portfolio snapshot from declared holdings, prices and cash: NAV, invested value, cash share, holding weights and concentration."
+    },
+    {
+      "method_id": "portfolio_performance",
+      "category": "portfolio",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Measure the time-weighted return of a portfolio across dated periods from each period's start and end NAV, its external flow and, optionally, a declared benchmark level."
+    },
+    {
+      "method_id": "simple_interest",
+      "category": "interest",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Simple interest earned on principal."
+    },
+    {
+      "method_id": "future_value",
+      "category": "time value",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Future value of a lump sum."
+    },
+    {
+      "method_id": "present_value",
+      "category": "time value",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Present value of a future amount."
+    },
+    {
+      "method_id": "fv_annuity",
+      "category": "time value",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Future value of an ordinary annuity."
+    },
+    {
+      "method_id": "pv_annuity",
+      "category": "time value",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Present value of an ordinary annuity."
+    },
+    {
+      "method_id": "loan_payment",
+      "category": "debt",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Level payment that retires a loan."
+    },
+    {
+      "method_id": "remaining_balance",
+      "category": "debt",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Outstanding principal after k payments."
+    },
+    {
+      "method_id": "bond_price",
+      "category": "fixed income",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Bond price from coupons and face value."
+    },
+    {
+      "method_id": "current_yield",
+      "category": "fixed income",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Annual coupon divided by market price."
+    },
+    {
+      "method_id": "macaulay_duration",
+      "category": "fixed income",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Macaulay duration of a bond."
+    },
+    {
+      "method_id": "gordon_growth",
+      "category": "equity valuation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Gordon growth model stock value."
+    },
+    {
+      "method_id": "justified_pe",
+      "category": "equity valuation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Fundamental P/E multiple."
+    },
+    {
+      "method_id": "npv_simple",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Net present value of cash flows."
+    },
+    {
+      "method_id": "payback_period",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Payback period."
+    },
+    {
+      "method_id": "eoq",
+      "category": "working capital",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Economic order quantity."
+    },
+    {
+      "method_id": "current_ratio",
+      "category": "liquidity",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Current ratio."
+    },
+    {
+      "method_id": "quick_ratio",
+      "category": "liquidity",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Quick ratio."
+    },
+    {
+      "method_id": "dupont",
+      "category": "profitability",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "DuPont analysis (ROE decomposition)."
+    },
+    {
+      "method_id": "eps",
+      "category": "equity",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Earnings per share."
+    },
+    {
+      "method_id": "dividend_payout",
+      "category": "dividend policy",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Dividend payout ratio."
+    },
+    {
+      "method_id": "retention_ratio",
+      "category": "dividend policy",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Retention ratio."
+    },
+    {
+      "method_id": "pe_ratio",
+      "category": "equity valuation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Price-to-earnings ratio."
+    },
+    {
+      "method_id": "black_scholes_call",
+      "category": "derivatives",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Black-Scholes call option price."
+    },
+    {
+      "method_id": "forward_price",
+      "category": "derivatives",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Forward price of an asset."
+    },
+    {
+      "method_id": "currency_appreciation",
+      "category": "international finance",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Currency appreciation/depreciation."
+    },
+    {
+      "method_id": "depreciation_sl",
+      "category": "fixed assets",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Straight-line depreciation."
+    },
+    {
+      "method_id": "amortization_payment",
+      "category": "debt",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Loan amortization payment."
+    },
+    {
+      "method_id": "var_simple",
+      "category": "risk",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Value at Risk (parametric)."
+    },
+    {
+      "method_id": "sharpe_ratio",
+      "category": "portfolio",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Sharpe ratio."
+    },
+    {
+      "method_id": "beta_simple",
+      "category": "portfolio",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Beta from covariance."
+    },
+    {
+      "method_id": "macaulay_dur",
+      "category": "fixed income",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Macaulay duration."
+    },
+    {
+      "method_id": "gordon",
+      "category": "equity valuation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Gordon growth model."
+    },
+    {
+      "method_id": "quick_ratio_simple",
+      "category": "liquidity",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Quick ratio (simplified)."
+    },
+    {
+      "method_id": "dupont_simple",
+      "category": "profitability",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "DuPont analysis (simplified)."
+    },
+    {
+      "method_id": "eps_simple",
+      "category": "equity",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Earnings per share (simplified)."
+    },
+    {
+      "method_id": "dividend_payout_ratio",
+      "category": "dividend policy",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Dividend payout ratio."
+    },
+    {
+      "method_id": "retention_ratio_calc",
+      "category": "dividend policy",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Retention ratio."
+    },
+    {
+      "method_id": "pe_ratio_calc",
+      "category": "equity valuation",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Price-to-earnings ratio."
+    },
+    {
+      "method_id": "current_ratio_calc",
+      "category": "liquidity",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Current ratio."
+    },
+    {
+      "method_id": "forward_price_calc",
+      "category": "derivatives",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Forward price."
+    },
+    {
+      "method_id": "currency_appreciation_calc",
+      "category": "international finance",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Currency appreciation."
+    },
+    {
+      "method_id": "payback_calc",
+      "category": "capital budgeting",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Payback period."
+    },
+    {
+      "method_id": "eoq_calc",
+      "category": "working capital",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "Economic order quantity."
+    },
+    {
+      "method_id": "ebitdar",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "lease_adjusted_debt",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "cash_tax_rate",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "effective_tax_rate_advanced",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "tax_burden",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "interest_burden",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "operating_margin_advanced",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "asset_turnover_advanced",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "accruals_ratio",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "free_cash_flow_conversion",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "roic_advanced",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "wacc_simple",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "ev_ebitda",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "price_to_book_advanced",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "peg_ratio_advanced",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "days_payable_outstanding",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "cash_conversion_cycle",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "working_capital_ratio",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "altman_z_score",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "beneish_m_score",
+      "category": "advanced",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "financial statement computation"
+    },
+    {
+      "method_id": "multi_year_cagr",
+      "category": "portfolio",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "portfolio selection computation"
+    },
+    {
+      "method_id": "piotroski_f_score",
+      "category": "portfolio",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "portfolio selection computation"
+    },
+    {
+      "method_id": "dcf_with_sensitivity",
+      "category": "portfolio",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "portfolio selection computation"
+    },
+    {
+      "method_id": "peer_relative_multiples",
+      "category": "portfolio",
+      "tier": "T1",
+      "status": "implemented_tested",
+      "intended_use": "portfolio selection computation"
+    }
+  ],
+  "paper_families": [
+    {
+      "key": "analytical_report",
+      "label": "{'label': 'Analytical report', 'genre': 'analyse a company, industry, market or "
+    },
+    {
+      "key": "case_analysis",
+      "label": "{'label': 'Case analysis', 'genre': 'analyse a case and recommend action', 'evid"
+    },
+    {
+      "key": "plan_proposal",
+      "label": "{'label': 'Plan or proposal', 'genre': 'plan or propose a business, project or s"
+    },
+    {
+      "key": "financial_valuation",
+      "label": "{'label': 'Financial or valuation report', 'genre': 'value or appraise a company"
+    },
+    {
+      "key": "literature_synthesis",
+      "label": "{'label': 'Literature synthesis', 'genre': 'synthesise research', 'evidence_poli"
+    },
+    {
+      "key": "argumentative_essay",
+      "label": "{'label': 'Argumentative essay', 'genre': 'argue a position', 'evidence_policy':"
+    },
+    {
+      "key": "memo_brief",
+      "label": "{'label': 'Memo or brief', 'genre': 'recommend to a stakeholder', 'evidence_poli"
+    },
+    {
+      "key": "reflective",
+      "label": "{'label': 'Reflective paper', 'genre': 'connect concepts to experience', 'eviden"
+    },
+    {
+      "key": "legal_regulatory",
+      "label": "{'label': 'Legal or regulatory paper', 'genre': 'apply law or standards', 'evide"
+    },
+    {
+      "key": "empirical_research",
+      "label": "{'label': 'Empirical research paper', 'genre': 'test or investigate a question',"
+    },
+    {
+      "key": "communication",
+      "label": "{'label': 'Business communication', 'genre': 'communicate professionally', 'evid"
+    }
+  ],
+  "hash": "1a903f1f356094f24e35a0b414082aa214356c258c152e91243f7b026a64db9b"
+}

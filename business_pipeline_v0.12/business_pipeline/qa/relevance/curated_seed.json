@@ -1,0 +1,77 @@
+{
+  "purpose": "A starting URL set for the RRA sweep, so a sweep can be run without a search provider.  Every URL was read on 2026-11-10 and the framework names below were found in the page text.",
+  "verified_on": "2026-11-10",
+  "provenance": "The URLs come from the owner's own Phase 1 probe (.scratch/phase1_frameworks_v3.json, 75 searches, 176 pages read) and were re-read against the fixed read path.",
+  "controls_still_missing": [
+    "BCG Growth-Share Matrix",
+    "ERRC (Blue Ocean element)",
+    "Ansoff Growth Matrix"
+  ],
+  "note": "A curated list proves the READER can see a framework on a course catalogue.  It does not prove DISCOVERY can find such a page — that is the search provider's job, and the provider was down (HTTP 429 / gateway error) on 2026-11-10.  Report the two claims separately.",
+  "pages": [
+    {
+      "url": "https://didattica.unibocconi.it/ts/tsn_anteprima.php?cod_ins=30402&anno=2025&ordin=IR&IdPag=6625",
+      "school": "Bocconi",
+      "names": [
+        "PESTEL analysis",
+        "Porter's Five Forces"
+      ]
+    },
+    {
+      "url": "https://globalyouth.wharton.upenn.edu/programs-courses/sports-business-academy/",
+      "school": "The Wharton School",
+      "names": [
+        "SWOT analysis"
+      ]
+    },
+    {
+      "url": "https://entrepreneurshipschool.sbs.ox.ac.uk/courses/business-models-101",
+      "school": "Oxford Said",
+      "names": [
+        "Business Model Canvas"
+      ]
+    },
+    {
+      "url": "https://didattica.unibocconi.it/ts/tsn_anteprima.php?cod_ins=30696&anno=2025",
+      "school": "Bocconi",
+      "names": [
+        "Business Model Canvas"
+      ]
+    },
+    {
+      "url": "https://www.rsm.nl/education/open-online-programmes/landscape-restoration-for-sustainable-development-a-business-approach/",
+      "school": "Rotterdam School of Management",
+      "names": [
+        "Business Model Canvas"
+      ]
+    },
+    {
+      "url": "https://online.hbs.edu/courses/strategy-execution",
+      "school": "Harvard Business School",
+      "names": [
+        "Balanced Scorecard"
+      ]
+    },
+    {
+      "url": "https://didattica.unibocconi.it/ts/tsn_anteprima.php?cod_ins=20942&anno=2026",
+      "school": "Bocconi",
+      "names": [
+        "Balanced Scorecard"
+      ]
+    },
+    {
+      "url": "https://lam.unisg.ch/en/module/accounting-pricing-finance-2025",
+      "school": "University of St. Gallen",
+      "names": [
+        "Balanced Scorecard"
+      ]
+    },
+    {
+      "url": "https://www.vlerick.com/en/programmes/programmes-in-people-management-leadership/essentials-in-change-management/",
+      "school": "Vlerick Business School",
+      "names": [
+        "Kotter 8-Step Change"
+      ]
+    }
+  ]
+}

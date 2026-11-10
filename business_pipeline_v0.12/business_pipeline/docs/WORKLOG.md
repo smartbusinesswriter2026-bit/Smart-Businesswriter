@@ -1,3 +1,74 @@
+## 2026-11-10 - [research] The RRA can see the frameworks: the read path is repaired
+
+**Ask.** The growth loop was mid-build and out of credits. The Relevance Research
+Agent (the outward-looking half of the loop) had been swept, and it had read 353
+pages and recorded **zero** framework names — so every framework control scored
+zero, the measurement withheld every gap, and the loop had nothing to work on.
+The owner asked for the work to continue, to stop before the parts that need a
+model, and to leave a log the next agent could pick up cold.
+
+**Did.** The controls were right to withhold. The fault was the read path between
+the network and the reader, and it was broken in five places. All five are fixed
+and each is pinned by a test.
+
+1. **The fetch was cut too short.** The response was read to 100,000 characters.
+   A course-catalogue page's header, logo and script block fill that space: the
+   Bocconi strategy page cleaned to 1,809 characters of navigation chrome and
+   named nothing, while the same page read to 400,000 characters cleaned to 8,730
+   and named the Business Model Canvas. The cap is now 400,000 — the number the
+   owner's own Phase 1 probe used, and that probe read the frameworks.
+2. **The User-Agent was refused.** `SmartBusinessWriter-RRA/1.0 (research; respects
+   robots.txt)` drew a 403 from a school that answers a browser. The agent still
+   names itself and now reads `Mozilla/5.0 (compatible; SmartBusinessWriter-RRA/1.0;
+   research)`. The same HBS faculty page answers 403 under the old agent and 200
+   under the new one, and the new one names the Value Chain and the Balanced
+   Scorecard.
+3. **The render was thrown away.** The scout compared the **rendered text** with the
+   **raw markup** of the fetch. Markup is always longer, so the browser's reading
+   was discarded as "no longer than the fetch" — the very page the browser had read
+   for us. The comparison is now between the two **readable** texts.
+4. **The body was capped before it was stripped.** The cap was applied to raw
+   markup, so the reader received the head of the document, and the evidence store
+   holds excerpts like `<path d="M36.8828 55.5364C36...">`. The text is now stripped
+   **first** and capped **after**, so `MAX_TEXT_CHARS` counts readable characters.
+5. **Two labels could not be matched.** The taxonomy names a framework as the
+   product knows it ("Porter's Five Forces", "Ansoff Growth Matrix") and a course
+   page writes the short name, so a page saying "Five Forces analysis" recorded no
+   mention. A taxonomy topic may now declare `aliases`, and `_named_topics`
+   consults them — the spelling is **data** in the owner-edited taxonomy, not a
+   special case in the code. Set for Five Forces, Ansoff, Kotter and Three Horizons.
+
+Also added: a **bot check is not the page**. A site that answers with a JavaScript
+challenge and a 202 is named as unreadable rather than stored, because its words are
+not the school's words about the framework.
+
+**Measured.** Over the owner's Phase 1 URL set, with the model stages off so no
+credit was spent: **the controls hold at 9/12 (0.75) and the measurement passes.**
+PESTEL, SWOT, Five Forces and the Business Model Canvas are seen, and 18
+candidates survive the skeptic and the strict checklist instead of being withheld.
+BCG, ERRC and Ansoff were not named on those pages and are reported as missing,
+not as found.
+
+**What was not done.** No sweep has been run with the model stages on, no gap has
+been approved, and nothing has been scaffolded. The OpenCode Go gateway was down
+throughout (Brave `HTTP 429`, Firecrawl `HTTP 429`, and the gateway itself
+returning "Unexpected server error" for any prompt, including `Reply with exactly:
+PING`), so the discovery stage could not run at all. That is an external
+dependency, not a code fault, and it is the one thing this build could not fix.
+
+**The honest caveat.** A curated URL list proves the **reader** can see a framework
+on a course catalogue. It does not prove **discovery** can find one. The two claims
+are kept apart, and `qa/relevance/curated_seed.json` says so in the file.
+
+**Housekeeping.** A leftover sweep from the previous session had been running since
+06:43 against the dead search chain with its own server on :8074; it was stopped.
+The user's other servers (8000, 8021, 8075) were left alone. Every verification
+ran with `BP_STATE_DIR` pointed at a temporary directory, so `state/relevance/` was
+not written to.
+
+**Next.** `docs/RRA_HANDOFF.md` is the handover: what was broken, what was fixed,
+what is left, and where the owner's Phase 1 probe lives.
+
 ## 2026-11-10 - [design] The research ledger is on the page
 
 **Ask.** The research layer of the last increment stored a ledger per

@@ -1,0 +1,455 @@
+{
+  "format": "bp-relevance-taxonomy/1",
+  "description": "Taxonomy of business topics mapped to paper families and pipeline artefacts.  The RRA Mapper checks coverage against this list.",
+  "families": [
+    "analytical_report",
+    "case_analysis",
+    "plan_proposal",
+    "financial_valuation",
+    "literature_synthesis",
+    "argumentative_essay",
+    "memo_brief",
+    "reflective",
+    "legal_regulatory",
+    "empirical_research",
+    "communication"
+  ],
+  "topics": [
+    {
+      "id": "framework_pestel",
+      "label": "PESTEL analysis",
+      "family": "analytical_report",
+      "artefact": "pestel",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_swot",
+      "label": "SWOT analysis",
+      "family": "analytical_report",
+      "artefact": "swot",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_five_forces",
+      "label": "Porter's Five Forces",
+      "aliases": ["Five Forces", "Porter Five Forces"],
+      "family": "analytical_report",
+      "artefact": "five_forces",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_value_chain",
+      "label": "Value Chain",
+      "family": "analytical_report",
+      "artefact": "value_chain",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_ansoff",
+      "label": "Ansoff Growth Matrix",
+      "aliases": ["Ansoff", "Ansoff Matrix"],
+      "family": "analytical_report",
+      "artefact": "ansoff",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_vrio",
+      "label": "VRIO",
+      "family": "analytical_report",
+      "artefact": "vrio",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_bcg",
+      "label": "BCG Growth-Share Matrix",
+      "family": "analytical_report",
+      "artefact": "bcg",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_ge_mckinsey",
+      "label": "GE-McKinsey Matrix",
+      "family": "analytical_report",
+      "artefact": "ge_mckinsey",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_errc",
+      "label": "ERRC (Blue Ocean element)",
+      "family": "analytical_report",
+      "artefact": "errc",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_bmc",
+      "label": "Business Model Canvas",
+      "family": "plan_proposal",
+      "artefact": "bmc",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_lean_canvas",
+      "label": "Lean Canvas",
+      "family": "plan_proposal",
+      "artefact": "lean_canvas",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_vpc",
+      "label": "Value Proposition Canvas",
+      "family": "plan_proposal",
+      "artefact": "vpc",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_balanced_scorecard",
+      "label": "Balanced Scorecard",
+      "family": "analytical_report",
+      "artefact": "",
+      "artefact_type": "framework",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_okr",
+      "label": "OKR (Objectives and Key Results)",
+      "family": "plan_proposal",
+      "artefact": "",
+      "artefact_type": "framework",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_mckinsey_7s",
+      "label": "McKinsey 7S",
+      "family": "analytical_report",
+      "artefact": "",
+      "artefact_type": "framework",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_kotter",
+      "label": "Kotter 8-Step Change",
+      "aliases": ["Kotter", "Kotter's change model", "Kotter change management"],
+      "family": "analytical_report",
+      "artefact": "",
+      "artefact_type": "framework",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_three_horizons",
+      "label": "McKinsey Three Horizons",
+      "aliases": ["Three Horizons"],
+      "family": "analytical_report",
+      "artefact": "",
+      "artefact_type": "framework",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_porters_diamond",
+      "label": "Porter's Diamond",
+      "family": "analytical_report",
+      "artefact": "porters_diamond",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_generic_strategies",
+      "label": "Generic Strategies",
+      "family": "analytical_report",
+      "artefact": "generic_strategies",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_rca",
+      "label": "Root Cause Analysis",
+      "family": "analytical_report",
+      "artefact": "rca",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_fmea",
+      "label": "FMEA",
+      "family": "analytical_report",
+      "artefact": "fmea",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_pdca",
+      "label": "PDCA",
+      "family": "analytical_report",
+      "artefact": "pdca",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "framework_five_s",
+      "label": "5S",
+      "family": "analytical_report",
+      "artefact": "five_s",
+      "artefact_type": "framework",
+      "status_hint": "covered",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "computation_breakeven",
+      "label": "Break-even analysis",
+      "family": "financial_valuation",
+      "artefact": "breakeven",
+      "artefact_type": "capability",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    },
+    {
+      "id": "computation_npv",
+      "label": "Net Present Value",
+      "family": "financial_valuation",
+      "artefact": "npv",
+      "artefact_type": "capability",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    },
+    {
+      "id": "computation_irr",
+      "label": "Internal Rate of Return",
+      "family": "financial_valuation",
+      "artefact": "irr",
+      "artefact_type": "capability",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    },
+    {
+      "id": "computation_wacc",
+      "label": "Weighted Average Cost of Capital",
+      "family": "financial_valuation",
+      "artefact": "wacc",
+      "artefact_type": "capability",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    },
+    {
+      "id": "computation_dcf",
+      "label": "Discounted Cash Flow valuation",
+      "family": "financial_valuation",
+      "artefact": "dcf_valuation",
+      "artefact_type": "capability",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    },
+    {
+      "id": "computation_ratio_analysis",
+      "label": "Financial ratio analysis",
+      "family": "financial_valuation",
+      "artefact": "ratio_analysis",
+      "artefact_type": "capability",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    },
+    {
+      "id": "computation_dupont",
+      "label": "DuPont decomposition",
+      "family": "financial_valuation",
+      "artefact": "dupont_analysis",
+      "artefact_type": "capability",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    },
+    {
+      "id": "paper_family_reflective",
+      "label": "Reflective paper",
+      "family": "reflective",
+      "artefact": "",
+      "artefact_type": "paper_family",
+      "status_hint": "missing",
+      "evidence_page": "core_list"
+    },
+    {
+      "id": "paper_family_literature_synthesis",
+      "label": "Literature synthesis / review",
+      "family": "literature_synthesis",
+      "artefact": "",
+      "artefact_type": "paper_family",
+      "status_hint": "missing",
+      "evidence_page": "core_list"
+    },
+    {
+      "id": "paper_family_legal_regulatory",
+      "label": "Legal/regulatory paper",
+      "family": "legal_regulatory",
+      "artefact": "",
+      "artefact_type": "paper_family",
+      "status_hint": "missing",
+      "evidence_page": "core_list"
+    },
+    {
+      "id": "paper_family_communication",
+      "label": "Business communication (letter, email, press release)",
+      "family": "communication",
+      "artefact": "",
+      "artefact_type": "paper_family",
+      "status_hint": "missing",
+      "evidence_page": "core_list"
+    },
+    {
+      "id": "paper_family_empirical_research",
+      "label": "Empirical research paper",
+      "family": "empirical_research",
+      "artefact": "",
+      "artefact_type": "paper_family",
+      "status_hint": "partial",
+      "evidence_page": "core_list"
+    },
+    {
+      "id": "stat_factor_analysis",
+      "label": "Factor analysis",
+      "family": "empirical_research",
+      "artefact": "",
+      "artefact_type": "method",
+      "status_hint": "parked",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "stat_cluster_analysis",
+      "label": "Cluster analysis / k-means",
+      "family": "empirical_research",
+      "artefact": "",
+      "artefact_type": "method",
+      "status_hint": "parked",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "stat_mediation_moderation",
+      "label": "Mediation and moderation analysis",
+      "family": "empirical_research",
+      "artefact": "",
+      "artefact_type": "method",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "stat_survival_analysis",
+      "label": "Survival analysis",
+      "family": "empirical_research",
+      "artefact": "",
+      "artefact_type": "method",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "stat_time_series_arima",
+      "label": "Time series (ARIMA)",
+      "family": "empirical_research",
+      "artefact": "",
+      "artefact_type": "method",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "stat_sem",
+      "label": "Structural equation modelling",
+      "family": "empirical_research",
+      "artefact": "",
+      "artefact_type": "method",
+      "status_hint": "missing",
+      "evidence_page": "course_catalogue"
+    },
+    {
+      "id": "standard_ifrs18",
+      "label": "IFRS 18 (replaces IAS 1 from 1 Jan 2027)",
+      "family": "financial_valuation",
+      "artefact": "",
+      "artefact_type": "standard",
+      "status_hint": "at-risk",
+      "evidence_page": "standards"
+    },
+    {
+      "id": "standard_esrs_revised",
+      "label": "Revised ESRS (EU Omnibus I, effective 2027)",
+      "family": "analytical_report",
+      "artefact": "",
+      "artefact_type": "standard",
+      "status_hint": "at-risk",
+      "evidence_page": "standards"
+    },
+    {
+      "id": "standard_ifrs_s2_amended",
+      "label": "IFRS S2 amendments (effective 1 Jan 2027)",
+      "family": "analytical_report",
+      "artefact": "",
+      "artefact_type": "standard",
+      "status_hint": "at-risk",
+      "evidence_page": "standards"
+    },
+    {
+      "id": "assessment_process_evidence",
+      "label": "Process evidence / live defence readiness",
+      "family": "case_analysis",
+      "artefact": "",
+      "artefact_type": "assessment",
+      "status_hint": "missing",
+      "evidence_page": "core_list"
+    },
+    {
+      "id": "assessment_ai_disclosure",
+      "label": "AI-use disclosure export",
+      "family": "memo_brief",
+      "artefact": "",
+      "artefact_type": "assessment",
+      "status_hint": "parked",
+      "evidence_page": "core_list"
+    },
+    {
+      "id": "retrieval_vetted_sources",
+      "label": "Vetted web source registry",
+      "family": "analytical_report",
+      "artefact": "sources",
+      "artefact_type": "retrieval",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    },
+    {
+      "id": "retrieval_corpus",
+      "label": "Proprietary PDF corpus (Meilisearch)",
+      "family": "analytical_report",
+      "artefact": "corpus",
+      "artefact_type": "retrieval",
+      "status_hint": "covered",
+      "evidence_page": "catalogue"
+    }
+  ]
+}

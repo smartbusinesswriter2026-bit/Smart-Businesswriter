@@ -1,0 +1,218 @@
+{
+  "format": "bp-relevance-discovered/1",
+  "urls": [],
+  "notes": [
+    "model proposed query 'Harvard Business School MBA curriculum core courses assessment policy standards'",
+    "no allowlisted domain for Stanford Graduate School of Business — nothing may be searched",
+    "model proposed query 'MIT Sloan School of Management MBA curriculum core courses assessment policy standards'",
+    "model proposed query 'The Wharton School curriculum core courses assessment policy standards'",
+    "model proposed query 'Chicago Booth MBA curriculum core courses assessment policy and standards'",
+    "model proposed query 'Kellogg School of Management MBA curriculum core courses assessment policy standards'",
+    "model proposed query 'Columbia Business School MBA core curriculum courses assessment policy'",
+    "model proposed query 'Yale School of Management MBA core curriculum courses'",
+    "model proposed query 'Darden School of Business curriculum core courses'",
+    "model proposed query 'University of Michigan Ross School of Business MBA core curriculum courses'",
+    "model proposed query 'INSEAD MBA curriculum core courses'",
+    "model proposed query 'London Business School MBA curriculum core courses'",
+    "model proposed query 'IESE Business School MBA curriculum core courses assessment policy standards'",
+    "model proposed query 'HEC Paris curriculum core courses assessment policy standards'",
+    "model proposed query 'ESADE curriculum core courses assessment policy standards'",
+    "model proposed query 'Oxford Said Business School MBA curriculum core courses assessment policy standards'",
+    "model proposed query 'Cambridge Judge Business School curriculum core courses assessment policy standards'",
+    "model proposed query 'Imperial College Business School MSc curriculum core courses assessment policy'",
+    "model proposed query 'IMD Business School MBA curriculum core courses'",
+    "model proposed query 'Bocconi curriculum core courses assessment policy standards'",
+    "model proposed query 'Rotterdam School of Management curriculum core courses'",
+    "model proposed query 'University of St Gallen curriculum core courses assessment policy standards'",
+    "model proposed query 'Frankfurt School curriculum core courses'",
+    "model proposed query 'Nova SBE curriculum core courses assessment policy academic standards'",
+    "model proposed query 'Vlerick Business School curriculum core courses assessment policy standards'",
+    "model proposed query 'AACSB accreditation curriculum core courses assessment policy standards'",
+    "model proposed query 'EFMD EQUIS accreditation curriculum core courses assessment policy standards'",
+    "model proposed query 'AMBA BGA accreditation standards curriculum core courses assessment policy'",
+    "model proposed query 'Graduate Management Admission Council assessment standards'",
+    "model proposed query 'IFRS Foundation IASB ISSB curriculum core courses assessment policy standards'",
+    "model proposed query 'EFRAG European Commission sustainability reporting standards'",
+    "model proposed query 'FASB standards curriculum core courses assessment policy'",
+    "model proposed query 'CFA Institute curriculum core courses assessment policy standards'",
+    "model proposed query 'Project Management Institute PMI curriculum core courses standards'",
+    "model proposed query 'CIPD curriculum core courses assessment policy standards'"
+  ],
+  "per_school": [
+    {
+      "name": "Harvard Business School",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Stanford Graduate School of Business",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "MIT Sloan School of Management",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "The Wharton School",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Chicago Booth",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Kellogg School of Management",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Columbia Business School",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Yale School of Management",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Darden School of Business",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Michigan Ross",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "INSEAD",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "London Business School",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "IESE Business School",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "HEC Paris",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "ESADE",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Oxford Saïd",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Cambridge Judge",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Imperial College Business School",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "IMD",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Bocconi",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Rotterdam School of Management",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "University of St. Gallen",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Frankfurt School",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Nova SBE",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "Vlerick Business School",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "AACSB",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "EFMD (EQUIS)",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "AMBA and BGA",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "GMAC",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "IFRS Foundation (IASB and ISSB)",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "EFRAG and the European Commission",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "FASB",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "CFA Institute",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "PMI",
+      "urls": [],
+      "count": 0
+    },
+    {
+      "name": "CIPD",
+      "urls": [],
+      "count": 0
+    }
+  ]
+}

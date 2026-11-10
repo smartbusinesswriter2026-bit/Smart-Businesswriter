@@ -1,6 +1,6 @@
 # Home ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â map of the repository
 
-**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.148**, **4990 tests**, 2026-11-10. Update the count and date when you change them.
+**Start here when you are lost.** This is a curated map (a "MOC" - map of content), not a duplicate: it points at the document or module that actually holds the truth. Last verified with build **1.149**, **5052 tests**, 2026-11-10. Update the count and date when you change them.
 
 ## Read in 30 seconds
 
@@ -116,6 +116,7 @@ Everything lives under `src/bp/`. "Authority" is the manual section or decision 
 | [`BUNDLE_PRICING_HANDOFF.md`](BUNDLE_PRICING_HANDOFF.md) | Living â€” the agreed bundle-pricing brief for the plans and the paid tiers; nothing is built yet | Read before touching pricing, plans or billing; every price, page change and decision row in it still has to be made |
 | [`OPEN_ISSUES.md`](OPEN_ISSUES.md) | Living record of what a session did **not** fix | Add a row when a defect is parked rather than fixed; never delete an entry, move it when it is closed |
 | [`RRA_FINDINGS_PHASE1.md`](RRA_FINDINGS_PHASE1.md) | Research findings — the RRA phase-1 manual sweep | Read before changing the RRA scope or the gap taxonomy; it records evidence, not a build order |
+| [`RRA_HANDOFF.md`](RRA_HANDOFF.md) | Handoff — where the RRA and the growth loop stand, what was broken in the read path, and what is left | **Read first** when picking the Relevance Research Agent up again |
 | [`HOME.md`](HOME.md) | Living ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â this map | Add a row when you add a module/document |
 | [`WORKLOG.md`](WORKLOG.md) | Append-only log | Never rewrite; newest first |
 | [`PARKED_QUEUE.md`](PARKED_QUEUE.md) | Living ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â parked frontier-model computation queue | Remove an item only when the owner un-parks it and it ships |
