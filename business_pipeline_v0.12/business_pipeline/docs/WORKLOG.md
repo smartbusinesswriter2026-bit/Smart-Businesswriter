@@ -1,3 +1,15 @@
+## 2026-11-10 - [health] The console shows the pipeline's health
+
+**Did.** The Health panel now reads the pipeline's health as well as the
+server's: one row per check, its verdict, the reason it holds, and the age of
+the signal behind it. The server's own table stays above it, because the build,
+the model, the sandbox, the case store and the request log are the **server**
+and the checks below them are the **pipeline**. The route records the report
+and logs the failing checks once each. It reads; it starts nothing.
+
+**Left.** Nothing. The health program is built: the checks (build 1.156), the
+console (this build).
+
 ## 2026-11-10 - [health] The pipeline's health: twelve named checks and one overall bit
 
 **Ask.** The owner asked how the admin's Health panel could assess the

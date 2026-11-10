@@ -803,6 +803,20 @@ class H(BaseHTTPRequestHandler):
                                                           "model_assistance": bool(MODELS)}))
             # ── Ops / self-healing monitor (admin) ──
             _ops_url = urlparse(self.path)
+            if _ops_url.path == "/api/ops/health":
+                # The pipeline's health: a list of named checks and one overall
+                # bit.  It reads what the product already produces, writes one
+                # record per check into its own store, and starts nothing.
+                from .product import health as _health
+                try:
+                    report = _health.health({
+                        "extra": {"sandbox": "on" if SANDBOX_ENABLED else "off (development)",
+                                  "model_assistance": bool(MODELS)}})
+                    _health.health_record(report)
+                    _health.log_issues(report)
+                    return self._send(200, report)
+                except Exception as e:
+                    return self._send(500, {"error": str(e)[:300]})
             if _ops_url.path == "/api/ops/runs":
                 _qs = parse_qs(_ops_url.query)
                 _lane = (_qs.get("lane") or [""])[0] or None
