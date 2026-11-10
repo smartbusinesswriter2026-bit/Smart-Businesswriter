@@ -118,6 +118,56 @@ def _make_excerpt(text, max_words=200):
     return " ".join(words[:max_words])
 
 
+#: How many links a single page may pull in.  A page can name dozens of
+#: syllabi; following all of them would blow the page budget and the
+#: request budget.  Five is enough to reach the material a course page
+#: names (syllabus, problem sets, exams) without turning one fetch into a
+#: crawl.
+MAX_FOLLOWED_LINKS = 5
+
+
+def _extract_links(html, base_url, allowlist=None):
+    """Extract allowlisted absolute URLs from a page's markup.
+
+    Resolves relative hrefs against ``base_url``.  Keeps only http(s) URLs
+    whose domain is on the allowlist (so a page cannot pull in arbitrary
+    sites).  Dedupes while preserving order.  Stdlib only.
+    """
+    import re as _re
+    import urllib.parse as _up
+    if not html:
+        return []
+    out = []
+    seen = set()
+    for match in _re.finditer(r'href\s*=\s*["\']([^"\']+)["\']', str(html), _re.I):
+        href = match.group(1).strip()
+        if not href or href.startswith("#") or href.lower().startswith("javascript:") \
+                or href.lower().startswith("mailto:"):
+            continue
+        try:
+            absolute = _up.urljoin(str(base_url or ""), href)
+        except Exception:
+            continue
+        parsed = _up.urlparse(absolute)
+        if parsed.scheme not in ("http", "https"):
+            continue
+        host = (parsed.hostname or "").lower()
+        if not host:
+            continue
+        # allowlist check
+        if allowlist is not None:
+            allowed, _ = _is_allowed(host, allowlist)
+            if not allowed:
+                continue
+        if absolute in seen:
+            continue
+        seen.add(absolute)
+        out.append(absolute)
+        if len(out) >= 50:
+            break
+    return out
+
+
 def scout_url(url, allowlist=None, render=None):
     """Scout a single URL.  Returns a snapshot dict.
 
@@ -203,6 +253,13 @@ def scout_url(url, allowlist=None, render=None):
     # The orientation excerpt is the **readable** text, not markup.
     excerpt = _make_excerpt(fetched_readable) if fetched_readable else ""
 
+    # Links found on the page, resolved and filtered to allowlisted domains.
+    # The page's own links are how a syllabus, a problem set or an exam
+    # reaches the reader: the course page names the topic, the linked page
+    # carries the material.  The scout does not follow them here; scout_urls
+    # follows a bounded number of them.  Stored in memory only.
+    links = _extract_links(text, url, allowlist) if text else []
+
     return {
         "url": url,
         "domain": domain,
@@ -218,6 +275,7 @@ def scout_url(url, allowlist=None, render=None):
         # mid-``<svg>`` leaked path data into the excerpts.
         "_text": fetched_readable[:MAX_TEXT_CHARS],
         "_readable_len": len(fetched_readable),
+        "_links": links,
         "error": error,
         "tier_hint": tier_or_reason,
         "rendered": rendered,
@@ -237,14 +295,46 @@ def _is_thin(text):
     return _render.is_thin(text)
 
 
-def scout_urls(urls, allowlist=None, delay=0.5):
-    """Scout a list of URLs with a small delay between requests."""
+def scout_urls(urls, allowlist=None, delay=0.5, follow_links=True):
+    """Scout a list of URLs with a small delay between requests.
+
+    When ``follow_links`` is True (the default), each page's allowlisted
+    links are followed (up to ``MAX_FOLLOWED_LINKS`` per page) so that a
+    course page can reach the syllabus, problem sets and exams it names.
+    Linked pages are scouted as separate snapshots, tagged with
+    ``_linked_from``.  A URL is never scouted twice in one run.
+    """
     results = []
+    seen = set()
     for url in (urls or []):
+        if url in seen:
+            continue
         snap = scout_url(url, allowlist=allowlist)
+        seen.add(url)
         results.append(snap)
         if delay and delay > 0:
             time.sleep(delay)
+
+        if not follow_links:
+            continue
+        links = list(snap.get("_links") or [])
+        followed = 0
+        for link in links:
+            if followed >= MAX_FOLLOWED_LINKS:
+                break
+            if link in seen:
+                continue
+            if allowlist is not None:
+                allowed, _ = _is_allowed(_domain_of(link), allowlist)
+                if not allowed:
+                    continue
+            linked_snap = scout_url(link, allowlist=allowlist)
+            linked_snap["_linked_from"] = url
+            seen.add(link)
+            results.append(linked_snap)
+            followed += 1
+            if delay and delay > 0:
+                time.sleep(delay)
     return results
 
 
