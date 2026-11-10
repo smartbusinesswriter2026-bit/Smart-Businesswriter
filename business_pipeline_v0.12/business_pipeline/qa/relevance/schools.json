@@ -12,25 +12,25 @@
       {
         "name": "Stanford Graduate School of Business",
         "level": "MBA",
-        "notes": "approx. 30 AI courses offered; required core varies",
+        "notes": "approx. 30 AI courses offered; required core varies. Management Practices (GSB 591, Bloom and Van Reenen) lecture materials: https://worldmanagementsurvey.org/teaching/teaching-materials/stanford-gsb-mba/",
         "domain": "gsb.stanford.edu"
       },
       {
         "name": "MIT Sloan School of Management",
         "level": "MBA",
-        "notes": "FT Global MBA 2026 rank 1",
+        "notes": "Finance Theory I (15.401, Prof. Andrew Lo) syllabus: https://www.ocw.mit.edu/courses/15-401-finance-theory-i-fall-2008/pages/syllabus/ ; Finance Theory I full materials (lectures, problem sets, exams with solutions): https://ocw.mit.edu/courses/15-401-finance-theory-i-fall-2008/resources ; Finance Theory II (15.402) materials: https://ocw.mit.edu/courses/15-402-finance-theory-ii-spring-2003/resources ; Corporate Finance (15.434, Paul Asquith): https://web.mit.edu/15.434/syllabus.html ; Sloan list of finance course syllabi: https://alo.mit.edu/teaching/",
         "domain": "mitsloan.mit.edu"
       },
       {
         "name": "The Wharton School",
         "level": "MBA",
-        "notes": "AI for Business MBA major (2025); required Applied ML in Business and accountable-AI ethics course",
+        "notes": "AI for Business MBA major (2025); required Applied ML in Business and accountable-AI ethics course. MBA Inside course listing (2019): https://mba-inside.wharton.upenn.edu/tentative-courses-20a/ ; older syllabi reported on 'Syllabi@Wharton' (working link not confirmed).",
         "domain": "wharton.upenn.edu"
       },
       {
         "name": "Chicago Booth",
         "level": "MBA",
-        "notes": "",
+        "notes": "Managerial Decision Making (BUS 38802, George Wu, Summer 2015), syllabus and resources: https://faculty.chicagobooth.edu/george.wu/teaching/private/38802/resources.htm ; Faculty teaching pages (e.g. https://faculty.chicagobooth.edu/chad-syverson/teaching) sometimes link to syllabi; official Course Search reported to host syllabi for upcoming quarters (not opened to confirm).",
         "domain": "chicagobooth.edu"
       },
       {
@@ -154,6 +154,20 @@
         "level": "MBA",
         "notes": "one of ten European deans reporting shift to live assessment",
         "domain": "vlerick.com"
+      },
+      {
+        "name": "Comillas ICADE",
+        "level": "MBA",
+        "notes": "Corporate Finance MBA syllabus: https://repositorio.comillas.edu/jspui/bitstream/11531/51261/2/Corporate%20Finance%20Syllabus%202020-2021.pdf",
+        "domain": "comillas.edu"
+      }
+    ],
+    "Canada": [
+      {
+        "name": "UBC Sauder School of Business",
+        "level": "MBA",
+        "notes": "Corporate Finance (BAFI 502) full syllabus PDF: https://blogs.ubc.ca/2023fulltimeubcmba/files/2021/12/Syllabus_BAFI_502_MBA_2021W-1.pdf",
+        "domain": "sauder.ubc.ca"
       }
     ]
   },

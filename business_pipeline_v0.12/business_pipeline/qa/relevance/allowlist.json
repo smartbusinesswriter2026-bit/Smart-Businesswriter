@@ -2,52 +2,377 @@
   "format": "bp-relevance-allowlist/1",
   "description": "Allowed domains for RRA scouting.  Mirrors sources.BLOCKED_DOMAINS exclusion at fetch time.  Paywalled sources are flagged, not bypassed.  The `tier` here is the EVIDENCE tier (T1/T2/T3); the search adapter maps `type` to its own official/data/research/news vocabulary.",
   "blocked": [
-    "wikipedia.org", "wikimedia.org", "wikiwand.com", "dbpedia.org",
-    "fandom.com", "baidu.com", "about.com", "answers.com", "ehow.com",
-    "quora.com", "reddit.com", "slideshare.net"
+    "wikipedia.org",
+    "wikimedia.org",
+    "wikiwand.com",
+    "dbpedia.org",
+    "fandom.com",
+    "baidu.com",
+    "about.com",
+    "answers.com",
+    "ehow.com",
+    "quora.com",
+    "reddit.com",
+    "slideshare.net"
   ],
   "allowed": [
-    {"domain": "aacsb.edu", "label": "AACSB", "tier": "T1", "type": "accreditor", "notes": "AACSB publications, standards and insights"},
-    {"domain": "efmd.org", "label": "EFMD", "tier": "T1", "type": "accreditor", "notes": "EFMD/EQUIS accreditation standards"},
-    {"domain": "amba-bga.com", "label": "AMBA and BGA", "tier": "T1", "type": "accreditor", "notes": "AMBA and BGA accreditation standards"},
-    {"domain": "gmac.com", "label": "GMAC", "tier": "T1", "type": "research", "notes": "GMAC reports on graduate management education"},
-    {"domain": "ifrs.org", "label": "IFRS Foundation", "tier": "T1", "type": "standard-setter", "notes": "IFRS Foundation (IASB and ISSB) standards and news"},
-    {"domain": "fasb.org", "label": "FASB", "tier": "T1", "type": "standard-setter", "notes": "FASB accounting standards updates"},
-    {"domain": "efrag.org", "label": "EFRAG", "tier": "T1", "type": "standard-setter", "notes": "EFRAG sustainability reporting guidance"},
-    {"domain": "ec.europa.eu", "label": "European Commission", "tier": "T1", "type": "regulator", "notes": "European Commission, ESRS adoption"},
-    {"domain": "eur-lex.europa.eu", "label": "EUR-Lex", "tier": "T1", "type": "regulator", "notes": "EU legislation (Omnibus I)"},
-    {"domain": "cfainstitute.org", "label": "CFA Institute", "tier": "T1", "type": "standard-setter", "notes": "CFA Institute curriculum and standards"},
-    {"domain": "pmi.org", "label": "PMI", "tier": "T1", "type": "standard-setter", "notes": "PMI standards for project management"},
-    {"domain": "cipd.org", "label": "CIPD", "tier": "T1", "type": "standard-setter", "notes": "CIPD standards for people practice"},
-    {"domain": "hbs.edu", "label": "Harvard Business School", "tier": "T1", "type": "school", "notes": "HBS curriculum and required courses"},
-    {"domain": "stanford.edu", "label": "Stanford GSB", "tier": "T1", "type": "school", "notes": "Stanford GSB course catalogue"},
-    {"domain": "mitsloan.mit.edu", "label": "MIT Sloan", "tier": "T1", "type": "school", "notes": "MIT Sloan curriculum"},
-    {"domain": "wharton.upenn.edu", "label": "Wharton", "tier": "T1", "type": "school", "notes": "Wharton curriculum and AI for Business major"},
-    {"domain": "chicagobooth.edu", "label": "Chicago Booth", "tier": "T1", "type": "school", "notes": "Chicago Booth core courses"},
-    {"domain": "kellogg.northwestern.edu", "label": "Kellogg", "tier": "T1", "type": "school", "notes": "Kellogg core courses"},
-    {"domain": "gsb.columbia.edu", "label": "Columbia Business School", "tier": "T1", "type": "school", "notes": "Columbia core curriculum"},
-    {"domain": "som.yale.edu", "label": "Yale SOM", "tier": "T1", "type": "school", "notes": "Yale SOM core courses"},
-    {"domain": "darden.virginia.edu", "label": "Darden", "tier": "T1", "type": "school", "notes": "Darden core curriculum and AI in the core"},
-    {"domain": "michiganross.umich.edu", "label": "Michigan Ross", "tier": "T1", "type": "school", "notes": "Michigan Ross core curriculum"},
-    {"domain": "insead.edu", "label": "INSEAD", "tier": "T1", "type": "school", "notes": "INSEAD MBA curriculum (Period 1 and Period 2 core)"},
-    {"domain": "lbs.edu", "label": "London Business School", "tier": "T1", "type": "school", "notes": "LBS curriculum"},
-    {"domain": "iese.edu", "label": "IESE", "tier": "T1", "type": "school", "notes": "IESE core curriculum"},
-    {"domain": "hec.edu", "label": "HEC Paris", "tier": "T1", "type": "school", "notes": "HEC Paris programme and assessment"},
-    {"domain": "esade.edu", "label": "ESADE", "tier": "T1", "type": "school", "notes": "ESADE curriculum and assessment reform"},
-    {"domain": "sbs.ox.ac.uk", "label": "Oxford Saïd", "tier": "T1", "type": "school", "notes": "Oxford Saïd MBA curriculum"},
-    {"domain": "jbs.cam.ac.uk", "label": "Cambridge Judge", "tier": "T1", "type": "school", "notes": "Cambridge Judge curriculum"},
-    {"domain": "imperial.ac.uk", "label": "Imperial College Business School", "tier": "T1", "type": "school", "notes": "Imperial assessment practice"},
-    {"domain": "imd.org", "label": "IMD", "tier": "T1", "type": "school", "notes": "IMD assessment and live assessment shift"},
-    {"domain": "unibocconi.it", "label": "Bocconi", "tier": "T1", "type": "school", "notes": "Bocconi curriculum"},
-    {"domain": "rsm.nl", "label": "Rotterdam School of Management", "tier": "T1", "type": "school", "notes": "RSM curriculum"},
-    {"domain": "unisg.ch", "label": "University of St. Gallen", "tier": "T1", "type": "school", "notes": "HSG curriculum"},
-    {"domain": "frankfurt-school.de", "label": "Frankfurt School", "tier": "T1", "type": "school", "notes": "Frankfurt School oral exams and final presentations"},
-    {"domain": "novasbe.pt", "label": "Nova SBE", "tier": "T1", "type": "school", "notes": "Nova SBE thesis defences"},
-    {"domain": "vlerick.com", "label": "Vlerick", "tier": "T1", "type": "school", "notes": "Vlerick curriculum"},
-    {"domain": "poetsandquants.com", "label": "Poets and Quants", "tier": "T2", "type": "trade-press", "notes": "MBA news and analysis"},
-    {"domain": "clearadmit.com", "label": "Clear Admit", "tier": "T2", "type": "trade-press", "notes": "MBA admissions and rankings"},
-    {"domain": "arxiv.org", "label": "arXiv", "tier": "T2", "type": "research", "notes": "Preprints (verify before adopting)"},
-    {"domain": "ssrn.com", "label": "SSRN", "tier": "T2", "type": "research", "notes": "Social science research network"}
+    {
+      "domain": "aacsb.edu",
+      "label": "AACSB",
+      "tier": "T1",
+      "type": "accreditor",
+      "notes": "AACSB publications, standards and insights"
+    },
+    {
+      "domain": "efmd.org",
+      "label": "EFMD",
+      "tier": "T1",
+      "type": "accreditor",
+      "notes": "EFMD/EQUIS accreditation standards"
+    },
+    {
+      "domain": "amba-bga.com",
+      "label": "AMBA and BGA",
+      "tier": "T1",
+      "type": "accreditor",
+      "notes": "AMBA and BGA accreditation standards"
+    },
+    {
+      "domain": "gmac.com",
+      "label": "GMAC",
+      "tier": "T1",
+      "type": "research",
+      "notes": "GMAC reports on graduate management education"
+    },
+    {
+      "domain": "ifrs.org",
+      "label": "IFRS Foundation",
+      "tier": "T1",
+      "type": "standard-setter",
+      "notes": "IFRS Foundation (IASB and ISSB) standards and news"
+    },
+    {
+      "domain": "fasb.org",
+      "label": "FASB",
+      "tier": "T1",
+      "type": "standard-setter",
+      "notes": "FASB accounting standards updates"
+    },
+    {
+      "domain": "efrag.org",
+      "label": "EFRAG",
+      "tier": "T1",
+      "type": "standard-setter",
+      "notes": "EFRAG sustainability reporting guidance"
+    },
+    {
+      "domain": "ec.europa.eu",
+      "label": "European Commission",
+      "tier": "T1",
+      "type": "regulator",
+      "notes": "European Commission, ESRS adoption"
+    },
+    {
+      "domain": "eur-lex.europa.eu",
+      "label": "EUR-Lex",
+      "tier": "T1",
+      "type": "regulator",
+      "notes": "EU legislation (Omnibus I)"
+    },
+    {
+      "domain": "cfainstitute.org",
+      "label": "CFA Institute",
+      "tier": "T1",
+      "type": "standard-setter",
+      "notes": "CFA Institute curriculum and standards"
+    },
+    {
+      "domain": "pmi.org",
+      "label": "PMI",
+      "tier": "T1",
+      "type": "standard-setter",
+      "notes": "PMI standards for project management"
+    },
+    {
+      "domain": "cipd.org",
+      "label": "CIPD",
+      "tier": "T1",
+      "type": "standard-setter",
+      "notes": "CIPD standards for people practice"
+    },
+    {
+      "domain": "hbs.edu",
+      "label": "Harvard Business School",
+      "tier": "T1",
+      "type": "school",
+      "notes": "HBS curriculum and required courses"
+    },
+    {
+      "domain": "stanford.edu",
+      "label": "Stanford GSB",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Stanford GSB course catalogue"
+    },
+    {
+      "domain": "mitsloan.mit.edu",
+      "label": "MIT Sloan",
+      "tier": "T1",
+      "type": "school",
+      "notes": "MIT Sloan curriculum"
+    },
+    {
+      "domain": "wharton.upenn.edu",
+      "label": "Wharton",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Wharton curriculum and AI for Business major"
+    },
+    {
+      "domain": "chicagobooth.edu",
+      "label": "Chicago Booth",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Chicago Booth core courses"
+    },
+    {
+      "domain": "kellogg.northwestern.edu",
+      "label": "Kellogg",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Kellogg core courses"
+    },
+    {
+      "domain": "gsb.columbia.edu",
+      "label": "Columbia Business School",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Columbia core curriculum"
+    },
+    {
+      "domain": "som.yale.edu",
+      "label": "Yale SOM",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Yale SOM core courses"
+    },
+    {
+      "domain": "darden.virginia.edu",
+      "label": "Darden",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Darden core curriculum and AI in the core"
+    },
+    {
+      "domain": "michiganross.umich.edu",
+      "label": "Michigan Ross",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Michigan Ross core curriculum"
+    },
+    {
+      "domain": "insead.edu",
+      "label": "INSEAD",
+      "tier": "T1",
+      "type": "school",
+      "notes": "INSEAD MBA curriculum (Period 1 and Period 2 core)"
+    },
+    {
+      "domain": "lbs.edu",
+      "label": "London Business School",
+      "tier": "T1",
+      "type": "school",
+      "notes": "LBS curriculum"
+    },
+    {
+      "domain": "iese.edu",
+      "label": "IESE",
+      "tier": "T1",
+      "type": "school",
+      "notes": "IESE core curriculum"
+    },
+    {
+      "domain": "hec.edu",
+      "label": "HEC Paris",
+      "tier": "T1",
+      "type": "school",
+      "notes": "HEC Paris programme and assessment"
+    },
+    {
+      "domain": "esade.edu",
+      "label": "ESADE",
+      "tier": "T1",
+      "type": "school",
+      "notes": "ESADE curriculum and assessment reform"
+    },
+    {
+      "domain": "sbs.ox.ac.uk",
+      "label": "Oxford Saïd",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Oxford Saïd MBA curriculum"
+    },
+    {
+      "domain": "jbs.cam.ac.uk",
+      "label": "Cambridge Judge",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Cambridge Judge curriculum"
+    },
+    {
+      "domain": "imperial.ac.uk",
+      "label": "Imperial College Business School",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Imperial assessment practice"
+    },
+    {
+      "domain": "imd.org",
+      "label": "IMD",
+      "tier": "T1",
+      "type": "school",
+      "notes": "IMD assessment and live assessment shift"
+    },
+    {
+      "domain": "unibocconi.it",
+      "label": "Bocconi",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Bocconi curriculum"
+    },
+    {
+      "domain": "rsm.nl",
+      "label": "Rotterdam School of Management",
+      "tier": "T1",
+      "type": "school",
+      "notes": "RSM curriculum"
+    },
+    {
+      "domain": "unisg.ch",
+      "label": "University of St. Gallen",
+      "tier": "T1",
+      "type": "school",
+      "notes": "HSG curriculum"
+    },
+    {
+      "domain": "frankfurt-school.de",
+      "label": "Frankfurt School",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Frankfurt School oral exams and final presentations"
+    },
+    {
+      "domain": "novasbe.pt",
+      "label": "Nova SBE",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Nova SBE thesis defences"
+    },
+    {
+      "domain": "vlerick.com",
+      "label": "Vlerick",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Vlerick curriculum"
+    },
+    {
+      "domain": "poetsandquants.com",
+      "label": "Poets and Quants",
+      "tier": "T2",
+      "type": "trade-press",
+      "notes": "MBA news and analysis"
+    },
+    {
+      "domain": "clearadmit.com",
+      "label": "Clear Admit",
+      "tier": "T2",
+      "type": "trade-press",
+      "notes": "MBA admissions and rankings"
+    },
+    {
+      "domain": "arxiv.org",
+      "label": "arXiv",
+      "tier": "T2",
+      "type": "research",
+      "notes": "Preprints (verify before adopting)"
+    },
+    {
+      "domain": "ssrn.com",
+      "label": "SSRN",
+      "tier": "T2",
+      "type": "research",
+      "notes": "Social science research network"
+    },
+    {
+      "domain": "ocw.mit.edu",
+      "label": "MIT OpenCourseWare",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Open syllabi, lectures, problem sets, exams with solutions (e.g. 15.401 Finance Theory I)."
+    },
+    {
+      "domain": "web.mit.edu",
+      "label": "MIT (course pages)",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Course syllabi hosted on web.mit.edu (e.g. 15.434 Corporate Finance)."
+    },
+    {
+      "domain": "alo.mit.edu",
+      "label": "MIT Sloan (finance syllabi index)",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Index of finance course syllabi (Prof. Andrew Lo)."
+    },
+    {
+      "domain": "faculty.chicagobooth.edu",
+      "label": "Chicago Booth faculty pages",
+      "tier": "T1",
+      "type": "school",
+      "notes": "Faculty teaching pages linking to syllabi (e.g. BUS 38802)."
+    },
+    {
+      "domain": "worldmanagementsurvey.org",
+      "label": "Stanford GSB teaching materials",
+      "tier": "T2",
+      "type": "research",
+      "notes": "Lecture materials for GSB 591 (Bloom & Van Reenen)."
+    },
+    {
+      "domain": "mba-inside.wharton.upenn.edu",
+      "label": "Wharton MBA Inside",
+      "tier": "T2",
+      "type": "school",
+      "notes": "MBA course listings; older syllabi on Syllabi@Wharton (link unconfirmed)."
+    },
+    {
+      "domain": "blogs.ubc.ca",
+      "label": "UBC Sauder (syllabus PDFs)",
+      "tier": "T2",
+      "type": "school",
+      "notes": "Full syllabus PDFs (e.g. BAFI 502 Corporate Finance)."
+    },
+    {
+      "domain": "repositorio.comillas.edu",
+      "label": "Comillas ICADE (syllabus PDFs)",
+      "tier": "T2",
+      "type": "school",
+      "notes": "Corporate Finance MBA syllabus PDFs."
+    },
+    {
+      "domain": "sauder.ubc.ca",
+      "label": "UBC Sauder School of Business",
+      "tier": "T1",
+      "type": "school",
+      "notes": "School site."
+    },
+    {
+      "domain": "comillas.edu",
+      "label": "Comillas ICADE",
+      "tier": "T1",
+      "type": "school",
+      "notes": "School site."
+    }
   ],
   "tier_rules": {
     "T1": "School, accreditor, or standard-setter publication",
