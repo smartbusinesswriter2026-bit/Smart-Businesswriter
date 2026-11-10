@@ -64,10 +64,7 @@
   }
   .brand-mark {
     width: 36px; height: 36px; border-radius: 10px;
-    background: linear-gradient(135deg, #3C8771, #256355);
-    display: grid; place-items: center;
-    font-weight: 800; font-size: 14px; color: #fff;
-    letter-spacing: -.02em;
+    object-fit: contain; background: transparent;
   }
   .brand-name { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
   .brand-sub { font-size: 11px; color: var(--sidebar-muted); margin-top: 1px; }
@@ -327,7 +324,7 @@
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-mark">SB</div>
+      <img class="brand-mark" src="assets/mark.png" alt="Smart BusinessWriter">
       <div>
         <div class="brand-name">Smart BusinessWriter</div>
         <div class="brand-sub">Admin console</div>
