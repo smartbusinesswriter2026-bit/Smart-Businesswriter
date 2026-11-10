@@ -30,6 +30,10 @@ must have references.
 
 Decision B-268.
 
+**Also.** The guide expansion now replaces the deterministic draft only when it
+wrote at least as much as the draft it replaces, so a configured-but-failing
+model cannot empty the marketing plan.
+
 **Measured.** A live business-plan brief asking for Harvard renders its declared
 source as `City Health Department (2025) 'Community Kitchen Guidelines'`; the
 same brief in APA 7 renders it as `City Health Department (2025). Community

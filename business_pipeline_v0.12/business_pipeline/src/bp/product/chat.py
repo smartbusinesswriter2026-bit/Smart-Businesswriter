@@ -1262,17 +1262,23 @@ def silent(state, framework=None, words=None, style=None):
         state["profile_facts"] = profile_reader.read(state.get("brief") or "")
         expanded = profile_writer.write(state, state.get("brief"), profile)
         if expanded:
-            # The guide sections carry no reference list of their own, so the
-            # deterministic draft's references are the paper's references and
-            # they are carried across.
-            references = [item for item in (state.get("draft") or {}).get("sections") or []
-                          if _is_reference_section(item)]
-            state["draft"] = expanded
-            if references:
-                sections = state["draft"].get("sections") or []
-                if not any(_is_reference_section(row) for row in sections):
-                    sections.append(references[0])
-                    state["draft"]["sections"] = sections
+            current = (state.get("draft") or {}).get("sections") or []
+            # A guide writer that wrote less than the deterministic draft wrote
+            # nothing worth replacing it with: the model may be configured and
+            # still unable to answer.  The paper then keeps its own sections.
+            written = sum(1 for _title, lines in expanded.get("sections") or [] if lines)
+            present = sum(1 for _title, lines in current if lines)
+            if written >= present:
+                # The guide sections carry no reference list of their own, so
+                # the deterministic draft's references are the paper's
+                # references and they are carried across.
+                references = [item for item in current if _is_reference_section(item)]
+                state["draft"] = expanded
+                if references:
+                    sections = state["draft"].get("sections") or []
+                    if not any(_is_reference_section(row) for row in sections):
+                        sections.append(references[0])
+                        state["draft"]["sections"] = sections
         record = _profile_financials(state)
         if record:
             name = ((record.get("reading") or {}).get("fields") or {}).get("business.name")
